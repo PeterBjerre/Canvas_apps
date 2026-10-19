@@ -69,7 +69,7 @@ def test_show_sits_right_of_the_summary_not_in_the_title_row():
     samlede omkostning (Peter 2026-10-19)."""
     y, _ = _summary()
     top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "conVhpPlanFoldCost"]
+    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "bdgVhpPlanFoldCost"]
     body = _block(y, "conVhpPlanFoldBody", 40000)
     assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
     head = body[:body.index("Children:")]
@@ -96,3 +96,25 @@ def test_summary_width_and_height_leave_room_for_show():
     body = _block(y, "conVhpPlanFoldBody", 2000)
     bh = body[body.index("Height:"):body.index("Height:") + 400]
     assert "(36))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
+
+
+def _prop(block, prop):
+    """Vaerdien af en egenskab i en kontrol-blok (foerste forekomst)."""
+    i = block.index(f" {prop}: |-\n")
+    return block[i:].splitlines()[1].strip()
+
+
+def test_fold_cost_badge_is_hidden_without_a_total():
+    """Issue #421: Total cost i det foldede planhoved stod som en tom kasse
+    over Show. Maerket (bdgVhpPlanFoldCost, PR #424) er nu kun synligt, naar
+    planen har en sum over 0, og titlen regner kun med maerkets bredde, naar
+    det ses."""
+    y, _ = _summary()
+    badge = _block(y, "bdgVhpPlanFoldCost", 6000)
+    assert _prop(badge, "Visible") == "=IfError(Sum(colVhpOperations, Cost) > 0, false)"
+    title = _block(y, "txtVhpPlanFoldTitle", 3000)
+    assert "If(IfError(Sum(colVhpOperations, Cost) > 0, false), (" in _prop(title, "Width")
+    # Show bliver i resumeets raekke, hoejrestillet - uberoert af maerket.
+    body = _block(y, "conVhpPlanFoldBody", 40000)
+    assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
+    assert "LayoutJustifyContent.SpaceBetween" in body[:body.index("Children:")]

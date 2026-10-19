@@ -95,6 +95,19 @@ CLAUDE_TOKEN = "domain-mat"
 # gnisten blev for spinkel til at kunne genkendes. 2.6 ~ 1,5 px.
 CLAUDE_STROKE = 2.6
 
+# Issue Boards tre Applications uden en app (issue #415) - ikke domaener,
+# men de staar i samme tabel, saa EN opslagstabel (tools/app_icons.py)
+# giver alle Applications deres ikon og farve.
+# Navigation and shared layout: et kompas - ring og naal.
+NAVIGATION = ("M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z "
+              "M15.8 8.2l-2.3 5.3-5.3 2.3 2.3-5.3 5.3-2.3Z")
+# General: tre skydere - indstillinger, der gaelder det hele.
+GENERAL = "M3 5h7M14 5h7M14 3v4 M3 12h3M10 12h11M10 10v4 M3 19h11M18 19h3M18 17v4"
+# Other: tre prikker (ellipse). Smaa ringe, saa prikkerne kan ses i 14 px.
+OTHER = ("M6 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3Z "
+         "M12 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3Z "
+         "M18 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3Z")
+
 # Et ikon, der skal spejles vandret, tegnes med denne transform om
 # stien (viewBox 24). Bruges af Measuring Points lineal, saa den peger
 # samme vej som Equipments skruenoegle (issue #70).
@@ -110,6 +123,10 @@ DOMAIN = {
     "vhplan":             (MAINTENANCE_PLAN,    "domain-vhp",          False),
     "kks":                (KKS,                 "text-muted",         False),
     "issueboard":         (ISSUE_BOARD,         "text-muted",         False),
+    # Ingen app - kun Issue Boards Application (issue #415, tools/app_icons.py).
+    "navigation":         (NAVIGATION,          "app-nav",             False),
+    "general":            (GENERAL,             "app-general",         False),
+    "other":              (OTHER,               "app-other",           False),
 }
 
 

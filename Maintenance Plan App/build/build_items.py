@@ -147,9 +147,12 @@ OBJ_TOOLTIP = (
 # objekter - som tooltip'en viser - kunne ikke ses i popup'en. Kilden er den
 # samme som tooltip'ens (OBJ_CHOSEN, lokalt), saa der er intet ekstra kald.
 # ForAll over Sequence i stedet for Ungroup (se tools/fl_picker.items_fx).
+# I View (issue #406) er raekkerne kun de valgte objekter: der kan ikke
+# vaelges nye, saa kandidaterne fra soegningen vises ikke.
 OBJ_ROWS_FX = (
     "With(\n"
-    f"    {{ c: ForAll({OBJ_CANDIDATES} As F, {{ Code: F.Code, Description: F.Description }}) }},\n"
+    f"    {{ c: ForAll(Filter({OBJ_CANDIDATES}, !varVhpViewOnly) As F, "
+    "{ Code: F.Code, Description: F.Description }) },\n"
     "    With(\n"
     f"        {{ x: ForAll(Filter({OBJ_CHOSEN}, !(Code in c.Code)) As O,\n"
     f"                    {{ Code: O.Code, Description: {obj_desc_fx('O.Code', 'O.Description')} }}) }},\n"
@@ -621,7 +624,10 @@ def _obj_list_button(n_obj):
     valget ryddes."""
     w, h = fit_button_width('"Object list (000)"') + 28, 34
     done = f"({n_obj} > 0)"
-    off = f"(IsBlank(varVhpActiveItemId) || !({OBJ_HAS_DATA}))"
+    # I View (issue #406) kan knappen altid bruges paa et item: popup'en
+    # viser itemets objekter skrivebeskyttet. Soegningen er laast i View,
+    # saa kravet om data at vaelge imellem gaelder kun i Create og Edit.
+    off = f"(IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !({OBJ_HAS_DATA})))"
     hx = ref_hex
     edge = f"If({done}, {hx('state-ok-fg')}, {hx('border-default')})"
     ink = f"If({off}, {hx('text-muted')}, {done}, {hx('state-ok-fg')}, {hx('text-primary')})"
@@ -1073,9 +1079,12 @@ def build_object_list_modal():
                          "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)",
                          accessible="\"Close object list without changes\"")
 
+    # View (issue #406): popup'en viser kun itemets valgte objekter og
+    # siger, at den er skrivebeskyttet.
     under = text_ctrl(
         "txtVhpObjListFl",
         f"If(IsBlank({SEL_FL}), \"No functional location selected.\", "
+        f"varVhpViewOnly, \"Objects linked under \" & {SEL_FL} & \" - read-only.\", "
         f"\"Sub-objects under \" & {SEL_FL} & \" - \" & Text(CountRows({OBJ_CANDIDATES})) & \" found.\")",
         size=12, color=C_MUTED, height=18, wrap="false")
 
@@ -1142,13 +1151,17 @@ def build_object_list_modal():
         "txtVhpObjEmpty",
         (
             "If(\n"
+            "    varVhpViewOnly,\n"
+            "    \"No objects are linked to this item.\",\n"
             f"    IsBlank({SEL_FL}),\n"
             "    \"Choose a functional location first.\",\n"
             "    \"No results found. Search more broadly in the functional location field.\"\n"
             ")"
         ), size=12, color=C_MUTED, height=32, wrap="true",
-        # Tom kun, naar der hverken er kandidater eller gemte valg (#102).
-        visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0 && CountRows({OBJ_CHOSEN}) = 0, true)")
+        # Tom kun, naar der hverken er kandidater eller gemte valg (#102) -
+        # i View kun, naar itemet ingen valgte objekter har (issue #406).
+        visible=(f"IfError((varVhpViewOnly || CountRows({OBJ_CANDIDATES}) = 0) && "
+                 f"CountRows({OBJ_CHOSEN}) = 0, true)"))
 
     info = text_ctrl("txtVhpObjListInfo",
                      "Text(CountRows(colVhpObjDraft)) & \" selected\"",
@@ -1168,7 +1181,8 @@ def build_object_list_modal():
             "Clear(colVhpObjDraft);\n"
             "Set(varVhpObjListOpen, false)"
         ), primary=True, width=fit_button_width("\"Use selected\""), height=36,
-        display_mode=VIEW_LOCK)
+        # Skjult i View (issue #406) - popup'en er kun til at se objekterne.
+        display_mode=VIEW_LOCK, visible="!varVhpViewOnly")
     footer = group("conVhpObjListFooter", [info, btnUse], direction="Horizontal",
                    gap=8, height=36, align_items="Center")
 

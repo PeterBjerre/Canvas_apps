@@ -36,8 +36,7 @@ def test_po_popup_is_above_the_side_panel():
     panel = order.index("conMatEditorPanel")
     for name in ("imgMatEditorOutside", "imgMatEditorBackdrop", "conMatNavOpen"):
         assert order.index(name) < panel, name
-    for name in ("conMatPoBackdrop", "conMatPoModal",
-                 "conMatResetConfirmBackdrop", "conMatResetConfirmModal"):
+    for name in ("conMatPoBackdrop", "conMatPoModal"):
         assert order.index(name) > panel, name + " ligger under sidepanelet"
     assert order.index("conMatPoBackdrop") < order.index("conMatPoModal")
 

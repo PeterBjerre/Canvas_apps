@@ -83,6 +83,7 @@ from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex as _hex
 import icons
 import status_chip as sc
+import app_icons
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import SHELL_W, below, at_least, if_below
@@ -466,6 +467,12 @@ IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 // hentet. Ellers af Activity (Attachment-haendelserne fra foer #300), saa
 // fanen kan vise et tal uden at hente filerne.
 IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), Blank());'''
+
+# Application-kolonnens ikoner (issue #415): den FAELLES tabel
+# (tools/app_icons.py) - samme ikon og farve som sidebaren og hubben.
+# Regnet een gang pr. tema, ikke pr. raekke (som hubbens MdIcons).
+APP_ICONS = "IbAppIcons"
+FORMULAS += "\n" + app_icons.formula(APP_ICONS)
 
 
 # Statussen er den faelles statuschip (tools/status_chip.py, UX-review T4):
@@ -1035,6 +1042,40 @@ def _assigned_cell(txt):
                  height=20, width=COL_W["ASG"], align_items="Center")
 
 
+# Application med sit ikon foran (issue #415): det kompakte, farvede ikon
+# fra hubbens anmodningsliste (tools/app_icons.py) og navnet ved siden af.
+# Cellen er praecis lige saa bred som foer (COL_W["APP"]); teksten faar
+# resten efter ikonet og afkortes med ellipse som foer.
+APP_ICON_GAP = 6
+
+
+def _app_cell():
+    has = "!IsBlank(ThisItem.Application)"
+    img = Ctrl("imgIbRowApp", "Image", props={
+        # Pynt ved teksten. App checker kraever alligevel et tab stop og en
+        # etiket paa et Image (issue #165) - som hubbens domaeneikon.
+        "AccessibleLabel": '"Application icon: " & ThisItem.Application',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT,
+        "Height": str(app_icons.TILE),
+        "Image": app_icons.uri(APP_ICONS, "ThisItem.Application"),
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": str(app_icons.TILE),
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Visible": has,
+        "Width": str(app_icons.TILE),
+    }, h=app_icons.TILE, vis=has)
+    text_w = f'({COL_W["APP"]} - If({has}, {app_icons.TILE + APP_ICON_GAP}, 0))'
+    txt = text_ctrl("txtIbRowApp", "ThisItem.Application", size=lay.SIZE_BODY, height=20,
+                    width=text_w, wrap="false", accessible='"Application: " & Self.Text')
+    return group("conIbRowApp", [img, txt], direction="Horizontal", gap=APP_ICON_GAP,
+                 height=20, width=COL_W["APP"], align_items="Center",
+                 layout_min_width=COL_W["APP"])
+
+
 def _table_row():
     """Tabelraekken (Desktop og op) - een celle pr. kolonne i LIST_COLS."""
     def txt(name, key, expr, **kw):
@@ -1046,8 +1087,7 @@ def _table_row():
         # Kun titlen, paa een linje - en lang titel afkortes med ellipse.
         "TITLE": txt("txtIbRowTitle", "TITLE", "ThisItem.Title", weight="Semibold",
                      accessible='"Title: " & ThisItem.Title'),
-        "APP": txt("txtIbRowApp", "APP", "ThisItem.Application",
-                   accessible='"Application: " & Self.Text'),
+        "APP": _app_cell(),
         "SECTION": txt("txtIbRowSection", "SECTION", "ThisItem.Section", color=C_MUTED,
                        accessible='"Section: " & Self.Text'),
         "REQ": txt("txtIbRowReq", "REQ", requester("ThisItem"),
@@ -1234,12 +1274,29 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
     if own_scroll:
         parts = [head] + rest + ([foot] if foot is not None else [])
     else:
-        fixed = f"({head.h})" + (f" + {POP_GAP} + ({foot.h})" if foot is not None else "")
-        room = f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - {POP_GAP} - {fixed}"
-        natural = stack_height(rest, POP_GAP)
+        # Issue #413: hele det faste (hoved, fod og deres luft) traekkes fra -
+        # foer stod foden uden parentes, saa dens hoejde blev LAGT TIL pladsen,
+        # kroppen blev for hoej, og Save changes blev skubbet ud under kanten
+        # (modalen klipper), naar "Add more details" var foldet ud.
+        foot_parts = []
+        if foot is not None and side_panel:
+            # Sidepanelet: en tynd streg skiller den faste fod fra det, der
+            # scroller - og kroppen har luft forneden, saa det sidste felt
+            # (Resolution) ikke staar klemt op mod foden.
+            foot_parts.append(group(f"con{prefix}FootRule", [], direction="Horizontal",
+                                    height=1, fill=C_DIVIDER))
+        if foot is not None:
+            foot_parts.append(foot)
+        fixed = " + ".join([f"({head.h})"] + [f"{POP_GAP} + ({f.h})" for f in foot_parts])
+        # Sidepanelet staar i fuld hoejde (App.Height) uden margen omkring.
+        margin = "" if side_panel else f" - {2 * POP_MARGIN}"
+        room = f"App.Height{margin} - {2 * POP_PAD} - {POP_GAP} - ({fixed})"
+        body_pad_b = 8 if side_panel and foot is not None else 0
+        natural = stack_height(rest, POP_GAP, pad_b=body_pad_b)
         body = group(f"con{prefix}Body", rest, direction="Vertical", gap=POP_GAP,
-                     height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll")
-        parts = [head, body] + ([foot] if foot is not None else [])
+                     height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll",
+                     pad=(0, 0, body_pad_b, 0) if body_pad_b else None)
+        parts = [head, body] + foot_parts
     modal = group(f"con{prefix}Modal", parts, direction="Vertical", gap=POP_GAP, fill=C_MODAL_BG,
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
@@ -1800,6 +1857,9 @@ DETAIL_PANEL_W = lay.PANEL_W_AT
 DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
 DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
+# Kommentarfeltet (issue #411): hoejden og ikonets afstand til feltets kant.
+COMMENT_H = 72
+SEND_INSET = 4
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 # Indholdsfladen i sagens popup: mindst saa hoej, naar skaermen tillader det -
@@ -1838,8 +1898,8 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
 # igen: intet blink, intet ekstra kald. Rollen er flowets egen regel (Admin,
 # naar en admin skriver paa en andens sag).
 #
-# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Intet sloer over hele skaermen: feltet erstattes af et lille hjul
-# med en tekst, der skifter (varIbPostStage: "posting" -> "updating" ->
+# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Intet sloer over hele skaermen: send-ikonet erstattes af et lille hjul
+# (issue #411) og teksten under feltet skifter (varIbPostStage: "posting" -> "updating" ->
 # "done" eller "failed"). Resten af appen kan bruges imens. Teksten, sagen og
 # "intern" gemmes FOER kaldet (varIbPostText/-For/-Internal): svaret skrives
 # paa den sag, kommentaren hoerer til, ogsaa hvis man har aabnet en anden
@@ -2381,17 +2441,66 @@ def build_detail():
     # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
     # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
     # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
+    # KOMMENTARFELTET MED SEND-IKONET (issue #411). Feltet og ikonet staar i
+    # EEN ManualLayout-container (conIbCommentBox), der er lige saa bred som
+    # Activity-fanens indhold (Parent.Width - ingen egen bredde): ikonet
+    # ligger nederst til hoejre inden i feltet, og feltet har polstring til
+    # hoejre, saa teksten aldrig loeber ind under ikonet. Venstre polstring
+    # er ACT_ROW_PAD - teksten flugter med teksten i kommentarerne over.
+    # Mens kommentaren sendes, staar et lille hjul i ikonets sted (kun
+    # her), feltet er skrivebeskyttet, og teksten under feltet siger, hvor
+    # langt den er (issue #370's trin). Toemmes foerst ved succes.
+    #
+    # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
+    # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
+    # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
     comment = text_input("inpIbComment", f'If({POST_FAILED_HERE}, varIbPostText, "")',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
                                       '"Write a comment for the administrators")'),
-                         max_length=2000, height=72, ttype="Multiline", label='"Comment"')
-    # Post comment laases op, mens man skriver - ikke foerst, naar feltet
-    # mister fokus (saa ville det foerste klik paa knappen gaa tabt).
+                         max_length=2000, height=COMMENT_H, ttype="Multiline", label='"Comment"',
+                         display_mode=f"If({POSTING_HERE}, DisplayMode.View, DisplayMode.Edit)")
+    # Send-ikonet laases op, mens man skriver - ikke foerst, naar feltet
+    # mister fokus (saa ville det foerste klik paa ikonet gaa tabt).
     comment.props["TriggerOutput"] = "TriggerOutput.Keypress"
+    comment.props.pop("LayoutMinWidth", None)
+    comment.props.update({
+        "X": "0", "Y": "0", "Width": "Parent.Width",
+        "PaddingLeft": str(ACT_ROW_PAD),
+        "PaddingRight": f"{lay.HIT} + {2 * SEND_INSET}",
+        "PaddingTop": "8", "PaddingBottom": "8",
+    })
+    send_label = 'If(varIbInternal, "Add internal note", "Post comment")'
+    post = button("btnIbPost", send_label, POST, width=lay.HIT, height=lay.HIT, icon="Send",
+                  accessible=send_label, tooltip=send_label,
+                  display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
+                                "DisplayMode.Disabled, DisplayMode.Edit)"),
+                  visible=f"!({POSTING_HERE})")
+    for k in ("AlignInContainer", "LayoutMinWidth", "BorderColor", "BorderThickness"):
+        post.props.pop(k, None)
+    post.props.update({
+        "Layout": "ButtonLayout.IconOnly",
+        "Appearance": "ButtonAppearance.Transparent",
+        "BasePaletteColor": C_PRIMARY,
+        "Color": C_PRIMARY,
+        "X": f"Parent.Width - Self.Width - {SEND_INSET}",
+        "Y": f"Parent.Height - Self.Height - {SEND_INSET}",
+    })
+    post_spin = spinner("spnIbPosting", POSTING_HERE, POST_STAGE_TEXT,
+                        width=lay.HIT, height=lay.HIT)
+    post_spin.props.update({
+        "X": f"Parent.Width - Self.Width - {SEND_INSET}",
+        "Y": f"Parent.Height - Self.Height - {SEND_INSET}",
+    })
+    box = Ctrl("conIbCommentBox", "GroupContainer", variant="ManualLayout", props={
+        "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+        "FillPortions": "0", "Height": str(COMMENT_H), "LayoutMinWidth": "0",
+        "Width": "Parent.Width",
+    }, children=[comment, post, post_spin], h=COMMENT_H)
     internal = Ctrl("chkIbInternal", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Internal note - only administrators can see it"',
         "Default": "varIbInternal",
+        "DisplayMode": f"If({POSTING_HERE}, DisplayMode.Disabled, DisplayMode.Edit)",
         "Height": "24",
         "Label": '"Internal note - only administrators can see it"',
         "OnCheck": "Set(varIbInternal, true)",
@@ -2399,32 +2508,19 @@ def build_detail():
         "Visible": IS_ADMIN,
         "Width": "Parent.Width",
     }), h=24, vis=IS_ADMIN)
-    closed_hint = text_ctrl(
-        "txtIbCommentHint",
-        f'If(varIbInternal, "Internal notes are never shown to the reporter.", '
-        f'{SEL}.Status = "{cfg.STATUS_CLOSED}", '
-        '"This issue is closed. If the problem is back, select Reopen - or add a comment.", '
-        '"Comments are visible to the reporter and the administrators only.")',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    post = button("btnIbPost", 'If(varIbInternal, "Add internal note", "Post comment")', POST,
-                  primary=True, width=fit_button_width('"Add internal note"') + ICON_W, height=36,
-                  icon="Send",
-                  display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
-                                "DisplayMode.Disabled, DisplayMode.Edit)"))
-    post.props["AlignInContainer"] = "AlignInContainer.End"
-    composer = group("conIbComposer", [comment, internal, closed_hint, post], direction="Vertical",
-                     gap=8, visible=f"IbCanComment && !({POSTING_HERE})")
-    # Mens kommentaren sendes (issue #370): feltet er skiftet ud med et lille
-    # hjul og en tekst, der viser, hvor langt den er. Kun her - intet sloer.
-    post_spin = spinner("spnIbPosting", "true", POST_STAGE_TEXT, width="Parent.Width", height=32,
-                        label=POST_STAGE_TEXT, size=lay.SIZE_BODY, weight="Semibold")
-    post_spin.props["LayoutMinWidth"] = "0"
-    post_note = text_ctrl("txtIbPostingNote",
-                          '"You can keep using the app meanwhile."',
-                          size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    posting = group("conIbPosting", [post_spin, post_note], direction="Vertical", gap=4,
-                    fill=C_MUTED_BG, radius=10, pad=(12, 12, 12, 12),
-                    visible=f"IbCanComment && ({POSTING_HERE})")
+    # Hjaelpeteksten er kun saa hoej, som teksten kraever (een linje paa en
+    # bred skaerm) - ikke en fast to-linjers flade. Mens der sendes, siger
+    # den, hvor langt kommentaren er (som hjulets tekst foer #411).
+    hint_fx = (f'If({POSTING_HERE}, {POST_STAGE_TEXT} & " You can keep using the app meanwhile.", '
+               f'varIbInternal, "Internal notes are never shown to the reporter.", '
+               f'{SEL}.Status = "{cfg.STATUS_CLOSED}", '
+               '"This issue is closed. If the problem is back, select Reopen - or add a comment.", '
+               '"Comments are visible to the reporter and the administrators only.")')
+    hint_h = f"Max(18, {_lines_h(hint_fx, DET_IN, px=6.6, line_h=17)})"
+    closed_hint = text_ctrl("txtIbCommentHint", hint_fx, size=lay.SIZE_SMALL, color=C_MUTED,
+                            height=hint_h, wrap="true")
+    composer = group("conIbComposer", [box, internal, closed_hint], direction="Vertical",
+                     gap=4, visible="IbCanComment")
     # Sendt: en kort bekraeftelse over det tomme felt - timeren (tmrIbPost)
     # fjerner den efter et par sekunder, og den gaar ogsaa, naar man skriver.
     posted = text_ctrl("txtIbPosted",
@@ -2455,9 +2551,9 @@ def build_detail():
                               'closed."',
                               size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                               visible=f"{SEL}.Archived")
-    activity = group("conIbDetActivity", [act_state, gal, posted, failed, posting, composer,
+    activity = group("conIbDetActivity", [act_state, gal, posted, failed, composer,
                                           archived_hint],
-                     direction="Vertical", gap=12, visible='IbSeeActivity && varIbTab = "activity"')
+                     direction="Vertical", gap=8, visible='IbSeeActivity && varIbTab = "activity"')
 
     # STABIL HOEJDE (issue #212). Toppen - status, fakta, handlingerne og
     # fanerne - staar fast; under den EEN indholdsflade med samme hoejde for

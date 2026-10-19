@@ -166,6 +166,13 @@ LIGHT = {
     'domain-mp-soft':  "RGBA(238, 240, 236, 1)",
     'domain-mat-soft': "RGBA(243, 238, 237, 1)",
     'domain-vhp-soft': "RGBA(243, 236, 245, 1)",
+
+    # --- Issue Boards Applications uden en app (issue #415,
+    #     tools/app_icons.py): kompasset, skyderne og prikkerne. Indigo,
+    #     en blaagraa og en ren graa - ikonfarver (3:1), ikke domaener ---
+    'app-nav':     "RGBA(76, 78, 184, 1)",
+    'app-general': "RGBA(74, 118, 146, 1)",
+    'app-other':   "RGBA(118, 118, 118, 1)",
 }
 
 
@@ -282,6 +289,11 @@ DARK = {
     'domain-mp-soft':  "RGBA(41, 52, 53, 1)",
     'domain-mat-soft': "RGBA(49, 45, 53, 1)",
     'domain-vhp-soft': "RGBA(48, 40, 70, 1)",
+
+    # --- Issue Boards Applications uden en app (issue #415) ---
+    'app-nav':     "RGBA(150, 156, 246, 1)",
+    'app-general': "RGBA(132, 180, 206, 1)",
+    'app-other':   "RGBA(160, 160, 160, 1)",
 }
 
 
@@ -400,7 +412,9 @@ CONTRAST = (
     [(fg, "domain-%s-soft" % d, TEXT_MIN) for d in ("fl", "eq", "mp", "mat", "vhp")
      for fg in ("text-primary", "text-muted")] +
     [("domain-%s" % d, "domain-%s-soft" % d, UI_MIN)
-     for d in ("fl", "eq", "mp", "mat", "vhp")]
+     for d in ("fl", "eq", "mp", "mat", "vhp")] +
+    # Issue Boards Application-ikoner (issue #415): ikonet paa kortet.
+    [(fg, "bg-card", UI_MIN) for fg in ("app-nav", "app-general", "app-other")]
 )
 
 
@@ -642,6 +656,8 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # domaeneikonerne og statusikonerne er SVG'er i de samme farver.
                "domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp",
                "state-error-fg", "state-neutral-fg",
+               # Issue Boards Application-ikoner (tools/app_icons.py, #415).
+               "app-nav", "app-general", "app-other",
                "state-violet-fg", "state-lime-fg", "state-rose-fg",
                # Skillelinjerne i FL-strukturens tabel (issue #77) - de samme
                # som C_DIVIDER i galleriernes raekker.

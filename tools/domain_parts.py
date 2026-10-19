@@ -894,6 +894,67 @@ def new_row_fx():
     return clear_form_fx() + ";\nSet(varDomEditorOpen, true)"
 
 
+def form_dirty_fx(extra_new=()):
+    """Er der ugemte aendringer i formularen? (issue #228, #403)
+
+    En NY raekke: noget er udfyldt ud over standardvaerdierne (extra_new:
+    appens egne betingelser, fx Materials' objekter paa en kopi). En
+    HENTET raekke: formularen er ikke den samme som den GEMTE raekke i
+    colDomRows - samme sammenligning, som admin-loggen bruger
+    (admin_log.diff)."""
+    # Vaerket: en ny raekke faar det sidst valgte (clear_form_fx), saa det
+    # er kun en aendring, naar det er et andet.
+    new = ['!IsBlank(Trim(Coalesce(varDomFText, "")))',
+           f'Coalesce(varDomFPlant, "") <> {tok.pref_get("prefDomNewPlant")}',
+           *extra_new]
+    defaults = HOOKS["field_defaults"]
+    for col, _l, kind, _ch in FIELDS:
+        v = _var(col)
+        if col in defaults:
+            new.append(f'Coalesce({v}, "") <> {defaults[col]}')
+        elif kind == "bool":
+            new.append(f"Coalesce({v}, false)")
+        elif kind in ("num", "date"):
+            new.append(f"!IsBlank({v})")
+        else:
+            new.append(f'!IsBlank(Trim(Coalesce({v}, "")))')
+    changed = (f"!IsBlank(With({{ o: {ACTIVE} }},\n"
+               + _indent(alog.diff(_diff_pairs()), 4) + "\n))")
+    return ("If(\n    IsBlank(varDomActiveRowId),\n    "
+            + " ||\n    ".join(new) + ",\n    " + changed + "\n)")
+
+
+def reset_form_fx():
+    """Sidepanelets Reset (issue #403, #405): KUN de ugemte aendringer
+    kasseres. En gemt raekke faar sine SENESTE gemte vaerdier igen - den
+    samme indlaesning som Previous/Next (load_row_fx mod colDomRows, som
+    Save opdaterer), saa variabler, FL-vaelgeren og appens egne kroge
+    (load_extra, details_open) nulstilles ens. En ny, ugemt raekke ryddes
+    til standardvaerdierne. Panelet bliver aabent.
+
+    Ingen bekraeftelse og intet sloer: knappen er slaaet fra, naar der
+    intet er at kassere (reset_mode), og der er derfor intet overlay, der
+    kan blive haengende (issue #405). Ingen ventevariabel saettes."""
+    load = load_row_fx().replace("ThisItem.", ACTIVE + ".")
+    return (f"If(\n    IsBlank({ACTIVE}),\n{_indent(new_row_fx(), 4)},\n"
+            f"{_indent(load, 4)}\n)")
+
+
+def reset_mode(extra_new=()):
+    """Reset er slaaet fra i visning, og naar formularen allerede er den
+    gemte raekke (issue #403)."""
+    dirty = form_dirty_fx(extra_new).replace("\n", " ")
+    return (f"If(IfError(varDomViewOnly, false) || !({dirty}), "
+            "DisplayMode.Disabled, DisplayMode.Edit)")
+
+
+def reset_button(extra_new=()):
+    """Reset i sidepanelets bundbjaelke (tools/domain_app._row_editor)."""
+    return button("btnDomNew", '"Reset"', reset_form_fx(),
+                  display_mode=reset_mode(extra_new),
+                  tooltip='"Undo the unsaved changes to this row"')
+
+
 def copy_row_fx():
     """Kopier raekken til en NY, ugemt raekke i formularen.
 
