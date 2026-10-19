@@ -141,6 +141,17 @@ AUTHOR_ROLES = ["Reporter", "Admin", "System"]
 # Reporter = rapportoeren og admins kan se den. Internal = kun admins.
 VISIBILITY = ["Reporter", "Internal"]
 
+# CLAUDE som "Assigned to" (issue #423). CLAUDE er ingen M365-bruger, saa
+# AssignedToEmail faar en fast markoer UDEN @: den kan aldrig vaere en
+# brugers mail (varIbMe), saa "Assigned to me" rammer den aldrig, og den
+# er ingen gyldig adresse. Flowet BioSap-IssueBoard-Submit sender kun mail
+# til rapportoeren - aldrig til AssignedToEmail - og skriver "Assigned to
+# CLAUDE." i Activity (toUpper af delen foer @). Navnet er det samme, som
+# appen selv regner ud af markoeren (_initials: delen foer @ med store
+# bogstaver), saa gem-logikken er uaendret.
+CLAUDE_EMAIL = "claude"
+CLAUDE_NAME = "CLAUDE"
+
 # "Other" i Application eller Section kraever en beskrivelse.
 OTHER = "Other"
 

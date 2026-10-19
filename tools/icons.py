@@ -83,6 +83,18 @@ KKS = "M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1
 ISSUE_BOARD = ("M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3"
                "a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2")
 
+# CLAUDE som "Assigned to" i Issue Board (issue #423): en lille straalende
+# gnist - otte straaler om et tomt midtpunkt, de skraa lidt kortere. En
+# generisk form, IKKE Anthropics logo kopieret; farven er en orange token
+# (domain-mat), saa den foelger temaet. Vises kun i oversigtens kolonne
+# Assigned to, ved siden af navnet - ikke i dropdown'en.
+CLAUDE = ("M12 2.5v6.5M12 15v6.5M2.5 12H9M15 12h6.5 "
+          "M5.6 5.6l3.2 3.2M15.2 15.2l3.2 3.2M18.4 5.6l-3.2 3.2M8.8 15.2l-3.2 3.2")
+CLAUDE_TOKEN = "domain-mat"
+# Stregen i gitterenheder: ved 14 px giver stroke() 2.0 (~1,2 px), og
+# gnisten blev for spinkel til at kunne genkendes. 2.6 ~ 1,5 px.
+CLAUDE_STROKE = 2.6
+
 # Issue Boards tre Applications uden en app (issue #415) - ikke domaener,
 # men de staar i samme tabel, saa EN opslagstabel (tools/app_icons.py)
 # giver alle Applications deres ikon og farve.
