@@ -219,19 +219,20 @@ def test_replaced_material_no_is_required_only_when_it_replaces_one():
             in _prop("btnMatSave", "OnSelect"))
 
 
-def test_purchase_order_text_is_remarks_in_a_popup_with_close_only():
+def test_purchase_order_text_is_remarks_in_a_popup():
     y = _mat()
     assert '"Remarks"' not in y
     # Kolonnen er stadig Remarks.
     assert 'Remarks: Trim(Coalesce(varMatFRemarks, ""))' in _prop("btnMatSave", "OnSelect")
     assert _prop("inpMatPoText", "Type") == "TextInputType.Multiline"
     assert _prop("inpMatPoText", "OnChange") == "Set(varMatFRemarks, Self.Text)"
-    assert _prop("btnMatPoText", "OnSelect") == "Set(varMatPoOpen, true)"
-    # Close er den eneste vej ud - et tryk paa sloeret lukker ikke.
-    # Close tager teksten med, saa intet skrevet gaar tabt (issue #279).
+    assert _prop("btnMatPoText", "OnSelect").endswith("Set(varMatPoOpen, true)")
+    # Save tager teksten med, saa intet skrevet gaar tabt; X og Cancel
+    # kasserer aendringerne (issue #279, #429). Et tryk paa sloeret lukker ikke.
+    assert "Set(varMatFRemarks, inpMatPoText.Text)" in _prop("btnMatPoSave", "OnSelect")
     close = _prop("btnMatPoClose", "OnSelect")
     assert close.endswith("Set(varMatPoOpen, false)")
-    assert "Set(varMatFRemarks, inpMatPoText.Text)" in close
+    assert "Set(varMatFRemarks, varMatPoBefore)" in close
     assert "varMatPoOpen" not in _prop("conMatPoBackdrop", "OnSelect")
 
 
