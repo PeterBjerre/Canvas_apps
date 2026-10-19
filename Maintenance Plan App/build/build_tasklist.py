@@ -38,6 +38,10 @@ from build_modal import NEXT_OP_BASE
 att = build_attflows.PANE
 
 DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
+# VIEW-TILSTAND LAASER ALT (issue #390): knapper, der aendrer data, er
+# slaaet fra; afkrydsninger staar i View, saa deres flueben stadig ses.
+VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
+VIEW_READONLY = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
 
 # ---------------------------------------------------------------------------
@@ -219,6 +223,9 @@ def _matgrp_modal():
                   f"Patch(colVhpOperations, {MG_OP}, {{ MaterialGroup: ThisItem.Value }});\n{MG_CLOSE}",
                   '"Use material group " & ThisItem.Display', "Parent.TemplateWidth",
                   "Parent.TemplateHeight - 2")
+    # Popup'en aabnes kun fra en knap, der er slaaet fra i View - men et
+    # klik paa listen maa heller ikke skrive der (issue #390).
+    hit.props["DisplayMode"] = VIEW_READONLY
     gal_h = f"Min(CountRows(colVhpMaterialGroups) * {row_h}, Max(160, App.Height - 220))"
     gal = Ctrl("galVhpMatGroups", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Material groups - select one to use it"',
@@ -467,7 +474,8 @@ def _materials_modal():
             "    }\n"
             ");\n"
             "Notify(\"Material line added.\", NotificationType.Success)"
-        ), primary=True, width=fit_button_width('"Add material"'))
+        ), primary=True, width=fit_button_width('"Add material"'),
+        display_mode=VIEW_LOCK)
 
     btnRemove = button(
         "btnVhpRemoveMaterial", '"Remove material"',
@@ -476,7 +484,7 @@ def _materials_modal():
             "OperationNo = varVhpMatOpNo, Selected = true);\n"
             "Notify(\"Removed the selected material lines.\", NotificationType.Success)"
         ), danger=True, width=fit_button_width('"Remove material"'),
-        display_mode=(f"If(CountRows(Filter({MAT_OP}, Selected = true)) = 0, "
+        display_mode=(f"If(varVhpViewOnly || CountRows(Filter({MAT_OP}, Selected = true)) = 0, "
                       "DisplayMode.Disabled, DisplayMode.Edit)"))
 
     actions = group("conVhpMatActions", [btnAdd, btnRemove], direction="Horizontal", gap=8,
@@ -499,6 +507,8 @@ def _materials_modal():
         "OnUncheck": "Patch(colVhpMaterials, ThisItem, { Selected: false })",
         "Width": str(w["SEL"]),
     }), h=24)
+    # View: valget vises, men kan ikke slaas til/fra (issue #390).
+    chkSel.props["DisplayMode"] = VIEW_READONLY
     txtNo = text_input("inpVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
                        onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Material number\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
@@ -789,7 +799,8 @@ def _op_detail_modal():
                   width=fit_button_width('"Docs (00)"'), height=32)
     rem = button("btnVhpOpMRemove", '"Remove"',
                  "RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);\n"
-                 'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32)
+                 'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32,
+                 display_mode=DM_ITEM)
     actions = flow_row("conVhpOpMActions", [mats, docs, rem], MODAL_CW, gap=8)
 
     on_op = lambda s: s.replace("ThisItem", OPM)
@@ -818,6 +829,8 @@ def _op_detail_modal():
          'Reset(inpVhpLongTextBox);\n'
          'Set(varVhpLongTextOpen, true)'),
         width=MODAL_CW, height=32, icon="DocumentText",
+        display_mode=(f"If(varVhpViewOnly && IsBlank(Trim(Coalesce({OPM}.LongText, \"\"))), "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"),
         accessible='"Edit long text for operation " & varVhpOpMNo')
     # Samme piller som i tabellens raekke (build_strategy.pkg_pills).
     m_pills = f"({IS_STRATEGY} && {HAS_PKGS})"
