@@ -55,6 +55,9 @@
     de karakteristikker, der bruges til maalepunkter i SAP (CT04).
     Kolonnerne skal hedde det samme som i seedet.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-MeasuringPointLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
 
@@ -79,6 +82,7 @@ param(
     [switch] $Force,
     [string] $CharacteristicSeedPath,
     [string] $ApproverSeedPath,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID,
     [switch] $DeviceLogin
 )
@@ -112,6 +116,7 @@ $LIBRARY = 'TaskListDocuments'
 
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId -DeviceLogin:$DeviceLogin
+Set-MdWhatIf $WhatIfOnly
 
 if (-not $CharacteristicSeedPath) {
     $CharacteristicSeedPath = Join-Path $PSScriptRoot '..\seed\MD_MpCharacteristic.csv'
@@ -144,7 +149,9 @@ function New-MeasuringPointList {
     # derfor foerst dannes, NAAR raekken findes. Med EnforceUniqueValues
     # ville raekke nummer to blive afvist paa den tomme vaerdi.
     New-MdField 'MeasuringPointItems' 'ItemKey'          Text -Indexed
-    Set-PnPField -List 'MeasuringPointItems' -Identity 'ItemKey' -Values @{ EnforceUniqueValues = $false }
+    if (-not $WhatIfOnly) {
+        Set-PnPField -List 'MeasuringPointItems' -Identity 'ItemKey' -Values @{ EnforceUniqueValues = $false }
+    }
 
     New-MdField 'MeasuringPointItems' 'AttachmentFolder' Text
     New-MdField 'MeasuringPointItems' 'FileCount'        Number
@@ -227,8 +234,12 @@ function New-CharacteristicList {
 
     # Title er karakteristikkens navn, som det staar i SAP (RUNNING_HOURS).
     # Den er obligatorisk i forvejen og bruges derfor til noeglen.
-    Set-PnPField -List 'MD_MpCharacteristic' -Identity 'Title' -Values @{ Indexed = $true; Required = $true }
-    Write-Host "    ~ Title: indekseret og kraevet" -ForegroundColor Green
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville goere Title indekseret og kraevet" -ForegroundColor Yellow
+    } else {
+        Set-PnPField -List 'MD_MpCharacteristic' -Identity 'Title' -Values @{ Indexed = $true; Required = $true }
+        Write-Host "    ~ Title: indekseret og kraevet" -ForegroundColor Green
+    }
 
     New-MdField 'MD_MpCharacteristic' 'Description'          Text
     New-MdField 'MD_MpCharacteristic' 'Unit'                 Text -Required
@@ -247,6 +258,10 @@ function New-CharacteristicList {
 # ---------------------------------------------------------------------------
 function Set-MdView {
     param([string]$List, [string[]]$Fields)
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville saette standardvisningen paa $List" -ForegroundColor Yellow
+        return
+    }
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if (-not $view) { return }
     Set-PnPView -List $List -Identity $view.Id -Fields $Fields -Values @{
@@ -366,7 +381,10 @@ New-CharacteristicList
 Set-MdView 'MD_MpCharacteristic' @('Title', 'Description', 'Unit', 'UnitDescription',
                                    'MeasuringPointType', 'DefaultDecimalPlaces', 'Active')
 
-if ($Seed) {
+if ($Seed -and $WhatIfOnly) {
+    Write-Host "`n  ? ville seede MD_MpCharacteristic fra $CharacteristicSeedPath" -ForegroundColor Yellow
+    Write-Host "  ? ville seede PRODOS-raekkerne i MD_Approver fra $ApproverSeedPath" -ForegroundColor Yellow
+} elseif ($Seed) {
     Seed-Characteristics
     Seed-ProdosCreators
 }

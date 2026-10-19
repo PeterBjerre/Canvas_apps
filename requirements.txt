@@ -13,11 +13,14 @@ PyYAML>=6.0
 # Kun tools/extract_spool_lists.py (udtraek af SPOOL-lister fra .xlsm).
 openpyxl>=3.1
 
-# Ikke paakraevet af byggeriet: tests og ubrugte imports.
-#   python3 -m pytest tests
+# Lint-porten i tools/build_all.py (fuld bygning, R2-063): ubrugte imports
+# og udefinerede navne stopper byggeriet. Samme tjek i haanden:
 #   python3 -m pyflakes tools/*.py */build/*.py
-pytest>=8.0
 pyflakes>=3.0
+
+# Ikke paakraevet af byggeriet: testene.
+#   python3 -m pytest tests
+pytest>=8.0
 
 # tests/test_sap_contract.py: eksempelordren og -kvitteringen valideres mod
 # schema/vhplan-sap-*.schema.json. Mangler pakken, springes den test over.

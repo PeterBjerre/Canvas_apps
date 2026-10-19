@@ -17,8 +17,11 @@ VH = os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml")
 HUB = os.path.join(ROOT, "BIO SAP App", "ScreenMdHub.pa.yaml")
 FLOWS = os.path.join(ROOT, "solution", "BIOSAP", "src", "Workflows")
 
+# Gemningen regner paa samme status som indlaesningen: AfventerInfo, naar
+# planen selv staar i Returned (R2-036).
+_IDX_ST = 'If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value)'
 OWNER_BACK = ('Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && '
-              '(varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo")')
+              '(%s = "Kladde" || %s = "AfventerInfo")' % (_IDX_ST, _IDX_ST))
 
 
 def _vh():

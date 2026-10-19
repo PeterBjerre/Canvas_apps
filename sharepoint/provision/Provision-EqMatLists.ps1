@@ -52,6 +52,9 @@
     den, naar det almindelige login-vindue ikke kan aabnes eller lukker
     sig selv.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-EqMatLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
 
@@ -72,6 +75,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [ValidateSet('Equipment', 'Material', 'Both')][string] $Domain = 'Both',
     [switch] $SkipLibrary,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID,
     [switch] $DeviceLogin
 )
@@ -98,6 +102,7 @@ $LIBRARY = 'TaskListDocuments'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId -DeviceLogin:$DeviceLogin
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # Det der binder en portion raekker sammen
@@ -135,7 +140,9 @@ function Add-BatchColumns {
     # -Values saettes eksplicit, saa en KOER IGEN ogsaa fjerner kravet fra
     # en liste, der allerede er oprettet med det.
     New-MdField $List 'ItemKey'        Text -Indexed
-    Set-PnPField -List $List -Identity 'ItemKey' -Values @{ EnforceUniqueValues = $false }
+    if (-not $WhatIfOnly) {
+        Set-PnPField -List $List -Identity 'ItemKey' -Values @{ EnforceUniqueValues = $false }
+    }
 
     # Skrives eksplicit, selv om den kan regnes ud af ItemKey. Flowet
     # gaetter ikke, og den, der aabner listen i browseren, kan se hvor
@@ -328,6 +335,10 @@ function New-MaterialList {
 # ---------------------------------------------------------------------------
 function Set-MdView {
     param([string]$List, [string[]]$Fields)
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville saette standardvisningen paa $List" -ForegroundColor Yellow
+        return
+    }
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if (-not $view) { return }
     Set-PnPView -List $List -Identity $view.Id -Fields $Fields -Values @{
@@ -374,6 +385,10 @@ function Test-DocumentLibrary {
 # ---------------------------------------------------------------------------
 function Enable-MdAttachments {
     param([string]$List)
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville slaa vedhaeftninger til paa $List" -ForegroundColor Yellow
+        return
+    }
     if (Get-PnPList -Identity $List -ErrorAction SilentlyContinue) {
         Set-PnPList -Identity $List -EnableAttachments $true | Out-Null
         Write-Host "    ~ vedhaeftninger slaaet til paa $List" -ForegroundColor Green

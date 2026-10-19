@@ -2,9 +2,17 @@
 # det, builderne laver. Samme kommando som lokalt: python3 tools/build_all.py
 name: build
 
+# push kun paa main: et push til en PR-gren koeres af pull_request, saa det
+# ikke koerer to gange (R2-090). Et nyt push annullerer den forrige koersel
+# paa samme gren.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -35,3 +43,24 @@ jobs:
 
       - name: Tests (plantede fejl)
         run: python3 -m pytest -q tests
+
+  # VBA-modulerne (excel/opretter/*.bas) oversat og koert i LibreOffice
+  # Basic (tests/test_vba_runner.py, R2-066). I jobbet ovenfor springes de
+  # over: dér er hverken soffice eller python3-uno. python3-uno binder til
+  # systemets Python, ikke setup-pythons, saa jobbet bruger /usr/bin/python3
+  # og apt's pytest. VBA_LO_REQUIRED=1 goer et manglende LibreOffice til en
+  # fejl i stedet for et stille "skipped".
+  vba-lo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: LibreOffice og Python-UNO
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-calc python3-uno python3-pytest
+
+      - name: VBA i LibreOffice (oversaettelse og rene funktioner)
+        env:
+          VBA_LO_REQUIRED: "1"
+        run: /usr/bin/python3 -m pytest -q tests/test_vba_runner.py -rs

@@ -22,6 +22,13 @@
                 "$authentication": {
                     "defaultValue": {},
                     "type": "SecureObject"
+                },
+                "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)": {
+                    "defaultValue": "sapvedligehold@orsted.com",
+                    "type": "String",
+                    "metadata": {
+                        "schemaName": "orsted_BioSapMasterDataEmail"
+                    }
                 }
             },
             "triggers": {
@@ -125,7 +132,7 @@
                         "operationMetadataId": "9f3b7c2e-6d1a-4e58-b2c7-1a0d9e8f3b64"
                     },
                     "type": "Compose",
-                    "inputs": "sapvedligehold@orsted.com"
+                    "inputs": "@toLower(trim(parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')))"
                 },
                 "Message_html": {
                     "runAfter": {
@@ -225,15 +232,17 @@
                     "expression": {
                         "and": [
                             {
-                                "equals": [
-                                    "@toLower(trim(coalesce(triggerBody()?['text'], '')))",
-                                    "@outputs('Mailbox')"
-                                ]
+                                "not": {
+                                    "equals": [
+                                        "@outputs('Caller')",
+                                        ""
+                                    ]
+                                }
                             },
                             {
                                 "not": {
                                     "equals": [
-                                        "@outputs('Caller')",
+                                        "@outputs('Mailbox')",
                                         ""
                                     ]
                                 }

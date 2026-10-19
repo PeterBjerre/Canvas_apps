@@ -2688,8 +2688,8 @@ def rule_16e(ctx):
         for key in sorted(set(props) - BADGE_PROPS):
             ctx.problems.append(f"[16e] {name}: {ctl} - '{key}' er ikke en "
                                 f"dokumenteret Badge-egenskab")
-        for key, fx in props.items():
-            if "Self.Content" in str(fx):
+        for key, val in props.items():
+            if "Self.Content" in str(val):
                 ctx.problems.append(f"[16e] {name}: {key} bruger Self.Content - "
                                     f"Studio kender den ikke (#331)")
         for key in ("Color", "Fill", "Content", "AccessibleLabel"):

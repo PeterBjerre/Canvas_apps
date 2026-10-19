@@ -5,6 +5,7 @@ Screens:
           =C.'bg-app'
       OnVisible: |-
           =Set(varMdMe, Lower(User().Email));
+          If(IsEmpty(colAppPrefs), IfError(LoadData(colAppPrefs, "prefs", true), Blank()));
           If(
               !IfError(varMdPrefsRead, false),
               Set(varMdView, Coalesce(First(colAppPrefs).prefMdView, "mine"));
@@ -19,20 +20,8 @@ Screens:
           If(IsBlank(varMdFlag), Set(varMdFlag, ""));
           Set(varMdLoading, true);
           Concurrent(
-              ClearCollect(colMdScope, ForAll(If(
-                  varMdView = "mine",
-                  If(
-                      varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                      varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                      Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                  ),
-                  If(
-                      varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                      varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                      'MD_RequestIndex'
-                  )
-              ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
-              Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
+              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
+              Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, (Stage = "System" || Stage = "Cost" || Stage = "Quality") && Created >= DateAdd(Now(), -365, TimeUnit.Days)), "ID", SortOrder.Descending)),
               Set(varMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
           );
           Set(varMdLoading, false)
@@ -340,19 +329,7 @@ Screens:
                                         =38
                                     OnSelect: |-
                                         =Set(varMdView, "mine"); Set(varMdDomain, "");
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -405,19 +382,7 @@ Screens:
                                         =40
                                     OnSelect: |-
                                         =Set(varMdView, "queue"); Set(varMdDomain, "");
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -1530,19 +1495,7 @@ Screens:
                               OnSelect: |-
                                   =Set(varMdFlag, If(varMdFlag = "ret", "", "ret"));
                                   If(varMdFlag <> "", Set(varMdStatusMode, "open"));
-                                  ClearCollect(colMdScope, ForAll(If(
-                                          varMdView = "mine",
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                          ),
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                              'MD_RequestIndex'
-                                          )
-                                      ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                  ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -1747,19 +1700,7 @@ Screens:
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 100, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 78, 54)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "open");
-                                              ClearCollect(colMdScope, ForAll(If(
-                                                      varMdView = "mine",
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                          Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                      ),
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                          'MD_RequestIndex'
-                                                      )
-                                                  ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                               If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                               Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                               IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -1812,19 +1753,7 @@ Screens:
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 114, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 90, 66)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "done");
-                                              ClearCollect(colMdScope, ForAll(If(
-                                                      varMdView = "mine",
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                          Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                      ),
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                          'MD_RequestIndex'
-                                                      )
-                                                  ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                               If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                               Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                               IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -1879,19 +1808,7 @@ Screens:
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 85, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 64, 40)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "all");
-                                              ClearCollect(colMdScope, ForAll(If(
-                                                      varMdView = "mine",
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                          Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                      ),
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                          'MD_RequestIndex'
-                                                      )
-                                                  ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                               If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                               Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                               IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -2026,19 +1943,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(varMdFlag, If(varMdFlag = "me", "", "me"));
                                         If(varMdFlag <> "", Set(varMdStatusMode, "open"));
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -2094,19 +1999,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(varMdFlag, If(varMdFlag = "stuck", "", "stuck"));
                                         If(varMdFlag <> "", Set(varMdStatusMode, "open"));
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -2242,19 +2135,7 @@ Screens:
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 149, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 123, 50)
                                           OnSelect: |-
                                               =Set(varMdView, "mine"); Set(varMdDomain, "");
-                                              ClearCollect(colMdScope, ForAll(If(
-                                                      varMdView = "mine",
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                          Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                      ),
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                          'MD_RequestIndex'
-                                                      )
-                                                  ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                               If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                               Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                               IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -2307,19 +2188,7 @@ Screens:
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 151, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 124, 40)
                                           OnSelect: |-
                                               =Set(varMdView, "queue"); Set(varMdDomain, "");
-                                              ClearCollect(colMdScope, ForAll(If(
-                                                      varMdView = "mine",
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                          Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                      ),
-                                                      If(
-                                                          varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                          varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                          'MD_RequestIndex'
-                                                      )
-                                                  ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                              ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                               If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                               Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                               IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -2371,7 +2240,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Text(CountRows(Filter(colMdScope, varMdDomain = "" || Domain = varMdDomain))) & If(CountRows(colMdScope) >= 500, "+", "") & If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "", " requests")
+                                        =With({ _c: CountRows(Filter(colMdScope, varMdDomain = "" || Domain = varMdDomain)) }, Text(_c) & If(CountRows(colMdScope) >= 500, "+", "") & If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "", If(_c = 1, " request", " requests")))
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
@@ -2446,19 +2315,7 @@ Screens:
                                             If(varMdFlag = "me", Set(varMdView, "queue"));
                                             Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))
                                         );
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -3708,19 +3565,10 @@ Screens:
                                       "REQUEST",
                                       SortByColumns(
                                       Filter(
-                                          If(
-                                          varMdView = "mine",
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                          ),
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                              'MD_RequestIndex'
-                                          )
-                                      ),
+                                          'MD_RequestIndex',
+                                          varMdView <> "mine" || RequesterEmail = varMdMe,
+                                          varMdStatusMode <> "open" || IsOpen = true,
+                                          varMdStatusMode <> "done" || IsOpen = false,
                                           varMdDomain = "" || Domain.Value = varMdDomain,
                                           varMdFlag <> "me" || AssignedToEmail = varMdMe,
                                           varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
@@ -3735,19 +3583,10 @@ Screens:
                                       "PLANT",
                                       SortByColumns(
                                       Filter(
-                                          If(
-                                          varMdView = "mine",
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                          ),
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                              'MD_RequestIndex'
-                                          )
-                                      ),
+                                          'MD_RequestIndex',
+                                          varMdView <> "mine" || RequesterEmail = varMdMe,
+                                          varMdStatusMode <> "open" || IsOpen = true,
+                                          varMdStatusMode <> "done" || IsOpen = false,
                                           varMdDomain = "" || Domain.Value = varMdDomain,
                                           varMdFlag <> "me" || AssignedToEmail = varMdMe,
                                           varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
@@ -3762,19 +3601,10 @@ Screens:
                                       "STATUS",
                                       SortByColumns(
                                       Filter(
-                                          If(
-                                          varMdView = "mine",
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                          ),
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                              'MD_RequestIndex'
-                                          )
-                                      ),
+                                          'MD_RequestIndex',
+                                          varMdView <> "mine" || RequesterEmail = varMdMe,
+                                          varMdStatusMode <> "open" || IsOpen = true,
+                                          varMdStatusMode <> "done" || IsOpen = false,
                                           varMdDomain = "" || Domain.Value = varMdDomain,
                                           varMdFlag <> "me" || AssignedToEmail = varMdMe,
                                           varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
@@ -3788,19 +3618,10 @@ Screens:
                                       ),
                                       SortByColumns(
                                       Filter(
-                                          If(
-                                          varMdView = "mine",
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                          ),
-                                          If(
-                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                              'MD_RequestIndex'
-                                          )
-                                      ),
+                                          'MD_RequestIndex',
+                                          varMdView <> "mine" || RequesterEmail = varMdMe,
+                                          varMdStatusMode <> "open" || IsOpen = true,
+                                          varMdStatusMode <> "done" || IsOpen = false,
                                           varMdDomain = "" || Domain.Value = varMdDomain,
                                           varMdFlag <> "me" || AssignedToEmail = varMdMe,
                                           varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
@@ -3881,15 +3702,7 @@ Screens:
                                     Height: |-
                                         =32
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                            ThisItem.Domain.Value,
-                                            "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>",
-                                            "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>",
-                                            "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>",
-                                            "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>",
-                                            "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>",
-                                            ""
-                                        ))
+                                        =LookUp(MdIcons, Key = "tile:" & ThisItem.Domain.Value).Uri
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -4126,12 +3939,12 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='254' height='36' viewBox='0 0 254 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
+                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If((IsEmpty(c) && CountRows(varMdAprAll) >= 500) || ThisItem.Created < DateAdd(Now(), -365, TimeUnit.Days), Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
                                             CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='254' height='36' viewBox='0 0 254 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
-                                            With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                            With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))), "Approved",
@@ -4216,7 +4029,7 @@ Screens:
                                         ) & "'>Handover</text>" &
                                         "</svg>"))
                                         ),
-                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -4224,7 +4037,7 @@ Screens:
                                             true, "In progress",
                                         "Pending"
                                         )))},
-                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost")) || IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -4232,7 +4045,7 @@ Screens:
                                             (a = "Approved" || a = "Skipped" || a = "Done"), "In progress",
                                         "Pending"
                                         )))},
-                                        With({c: With({T: FirstN(SortByColumns(Filter(L, Stage = "Quality"), "DecidedOn", SortOrder.Descending), 1)}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({c: With({T: FirstN(SortByColumns(Filter(L, Stage = "Quality" && Decision in ["Approve", "Return", "Skipped", "Done"]), "DecidedOn", SortOrder.Descending), 1)}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= 1 && k = n, "Skipped",
                                             n > 0 && n >= 1, "Approved",
@@ -4492,10 +4305,12 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Updated " & Self.Text & ", " & Lower(With(
+                                        ="Updated " & Self.Text & ", " & Lower(If(
+                                            IsBlank(ThisItem.LastActionOn), "No date",
+                                            With(
                                             { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
                                             If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
-                                        ))
+                                        )))
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -4579,15 +4394,7 @@ Screens:
                                     Height: |-
                                         =20
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                            ThisItem.Domain.Value,
-                                            "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>",
-                                            "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>",
-                                            "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>",
-                                            "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>",
-                                            "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>",
-                                            ""
-                                        ))
+                                        =LookUp(MdIcons, Key = "small:" & ThisItem.Domain.Value).Uri
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -4792,12 +4599,12 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='" & Round(Self.Width, 0) & "' height='36' viewBox='0 0 " & Round(Self.Width, 0) & " 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
+                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If((IsEmpty(c) && CountRows(varMdAprAll) >= 500) || ThisItem.Created < DateAdd(Now(), -365, TimeUnit.Days), Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
                                             CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Round(Self.Width, 0) & "' height='36' viewBox='0 0 " & Round(Self.Width, 0) & " 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
-                                            With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                            With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))), "Approved",
@@ -4883,7 +4690,7 @@ Screens:
                                         ) & "'>Handover</text>" &
                                         "</svg>")))
                                         ),
-                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -4891,7 +4698,7 @@ Screens:
                                             true, "In progress",
                                         "Pending"
                                         )))},
-                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost")) || IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -4899,7 +4706,7 @@ Screens:
                                             (a = "Approved" || a = "Skipped" || a = "Done"), "In progress",
                                         "Pending"
                                         )))},
-                                        With({c: With({T: FirstN(SortByColumns(Filter(L, Stage = "Quality"), "DecidedOn", SortOrder.Descending), 1)}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({c: With({T: FirstN(SortByColumns(Filter(L, Stage = "Quality" && Decision in ["Approve", "Return", "Skipped", "Done"]), "DecidedOn", SortOrder.Descending), 1)}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= 1 && k = n, "Skipped",
                                             n > 0 && n >= 1, "Approved",
@@ -5184,10 +4991,12 @@ Screens:
                                     Text: |-
                                         ="Open " & ThisItem.RequestNo & " - " & Substitute(Substitute(Substitute(Substitute(ThisItem.ShortText, " 1 raekke(r)", " 1 row"), " raekke(r)", " rows"), " 1 row(s)", " 1 row"), " row(s)", " rows")
                                     Tooltip: |-
-                                        ="Updated " & Lower(With(
+                                        ="Updated " & Lower(If(
+                                            IsBlank(ThisItem.LastActionOn), "No date",
+                                            With(
                                             { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
                                             If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
-                                        ))
+                                        )))
                                     Width: |-
                                         =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
                                     X: |-
@@ -5240,7 +5049,7 @@ Screens:
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         If(
                                             varMdAprReq.Domain.Value = "Material",
-                                                ClearCollect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "System")) || IsEmpty(Filter(colMdAprLog, Stage = "System")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
+                                                ClearCollect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
                                                 Set(varMdAprS1, With({T: Filter(Filter(colMdAprLatest, Stage = "System"), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                                     r > 0, "Returned",
                                                     n > 0 && n >= Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
@@ -5254,13 +5063,13 @@ Screens:
                                                 Set(varMdAprS4, Switch(varMdAprReq.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending"));
                                                 Set(varMdAprCur, If(varMdAprS1 = "In progress" || varMdAprS1 = "Returned", "System", varMdAprS4 = "In progress", "SAP", ""));
                                                 ClearCollect(colMdAprRows, { Kind: "H", Stage: "System", Title: "System approval", State: varMdAprS1, Label: varMdAprS1, Rule: "One approver per system - " & Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))) & If(Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))) = 1, " approval", " approvals in parallel") & ", all must pass", Cur: varMdAprCur = "System", Sub: "", Act: "", Stamp: "", Human: false });
-                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(Filter(colMdAprLatest, Stage = "System"), Decision <> "Requested"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "Requested", "Requested", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(Filter(colMdAprLatest, Stage = "System"), Decision <> "Requested"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "AdminClose", "Admin close", "Requested", "Requested", "Timeout", "No answer", "Pending", "No answer", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                                 If(varMdAprS1 = "In progress" && CountRows(Filter(Filter(colMdAprLatest, Stage = "System"), Decision <> "Requested")) < Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))), Collect(colMdAprRows, { Kind: "D", Stage: "System", Title: "System manager of each system", State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: (Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))) - CountRows(Filter(Filter(colMdAprLatest, Stage = "System"), Decision <> "Requested"))) & " of " & Max(1, CountRows(Distinct(Filter(colMdAprLog, Stage = "System" && Decision = "Requested"), ItemGuid))) & " awaiting a decision", Act: "", Stamp: "", Human: false }));
                                                 Collect(colMdAprRows, { Kind: "H", Stage: "SAP", Title: "Handover to Master Data", State: varMdAprS4, Label: varMdAprS4, Rule: "Master Data creates the material in SAP - no approval", Cur: varMdAprCur = "SAP", Sub: "", Act: "", Stamp: "", Human: false });
                                                 If(varMdAprS4 <> "Pending", Collect(colMdAprRows, { Kind: "D", Stage: "SAP", Title: "Master Data", State: varMdAprS4, Label: If(varMdAprS4 = "Done", "Created", "Awaiting"), Rule: "", Cur: false, Sub: If(varMdAprS4 = "Done", "SAP " & varMdAprReq.SapObjectNo, ""), Act: If(varMdAprS4 = "Done", "Created the material in SAP", "Ready - waiting for creation in SAP"), Stamp: "", Human: false })),
-                                                ClearCollect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "System")) || IsEmpty(Filter(colMdAprLog, Stage = "System")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
-                                                Collect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "Cost")) || IsEmpty(Filter(colMdAprLog, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
-                                                Collect(colMdAprLatest, FirstN(SortByColumns(Filter(colMdAprLog, Stage = "Quality"), "DecidedOn", SortOrder.Descending), 1));
+                                                ClearCollect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
+                                                Collect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])) || IsEmpty(Filter(colMdAprLog, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"])), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost" && Decision in ["Approve", "Return", "Skipped", "Done"]), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
+                                                Collect(colMdAprLatest, FirstN(SortByColumns(Filter(colMdAprLog, Stage = "Quality" && Decision in ["Approve", "Return", "Skipped", "Done"]), "DecidedOn", SortOrder.Descending), 1));
                                                 Set(varMdAprS1, With({T: Filter(colMdAprLatest, Stage = "System")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                                     r > 0, "Returned",
                                                     n > 0 && n >= Max(1, varMdAprReq.ItemCount) && k = n, "Skipped",
@@ -5288,13 +5097,13 @@ Screens:
                                                 Set(varMdAprS4, Switch(varMdAprReq.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending"));
                                                 Set(varMdAprCur, If(varMdAprS1 = "In progress" || varMdAprS1 = "Returned", "System", varMdAprS2 = "In progress" || varMdAprS2 = "Returned", "Cost", varMdAprS3 = "In progress" || varMdAprS3 = "Returned", "Quality", varMdAprS4 = "In progress", "SAP", ""));
                                                 ClearCollect(colMdAprRows, { Kind: "H", Stage: "System", Title: "System approval", State: varMdAprS1, Label: varMdAprS1, Rule: "One approver per item - " & Max(1, varMdAprReq.ItemCount) & If(Max(1, varMdAprReq.ItemCount) = 1, " item", " items in parallel") & ", all must pass", Cur: varMdAprCur = "System", Sub: "", Act: "", Stamp: "", Human: false });
-                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "Requested", "Requested", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "AdminClose", "Admin close", "Requested", "Requested", "Timeout", "No answer", "Pending", "No answer", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                                 If(varMdAprS1 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "System")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "System", Title: "System manager of each item", State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: (Max(1, varMdAprReq.ItemCount) - CountRows(Filter(colMdAprLatest, Stage = "System"))) & " of " & Max(1, varMdAprReq.ItemCount) & " awaiting a decision", Act: "", Stamp: "", Human: false }));
                                                 Collect(colMdAprRows, { Kind: "H", Stage: "Cost", Title: "Cost approval", State: varMdAprS2, Label: varMdAprS2, Rule: "One approver per item - items under the threshold are skipped, all must pass", Cur: varMdAprCur = "Cost", Sub: "", Act: "", Stamp: "", Human: false });
-                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "Requested", "Requested", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "AdminClose", "Admin close", "Requested", "Requested", "Timeout", "No answer", "Pending", "No answer", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                                 If(varMdAprS2 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Cost")) < Max(1, varMdAprReq.ItemCount), With({a: LookUp(MD_Approver, ApproverKey = "COST")}, Collect(colMdAprRows, { Kind: "D", Stage: "Cost", Title: If(IsBlank(a), "Approver not set", Upper(First(Split(Coalesce(If(a.Approver1Absent, a.Approver2, a.Approver1), "unknown"), "@")).Value)), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: If(IsBlank(a), "No row in MD_Approver for " & "COST", If(a.Approver1Absent, "1st approver absent", "")), Act: If(IsBlank(a), "", If(a.Approver1Absent, "2nd approver", "1st approver")), Stamp: "", Human: !IsBlank(a) })));
                                                 Collect(colMdAprRows, { Kind: "H", Stage: "Quality", Title: "Quality review", State: varMdAprS3, Label: varMdAprS3, Rule: "One approver for the whole plan - the plant", Cur: varMdAprCur = "Quality", Sub: "", Act: "", Stamp: "", Human: false });
-                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "Requested", "Requested", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: "Whole plan", Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                                Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "AdminClose", "Admin close", "Requested", "Requested", "Timeout", "No answer", "Pending", "No answer", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))), Act: "Whole plan", Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                                 If(varMdAprS3 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Quality")) < 1, With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, Collect(colMdAprRows, { Kind: "D", Stage: "Quality", Title: If(IsBlank(a), "Approver not set", Upper(First(Split(Coalesce(If(a.Approver1Absent, a.Approver2, a.Approver1), "unknown"), "@")).Value)), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: If(IsBlank(a), "No row in MD_Approver for " & Upper(Left(varMdAprReq.Plant, 3)), If(a.Approver1Absent, "1st approver absent", "")), Act: If(IsBlank(a), "", If(a.Approver1Absent, "2nd approver", "1st approver")), Stamp: "", Human: !IsBlank(a) })));
                                                 Collect(colMdAprRows, { Kind: "H", Stage: "SAP", Title: "Creation in SAP", State: varMdAprS4, Label: varMdAprS4, Rule: "Master Data creates the plan - no approval", Cur: varMdAprCur = "SAP", Sub: "", Act: "", Stamp: "", Human: false });
                                                 If(varMdAprS4 <> "Pending", Collect(colMdAprRows, { Kind: "D", Stage: "SAP", Title: "Master Data", State: varMdAprS4, Label: If(varMdAprS4 = "Done", "Created", "Awaiting"), Rule: "", Cur: false, Sub: If(varMdAprS4 = "Done", "SAP " & varMdAprReq.SapObjectNo, ""), Act: If(varMdAprS4 = "Done", "Created the plan", "Ready - waiting for creation in SAP"), Stamp: "", Human: false }))
@@ -5395,7 +5204,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 M3.5 3.5V8H8 M12 7.5V12l3 2'/></g></svg>")
+                                        =LookUp(MdIcons, Key = "timeline").Uri
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5408,7 +5217,7 @@ Screens:
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "", Act: "Created the request", Stamp: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm"), Human: true });
                                         If(varMdAprReq.Domain.Value = "MaintenancePlan" && ((varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe)))) || ((varMdAprReq.RequestGuid in varMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin))), With({ p: LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId) }, Collect(colMdAprRows, { Kind: "D", Stage: "N", Title: Upper(First(Split(Coalesce(Coalesce(p.SubmittedBy, varMdAprReq.RequesterEmail), "unknown"), "@")).Value), State: "Note", Label: "Notes", Rule: "", Cur: false, Sub: Concat(Filter(Table({ v: If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), "Note to approver", "") }, { v: If((varMdAprReq.RequestGuid in varMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin), "Note to self", "") }), !IsBlank(v)), v, " and ") & " - select to read", Act: "Added submission notes", Stamp: Text(p.SubmittedOn, "dd-mm-yyyy hh:mm"), Human: true })));
-                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "Requested", "Requested", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: With({ n: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))) }, If(IsBlank(ItemText), n, With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))) & If(IsBlank(n), "", "  ·  " & n))), Act: Switch(Stage, "System", "System approval", "Cost", "Cost approval", "Quality", "Quality review", "SapCreated", "Creation in SAP", "Admin", "Admin change", Stage), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", "AdminClose", "Admin close", "Requested", "Requested", "Timeout", "No answer", "Pending", "No answer", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Done", "Done", "Requested", "Pending", "Timeout", "Pending", "Pending", "Pending", "AdminEdit", "Admin", "AdminDelete", "Admin", "AdminClose", "Admin", "Returned")), Rule: "", Cur: false, Sub: With({ n: If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), Substitute(Comment, Char(10), " "), With({ t: Coalesce(Detail, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, ")))) }, If(IsBlank(ItemText), n, With({ t: Coalesce(ItemText, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))) & If(IsBlank(n), "", "  ·  " & n))), Act: Switch(Stage, "System", "System approval", "Cost", "Cost approval", "Quality", "Quality review", "SapCreated", "Creation in SAP", "Admin", "Admin change", Stage), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                         If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP", State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "SAP " & varMdAprReq.SapObjectNo, Act: "Created in SAP", Stamp: "", Human: false }));
                                         If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "", Act: "Assigned to", Stamp: "", Human: true }));
                                         Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Status", State: If(varMdAprReq.IsOpen, "In progress", varMdAprReq.Status.Value = "Afvist", "Rejected", varMdAprReq.Status.Value = "Annulleret", "Cancelled", "Done"), Label: If(varMdAprReq.IsOpen, "Open", "Closed"), Rule: "", Cur: false, Sub: If(IsBlank(varMdAprReq.LastActionBy), "Last change", "Last change by " & If("@" in Coalesce(varMdAprReq.LastActionBy, ""), Upper(First(Split(Coalesce(varMdAprReq.LastActionBy, "unknown"), "@")).Value), With({ t: Coalesce(varMdAprReq.LastActionBy, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))))), Act: Coalesce(LookUp(RequestStatusLabels, Key = varMdAprReq.Status.Value, Label), varMdAprReq.Status.Value), Stamp: Text(varMdAprReq.LastActionOn, "dd-mm-yyyy hh:mm"), Human: false });
@@ -5453,7 +5262,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 3.5h14a1.5 1.5 0 0 1 1.5 1.5v9.5l-6 6H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5Z M14.5 20.5V16a1.5 1.5 0 0 1 1.5-1.5h4.5 M7.5 8.5h9M7.5 12h5'/></g></svg>")
+                                        =LookUp(MdIcons, Key = "note").Uri
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5511,11 +5320,11 @@ Screens:
                                     HoverFill: |-
                                         =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(
+                                        =If(
                                             (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
-                                            "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 20h4.5L19.3 9.2a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L4 15.5V20Z M13.5 6l4.5 4.5'/></g></svg>",
-                                            "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M4 20h4.5L19.3 9.2a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L4 15.5V20Z M13.5 6l4.5 4.5'/></g></svg>"
-                                        ))
+                                            LookUp(MdIcons, Key = "edit").Uri,
+                                            LookUp(MdIcons, Key = "edit-off").Uri
+                                        )
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5596,7 +5405,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16 M9.5 6.5v-2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2 M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5 M10 10.5v6M14 10.5v6'/></g></svg>")
+                                        =LookUp(MdIcons, Key = "delete").Uri
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5615,7 +5424,55 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 4 && ((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) && ThisItem.Status.Value = "Kladde")
+                                        =LayoutRank >= 4 && ((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) && (ThisItem.Status.Value = "Kladde" || (IsAdmin && ThisItem.Status.Value = "AfventerInfo")))
+                                    Width: |-
+                                        =H.hit
+                                    X: |-
+                                        =12 + (176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + ((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16, 0)) + 16 + (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + If(varMdView = "mine", 0, 16) + (270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + (140 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + (84 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + 32 + 12 + 40
+                                    Y: |-
+                                        =((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - Self.Height) / 2
+                              - btnMdRowClose:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Close " & ThisItem.RequestNo
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =H.hit
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    Image: |-
+                                        =LookUp(MdIcons, Key = "close").Uri
+                                    ImagePosition: |-
+                                        =ImagePosition.Center
+                                    OnSelect: |-
+                                        =Set(varMdCloseItem, ThisItem);
+                                        Set(varMdCloseOpen, true)
+                                    PressedFill: |-
+                                        =C.'row-hover'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Tooltip: |-
+                                        ="Mark created in SAP or cancel"
+                                    Visible: |-
+                                        =LayoutRank >= 4 && ((IsAdmin && ThisItem.IsOpen && (ThisItem.Status.Value = "Indsendt" || ThisItem.Status.Value = "UnderBehandling" || ThisItem.Status.Value = "KlarTilSAP") && ThisItem.Domain.Value <> "MaintenancePlan"))
                                     Width: |-
                                         =H.hit
                                     X: |-
@@ -5648,11 +5505,11 @@ Screens:
                                     HoverFill: |-
                                         =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(
+                                        =If(
                                             (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
-                                            "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 20h4.5L19.3 9.2a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L4 15.5V20Z M13.5 6l4.5 4.5'/></g></svg>",
-                                            "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M4 20h4.5L19.3 9.2a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L4 15.5V20Z M13.5 6l4.5 4.5'/></g></svg>"
-                                        ))
+                                            LookUp(MdIcons, Key = "edit").Uri,
+                                            LookUp(MdIcons, Key = "edit-off").Uri
+                                        )
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5733,7 +5590,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(6 6) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16 M9.5 6.5v-2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2 M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5 M10 10.5v6M14 10.5v6'/></g></svg>")
+                                        =LookUp(MdIcons, Key = "delete").Uri
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
@@ -5752,7 +5609,55 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 3 && LayoutRank < 4 && ((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) && ThisItem.Status.Value = "Kladde")
+                                        =LayoutRank >= 3 && LayoutRank < 4 && ((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) && (ThisItem.Status.Value = "Kladde" || (IsAdmin && ThisItem.Status.Value = "AfventerInfo")))
+                                    Width: |-
+                                        =H.hit
+                                    X: |-
+                                        =Parent.Width - 18 - 12 - 32 - 8 - 80 + 40
+                                    Y: |-
+                                        =6
+                              - btnMdRowCloseC:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Close " & ThisItem.RequestNo
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =H.hit
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    Image: |-
+                                        =LookUp(MdIcons, Key = "close").Uri
+                                    ImagePosition: |-
+                                        =ImagePosition.Center
+                                    OnSelect: |-
+                                        =Set(varMdCloseItem, ThisItem);
+                                        Set(varMdCloseOpen, true)
+                                    PressedFill: |-
+                                        =C.'row-hover'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Tooltip: |-
+                                        ="Mark created in SAP or cancel"
+                                    Visible: |-
+                                        =LayoutRank >= 3 && LayoutRank < 4 && ((IsAdmin && ThisItem.IsOpen && (ThisItem.Status.Value = "Indsendt" || ThisItem.Status.Value = "UnderBehandling" || ThisItem.Status.Value = "KlarTilSAP") && ThisItem.Domain.Value <> "MaintenancePlan"))
                                     Width: |-
                                         =H.hit
                                     X: |-
@@ -5887,19 +5792,7 @@ Screens:
                                         Set(varMdSearch, "");
                                         Reset(inpMdFind);
                                         Set(varMdStatusMode, "open");
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                        ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
@@ -7269,17 +7162,13 @@ Screens:
                   Height: |-
                       =240
                   Items: |-
-                      =FirstN(
+                      =If(IfError(varMdClosedPeek, false), FirstN(
                           SortByColumns(
-                              If(
-                                  varMdView = "mine",
-                                  Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                  Filter('MD_RequestIndex', IsOpen = false)
-                              ),
+                              Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, IsOpen = false),
                               "LastActionOn", SortOrder.Descending
                           ),
                           5
-                      )
+                      ), Blank())
                   LayoutMinWidth: |-
                       =0
                   LoadingSpinner: |-
@@ -7321,15 +7210,7 @@ Screens:
                         Height: |-
                             =20
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                ThisItem.Domain.Value,
-                                "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>",
-                                "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>",
-                                "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>",
-                                "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>",
-                                "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>",
-                                ""
-                            ))
+                            =LookUp(MdIcons, Key = "small:" & ThisItem.Domain.Value).Uri
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -8096,6 +7977,421 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
+      - conMdCloseConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varMdCloseOpen, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varMdCloseOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMdCloseConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =180
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMdCloseOpen, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMdCloseConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMdCloseConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close request"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Close request"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMdCloseConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMdCloseOpen, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtMdCloseConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Close " & varMdCloseItem.RequestNo & "? It leaves the open list. Only the hub entry changes; the request itself is not edited."
+                  Wrap: |-
+                      =true
+            - conMdCloseConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMdCloseCancelled:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel request"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Dismiss"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varMdCloseOpen, false);
+                            Set(varMdCloseIdx, LookUp('MD_RequestIndex', ID = varMdCloseItem.ID));
+                            If(
+                                IsBlank(varMdCloseIdx),
+                                Set(gblToast, { Text: "This request no longer exists.", Kind: "Warning", At: Now() }); true,
+                                !(IsAdmin && varMdCloseIdx.IsOpen && (varMdCloseIdx.Status.Value = "Indsendt" || varMdCloseIdx.Status.Value = "UnderBehandling" || varMdCloseIdx.Status.Value = "KlarTilSAP") && varMdCloseIdx.Domain.Value <> "MaintenancePlan"),
+                                Set(gblToast, { Text: "This request can no longer be closed here.", Kind: "Warning", At: Now() }); true,
+                                Patch(MD_RequestIndex, varMdCloseIdx, {
+                                    Status: { Value: "Annulleret" },
+                                    StatusStep: 0,
+                                    IsOpen: false,
+                                    LastActionOn: Now(),
+                                    LastActionBy: varMdMe
+                                });
+                                If(
+                                    !IsEmpty(Errors(MD_RequestIndex)),
+                                    Set(gblToast, { Text: "The request could not be closed: " & First(Errors(MD_RequestIndex)).Message, Kind: "Error", At: Now() }); true,
+                                    IfError(
+                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                            Title: varMdCloseIdx.RequestNo,
+                                            RequestGuid: varMdCloseIdx.RequestGuid,
+                                            Stage: "Admin",
+                                            Decision: "AdminClose",
+                                            Detail: Left("Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varMdCloseIdx.Status.Value, Label), varMdCloseIdx.Status.Value) & " → Cancelled", 255),
+                                            Comment: "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varMdCloseIdx.Status.Value, Label), varMdCloseIdx.Status.Value) & " → Cancelled",
+                                            DecidedByEmail: Lower(User().Email),
+                                            DecidedOn: Now()
+                                        });
+                                        true,
+                                        Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
+                                        false
+                                    );
+                                    ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                    Set(gblToast, { Text: "Request cancelled.", Kind: "Success", At: Now() }); true
+                                )
+                            )
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel request"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =171
+                  - btnMdCloseCreated:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Mark created in SAP"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="CheckmarkCircle"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varMdCloseOpen, false);
+                            Set(varMdCloseIdx, LookUp('MD_RequestIndex', ID = varMdCloseItem.ID));
+                            If(
+                                IsBlank(varMdCloseIdx),
+                                Set(gblToast, { Text: "This request no longer exists.", Kind: "Warning", At: Now() }); true,
+                                !(IsAdmin && varMdCloseIdx.IsOpen && (varMdCloseIdx.Status.Value = "Indsendt" || varMdCloseIdx.Status.Value = "UnderBehandling" || varMdCloseIdx.Status.Value = "KlarTilSAP") && varMdCloseIdx.Domain.Value <> "MaintenancePlan"),
+                                Set(gblToast, { Text: "This request can no longer be closed here.", Kind: "Warning", At: Now() }); true,
+                                Patch(MD_RequestIndex, varMdCloseIdx, {
+                                    Status: { Value: "OprettetISAP" },
+                                    StatusStep: 5,
+                                    IsOpen: false,
+                                    LastActionOn: Now(),
+                                    LastActionBy: varMdMe
+                                });
+                                If(
+                                    !IsEmpty(Errors(MD_RequestIndex)),
+                                    Set(gblToast, { Text: "The request could not be closed: " & First(Errors(MD_RequestIndex)).Message, Kind: "Error", At: Now() }); true,
+                                    IfError(
+                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                            Title: varMdCloseIdx.RequestNo,
+                                            RequestGuid: varMdCloseIdx.RequestGuid,
+                                            Stage: "Admin",
+                                            Decision: "AdminClose",
+                                            Detail: Left("Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varMdCloseIdx.Status.Value, Label), varMdCloseIdx.Status.Value) & " → Created in SAP", 255),
+                                            Comment: "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varMdCloseIdx.Status.Value, Label), varMdCloseIdx.Status.Value) & " → Created in SAP",
+                                            DecidedByEmail: Lower(User().Email),
+                                            DecidedOn: Now()
+                                        });
+                                        true,
+                                        Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
+                                        false
+                                    );
+                                    ClearCollect(colMdScope, ForAll(Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, varMdStatusMode <> "open" || IsOpen = true, varMdStatusMode <> "done" || IsOpen = false) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                    Set(gblToast, { Text: "Request marked as created in SAP.", Kind: "Success", At: Now() }); true
+                                )
+                            )
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Mark created in SAP"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =211
       - conMdAprBackdrop:
           Control: GroupContainer
           Variant: AutoLayout

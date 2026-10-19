@@ -597,12 +597,15 @@ Screens:
                                       CountRows(colFlSaveErrors) = 0,
                                   
                                       // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      //    Listen hentes EEN gang (R2-043) og bruges af admin-loggen, Patch
+                                      //    og Remove herunder - foer var det fire ens Filter-kald pr. gem.
+                                      //    En admin i en andens anmodning faar dem ogsaa med felter, til loggen.
+                                      ClearCollect(colFlEx, Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid));
                                       If(
                                           (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
                                           ClearCollect(
                                               colFlAdmOld,
-                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                              ForAll(colFlEx As I,
                                                   { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
                                                      KksType: I.KksType, AssignedClass: I.AssignedClass })
                                           ),
@@ -610,7 +613,7 @@ Screens:
                                       );
                                       ClearCollect(
                                           colFlSp,
-                                          ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                          ForAll(colFlEx As I, { RowGuid: I.RowGuid, ID: I.ID })
                                       );
                                       // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
                                       // een raekke giver en record, Collect en tabel - og compile svarer
@@ -645,10 +648,8 @@ Screens:
                                           false
                                       );
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
-                                                    ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                          Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(colFlEx, RowGuid = R.RowGuid)),
+                                                ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                   RowGuid: R.RowGuid,
                                                   RequestGuid: varFlRequestGuid,
                                                   RequestId: varFlReq.ID,
@@ -669,8 +670,7 @@ Screens:
                                                              { field: V.Field, value: V.Value }),
                                                       JSONFormat.Compact
                                                   )
-                                              }))
-                                          );
+                                              }));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
                                           false
@@ -680,11 +680,8 @@ Screens:
                                       //    stod: alle raekker, appen ikke kender. Saa slettede den, der
                                       //    gemte sidst, de raekker en anden havde tilfoejet imens.
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
-                                                                     RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
-                                          );
+                                          Remove(FunctionalLocationItems, Filter(colFlEx, RowGuid in colFlDeleted.RowGuid ||
+                                                                      RowGuid in Filter(colFlRows, Status = "draft").RowGuid));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
                                           false
@@ -1234,10 +1231,14 @@ Screens:
                                     LayoutMinWidth: |-
                                         =115
                                     OnSelect: |-
-                                        =Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
-                                        Set(varFlNextRowNo, varFlNextRowNo + 1);
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
+                                        =If(
+                                            CountRows(colFlRows) >= 400,
+                                            Set(gblToast, { Text: "Max 400 rows per request - split it into more requests.", Kind: "Error", At: Now() }); true,
+                                            Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
+                                            Set(varFlNextRowNo, varFlNextRowNo + 1);
+                                            Set(varFlStale, true);
+                                            Select(btnFlVerify)
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -2733,6 +2734,8 @@ Screens:
                                           { FL: G.FL }
                                       )
                                   );
+                                  // FL71: mere end eet vaerk (pos. 1-3) i anmodningen - een gang for hele tabellen.
+                                  Set(varFlPlantMix, CountRows(Distinct(Filter(colFlRows, !IsBlank(FL)), Left(FL, 3))) > 1);
                                   
                                   // B. Syntaks, klasse og raekkebeskeder (FL4-FL24)
                                   ClearCollect(
@@ -2771,6 +2774,7 @@ Screens:
                                                           },
                                                           With(
                                                               {
+                                                                  MPlantMix: If(!blankRow && !IsBlank(fl) && varFlPlantMix, "More than one plant in the request - use one request per plant.", ""),
                                                                   MFlReq: If(!blankRow && IsBlank(fl), "FL required.", ""),
                                                                   MDup: If(!blankRow && !IsBlank(fl) && fl in colFlDupFl.FL, "Duplicate FL.", ""),
                                                                   MDescReq: If(!blankRow && IsBlank(d), "Description required before Ready for SAP.", ""),
@@ -2811,7 +2815,7 @@ Screens:
                                                                       K12: k12, K17: k17,
                                                                       Cls: cls2,
                                                                       SpoolCls: Coalesce(cls2, "NO CLASS"),
-                                                                      MFlReq: MFlReq, MDup: MDup, MDescReq: MDescReq, MDescLen: MDescLen, MKks: MKks, MRules: MRules, MPlant: MPlant, MFunc: MFunc, MU: MU, MBrMiss: MBrMiss, MBrK17: MBrK17, MComp: MComp, MEq18: MEq18, MEq12: MEq12, MNoCls: MNoCls
+                                                                      MPlantMix: MPlantMix, MFlReq: MFlReq, MDup: MDup, MDescReq: MDescReq, MDescLen: MDescLen, MKks: MKks, MRules: MRules, MPlant: MPlant, MFunc: MFunc, MU: MU, MBrMiss: MBrMiss, MBrK17: MBrK17, MComp: MComp, MEq18: MEq18, MEq12: MEq12, MNoCls: MNoCls
                                                                   }
                                                               )
                                                           )
@@ -2825,36 +2829,38 @@ Screens:
                                   // C. Meddelelsestabellen - raekke + spool (FL30-FL53)
                                   ClearCollect(
                                       colFlIssuesRaw,
+                                      ForAll(Filter(colFlCalc, !IsBlank(MPlantMix)) As R,
+                                          { RowGuid: R.RowGuid, Ord: 1, Sev: "Error", Code: "FL71", Field: "FUNCTIONAL LOCATION", Short: R.MPlantMix, Msg: R.MPlantMix }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MFlReq)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 1, Sev: "Error", Code: "FL4", Field: "FUNCTIONAL LOCATION", Short: R.MFlReq, Msg: R.MFlReq }),
+                                          { RowGuid: R.RowGuid, Ord: 2, Sev: "Error", Code: "FL4", Field: "FUNCTIONAL LOCATION", Short: R.MFlReq, Msg: R.MFlReq }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MDup)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 2, Sev: "Error", Code: "FL5", Field: "FUNCTIONAL LOCATION", Short: R.MDup, Msg: R.MDup }),
+                                          { RowGuid: R.RowGuid, Ord: 3, Sev: "Error", Code: "FL5", Field: "FUNCTIONAL LOCATION", Short: R.MDup, Msg: R.MDup }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MDescReq)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 3, Sev: "Error", Code: "FL6", Field: "DESCRIPTION", Short: R.MDescReq, Msg: R.MDescReq }),
+                                          { RowGuid: R.RowGuid, Ord: 4, Sev: "Error", Code: "FL6", Field: "DESCRIPTION", Short: R.MDescReq, Msg: R.MDescReq }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MDescLen)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 4, Sev: "Error", Code: "FL7", Field: "DESCRIPTION", Short: R.MDescLen, Msg: R.MDescLen }),
+                                          { RowGuid: R.RowGuid, Ord: 5, Sev: "Error", Code: "FL7", Field: "DESCRIPTION", Short: R.MDescLen, Msg: R.MDescLen }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MKks)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 5, Sev: "Error", Code: "FL10", Field: "FUNCTIONAL LOCATION", Short: R.MKks, Msg: R.MKks }),
+                                          { RowGuid: R.RowGuid, Ord: 6, Sev: "Error", Code: "FL10", Field: "FUNCTIONAL LOCATION", Short: R.MKks, Msg: R.MKks }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MRules)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 6, Sev: "Error", Code: "FL24", Field: "FUNCTIONAL LOCATION", Short: R.MRules, Msg: R.MRules }),
+                                          { RowGuid: R.RowGuid, Ord: 7, Sev: "Error", Code: "FL24", Field: "FUNCTIONAL LOCATION", Short: R.MRules, Msg: R.MRules }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MPlant)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 7, Sev: "Error", Code: "FL11", Field: "FUNCTIONAL LOCATION", Short: R.MPlant, Msg: R.MPlant }),
+                                          { RowGuid: R.RowGuid, Ord: 8, Sev: "Error", Code: "FL11", Field: "FUNCTIONAL LOCATION", Short: R.MPlant, Msg: R.MPlant }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MFunc)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 8, Sev: "Error", Code: "FL12", Field: "FUNCTIONAL LOCATION", Short: R.MFunc, Msg: R.MFunc }),
+                                          { RowGuid: R.RowGuid, Ord: 9, Sev: "Error", Code: "FL12", Field: "FUNCTIONAL LOCATION", Short: R.MFunc, Msg: R.MFunc }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MU)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 9, Sev: "Error", Code: "FL13", Field: "FUNCTIONAL LOCATION", Short: R.MU, Msg: R.MU }),
+                                          { RowGuid: R.RowGuid, Ord: 10, Sev: "Error", Code: "FL13", Field: "FUNCTIONAL LOCATION", Short: R.MU, Msg: R.MU }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MBrMiss)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 10, Sev: "Error", Code: "FL14", Field: "FUNCTIONAL LOCATION", Short: R.MBrMiss, Msg: R.MBrMiss }),
+                                          { RowGuid: R.RowGuid, Ord: 11, Sev: "Error", Code: "FL14", Field: "FUNCTIONAL LOCATION", Short: R.MBrMiss, Msg: R.MBrMiss }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MBrK17)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 11, Sev: "Error", Code: "FL15", Field: "FUNCTIONAL LOCATION", Short: R.MBrK17, Msg: R.MBrK17 }),
+                                          { RowGuid: R.RowGuid, Ord: 12, Sev: "Error", Code: "FL15", Field: "FUNCTIONAL LOCATION", Short: R.MBrK17, Msg: R.MBrK17 }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MComp)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 12, Sev: "Error", Code: "FL17", Field: "FUNCTIONAL LOCATION", Short: R.MComp, Msg: R.MComp }),
+                                          { RowGuid: R.RowGuid, Ord: 13, Sev: "Error", Code: "FL17", Field: "FUNCTIONAL LOCATION", Short: R.MComp, Msg: R.MComp }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MEq18)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 13, Sev: "Error", Code: "FL17", Field: "FUNCTIONAL LOCATION", Short: R.MEq18, Msg: R.MEq18 }),
+                                          { RowGuid: R.RowGuid, Ord: 14, Sev: "Error", Code: "FL17", Field: "FUNCTIONAL LOCATION", Short: R.MEq18, Msg: R.MEq18 }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MEq12)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 14, Sev: "Error", Code: "FL19", Field: "FUNCTIONAL LOCATION", Short: R.MEq12, Msg: R.MEq12 }),
+                                          { RowGuid: R.RowGuid, Ord: 15, Sev: "Error", Code: "FL19", Field: "FUNCTIONAL LOCATION", Short: R.MEq12, Msg: R.MEq12 }),
                                       ForAll(Filter(colFlCalc, !IsBlank(MNoCls)) As R,
-                                          { RowGuid: R.RowGuid, Ord: 15, Sev: "Error", Code: "FL22", Field: "FUNCTIONAL LOCATION", Short: R.MNoCls, Msg: R.MNoCls }),
+                                          { RowGuid: R.RowGuid, Ord: 16, Sev: "Error", Code: "FL22", Field: "FUNCTIONAL LOCATION", Short: R.MNoCls, Msg: R.MNoCls }),
                                       ForAll(Filter(colFlCalc, Legacy) As R,
                                           { RowGuid: R.RowGuid, Ord: 50, Sev: "Warning", Code: "FL9", Field: "FUNCTIONAL LOCATION", Short: "Legacy format.", Msg: "Legacy format." }),
                                       DropColumns(
@@ -4376,12 +4382,15 @@ Screens:
                                       CountRows(colFlSaveErrors) = 0,
                                   
                                       // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      //    Listen hentes EEN gang (R2-043) og bruges af admin-loggen, Patch
+                                      //    og Remove herunder - foer var det fire ens Filter-kald pr. gem.
+                                      //    En admin i en andens anmodning faar dem ogsaa med felter, til loggen.
+                                      ClearCollect(colFlEx, Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid));
                                       If(
                                           (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
                                           ClearCollect(
                                               colFlAdmOld,
-                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                              ForAll(colFlEx As I,
                                                   { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
                                                      KksType: I.KksType, AssignedClass: I.AssignedClass })
                                           ),
@@ -4389,7 +4398,7 @@ Screens:
                                       );
                                       ClearCollect(
                                           colFlSp,
-                                          ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                          ForAll(colFlEx As I, { RowGuid: I.RowGuid, ID: I.ID })
                                       );
                                       // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
                                       // een raekke giver en record, Collect en tabel - og compile svarer
@@ -4424,10 +4433,8 @@ Screens:
                                           false
                                       );
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
-                                                    ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                          Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(colFlEx, RowGuid = R.RowGuid)),
+                                                ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                   RowGuid: R.RowGuid,
                                                   RequestGuid: varFlRequestGuid,
                                                   RequestId: varFlReq.ID,
@@ -4448,8 +4455,7 @@ Screens:
                                                              { field: V.Field, value: V.Value }),
                                                       JSONFormat.Compact
                                                   )
-                                              }))
-                                          );
+                                              }));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
                                           false
@@ -4459,11 +4465,8 @@ Screens:
                                       //    stod: alle raekker, appen ikke kender. Saa slettede den, der
                                       //    gemte sidst, de raekker en anden havde tilfoejet imens.
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
-                                                                     RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
-                                          );
+                                          Remove(FunctionalLocationItems, Filter(colFlEx, RowGuid in colFlDeleted.RowGuid ||
+                                                                      RowGuid in Filter(colFlRows, Status = "draft").RowGuid));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
                                           false
@@ -11870,12 +11873,15 @@ Screens:
                                       CountRows(colFlSaveErrors) = 0,
                                   
                                       // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      //    Listen hentes EEN gang (R2-043) og bruges af admin-loggen, Patch
+                                      //    og Remove herunder - foer var det fire ens Filter-kald pr. gem.
+                                      //    En admin i en andens anmodning faar dem ogsaa med felter, til loggen.
+                                      ClearCollect(colFlEx, Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid));
                                       If(
                                           (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
                                           ClearCollect(
                                               colFlAdmOld,
-                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                              ForAll(colFlEx As I,
                                                   { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
                                                      KksType: I.KksType, AssignedClass: I.AssignedClass })
                                           ),
@@ -11883,7 +11889,7 @@ Screens:
                                       );
                                       ClearCollect(
                                           colFlSp,
-                                          ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                          ForAll(colFlEx As I, { RowGuid: I.RowGuid, ID: I.ID })
                                       );
                                       // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
                                       // een raekke giver en record, Collect en tabel - og compile svarer
@@ -11918,10 +11924,8 @@ Screens:
                                           false
                                       );
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
-                                                    ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                          Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(colFlEx, RowGuid = R.RowGuid)),
+                                                ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                   RowGuid: R.RowGuid,
                                                   RequestGuid: varFlRequestGuid,
                                                   RequestId: varFlReq.ID,
@@ -11942,8 +11946,7 @@ Screens:
                                                              { field: V.Field, value: V.Value }),
                                                       JSONFormat.Compact
                                                   )
-                                              }))
-                                          );
+                                              }));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
                                           false
@@ -11953,11 +11956,8 @@ Screens:
                                       //    stod: alle raekker, appen ikke kender. Saa slettede den, der
                                       //    gemte sidst, de raekker en anden havde tilfoejet imens.
                                       IfError(
-                                          With(
-                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                              Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
-                                                                     RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
-                                          );
+                                          Remove(FunctionalLocationItems, Filter(colFlEx, RowGuid in colFlDeleted.RowGuid ||
+                                                                      RowGuid in Filter(colFlRows, Status = "draft").RowGuid));
                                           true,
                                           Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
                                           false
@@ -13084,18 +13084,22 @@ Screens:
                         OnSelect: |-
                             =With(
                                 { lines: Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION") },
+                            If(
+                                CountRows(Filter(colFlRows, !(SpId = 0 && IsBlank(FL) && IsBlank(Description)))) + CountRows(lines) > 400,
+                                Set(gblToast, { Text: "Max 400 rows per request - split it into more requests.", Kind: "Error", At: Now() }); true,
                                 RemoveIf(colFlRows, SpId = 0 && IsBlank(FL) && IsBlank(Description));
                                 Collect(
                                     colFlRows,
                                     ForAll(Sequence(CountRows(lines)), { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, FL: Upper(Trim(Substitute(Substitute(Substitute(IfError(Index(Split(Index(lines, Value).Value, Char(9)), 1).Value, ""), Char(160), " "), Char(13), ""), Char(10), ""))), Description: Trim(IfError(Index(Split(Index(lines, Value).Value, Char(9)), 2).Value, "")), KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" })
                                 );
                                 Set(varFlNextRowNo, varFlNextRowNo + CountRows(lines));
-                                Set(gblToast, { Text: Text(CountRows(lines)) & " rows added. Check the messages on each row.", Kind: "Success", At: Now() }); true
-                            );
-                            Set(varFlPasteOpen, false);
-                            Set(varFlPasteText, "");
-                            Set(varFlStale, true);
-                            Select(btnFlVerify)
+                                Set(gblToast, { Text: Text(CountRows(lines)) & " rows added. Check the messages on each row.", Kind: "Success", At: Now() });
+                                Set(varFlPasteOpen, false);
+                                Set(varFlPasteText, "");
+                                Set(varFlStale, true);
+                                Select(btnFlVerify)
+                            )
+                            )
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -13455,12 +13459,15 @@ Screens:
                                     CountRows(colFlSaveErrors) = 0,
                                 
                                     // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-                                    //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                    //    Listen hentes EEN gang (R2-043) og bruges af admin-loggen, Patch
+                                    //    og Remove herunder - foer var det fire ens Filter-kald pr. gem.
+                                    //    En admin i en andens anmodning faar dem ogsaa med felter, til loggen.
+                                    ClearCollect(colFlEx, Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid));
                                     If(
                                         (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
                                         ClearCollect(
                                             colFlAdmOld,
-                                            ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                            ForAll(colFlEx As I,
                                                 { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
                                                    KksType: I.KksType, AssignedClass: I.AssignedClass })
                                         ),
@@ -13468,7 +13475,7 @@ Screens:
                                     );
                                     ClearCollect(
                                         colFlSp,
-                                        ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                        ForAll(colFlEx As I, { RowGuid: I.RowGuid, ID: I.ID })
                                     );
                                     // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
                                     // een raekke giver en record, Collect en tabel - og compile svarer
@@ -13503,10 +13510,8 @@ Screens:
                                         false
                                     );
                                     IfError(
-                                        With(
-                                            { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                            Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
-                                                  ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                        Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(colFlEx, RowGuid = R.RowGuid)),
+                                              ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                 RowGuid: R.RowGuid,
                                                 RequestGuid: varFlRequestGuid,
                                                 RequestId: varFlReq.ID,
@@ -13527,8 +13532,7 @@ Screens:
                                                            { field: V.Field, value: V.Value }),
                                                     JSONFormat.Compact
                                                 )
-                                            }))
-                                        );
+                                            }));
                                         true,
                                         Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
                                         false
@@ -13538,11 +13542,8 @@ Screens:
                                     //    stod: alle raekker, appen ikke kender. Saa slettede den, der
                                     //    gemte sidst, de raekker en anden havde tilfoejet imens.
                                     IfError(
-                                        With(
-                                            { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                            Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
-                                                                   RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
-                                        );
+                                        Remove(FunctionalLocationItems, Filter(colFlEx, RowGuid in colFlDeleted.RowGuid ||
+                                                                    RowGuid in Filter(colFlRows, Status = "draft").RowGuid));
                                         true,
                                         Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
                                         false
@@ -14256,7 +14257,7 @@ Screens:
                 
                             If(false, ClearCollect(colFlIssuesRaw, { RowGuid: "", Ord: 0, Sev: "", Code: "", Field: "", Short: "", Msg: "" }));
                 
-                            If(false, ClearCollect(colFlCalc, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", IsBlankRow: false, KksType: "", SynIssue: "", Legacy: false, K12: "", K17: "", Cls: "", SpoolCls: "", MFlReq: "", MDup: "", MDescReq: "", MDescLen: "", MKks: "", MRules: "", MPlant: "", MFunc: "", MU: "", MBrMiss: "", MBrK17: "", MComp: "", MEq18: "", MEq12: "", MNoCls: "" }));
+                            If(false, ClearCollect(colFlCalc, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", IsBlankRow: false, KksType: "", SynIssue: "", Legacy: false, K12: "", K17: "", Cls: "", SpoolCls: "", MPlantMix: "", MFlReq: "", MDup: "", MDescReq: "", MDescLen: "", MKks: "", MRules: "", MPlant: "", MFunc: "", MU: "", MBrMiss: "", MBrK17: "", MComp: "", MEq18: "", MEq12: "", MNoCls: "" }));
                 
                             If(false, ClearCollect(colFlTmp, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
                 

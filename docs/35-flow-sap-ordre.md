@@ -55,6 +55,9 @@ statusværdierne findes i `MaintenancePlans.Status`, og at parenteserne går op.
    `BioSap-List-MaintenancePlans`, `BioSap-List-MaintenanceItems`,
    `BioSap-List-TaskListMain`, `BioSap-ErrorNotifiers` og
    `BioSap-MasterDataEmail` (kvitteringsflowets Cc ved afviste kørsler).
+   **`BioSap-ErrorNotifiers` har ingen standardværdi i solutionen** (R2-086).
+   Sæt dens værdi i hvert miljø lige efter import – ellers fejler selve
+   fejlmailen, og en fejl i flowet ses kun i run history.
 3. **Forbindelser og ejer.** Som de andre BioSap-flows: connection references
    `orsted_BioSapSharePointConn` og `orsted_BioSapOutlookConn`, og en
    servicekonto som ejer, ikke en navngiven bruger.
@@ -212,7 +215,7 @@ Samme handling som i 7, navn **Clear SapOrderGuid**, med
 
 ### 9. Når noget fejler
 
-Så kommer fejlmailen. Ret årsagen og vælg *Resubmit* på kørslen. En ekstra
+Så kommer fejlmailen med ét link til kørslen (`FlowRunHistoryLink`). Ret årsagen og vælg *Resubmit* på kørslen. En ekstra
 ordrefil gør ingen skade: opretteren bruger den nyeste, og kvitteringsflowet
 godkender kun den, hvis `orderGuid` står på planen.
 
@@ -275,7 +278,11 @@ ligeglad med, hvordan filen kom dertil. Planen bliver altså *Published* senest
 *Filter array* **Receipt files**: *From*
 `body('Get_files_(properties_only)')?['value']`. Betingelsen er udtrykket i
 `kvittering-0-filter.txt` *is equal to* `true`. Det sorterer mapperne
-*Behandlet* og *Afvist* fra og alt andet end `*.kvittering.json`.
+*Behandlet* og *Afvist* fra og alt andet end `*.kvittering*.json`. OneDrives
+konfliktkopier (`….kvittering-PCNAVN.json`, når to pc'er skrev samme
+kvittering) kommer med, så *Valid receipt* kan afvise dem med en mail – før
+R2-055 blev de liggende i *Kvitteringer* uden at nogen fik besked. Halvt
+skrevne `.json.tmp`-filer kommer ikke med.
 
 ### 2. Én kvittering ad gangen
 
@@ -298,6 +305,7 @@ Betingelsen tjekker:
 
 | Tjek | Fanger |
 |---|---|
+| Filnavnet ender på `.kvittering.json` | En OneDrive-konfliktkopi (R2-055) |
 | `kind` er `vhplan-sap-receipt`, og `state` er `Created` | En fremmed fil |
 | `sapPlanNo` er udfyldt | En kvittering uden plannummer |
 | `orderGuid` er planens `SapOrderGuid` | En kvittering for en gammel ordre, fx fra før planen blev trukket tilbage |
@@ -330,8 +338,8 @@ Planen sættes til *Published* til sidst. Fejler et item, er planen stadig
 `SAPNum`, sender `BioSap-EmailNotification-PlanPublished` mailen til
 rekvirenten (docs/17, *Oprettet i SAP*). Er `SapWarnings` udfyldt, står
 advarslerne i mailen under *To be added manually in SAP*, og
-`BioSap-MasterDataEmail` kommer på Cc. Har det flow ikke fået spærren fra docs/32 (afsnit 7.5), sender
-det mailen igen ved hver senere ændring af planen.
+`BioSap-MasterDataEmail` kommer på Cc. Spærren fra docs/32 (afsnit 7.5) er
+indført (`RequesterNotified`), så mailen sendes én gang.
 
 ### 4. Nej og fejl: Afvist og en mail
 
@@ -348,7 +356,10 @@ det mailen igen ved hver senere ændring af planen.
   Master Data, der skal handle (docs/34, 5 og 8). Ellers tom.
 
 **Efter scopet**, stadig i løkken: samme *Move file* til *Afvist* og en mail
-med filnavnet og `FlowRunHistoryLink`. Begge med *Configure run after*:
+med filnavnet, kvitteringens `state`, `planId`, `sapSystem` (og det forventede),
+`orderGuid` og `lastError`, planens `SapOrderGuid` og `Status` (tomme, hvis
+flowet stoppede før de blev læst – udtrykkene bruger `actions('…')?['outputs']`)
+og `FlowRunHistoryLink` (R2-086). Begge med *Configure run after*:
 *Handle receipt has failed* og *has timed out*. Det fanger en fil, der ikke
 kan læses, eller hvis plan ikke findes. Uden dem ville flowet fejle på den
 samme fil hvert 10. minut.
@@ -387,7 +398,9 @@ Med en DEV-plan, før opretteren bruges mod SAP:
 4. Opret planen i GQ1 (docs/34, afsnit 9). Inden for 10 minutter er planen
    *Published* med `SAPNum`. Hvert item har `SapItemNo`, `TaskListGroup` og
    `TaskListGroupCounter`, kvitteringen ligger i *Behandlet*, og rekvirenten
-   har fået mailen.
+   har fået mailen. Den gamle ordre fra punkt 3 er flyttet til *Oprettet*
+   sammen med den nye (R2-056), og listen i opretteren har ingen række for
+   planen længere.
 5. Kopiér kvitteringen fra *Behandlet* tilbage til *Kvitteringer*. Den havner
    i *Afvist*, fordi planen ikke længere er *Ready*, og der kommer en mail.
 

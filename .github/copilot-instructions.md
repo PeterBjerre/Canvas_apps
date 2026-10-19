@@ -102,7 +102,7 @@ Deploy til Studio (af brugeren):
   - Låste felter er `DisplayMode.View`, ikke Disabled.
   - Validering vises først ved Validate/Save/Submit.
   - Statusetiketter er på engelsk; de gemte værdier er uændrede (Kladde, Indsendt …).
-- **BIO SAP:** nye hub-variabler (`varMd*`) skal stå i `HUB_OWN` i `BIO SAP App/build/check_combined.py`.
+- **BIO SAP:** variabler og samlinger uden domænetag (fx `gbl*` delt af alle skærme) skal stå i `SHARED` i `BIO SAP App/build/check_combined.py`; hubbens `varMd*`/`colMd*` har tagget `Md` og kræver intet.
 
 ## Power Apps-begrænsninger, vi har ramt
 
@@ -129,7 +129,6 @@ Deploy til Studio (af brugeren):
    ```bash
    python3 tools/build_all.py
    python3 -m pytest -q tests
-   git checkout -- '*.pyc'        # byggeriet sletter trackede .pyc-filer
    ```
 5. **Commit kun de filer, du bevidst har ændret.** Se `git status`:
    - Står `sharepoint/*.ps1`, `sharepoint/provision/_Common.psm1`, `sharepoint/seed/*.csv` eller `tools/*.ps1` som ændrede, er det kun linjeskift. De må aldrig committes.

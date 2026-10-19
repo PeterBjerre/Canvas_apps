@@ -67,3 +67,26 @@ def test_sortable_headers_are_buttons_and_the_rest_stay_text():
             assert f"- btnMdH{i}:" in y, t
         else:
             assert f"- txtMdH{i}:" in y, t
+
+
+def test_onstart_does_not_reset_the_saved_filters():
+    """R2-044: OnStart koerer samtidig med OnVisible. Satte den filtrene,
+    kunne den overskrive dem, OnVisible lige havde laest fra lageret."""
+    app = open(os.path.join(ROOT, "BIO SAP App", "App.pa.yaml"), encoding="utf-8").read()
+    start = app[app.index("OnStart:"):]
+    for var in ("varMdView", "varMdStatusMode", "varMdDomain"):
+        assert f"Set({var}," not in start, var
+    # OnVisible henter selv lageret, hvis OnStart ikke er naaet dertil.
+    assert bh.HUB_ON_VISIBLE.index("LoadData(colAppPrefs") < bh.HUB_ON_VISIBLE.index("varMdPrefsRead")
+
+
+def test_counter_delete_and_dates_follow_d30():
+    """R2-079: "1 request" (ikke "1 requests"), admin ser Delete paa
+    AfventerInfo som paa domaeneskaermene, og en raekke uden dato har
+    ingen " days ago"."""
+    words = bh.scope_count_words("true")
+    assert '" request"' in words and '" requests"' in words and '"+"' in words
+    _edit, dele = bh._owner_buttons("true", "X")
+    vis = dele.props["Visible"]
+    assert '"Kladde"' in vis and 'IsAdmin && ThisItem.Status.Value = "AfventerInfo"' in vis
+    assert bh.WHEN_FX.startswith("If(\n    IsBlank(ThisItem.LastActionOn)")

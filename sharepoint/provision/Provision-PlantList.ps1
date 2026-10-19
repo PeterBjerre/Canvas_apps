@@ -13,6 +13,9 @@
 .PARAMETER SiteUrl
     Sitet listen ligger paa.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-PlantList.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV"
 
@@ -25,6 +28,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -32,6 +36,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 $PLANTS = @('HCV', 'SMV')
 
@@ -43,6 +48,10 @@ foreach ($it in (Get-PnPListItem -List 'PlantList' -PageSize 500)) {
 foreach ($p in $PLANTS) {
     if ($have.ContainsKey($p)) {
         Write-Host "    = $p" -ForegroundColor DarkGray
+        continue
+    }
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville tilfoeje $p" -ForegroundColor Yellow
         continue
     }
     Add-PnPListItem -List 'PlantList' -Values @{ Title = $p } | Out-Null

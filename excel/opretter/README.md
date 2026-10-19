@@ -38,9 +38,17 @@ biblioteket *SAP-oprettelse*. Kopiér den til din pc, fx til *Dokumenter*, og
 åbn kopien. Så arbejder I ikke i den samme fil på samme tid. Kommer der en ny
 version, kopierer du den igen.
 
-Viser Excel en **rød** bjælke om, at makroer er blokeret: luk filen, højreklik
-på den → *Egenskaber* → sæt flueben i *Fjern blokering* → *OK*, og åbn den
-igen. Ved en **gul** bjælke: tryk *Aktivér indhold*.
+Projektmappen skal være **signeret** med teamets kodesigneringscertifikat
+(R2-058). Er udgiveren betroet (IT udruller certifikatet som *Betroet
+udgiver*), åbner den med makroer uden bjælker, også når IT kun tillader
+signerede makroer. Står der, at udgiveren ikke er betroet, så spørg den, der
+vedligeholder opretteren – tryk ikke bare *Aktivér*.
+
+*Indtil filen er signeret* (midlertidigt): viser Excel en **rød** bjælke om,
+at makroer er blokeret, så luk filen, højreklik på den → *Egenskaber* → sæt
+flueben i *Fjern blokering* → *OK*, og åbn den igen. Ved en **gul** bjælke:
+tryk *Aktivér indhold*. Gør det kun med filen fra biblioteket
+*SAP-oprettelse*.
 
 **4. Tjek, at det virker.** På arket *Start*:
 
@@ -59,6 +67,13 @@ igen. Ved en **gul** bjælke: tryk *Aktivér indhold*.
    klik bare på én række.
 4. **Opret i SAP.** Opretteren åbner sit eget SAP-vindue og arbejder i det.
    Rør ikke SAP eller Excel, før den er færdig.
+
+   **Én operatør ad gangen.** Aftal, hvem der opretter i dag. Låsen er en
+   fil i den synkroniserede mappe, og en kollegas lås ses først, når
+   OneDrive har hentet den — sekunder, på VPN minutter. Opretteren læser
+   låsen igen to sekunder efter, den er skrevet, og stopper, hvis en anden
+   er kommet først, men to, der trykker *Opret* på samme plan i samme
+   øjeblik, kan stadig begge nå at oprette (R2-055).
 5. **Svar på spørgsmålene** (se nedenfor). Til sidst får du en opsummering.
 
 Inden for 10 minutter står resultatet i appen, og rekvirenten får en mail:
@@ -89,9 +104,10 @@ Det sidste spørgsmål kommer kun, mens *Bekræft hvert gem* står til *Ja* (ark
 | **Delvist oprettet** | Noget er oprettet, resten mangler. For FL: nogle rækker fejlede, de andre er gemt | Ret årsagen (står i *Besked* og under *Detaljer*) og tryk *Opret i SAP* igen. Det, der er gemt, springes over |
 | **Fejlede** | Intet blev oprettet | Ret årsagen og prøv igen |
 | **Kræver kontrol** | SAP svarede uklart efter et gem | Spørg den, der vedligeholder opretteren |
-| **Erstattet** | Der er kommet en nyere udgave af planen eller anmodningen | Ingenting. Den nyeste bruges |
+| **Erstattet** | Der er kommet en nyere udgave af planen eller anmodningen | Ingenting. Den nyeste bruges, og når den er oprettet, flyttes den gamle med til *Oprettet* |
 | **Oprettet …** | Færdig, men ikke flyttet endnu | Flyttes til *Oprettet* ved næste kørsel |
 | **Ugyldig fil** | Filen kan ikke læses | Spørg den, der vedligeholder opretteren |
+| **Synkkonflikt** | OneDrive-kopi af en statusfil (`….status-PCNAVN.json`): to pc'er skrev den samme fil | Slet kopien, og behold den nyeste uden pc-navn. Se i *Log* og i SAP, om planen blev kørt to gange |
 
 Alt, der sker, står også på arket *Log*.
 
@@ -127,6 +143,21 @@ bagefter. Læg den færdige fil øverst i biblioteket *SAP-oprettelse* og sig ti
 teamet, at der er en ny version. Filen har sine egne rettigheder: teamet kan
 kun læse den (docs/35, *Rettigheder*).
 
+**Signér hver ny version** (R2-058) – en ændring i modulerne fjerner
+signaturen:
+
+```powershell
+.\Build-Opretter.ps1 -From "...\SAP Opretter.xlsm" -SignThumbprint <aftryk> -TimestampUrl <IT's tidsstempeltjeneste>
+```
+
+Det kræver et kodesigneringscertifikat fra IT i dit certifikatlager,
+`signtool.exe` (Windows SDK) og Office' *Subject Interface Packages* for VBA
+(`msosipx.dll`, registreret). Uden dem: åbn filen, *Alt+F11* → *Funktioner* →
+*Digital signatur* → *Vælg* → gem. IT skal udrulle certifikatet som *Betroet
+udgiver* til teamet. Kan det ikke lade sig gøre, er det næstbedste, at IT gør
+en mappe til *Placering, der er tillid til* (gruppepolitik), og at teamet
+åbner filen derfra – ikke at hver bruger fjerner blokeringen.
+
 ### Arket Opslag
 
 Det SAP-specifikke, appen ikke ved noget om:
@@ -148,9 +179,11 @@ Det vigtigste:
 | Indstilling | Standard | Bemærk |
 |---|---|---|
 | SAP-system | `GQ1` | `GP1` i drift |
-| Produktionssystemer | `GP1` | DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her |
+| Produktionssystemer | `GP1` | DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her. **Fast i koden** (`VhpConfig.DefaultSetting`, R2-058): arket viser værdien, men en rettelse dér bruges ikke. Ændres i koden og bygges ind i en ny version |
 | Bekræft hvert gem | `Ja` | Sæt til `Nej`, når I stoler på opretteren |
 | Decimaltegn i SAP | `,` | Som i SAP-brugerprofilen |
+| Datoformat i SAP | `dd.mm.yyyy` | Som i SAP-brugerprofilen (SU3), fx `mm/dd/yyyy`. Startdatoen (IP01) og garantidatoerne (FL) skrives sådan. *Nøgledato (IA05)* skrives i hånden i samme format (R2-059) |
+| SAP-sprog | `EN` | Logon-sproget. Er SAP logget på med et andet, stopper opretteren før SAP med beskeden *Log på med engelsk*. *Test SAP* viser sproget. Tom = intet tjek (R2-059) |
 
 ### Rettelser i koden
 

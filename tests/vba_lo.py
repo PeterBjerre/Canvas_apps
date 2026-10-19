@@ -16,7 +16,16 @@ Format$, saa en fejl i en regel viser sig i testen og ikke foerst i SAP.
 
 Kraever LibreOffice (soffice) og Python-UNO (python3-uno). Mangler de,
 springer testene over (pytest.skip) - de er en ekstra sikkerhed, ikke en
-forudsaetning for byggeriet.
+forudsaetning for byggeriet. Med VBA_LO_REQUIRED=1 (CI-jobbet "vba-lo" i
+.github/workflows/build.yml) fejler de i stedet, saa et manglende
+LibreOffice ikke gemmer sig som et "s" i loggen.
+
+EGEN FORBINDELSE PR. KOERSEL (R2-066)
+------------------------------------
+Hver VbaRunner starter soffice paa et navngivet ROER med et unikt navn
+(uuid4) - ikke en fast port. Med port 2099 talte en anden samtidig
+pytest-koersel med den foerstes soffice og fejlede, naar den lukkede.
+Stopper vores soffice, mens vi venter paa forbindelsen, siges det straks.
 """
 import os
 import re
@@ -24,8 +33,14 @@ import shutil
 import subprocess
 import tempfile
 import time
+import uuid
 
 LIB = "VhpTestLib"
+
+
+def required():
+    """Skal LibreOffice-testene koere (ikke springes over)?"""
+    return os.environ.get("VBA_LO_REQUIRED") == "1"
 
 
 def available():
@@ -72,9 +87,10 @@ def _syntax_source(code):
 
 
 class VbaRunner:
-    def __init__(self, modules, port=2099):
+    def __init__(self, modules, pipe=None):
         self.modules = modules
-        self.port = port
+        # Unikt roernavn: to samtidige koersler deler aldrig forbindelse.
+        self.pipe = pipe or "vhp_lo_" + uuid.uuid4().hex
         self.proc = None
         self.profile = None
 
@@ -83,21 +99,27 @@ class VbaRunner:
         self.profile = tempfile.mkdtemp(prefix="vhp_lo_")
         self.proc = subprocess.Popen(
             ["soffice", "--headless", "--invisible", "--nologo", "--norestore",
-             f"--accept=socket,host=127.0.0.1,port={self.port};urp;",
+             f"--accept=pipe,name={self.pipe};urp;",
              f"-env:UserInstallation=file://{self.profile}"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         local = uno.getComponentContext()
         resolver = local.ServiceManager.createInstanceWithContext(
             "com.sun.star.bridge.UnoUrlResolver", local)
         ctx = None
-        for _ in range(120):
+        for _ in range(240):
+            if self.proc.poll() is not None:
+                shutil.rmtree(self.profile, ignore_errors=True)
+                raise RuntimeError("soffice stoppede (exit %s), foer der var forbindelse"
+                                   % self.proc.returncode)
             try:
                 ctx = resolver.resolve(
-                    f"uno:socket,host=127.0.0.1,port={self.port};urp;StarOffice.ComponentContext")
+                    f"uno:pipe,name={self.pipe};urp;StarOffice.ComponentContext")
                 break
             except Exception:
                 time.sleep(0.25)
         if ctx is None:
+            self.proc.kill()
+            shutil.rmtree(self.profile, ignore_errors=True)
             raise RuntimeError("LibreOffice startede ikke")
         self.ctx = ctx
         smgr = ctx.ServiceManager

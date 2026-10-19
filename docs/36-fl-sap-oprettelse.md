@@ -98,7 +98,8 @@ Porten er lavet fra `FL indberetninger udgave SPOOL V3.xlsm` (i
 | En karakteristik, der ikke fandtes, blev kun skrevet i Debug-vinduet | Advarsel i kvitteringen og under *Detaljer* | Så nogen ser det |
 | Gem uden besked blev regnet for gemt | Se efter i IL03, før rækken regnes for gemt | Kvitteringen må ikke sige "oprettet" om noget, der ikke er |
 | IL02 brugte altid strukturindikator KKS | IL02 bruger rækkens egen (KKS, KKSKV, KKSKA) | Samme som IL01 |
-| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen skriver kun `DD.MM.YYYY` (docs/31, FL34, issue #166), som går uændret til SAP. Konverteringen er bevaret for ældre anmodninger med `YYYYMMDD` |
+| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen skriver kun `DD.MM.YYYY` (docs/31, FL34, issue #166). Til SAP skrives datoen i indstillingen *Datoformat i SAP* (standard `dd.mm.yyyy`, altså uændret; R2-059). Konverteringen er bevaret for ældre anmodninger med `YYYYMMDD` |
+| "already exists" som tekst | Teksten, eller beskednøglen `FL_MSG_EXISTS_KEY`, når den er kendt | Teksten kræver engelsk logon. Opretteren stopper før SAP, hvis sproget ikke er *SAP-sprog* (`EN`), så en FL, der findes, ikke fejler i IL01 i stedet for at blive ændret i IL02 (R2-059) |
 
 **Et tomt felt bliver også tomt i SAP**, som i SPOOL. Ved IL02 betyder det, at
 en værdi, der står i SAP, men ikke i anmodningen, bliver slettet. *Detaljer*
@@ -143,7 +144,29 @@ dokumentfelterne, *Superior FL*, vedligeholdelsesfelterne, *Risiko*,
 Anmodningen er `Created`, når alle rækker er gemt. Indtil da er den `Partial`,
 og en ny kørsel tager kun de rækker, der mangler.
 
+**Også en delvis kørsel giver en kvittering** (R2-057). Rækkerne er
+uafhængige objekter i SAP, så "alt eller intet" pr. anmodning giver ingen
+mening: før lå 49 oprettede FL'er uden `SapResult`, fordi den 50. blev
+afvist, og ingen uden for Master Data kunne se det. Nu skriver opretteren
+efter hver kørsel, hvor nogle rækker er gemt og andre fejlede, kvitteringen
+med `state = Partial` i *Kvitteringer/FL* (samme filnavn som den endelige).
+Flow D skriver de gemte rækkers resultat og de fejlende rækkers fejl, holder
+anmodningen åben (*UnderBehandling*) og giver Master Data en mail. Når fejlen
+er rettet og anmodningen kørt igen, kommer kvitteringen med `Created`, og
+anmodningen bliver *OprettetISAP*.
+
 ## 5. Flowene
+
+> **Status (R2-021, 2026-10):** flow C og D findes **ikke** i solution-
+> eksporten (`solution/BIOSAP/src/Workflows/`). Om de er bygget i DEV, kan
+> kun ses i Power Automate. **Peters skridt:** se efter
+> `BioSap-FL-SapOrder`/`BioSap-FL-SapReceipt` i DEV. Findes de, så tilføj
+> dem til solution BIO SAP og eksportér (`tools/export_solution.ps1`), så de
+> kommer i repoet – derefter er repoets JSON kilden (docs/22), og
+> `tests/test_request_index_flows.py` tjekker også deres indeksstatus
+> (`OprettetISAP`/trin 5/`IsOpen = false`). Findes de ikke, så byg dem efter
+> dette afsnit med **engelske** mailtekster (emnet nedenfor). Indtil da
+> lukkes FL-anmodninger i indekset kun af en admin i hubben (R2-021).
 
 To nye flows i solution BIO SAP, bygget som VH-planernes i
 [`35-flow-sap-ordre.md`](35-flow-sap-ordre.md). Variablen
@@ -173,10 +196,12 @@ forbindelser er de samme. Afsnittet her siger kun, hvad der er anderledes.
 | `fl-ordre-4-merge-request-reset.json` | C: nulstil, når anmodningen sendes retur |
 | `kvittering-0-filter.txt`, `kvittering-1-compose.txt` | D: de samme som i VH-planernes flow |
 | `fl-kvittering-2-betingelse.txt` | D: er kvitteringen gyldig? |
-| `fl-kvittering-3-merge-row.json` | D: resultatet på hver række |
-| `fl-kvittering-4-merge-request.json` | D: anmodningen bliver *OprettetISAP* |
-| `fl-kvittering-5-merge-index.json` | D: landingssiden (MD_RequestIndex) |
+| `fl-kvittering-3-merge-row.json` | D: resultatet på hver række (`Failed` og fejlen, når rækken ikke er gemt) |
+| `fl-kvittering-4-merge-request.json` | D: anmodningen bliver *OprettetISAP* (kun `Created`) |
+| `fl-kvittering-5-merge-index.json` | D: landingssiden (MD_RequestIndex) (kun `Created`) |
 | `fl-kvittering-6-mail-row.txt` | D: en række i mailen til rekvirenten |
+| `fl-kvittering-7-merge-request-partial.json` | D: anmodningen bliver *UnderBehandling* (kun `Partial`, R2-057) |
+| `fl-kvittering-8-merge-index-partial.json` | D: landingssiden ved `Partial` (R2-057) |
 
 ### Flow C — `BioSap-FL-SapOrder`
 
@@ -251,12 +276,20 @@ Try
         Ja
           Apply to each  Each row                     outputs('Receipt')?['rows']
             Send an HTTP request to SharePoint  Set row result       fl-kvittering-3
-          Condition      Has index row                IndexItemId er udfyldt
-            Ja: Send an HTTP request to SharePoint  Set index row    fl-kvittering-5
-          Send an HTTP request to SharePoint    Set request created  fl-kvittering-4
-          Move file  → Kvitteringer/FL/Behandlet
-          Select         Mail rows                    fl-kvittering-6
-          Send an email (V2)  → rekvirenten           (valgfri)
+          Condition      Is created                   state = Created          (R2-057)
+            Ja
+              Condition      Has index row            IndexItemId er udfyldt
+                Ja: Send an HTTP request to SharePoint  Set index row    fl-kvittering-5
+              Send an HTTP request to SharePoint    Set request created  fl-kvittering-4
+              Move file  → Kvitteringer/FL/Behandlet
+              Select         Mail rows                fl-kvittering-6
+              Send an email (V2)  → rekvirenten       (valgfri)
+            Nej  (state = Partial)
+              Condition      Has index row            IndexItemId er udfyldt
+                Ja: Send an HTTP request to SharePoint  Set index row partial  fl-kvittering-8
+              Send an HTTP request to SharePoint    Set request in progress  fl-kvittering-7
+              Move file  → Kvitteringer/FL/Behandlet
+              Send an email (V2)  → BioSap-MasterDataEmail
         Nej
           Move file  → Kvitteringer/FL/Afvist
           Send an email (V2)  → BioSap-ErrorNotifiers
@@ -265,18 +298,43 @@ Try
 Catch                                  fejlmail
 ```
 
+**Et flow D bygget før R2-057** (oktober 2026) skal rettes i designeren: indsæt
+den nye `fl-kvittering-2-betingelse.txt` i *Valid receipt* og den nye
+`fl-kvittering-3-merge-row.json` i *Set row result*, og læg *Set index row*,
+*Set request created*, flytningen og mailen ind i Ja-grenen af en ny
+betingelse *Is created* med Nej-grenen nedenfor. Flowet ligger ikke i
+solution-eksporten i repoet, så det kan ikke rettes herfra. Indtil det er
+gjort, afviser det gamle flow en `Partial`-kvittering til *Afvist* med en
+mail til `BioSap-ErrorNotifiers` – intet går tabt, men rækkerne får ikke
+deres resultat.
+
 Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
 
 - ***Get files***: *Limit Entries to Folder* `/SAP-oprettelse/Kvitteringer/FL`.
 - ***Get request***: *Get item* på `BioSap-List-FunctionalLocationRequests`,
   *Id* `outputs('Receipt')?['requestSpId']`.
 - ***Valid receipt***: `fl-kvittering-2-betingelse.txt` *is equal to* `true`.
-  Den tjekker `kind`, `state = Created`, `orderGuid` mod anmodningens
+  Den tjekker filnavnet (en OneDrive-konfliktkopi `….kvittering-PCNAVN.json`
+  afvises med en mail, R2-055), `kind`, `state = Created` eller `Partial` (R2-057), `orderGuid` mod anmodningens
   `SapOrderGuid`, at anmodningen stadig er åben (Indsendt, UnderBehandling
   eller KlarTilSAP) og SAP-systemet.
 - ***Each row*** over `outputs('Receipt')?['rows']`: MERGE på
   `_api/web/lists(guid'@{parameters('BioSap-List-FunctionalLocationItems (orsted_BioSapListFunctionalLocationItems)')}')/items(@{items('Each_row')?['spId']})`
-  med `fl-kvittering-3-merge-row.json`.
+  med `fl-kvittering-3-merge-row.json`. En række, der ikke er gemt
+  (`done = false`), får `SapResult = Failed` og rækkens `lastError` i
+  `SapMessage` (højst 255 tegn – kolonnen er en tekstkolonne, så der er
+  ingen ny `SapError`-kolonne). En gemt række får `Created`/`Updated` og
+  SAP's statuslinje, som før.
+- ***Is created*** (R2-057): `equals(outputs('Receipt')?['state'], 'Created')`
+  *is equal to* `true`. Ja-grenen er den, der var der før (punkterne
+  nedenfor). Nej-grenen (`Partial`): *Set index row partial* med
+  `fl-kvittering-8-merge-index-partial.json`, *Set request in progress*
+  (MERGE på anmodningen med `fl-kvittering-7-merge-request-partial.json`),
+  *Move file* til *Behandlet* og en mail til `BioSap-MasterDataEmail` med
+  emnet `FL request @{outputs('Receipt')?['requestNo']} partly created in SAP`,
+  rækkerne med `SapResult = Failed` og deres fejl (samme escaping som
+  *Warning lines* i docs/35) og `FlowRunHistoryLink`. Rekvirenten får først
+  mailen, når anmodningen er helt oprettet.
 - ***Set index row***: MERGE på landingssidens række,
   `_api/web/lists/GetByTitle('MD_RequestIndex')/items(@{body('Get_request')?['IndexItemId']})`,
   med `fl-kvittering-5-merge-index.json`. Den lukker anmodningen på
@@ -293,7 +351,8 @@ Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
   er en *Select* fra `outputs('Receipt')?['rows']`. *Map* er udtrykket i
   `fl-kvittering-6-mail-row.txt`. Mailen går til
   `body('Get_request')?['RequesterEmail']` med emnet
-  `FL-anmodning @{outputs('Receipt')?['requestNo']} er oprettet i SAP` og
+  `Functional location request @{outputs('Receipt')?['requestNo']} created in SAP`
+  (engelsk som alle appens mails) og
   `<table>@{join(body('Mail_rows'), '')}</table>` i brødteksten.
 
 **Rettigheder** som docs/35: de to flows kører med servicekontoen, som skal
@@ -306,8 +365,11 @@ de rigtige rettigheder.
   appen. Sæt anmodningen til *AfventerInfo* i SharePoint, så rekvirenten kan
   rette og indsende igen. Så kommer der en ny ordre.
 - **En række fejlede ("Delvist oprettet").** Fejlen står i *Besked* og under
-  *Detaljer*. Ret årsagen, i SAP eller i appen, og tryk *Opret i SAP* igen.
-  Det, der er gemt, springes over.
+  *Detaljer*, og efter kvitteringsflowet også på rækken i SharePoint
+  (`SapResult = Failed`, fejlen i `SapMessage`). Anmodningen står som
+  *UnderBehandling*, og Master Data har fået en mail (R2-057). Ret årsagen,
+  i SAP eller i appen, og tryk *Opret i SAP* igen. Det, der er gemt,
+  springes over.
 - **Karakteristikken blev ikke fundet.** En advarsel i kvitteringen: navnet i
   tabellen *Karakteristikker* findes ikke på SAP-skærmen for klassen. Ret
   navnet i tabellen, så det står som i SAP.
@@ -329,7 +391,12 @@ Med *Bekræft hvert gem* slået til og DEV-anmodninger i GQ1:
 6. En klasse med mange karakteristikker, fx MKP_HE med TRM, så der skal
    bladres.
 7. En anmodning med en række, SAP afviser (fx en overordnet FL, der ikke
-   findes). De andre rækker oprettes. Ret og kør igen.
+   findes). De andre rækker oprettes, og der ligger en kvittering med
+   `state = Partial` i *Kvitteringer/FL*. Efter kvitteringsflowet har de gode
+   rækker `SapResult = Created`, den dårlige `Failed` med SAP's tekst i
+   `SapMessage`, anmodningen er *UnderBehandling*, og Master Data har fået
+   mailen. Ret og kør igen: kvitteringen kommer med `Created`, og
+   anmodningen bliver *OprettetISAP* (R2-057).
 8. Kvitteringsflowet: rækkerne får `SapResult`, anmodningen bliver
    *OprettetISAP*, landingssiden viser *Created in SAP*, og rekvirenten får
    mailen.

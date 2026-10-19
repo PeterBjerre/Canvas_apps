@@ -240,6 +240,12 @@ Public Function ClientOf(ByVal sess As Object) As String
     ClientOf = CStr(sess.Info.Client)
 End Function
 
+' Logon-sproget, fx "EN". Tom, hvis SAP GUI ikke siger det.
+Public Function LanguageOf(ByVal sess As Object) As String
+    On Error Resume Next
+    LanguageOf = UCase$(Trim$(CStr(sess.Info.Language)))
+End Function
+
 ' Til fejlbeskeder: transaktion, program og skaermnummer.
 Public Function ScreenInfo(ByVal sess As Object) As String
     On Error Resume Next

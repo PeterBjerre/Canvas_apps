@@ -511,10 +511,10 @@ Screens:
                                                   CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                   CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                   DecimalPlaces: R.DecimalPlaces,
-                                                  TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                  LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                  UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                  ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                  TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                  LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                  UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                  ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                   InProdos: Coalesce(R.InProdos.Value, ""),
                                                   ProdosTag: Coalesce(R.ProdosTag, ""),
                                                   ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -552,10 +552,10 @@ Screens:
                                                       CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                       CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                       DecimalPlaces: R.DecimalPlaces,
-                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                       InProdos: Coalesce(R.InProdos.Value, ""),
                                                       ProdosTag: Coalesce(R.ProdosTag, ""),
                                                       ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -591,10 +591,10 @@ Screens:
                                                       CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                       CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                       DecimalPlaces: R.DecimalPlaces,
-                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                       InProdos: Coalesce(R.InProdos.Value, ""),
                                                       ProdosTag: Coalesce(R.ProdosTag, ""),
                                                       ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -810,8 +810,8 @@ Screens:
                                               Patch(
                                                   MeasuringPointItems,
                                                   ForAll(created As n, { ID: n.ID }),
-                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(n.ID, "000000") })
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MPR-" & Text(n.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MPR-" & Text(n.ID, "000000") })
                                               )
                                           );
                                           Set(varMpRequestGuid, "");
@@ -868,10 +868,10 @@ Screens:
                                                           CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                           CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                           DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                           InProdos: Coalesce(R.InProdos.Value, ""),
                                                           ProdosTag: Coalesce(R.ProdosTag, ""),
                                                           ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -909,10 +909,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -948,10 +948,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -1030,6 +1030,8 @@ Screens:
                                       CountRows(Filter(colMpRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colMpRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varMpIdx,
                                           If(!IsBlank(varMpRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varMpRequestGuid))
@@ -1060,7 +1062,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varMpIdx.RequesterEmail, varMpMe),
                                                       RequesterName: Coalesce(varMpIdx.RequesterName, User().FullName),
                                                       ShortText: "Measuring Points: " & With({ _c: CountRows(Filter(colMpRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colMpRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colMpRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colMpRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=measuringpoint&reqid=" & varMpRequestGuid,
                                                       LastActionOn: Now(),
@@ -1111,10 +1113,10 @@ Screens:
                                                           CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                           CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                           DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                           InProdos: Coalesce(R.InProdos.Value, ""),
                                                           ProdosTag: Coalesce(R.ProdosTag, ""),
                                                           ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -1152,10 +1154,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -1191,10 +1193,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -1269,7 +1271,11 @@ Screens:
                               LayoutMinWidth: |-
                                   =If(LayoutRank < 2, 40, 186)
                               OnSelect: |-
-                                  =Set(varMpConfirmSubmit, true)
+                                  =If(
+                                      CountRows(Distinct(Filter(colMpRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMpRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                                      Set(varMpConfirmSubmit, true)
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -1435,7 +1441,7 @@ Screens:
                                  Status = Lower(drpMpStatusFilter.Selected.Value)),
                                 (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpMpPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1073, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(IsEmpty(Filter(
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1073, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(CountRows(colMpRows) >= 500, 14 + (If(LayoutRank < 2, 40, 20)), 0) + If(IsEmpty(Filter(
                                 colMpRows,
                                 (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
                                 (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
@@ -3053,6 +3059,39 @@ Screens:
                                               =0
                                           Y: |-
                                               =If(LayoutRank < 3, 156, 56) - 1
+                        - txtMpRowsCap:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-warn-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =If(LayoutRank < 2, 40, 20)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              Visible: |-
+                                  =CountRows(colMpRows) >= 500
+                              Wrap: |-
+                                  =true
                         - conMpRowsEmpty:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -3623,6 +3662,8 @@ Screens:
                                       CountRows(Filter(colMpRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colMpRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varMpIdx,
                                           If(!IsBlank(varMpRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varMpRequestGuid))
@@ -3653,7 +3694,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varMpIdx.RequesterEmail, varMpMe),
                                                       RequesterName: Coalesce(varMpIdx.RequesterName, User().FullName),
                                                       ShortText: "Measuring Points: " & With({ _c: CountRows(Filter(colMpRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colMpRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colMpRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colMpRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=measuringpoint&reqid=" & varMpRequestGuid,
                                                       LastActionOn: Now(),
@@ -3704,10 +3745,10 @@ Screens:
                                                           CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                           CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                           DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                           InProdos: Coalesce(R.InProdos.Value, ""),
                                                           ProdosTag: Coalesce(R.ProdosTag, ""),
                                                           ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -3745,10 +3786,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -3784,10 +3825,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -3858,7 +3899,11 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               OnSelect: |-
-                                  =Set(varMpConfirmSubmit, true)
+                                  =If(
+                                      CountRows(Distinct(Filter(colMpRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMpRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                                      Set(varMpConfirmSubmit, true)
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -9298,7 +9343,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
-                                              =255
+                                              =12
                                           OnChange: |-
                                               =Set(varMpFMeasuringPoint, Self.Text)
                                           Placeholder: |-
@@ -10537,7 +10582,7 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFTargetValue, Self.Text)
                                           Placeholder: |-
-                                              =""
+                                              ="Use . as decimal separator"
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -10652,7 +10697,7 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFLowerLimit, Self.Text)
                                           Placeholder: |-
-                                              =""
+                                              ="Use . as decimal separator"
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -10767,7 +10812,7 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFUpperLimit, Self.Text)
                                           Placeholder: |-
-                                              =""
+                                              ="Use . as decimal separator"
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -11004,7 +11049,7 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFExpectedAnnualUsage, Self.Text)
                                           Placeholder: |-
-                                              =""
+                                              ="Use . as decimal separator"
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -12735,10 +12780,10 @@ Screens:
                                                             CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                             CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                             DecimalPlaces: R.DecimalPlaces,
-                                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                             InProdos: Coalesce(R.InProdos.Value, ""),
                                                             ProdosTag: Coalesce(R.ProdosTag, ""),
                                                             ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -12776,10 +12821,10 @@ Screens:
                                                                 CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                                 CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                                 DecimalPlaces: R.DecimalPlaces,
-                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                                 InProdos: Coalesce(R.InProdos.Value, ""),
                                                                 ProdosTag: Coalesce(R.ProdosTag, ""),
                                                                 ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -12815,10 +12860,10 @@ Screens:
                                                                 CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                                 CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                                 DecimalPlaces: R.DecimalPlaces,
-                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                                 InProdos: Coalesce(R.InProdos.Value, ""),
                                                                 ProdosTag: Coalesce(R.ProdosTag, ""),
                                                                 ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13203,13 +13248,27 @@ Screens:
                                   // Add row / Update row (UX-review F2): faerdig, naar kravene er opfyldt,
                                   // ellers kladde. Kun beskrivelsen kraeves for at gemme.
                                   If(
-                                      (!IsBlank(Trim(Coalesce(varMpFText, ""))) && !IsBlank(varMpFPlant) && !(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, "")))) && !(IsBlank(Trim(Coalesce(varMpFExistsInSap, "")))) && !(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, "")))) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, "")))) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, "")))) && !(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3)) && !(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())) <= 0)) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))))),
+                                      (!IsBlank(Trim(Coalesce(varMpFText, ""))) && !IsBlank(varMpFPlant) && !(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, "")))) && !(IsBlank(Trim(Coalesce(varMpFExistsInSap, "")))) && !(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, "")))) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, "")))) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, "")))) && !(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3)) && !(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))))) && !(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())) <= 0)) && !(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, "")))) && !(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))))),
                                       Set(varMpValidated, true);
                                       If(
                                           IsBlank(Trim(Coalesce(varMpFText, ""))) || IsBlank(varMpFPlant),
                                           Set(gblToast, { Text: "Description and Plant are required.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFMeasuringPoint, ""))) > 12,
+                                          Set(gblToast, { Text: "Measuring point no. can have at most 12 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFCharacteristic, ""))) > 30,
+                                          Set(gblToast, { Text: "Characteristic can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFTargetValue, ""),
+                                          Set(gblToast, { Text: "Target value: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFLowerLimit, ""),
+                                          Set(gblToast, { Text: "Lower limit: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFUpperLimit, ""),
+                                          Set(gblToast, { Text: "Upper limit: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFExpectedAnnualUsage, ""),
+                                          Set(gblToast, { Text: "Expected annual usage: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varMpAdmNew, IsBlank(varMpActiveRowId));
                                           Set(
@@ -13268,10 +13327,10 @@ Screens:
                                                   CharacteristicUnit: If(varMpFExistsInSap = "No", Trim(Coalesce(varMpFCharacteristicUnit, "")), ""),
                                                   CharacteristicUnitDescription: If(varMpFExistsInSap = "No", Trim(Coalesce(varMpFCharacteristicUnitDescription, "")), ""),
                                                   DecimalPlaces: If(varMpFExistsInSap = "No", varMpFDecimalPlaces, Blank()),
-                                                  TargetValue: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())), ""),
-                                                  LowerLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())), ""),
-                                                  UpperLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), ""),
-                                                  ExpectedAnnualUsage: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())), ""),
+                                                  TargetValue: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())), ""),
+                                                  LowerLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())), ""),
+                                                  UpperLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), ""),
+                                                  ExpectedAnnualUsage: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())), ""),
                                                   InProdos: If(varMpFExistsInSap = "No", If(IsBlank(Trim(Coalesce(varMpFInProdos, ""))), Blank(), { Value: Trim(varMpFInProdos) }), Blank()),
                                                   ProdosTag: If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes", Trim(Coalesce(varMpFProdosTag, "")), ""),
                                                   ProdosCounterExists: If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), Blank(), { Value: Trim(varMpFProdosCounterExists) }), Blank()),
@@ -13305,8 +13364,8 @@ Screens:
                                                   varMpSpRow,
                                                   {
                                                       RowId: varMpSpRow.ID,
-                                                      ItemKey: "MP-" & Text(varMpSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(varMpSpRow.ID, "000000")
+                                                      ItemKey: "MPR-" & Text(varMpSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MPR-" & Text(varMpSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -13319,8 +13378,8 @@ Screens:
                                                       RequestGuid: varMpRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MP-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff), 255),
-                                                      Comment: If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MP-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff),
+                                                      Detail: Left(If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MPR-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff), 255),
+                                                      Comment: If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MPR-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -13353,10 +13412,10 @@ Screens:
                                                           CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                           CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                           DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                           InProdos: Coalesce(R.InProdos.Value, ""),
                                                           ProdosTag: Coalesce(R.ProdosTag, ""),
                                                           ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13394,10 +13453,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13433,10 +13492,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13468,6 +13527,20 @@ Screens:
                                           Set(gblToast, { Text: "Description is required - also on a draft.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFMeasuringPoint, ""))) > 12,
+                                          Set(gblToast, { Text: "Measuring point no. can have at most 12 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMpFCharacteristic, ""))) > 30,
+                                          Set(gblToast, { Text: "Characteristic can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFTargetValue, ""),
+                                          Set(gblToast, { Text: "Target value: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFLowerLimit, ""),
+                                          Set(gblToast, { Text: "Lower limit: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFUpperLimit, ""),
+                                          Set(gblToast, { Text: "Upper limit: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMpFExpectedAnnualUsage, ""),
+                                          Set(gblToast, { Text: "Expected annual usage: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varMpAdmNew, IsBlank(varMpActiveRowId));
                                           Set(
@@ -13526,10 +13599,10 @@ Screens:
                                                   CharacteristicUnit: If(varMpFExistsInSap = "No", Trim(Coalesce(varMpFCharacteristicUnit, "")), ""),
                                                   CharacteristicUnitDescription: If(varMpFExistsInSap = "No", Trim(Coalesce(varMpFCharacteristicUnitDescription, "")), ""),
                                                   DecimalPlaces: If(varMpFExistsInSap = "No", varMpFDecimalPlaces, Blank()),
-                                                  TargetValue: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())), ""),
-                                                  LowerLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())), ""),
-                                                  UpperLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), ""),
-                                                  ExpectedAnnualUsage: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())), ""),
+                                                  TargetValue: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())), ""),
+                                                  LowerLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())), ""),
+                                                  UpperLimit: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint", If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), ""),
+                                                  ExpectedAnnualUsage: If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())), ""),
                                                   InProdos: If(varMpFExistsInSap = "No", If(IsBlank(Trim(Coalesce(varMpFInProdos, ""))), Blank(), { Value: Trim(varMpFInProdos) }), Blank()),
                                                   ProdosTag: If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes", Trim(Coalesce(varMpFProdosTag, "")), ""),
                                                   ProdosCounterExists: If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter", If(IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), Blank(), { Value: Trim(varMpFProdosCounterExists) }), Blank()),
@@ -13563,8 +13636,8 @@ Screens:
                                                   varMpSpRow,
                                                   {
                                                       RowId: varMpSpRow.ID,
-                                                      ItemKey: "MP-" & Text(varMpSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(varMpSpRow.ID, "000000")
+                                                      ItemKey: "MPR-" & Text(varMpSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MPR-" & Text(varMpSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -13577,8 +13650,8 @@ Screens:
                                                       RequestGuid: varMpRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MP-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff), 255),
-                                                      Comment: If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MP-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff),
+                                                      Detail: Left(If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MPR-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff), 255),
+                                                      Comment: If(varMpAdmNew, "New row " & Coalesce(varMpSpRow.ItemKey, "MPR-" & Text(varMpSpRow.ID, "000000")), varMpAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -13611,10 +13684,10 @@ Screens:
                                                           CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                           CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                           DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                           InProdos: Coalesce(R.InProdos.Value, ""),
                                                           ProdosTag: Coalesce(R.ProdosTag, ""),
                                                           ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13652,10 +13725,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13691,10 +13764,10 @@ Screens:
                                                               CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                               CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                               DecimalPlaces: R.DecimalPlaces,
-                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                               InProdos: Coalesce(R.InProdos.Value, ""),
                                                               ProdosTag: Coalesce(R.ProdosTag, ""),
                                                               ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -13712,8 +13785,8 @@ Screens:
                                               )
                                           );
                                       
-                                          Set(varMpInfo, "Saved as draft row " & LookUp(colMpRows, RowId = varMpActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varMpFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))), "A functional location is required. ", "") & If(IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))), "Select whether the measuring point already exists in SAP. ", "") & If(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))), "Enter the existing measuring point no. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))), "Select the measuring point type. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))), "Select a characteristic from the list. ", "") & If(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3), "Decimal places must be between 0 and 3. ", "") & If(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank()))), "Target value, limits and expected annual usage must be numbers, not text. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))), "The value has more decimals than Decimal places allows. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), "Lower limit must be less than or equal to upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())))), "The target value must be between the lower and the upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())) <= 0), "Enter the expected annual usage for the counter - it must be above zero. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, ""))), "Select whether the measuring point is located in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, ""))), "Enter the PRODOS tag. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), "Select whether the counter already exists in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))), "Select whether the counter is created in PRODOS or SRO. ", "")));
-                                          Set(gblToast, { Text: "Saved as draft row " & LookUp(colMpRows, RowId = varMpActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varMpFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))), "A functional location is required. ", "") & If(IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))), "Select whether the measuring point already exists in SAP. ", "") & If(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))), "Enter the existing measuring point no. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))), "Select the measuring point type. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))), "Select a characteristic from the list. ", "") & If(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3), "Decimal places must be between 0 and 3. ", "") & If(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit)), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank()))), "Target value, limits and expected annual usage must be numbers, not text. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))), "The value has more decimals than Decimal places allows. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())), "Lower limit must be less than or equal to upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit)), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue)), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit)), Blank())))), "The target value must be between the lower and the upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage)), Blank())) <= 0), "Enter the expected annual usage for the counter - it must be above zero. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, ""))), "Select whether the measuring point is located in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, ""))), "Enter the PRODOS tag. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), "Select whether the counter already exists in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))), "Select whether the counter is created in PRODOS or SRO. ", "")), Kind: "Warning", At: Now() });
+                                          Set(varMpInfo, "Saved as draft row " & LookUp(colMpRows, RowId = varMpActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varMpFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))), "A functional location is required. ", "") & If(IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))), "Select whether the measuring point already exists in SAP. ", "") & If(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))), "Enter the existing measuring point no. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))), "Select the measuring point type. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))), "Select a characteristic from the list. ", "") & If(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3), "Decimal places must be between 0 and 3. ", "") & If(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank()))), "Target value, limits and expected annual usage must be numbers, not text. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))), "The value has more decimals than Decimal places allows. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), "Lower limit must be less than or equal to upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())))), "The target value must be between the lower and the upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())) <= 0), "Enter the expected annual usage for the counter - it must be above zero. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, ""))), "Select whether the measuring point is located in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, ""))), "Enter the PRODOS tag. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), "Select whether the counter already exists in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))), "Select whether the counter is created in PRODOS or SRO. ", "")));
+                                          Set(gblToast, { Text: "Saved as draft row " & LookUp(colMpRows, RowId = varMpActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varMpFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))), "A functional location is required. ", "") & If(IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))), "Select whether the measuring point already exists in SAP. ", "") & If(varMpFExistsInSap = "Yes" && IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))), "Enter the existing measuring point no. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))), "Select the measuring point type. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))), "Select a characteristic from the list. ", "") & If(varMpFExistsInSap = "No" && (IsBlank(varMpFDecimalPlaces) || varMpFDecimalPlaces < 0 || varMpFDecimalPlaces > 3), "Decimal places must be between 0 and 3. ", "") & If(varMpFExistsInSap = "No" && (!IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) && IsBlank(IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) && IsBlank(IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())) || !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) && IsBlank(IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank()))), "Target value, limits and expected annual usage must be numbers, not text. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) || !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && Round(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), Coalesce(varMpFDecimalPlaces, 0)) <> If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))), "The value has more decimals than Decimal places allows. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())), "Lower limit must be less than or equal to upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "MeasuringPoint" && !IsBlank(If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank()))) && ((!IsBlank(If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) < If(IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))), Blank(), IfError(Value(Trim(varMpFLowerLimit), "en-US"), Blank()))) || (!IsBlank(If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank()))) && If(IsBlank(Trim(Coalesce(varMpFTargetValue, ""))), Blank(), IfError(Value(Trim(varMpFTargetValue), "en-US"), Blank())) > If(IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))), Blank(), IfError(Value(Trim(varMpFUpperLimit), "en-US"), Blank())))), "The target value must be between the lower and the upper limit. ", "") & If(varMpFExistsInSap = "No" && varMpFMeasuringPointType = "Counter" && (IsBlank(If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank()))) || If(IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))), Blank(), IfError(Value(Trim(varMpFExpectedAnnualUsage), "en-US"), Blank())) <= 0), "Enter the expected annual usage for the counter - it must be above zero. ", "") & If(varMpFExistsInSap = "No" && IsBlank(Trim(Coalesce(varMpFInProdos, ""))), "Select whether the measuring point is located in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && IsBlank(Trim(Coalesce(varMpFProdosTag, ""))), "Enter the PRODOS tag. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))), "Select whether the counter already exists in PRODOS. ", "") & If(varMpFExistsInSap = "No" && varMpFInProdos = "Yes" && varMpFMeasuringPointType = "Counter" && varMpFProdosCounterExists = "No" && IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))), "Select whether the counter is created in PRODOS or SRO. ", "")), Kind: "Warning", At: Now() });
                                           Set(varMpEditorOpen, false),
                                       
                                           Set(varMpInfo, "Save failed: " & FirstError.Message);
@@ -14406,10 +14479,13 @@ Screens:
                                                     ProdosCounterExists: IfError(Trim(Index(c, 13).Value), ""),
                                                     CounterCreateIn: IfError(Trim(Index(c, 14).Value), ""),
                                                     Remarks: IfError(Trim(Index(c, 15).Value), ""),
-                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)),
+                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)) && !(Len(IfError(Trim(Index(c, 1).Value), "")) > 40) && !(Len(IfError(Trim(Index(c, 5).Value), "")) > 12) && !(Len(IfError(Trim(Index(c, 7).Value), "")) > 30),
                                                     Note: If(
                                                         IsBlank(IfError(Trim(Index(c, 1).Value), "")), "Description is missing",
                                                         !IsBlank(p) && IsBlank(plant), "Unknown plant " & p,
+                                                        Len(IfError(Trim(Index(c, 1).Value), "")) > 40, "Description longer than 40 characters",
+                                                        Len(IfError(Trim(Index(c, 5).Value), "")) > 12, "Measuring point no. longer than 12 characters",
+                                                        Len(IfError(Trim(Index(c, 7).Value), "")) > 30, "Characteristic longer than 30 characters",
                                                         "Ready"
                                                     )
                                                 }
@@ -14492,8 +14568,8 @@ Screens:
                                     Patch(
                                         MeasuringPointItems,
                                         ForAll(created As n, { ID: n.ID }),
-                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
-                                            AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(n.ID, "000000") })
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MPR-" & Text(n.ID, "000000"),
+                                            AttachmentFolder: "TaskListDocuments/" & "MPR-" & Text(n.ID, "000000") })
                                     )
                                 );
                                 If(
@@ -14519,10 +14595,10 @@ Screens:
                                                 CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                 CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                 DecimalPlaces: R.DecimalPlaces,
-                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                 InProdos: Coalesce(R.InProdos.Value, ""),
                                                 ProdosTag: Coalesce(R.ProdosTag, ""),
                                                 ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -14560,10 +14636,10 @@ Screens:
                                                     CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                     CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                     DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                     InProdos: Coalesce(R.InProdos.Value, ""),
                                                     ProdosTag: Coalesce(R.ProdosTag, ""),
                                                     ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -14599,10 +14675,10 @@ Screens:
                                                     CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                     CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                     DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                     InProdos: Coalesce(R.InProdos.Value, ""),
                                                     ProdosTag: Coalesce(R.ProdosTag, ""),
                                                     ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15014,10 +15090,10 @@ Screens:
                                                     CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                     CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                     DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                     InProdos: Coalesce(R.InProdos.Value, ""),
                                                     ProdosTag: Coalesce(R.ProdosTag, ""),
                                                     ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15055,10 +15131,10 @@ Screens:
                                                         CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                         CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                         DecimalPlaces: R.DecimalPlaces,
-                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                         InProdos: Coalesce(R.InProdos.Value, ""),
                                                         ProdosTag: Coalesce(R.ProdosTag, ""),
                                                         ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15094,10 +15170,10 @@ Screens:
                                                         CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                         CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                         DecimalPlaces: R.DecimalPlaces,
-                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                         InProdos: Coalesce(R.InProdos.Value, ""),
                                                         ProdosTag: Coalesce(R.ProdosTag, ""),
                                                         ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15424,6 +15500,10 @@ Screens:
                             If(
                                 CountRows(Filter(colMpRows, Status = "valid")) = 0,
                                 Set(gblToast, { Text: "There are no completed rows to submit.", Kind: "Warning", At: Now() }); true,
+                                CountRows(Distinct(Filter(colMpRows, Status = "valid"), Plant)) > 1,
+                                Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMpRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                            
+                                If(CountRows(colMpRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
                             
                                 Set(
                                     varMpIdx,
@@ -15455,7 +15535,7 @@ Screens:
                                                 RequesterEmail: Coalesce(varMpIdx.RequesterEmail, varMpMe),
                                                 RequesterName: Coalesce(varMpIdx.RequesterName, User().FullName),
                                                 ShortText: "Measuring Points: " & With({ _c: CountRows(Filter(colMpRows, Status = "valid")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                Plant: First(Filter(colMpRows, Status = "valid")).Plant,
+                                                Plant: First(Sort(Filter(colMpRows, Status = "valid"), RowId)).Plant,
                                                 ItemCount: CountRows(Filter(colMpRows, Status = "valid")),
                                                 AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=measuringpoint&reqid=" & varMpRequestGuid,
                                                 LastActionOn: Now(),
@@ -15516,10 +15596,10 @@ Screens:
                                                     CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                     CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                     DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                     InProdos: Coalesce(R.InProdos.Value, ""),
                                                     ProdosTag: Coalesce(R.ProdosTag, ""),
                                                     ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15557,10 +15637,10 @@ Screens:
                                                         CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                         CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                         DecimalPlaces: R.DecimalPlaces,
-                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                         InProdos: Coalesce(R.InProdos.Value, ""),
                                                         ProdosTag: Coalesce(R.ProdosTag, ""),
                                                         ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -15596,10 +15676,10 @@ Screens:
                                                         CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                         CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                         DecimalPlaces: R.DecimalPlaces,
-                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                         InProdos: Coalesce(R.InProdos.Value, ""),
                                                         ProdosTag: Coalesce(R.ProdosTag, ""),
                                                         ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16221,10 +16301,10 @@ Screens:
                                             CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                             CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                             DecimalPlaces: R.DecimalPlaces,
-                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                             InProdos: Coalesce(R.InProdos.Value, ""),
                                             ProdosTag: Coalesce(R.ProdosTag, ""),
                                             ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16262,10 +16342,10 @@ Screens:
                                                 CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                 CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                 DecimalPlaces: R.DecimalPlaces,
-                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                 InProdos: Coalesce(R.InProdos.Value, ""),
                                                 ProdosTag: Coalesce(R.ProdosTag, ""),
                                                 ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16301,10 +16381,10 @@ Screens:
                                                 CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                                 CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                                 DecimalPlaces: R.DecimalPlaces,
-                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                                 InProdos: Coalesce(R.InProdos.Value, ""),
                                                 ProdosTag: Coalesce(R.ProdosTag, ""),
                                                 ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16349,10 +16429,10 @@ Screens:
                                         CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                         CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                         DecimalPlaces: R.DecimalPlaces,
-                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                         InProdos: Coalesce(R.InProdos.Value, ""),
                                         ProdosTag: Coalesce(R.ProdosTag, ""),
                                         ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16390,10 +16470,10 @@ Screens:
                                             CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                             CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                             DecimalPlaces: R.DecimalPlaces,
-                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                             InProdos: Coalesce(R.InProdos.Value, ""),
                                             ProdosTag: Coalesce(R.ProdosTag, ""),
                                             ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
@@ -16429,10 +16509,10 @@ Screens:
                                             CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
                                             CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
                                             DecimalPlaces: R.DecimalPlaces,
-                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue, "0.###", "en-US")),
+                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit, "0.###", "en-US")),
+                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit, "0.###", "en-US")),
+                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage, "0.###", "en-US")),
                                             InProdos: Coalesce(R.InProdos.Value, ""),
                                             ProdosTag: Coalesce(R.ProdosTag, ""),
                                             ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),

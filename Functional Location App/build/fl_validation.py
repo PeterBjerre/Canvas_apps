@@ -69,6 +69,10 @@ def fk_hit(k7):
 # den FOERSTE fejl (FL26).
 ROW_MSGS = [
     # (kolonne i colFlCalc, kode, felt)
+    # FL71 (R2-074): appens egen regel - eet vaerk pr. anmodning. Den staar
+    # FOERST, fordi den gaelder hele anmodningen og ikke kendes af
+    # originalen; harnessen laegger den oven paa begge sider (appRules).
+    ("MPlantMix", "FL71", "FUNCTIONAL LOCATION"),
     ("MFlReq", "FL4", "FUNCTIONAL LOCATION"),
     ("MDup", "FL5", "FUNCTIONAL LOCATION"),
     ("MDescReq", "FL6", "DESCRIPTION"),
@@ -105,7 +109,12 @@ DUPS = """ClearCollect(
         Filter(GroupBy(Filter(colFlRows, !IsBlank(FL)), FL, Grp), CountRows(Grp) > 1) As G,
         { FL: G.FL }
     )
-)"""
+);
+// FL71: mere end eet vaerk (pos. 1-3) i anmodningen - een gang for hele tabellen.
+Set(varFlPlantMix, CountRows(Distinct(Filter(colFlRows, !IsBlank(FL)), Left(FL, 3))) > 1)"""
+
+# FL71: beskeden (R2-074). Den samme tekst staar i tools/fl/harness.js.
+PLANT_MIX_MSG = "More than one plant in the request - use one request per plant."
 
 
 def calc_rows():
@@ -119,7 +128,9 @@ def calc_rows():
     elf = f"IsMatch(fl, {_q(PAT['elf'])})"
     mkp = f"(IsMatch(fl, {_q(PAT['mkp'])}) || IsMatch(fl, {_q(PAT['fp'])}))"
     # Beskederne, der taeller med i FL23 ("ingen klasse og ingen fejl").
-    any_msg = " + ".join(f"If(IsBlank({c}), 0, 1)" for c, _k, _f in ROW_MSGS)
+    # FL71 er udeladt: den er appens egen og maa ikke aendre klassen.
+    any_msg = " + ".join(f"If(IsBlank({c}), 0, 1)" for c, _k, _f in ROW_MSGS
+                         if c != "MPlantMix")
     return f"""ClearCollect(
     colFlCalc,
     ForAll(
@@ -156,6 +167,7 @@ def calc_rows():
                         }},
                         With(
                             {{
+                                MPlantMix: If(!blankRow && !IsBlank(fl) && varFlPlantMix, "{PLANT_MIX_MSG}", ""),
                                 MFlReq: If(!blankRow && IsBlank(fl), "FL required.", ""),
                                 MDup: If(!blankRow && !IsBlank(fl) && fl in colFlDupFl.FL, "Duplicate FL.", ""),
                                 MDescReq: If(!blankRow && IsBlank(d), "Description required before Ready for SAP.", ""),

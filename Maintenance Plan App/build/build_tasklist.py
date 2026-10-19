@@ -2,15 +2,15 @@
 import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
-                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
+from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
+                        C_MODAL_BG, C_PRIMARY_SOFT,
+                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W, C_WARN_FG)
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
-                           fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done,
+                           fit_button_width, ICON_W, flow_ok, mark_done,
                            tab_list, tabs_w)
 from build_plan_header import section_header, help_panel, section_footer
 
@@ -21,7 +21,7 @@ import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY, pkg_pills, PILLS_W
 import sp_config as cfg
 from design_tokens import ref_hex
-from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least, if_below
+from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least
 
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
@@ -313,6 +313,14 @@ def _ops_totals_html():
 TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
              f"CountRows({OPS_ACTIVE}) > 0, false)")
 
+# OVER OMKOSTNINGSGRAENSEN (docs/32 §9, R2-082). En linje under totalen,
+# naar itemets sum er over graensen fra AppSettings (sp_config:
+# VhpCostThreshold). Kun information - godkendelsesflowet regner selv.
+COST_OVER_ON = (f"IfError({TOTALS_ON} && "
+                f"Sum({OPS_ACTIVE}, Cost) > VhpCostThreshold, false)")
+COST_OVER_TEXT = ('"Over " & ' + lay.num_text("VhpCostThreshold") +
+                  ' & " DKK - this item needs cost approval after submit."')
+
 
 # ---------------------------------------------------------------------------
 # Faner
@@ -560,8 +568,8 @@ def _materials_modal():
 # selv filerne; "Save documents" gemmer dem med een Patch.
 #
 # De aeldre dokumentraekker i MD_TasklistAttachment (colVhpAttachments,
-# OperationsKey ";0010;0020;") hentes og gemmes som foer, saa gemningen
-# ikke sletter dem - men de vises ikke i ruden.
+# OperationsKey ";0010;0020;") hentes, men gemningen roerer dem ikke
+# laengere (R2-071) - og de vises ikke i ruden.
 
 
 # Maa der laegges op og fjernes? Ikke i View-tilstand (issue #134).
@@ -773,8 +781,8 @@ def _op_detail_modal():
                     f'"Duration: " & {lay.num_text(OPM + ".DurationHours")} & " h   Work center: " & '
                     f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
                     wrap="false")
-    mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
-                  f'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
+    mats = button("btnVhpOpMMat", '"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
+                  'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
                   width=fit_button_width('"Materials (00)"'), height=32)
     docs = button("btnVhpOpMDocs", docs_label(f"{OPM}.FileCount"),
                   att.open_fx("varVhpOpMNo"),
@@ -1320,7 +1328,11 @@ def build_tasklist_section():
     # materialeruden allerede gjorde.
     opsEmptyM = empty_state("conVhpOpsEmptyM", OPS_EMPTY, icon_path=icons.LIST,
                             visible=f"!{has_ops} && {below('Tablet')}")
-    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(), opsEmptyM],
+    opsCostOver = text_ctrl("txtVhpOpsCostOver", COST_OVER_TEXT, size=12, color=C_WARN_FG,
+                            weight="Semibold", wrap="true", height=20, width="Parent.Width",
+                            visible=COST_OVER_ON)
+    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(),
+                                      opsCostOver, opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
                     visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()

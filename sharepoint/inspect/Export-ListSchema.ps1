@@ -12,11 +12,23 @@
 
     Scriptet SKRIVER IKKE til SharePoint. Det laeser kun.
 
-    Om data: proeveraekkerne er rigtige data. Er der noget i listerne, der
-    ikke maa forlade sitet, saa koer med -NoData foerste gang - saa kommer
-    der kun kolonnestruktur med. Strukturen alene er nok til at vurdere
-    datamodellen; proeveraekkerne er kun til at se, hvilken FORM vaerdierne
-    har (staar der "SSVAP" eller "*PROD - Produktion" i et arbejdscenter?).
+    Om data (R2-025): repoet er OFFENTLIGT. Som standard kommer der kun
+    kolonnestruktur med - strukturen alene er nok til at vurdere
+    datamodellen. Med -IncludeData kommer proeveraekker med, saa man kan se,
+    hvilken FORM vaerdierne har (staar der "SSVAP" eller "*PROD -
+    Produktion" i et arbejdscenter?), men personer pseudonymiseres FOER
+    filen skrives:
+
+      * Person-/User-kolonner, Author og Editor
+      * Text-kolonner, hvis navn ender paa Email, By, Member, Responsible,
+        <Requester|AssignedTo|Owner|Reporter|Author>Name eller er
+        Approver1/Approver2
+      * e-mailadresser, kendte navne og initialer i al anden tekst (og
+        5-bogstavs initialer i MD_Approver-listernes noter)
+
+    blive til userNN eller userNN@example.invalid. NN er en fast hash af
+    vaerdien (MD5, 0-99), saa samme person faar samme pseudonym paa tvaers
+    af listerne, og formen kan stadig ses.
 
 .PARAMETER SiteUrl
     Sitet listerne ligger paa.
@@ -28,8 +40,12 @@
     Antal raekker pr. liste (standard 8). Store lister tager ikke laengere
     tid - der bruges en CAML RowLimit, ikke et fuldt hent.
 
+.PARAMETER IncludeData
+    Tag proeveraekker med (pseudonymiseret, se ovenfor). Uden den kun
+    struktur.
+
 .PARAMETER NoData
-    Spring proeveraekkerne over. Kun struktur.
+    Udgaaet - kun struktur er nu standarden. Vinder over -IncludeData.
 
 .PARAMETER Exclude
     Yderligere lister der skal springes over. Laegges oveni standardlisten,
@@ -48,7 +64,7 @@
     .\Export-ListSchema.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>"
 
 .EXAMPLE
-    .\Export-ListSchema.ps1 -SiteUrl "https://..." -NoData
+    .\Export-ListSchema.ps1 -SiteUrl "https://..." -IncludeData
 
 .NOTES
     Kraever PnP.PowerShell:  Install-Module PnP.PowerShell -Scope CurrentUser
@@ -59,6 +75,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [string[]] $Lists,
     [int] $SampleRows = 8,
+    [switch] $IncludeData,
     [switch] $NoData,
     [string[]] $Exclude,
     [switch] $IncludeAll,
@@ -67,6 +84,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Kun struktur, medmindre -IncludeData (R2-025). -NoData er udgaaet, men
+# vinder stadig, saa et gammelt kald ikke pludselig tager data med.
+$WithData = $IncludeData -and -not $NoData
 
 $OutDir = Join-Path $PSScriptRoot 'out'
 New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
@@ -159,12 +180,16 @@ Write-Host "`n$($all.Count) lister`n" -ForegroundColor Cyan
 $report = [ordered]@{
     site        = $SiteUrl
     exportedOn  = (Get-Date).ToString('yyyy-MM-dd HH:mm')
-    includesData = (-not $NoData)
+    includesData = $WithData
+    pseudonymized = $WithData
     skippedLists = $(if ($Lists -or $IncludeAll) { @() } else { $SKIP_LISTS })
     lists       = @()
 }
 
 $failed = @()
+# Proeveraekkerne samles foerst og skrives til sidst: pseudonymiseringen
+# skal kende alle listers personer, foer den retter fri tekst.
+$samples = [ordered]@{}
 
 foreach ($l in $all) {
   # En enkelt liste, der ikke kan laeses (rettigheder, en kolonne med en
@@ -226,10 +251,10 @@ foreach ($l in $all) {
 
     # Over listevisningsgraensen kan selv en RowLimit-forespoergsel blive
     # kvalt af throttling. Strukturen hentes stadig - kun raekkerne springes over.
-    if (-not $NoData -and $l.ItemCount -gt $MaxRowsForSample) {
+    if ($WithData -and $l.ItemCount -gt $MaxRowsForSample) {
         Write-Host ("    {0} raekker - springer proeveraekkerne over" -f $l.ItemCount) -ForegroundColor DarkYellow
     }
-    elseif (-not $NoData -and $l.ItemCount -gt 0) {
+    elseif ($WithData -and $l.ItemCount -gt 0) {
         $caml = "<View><Query></Query><RowLimit>$SampleRows</RowLimit></View>"
         $rows = @()
         foreach ($it in (Get-PnPListItem -List $l.Title -Query $caml)) {
@@ -251,8 +276,9 @@ foreach ($l in $all) {
             $rows += $r
         }
         $safe = ($l.Title -replace '[^\w\-]', '_')
-        $rows | ConvertTo-Json -Depth 6 |
-            Set-Content (Join-Path $OutDir "sample-$safe.json") -Encoding UTF8
+        $types = @{}
+        foreach ($f in $fields) { $types[$f.internalName] = $f.type }
+        $samples[$safe] = @{ rows = $rows; types = $types }
     }
   }
   catch {
@@ -262,6 +288,104 @@ foreach ($l in $all) {
 }
 
 $report.failedLists = $failed
+
+# --- Pseudonymisering (R2-025) ---------------------------------------------
+# Samme regler som beskrevet oeverst. Repoet er offentligt: et navn, en
+# adresse eller initialer (initialer + e-maildomaenet = adressen) maa ikke
+# naa en sample-fil.
+$RX_EMAIL    = [regex]'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+$RX_PERSON   = [regex]'(?i)(Email|By|Member|^Approver\d$|(Requester|AssignedTo|Owner|Reporter|Author)Name|Responsible)$'
+$RX_INITIALS = [regex]'\b[A-Z]{5}\b'
+$RX_KEEP     = [regex]'(?i)^(system|.*\bsvc[_-].*|svc_.*|)$'
+$RX_USERVAL  = [regex]'^(\d+): (.*)$'
+$RX_IDTOKEN  = [regex]'[A-Za-z]+(?=@)|^[A-Z]{4,8}$'
+$md5 = [System.Security.Cryptography.MD5]::Create()
+
+function Get-PseudoNum([string]$Key) {
+    $b = $md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Key.Trim().ToLowerInvariant()))
+    return ([int]$b[0] * 256 + [int]$b[1]) % 100
+}
+
+function Get-Pseudo([string]$Value) {
+    if ($RX_KEEP.IsMatch($Value.Trim()) -or $Value.Contains('example.invalid')) { return $Value }
+    if ($Value.Contains('@')) { return "user$(Get-PseudoNum ($Value.Split('@')[0]))@example.invalid" }
+    return "user$(Get-PseudoNum $Value)"
+}
+
+function Test-UserField([string]$Name, [string]$Type) {
+    return ($Type -like 'User*') -or $Name -eq 'Author' -or $Name -eq 'Editor'
+}
+
+# Pas 1: hvem er personerne? Visningsnavne fra Person-kolonnerne og
+# id'er (initialer, adressens lokale del) fra person-tekstkolonnerne.
+$names = New-Object 'System.Collections.Generic.HashSet[string]'
+$ids   = New-Object 'System.Collections.Generic.HashSet[string]'
+foreach ($safe in $samples.Keys) {
+    $types = $samples[$safe].types
+    foreach ($r in $samples[$safe].rows) {
+        foreach ($k in @($r.Keys)) {
+            foreach ($v in @($r[$k])) {
+                if ($v -isnot [string]) { continue }
+                if (Test-UserField $k $types[$k]) {
+                    $m = $RX_USERVAL.Match($v)
+                    $n = if ($m.Success) { $m.Groups[2].Value.Trim() } else { $v.Trim() }
+                    if ($n.Contains(' ') -and -not $RX_KEEP.IsMatch($n)) { [void]$names.Add($n) }
+                }
+                if ($RX_PERSON.IsMatch($k)) {
+                    foreach ($t in $RX_IDTOKEN.Matches($v.Trim())) {
+                        if ($t.Value.Length -ge 4 -and $t.Value.Length -le 8) { [void]$ids.Add($t.Value.ToUpperInvariant()) }
+                    }
+                }
+            }
+        }
+    }
+}
+function New-AltRegex($set) {
+    if (-not $set.Count) { return $null }
+    $alts = @($set | Sort-Object { $_.Length } -Descending | ForEach-Object { [regex]::Escape($_) })
+    return [regex]($alts -join '|')
+}
+$RX_NAMES = New-AltRegex $names
+$RX_IDS   = New-AltRegex $ids
+$pseudoEval = [System.Text.RegularExpressions.MatchEvaluator] { param($m) Get-Pseudo $m.Value }
+
+function Convert-FreeText([string]$Value, [bool]$Approver) {
+    $v = $RX_EMAIL.Replace($Value, $pseudoEval)
+    if ($RX_NAMES) { $v = $RX_NAMES.Replace($v, $pseudoEval) }
+    if ($Approver) { $v = $RX_INITIALS.Replace($v, $pseudoEval) }
+    if ($RX_IDS)   { $v = $RX_IDS.Replace($v, $pseudoEval) }
+    return $v
+}
+
+function Convert-SampleValue([string]$Name, [string]$Type, $Value, [bool]$Approver) {
+    if ($Value -is [array]) {
+        return @($Value | ForEach-Object { Convert-SampleValue $Name $Type $_ $Approver })
+    }
+    if ($Value -isnot [string]) { return $Value }
+    if (Test-UserField $Name $Type) {
+        $m = $RX_USERVAL.Match($Value)
+        if ($m.Success) { return "$($m.Groups[1].Value): $(Get-Pseudo $m.Groups[2].Value)" }
+        return (Get-Pseudo $Value)
+    }
+    if ($RX_PERSON.IsMatch($Name) -and ($Type -eq 'Text' -or $Type -eq 'Note')) {
+        if ($Value.Contains('@')) { return $RX_EMAIL.Replace($Value, $pseudoEval) }
+        return (Get-Pseudo $Value)
+    }
+    return (Convert-FreeText $Value $Approver)
+}
+
+# Pas 2: ret og skriv.
+foreach ($safe in $samples.Keys) {
+    $types = $samples[$safe].types
+    $approver = $safe.StartsWith('MD_Approver')
+    foreach ($r in $samples[$safe].rows) {
+        foreach ($k in @($r.Keys)) {
+            $r[$k] = Convert-SampleValue $k $types[$k] $r[$k] $approver
+        }
+    }
+    $samples[$safe].rows | ConvertTo-Json -Depth 6 |
+        Set-Content (Join-Path $OutDir "sample-$safe.json") -Encoding UTF8
+}
 
 $report | ConvertTo-Json -Depth 8 |
     Set-Content (Join-Path $OutDir 'schema.json') -Encoding UTF8

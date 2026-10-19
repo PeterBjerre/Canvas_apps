@@ -29,6 +29,9 @@
 .PARAMETER Force
     Overskriv ogsaa de varegrupper, der findes i forvejen.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-MaterialGroups.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV"
 
@@ -43,6 +46,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $Force,
     [string] $SeedPath,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -57,12 +61,13 @@ if (-not $SeedPath) { $SeedPath = Join-Path $PSScriptRoot '..\seed\MD_MaterialGr
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 Write-Host "`n=== $LIST ===" -ForegroundColor Cyan
 
 New-MdList 'MD_MaterialGroup' 'Varegrupper (SAP Matl Group) til PM02-operationer i VH-plan appens taskliste. Issue #267.'
 Rename-MdTitle 'MD_MaterialGroup' 'MaterialGroup'
-Set-PnPField -List $LIST -Identity 'Title' -Values @{ EnforceUniqueValues = $true }
+if (-not $WhatIfOnly) { Set-PnPField -List $LIST -Identity 'Title' -Values @{ EnforceUniqueValues = $true } }
 New-MdField 'MD_MaterialGroup' 'MaterialGroupDescription' Text
 New-MdField 'MD_MaterialGroup' 'Description2'             Text
 # Den laengste beskrivelse er 186 tegn - taet paa Text-feltets 255.
@@ -73,6 +78,11 @@ New-MdField 'MD_MaterialGroup' 'SearchWords'              Text
 if (-not (Test-Path $SeedPath)) { throw "Finder ikke $SeedPath" }
 Write-Host "  Seed fra $SeedPath" -ForegroundColor Cyan
 $rows = Import-Csv -Path $SeedPath -Encoding UTF8
+if ($WhatIfOnly) {
+    Write-Host "    ? ville seede op til $(@($rows).Count) varegrupper (kun nye, eller alle med -Force)" -ForegroundColor Yellow
+    Write-Host "`nToerloeb - intet er skrevet.`n" -ForegroundColor Yellow
+    return
+}
 
 $have = @{}
 foreach ($it in (Get-PnPListItem -List $LIST -PageSize 500)) {

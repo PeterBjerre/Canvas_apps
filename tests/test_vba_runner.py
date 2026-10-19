@@ -123,6 +123,31 @@ def test_settings_are_complete():
         assert re.search(rf"Array\({k},", ui), f"{k} mangler i VhpUi.BuildSettings"
 
 
+def test_prod_systems_is_locked():
+    """R2-058: spaerren mellem test og produktion staar fast i koden.
+    Setting() laeser aldrig en laast noegle fra arket, og Setup skriver
+    kodens vaerdi i arket."""
+    import re
+    config = open(os.path.join(RUNNER, "VhpConfig.bas"), encoding="utf-8").read()
+    ui = open(os.path.join(RUNNER, "VhpUi.bas"), encoding="utf-8").read()
+    locked = re.search(r"Function IsLockedSetting.*?End Function", config, re.S).group(0)
+    assert "Case SET_PROD_SYSTEMS: IsLockedSetting = True" in locked
+    setting = re.search(r"Public Function Setting\(.*?End Function", config, re.S).group(0)
+    first = setting.index("If IsLockedSetting(key) Then Exit Function")
+    assert first < setting.index("ListObjects(LO_SETTINGS)")
+    assert re.search(r'Case SET_PROD_SYSTEMS: DefaultSetting = "GP1"', config)
+    assert "VhpConfig.IsLockedSetting(" in ui
+
+
+def test_build_script_signs():
+    """R2-058: byggescriptet kan signere og siger det, naar det ikke goer."""
+    with open(os.path.join(RUNNER, "Build-Opretter.ps1"), encoding="utf-8-sig") as f:
+        ps1 = f.read()
+    assert "[string] $SignThumbprint" in ps1
+    assert "'/sha1', $SignThumbprint" in ps1
+    assert "IKKE signeret" in ps1
+
+
 #==============================================================================
 # 2. LibreOffice
 #==============================================================================
@@ -130,6 +155,8 @@ def test_settings_are_complete():
 def lo():
     import vba_lo
     if not vba_lo.available():
+        if vba_lo.required():
+            pytest.fail("LibreOffice/python3-uno mangler, men VBA_LO_REQUIRED=1")
         pytest.skip("LibreOffice/python3-uno findes ikke")
     pure = [os.path.join(RUNNER, m) for m in
             ("VhpUtil.bas", "VhpMap.bas", "VhpItf.bas", "VhpFl.bas", "VhpTest.bas")]

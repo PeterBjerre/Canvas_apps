@@ -132,7 +132,7 @@ glider de fra hinanden.
 | `items[].activityType` | ILART | tre første tegn |
 | `items[].priority` | prioritet | Red → 1, Yellow → 3, Blue → 6, ellers første ciffer |
 | `items[].revision` / `revisionMark` | GV_REVNR | `REV` |
-| `items[].longText` | IP05 langtekst | HTML → SAPscript (`VhpItf.bas`) |
+| `items[].longText` | IP05 langtekst | HTML → SAPscript (`VhpItf.bas`). Filen skrives i Windows' tegnsæt (cp1252): `≥`, `≤`, `−`, pile og græsk `μ` erstattes med `›=`, `‹=`, `-`, `-›` og `µ`; andre tegn uden for tegnsættet (fx `✓`, emojis) giver en advarsel i *Detaljer* og i kvitteringen i stedet for et stille `?` i SAP (R2-088) |
 | `operations[].controlKey` | STEUS | PM01, ZB01, PM02, PM03 |
 | `operations[].price` | PREIS (PM02) | som det står i appen |
 | `operations[].workCenter` (PM03) | ydelse fra modelydelsesspecifikationen | opslag på de fem sidste tegn (`XSTIL`) |
@@ -213,11 +213,12 @@ kan rettes, når de er optaget.
 | En PROD-plan prøvet i GQ1 | Spærret. Kvitteringen ville ellers skrive et testnummer på en rigtig plan |
 | Halvt oprettede planer | Validering før SAP. Statusfil efter hvert gem, så en ny kørsel fortsætter, hvor den slap |
 | Dubletter | Et nummer læses kun fra et succes-svar. Ved et uklart svar stopper planen (`NeedsCheck`) i stedet for at prøve igen. En plan, der allerede er oprettet i samme SAP-system (ordren ligger i *Oprettet*), oprettes ikke igen |
-| To kolleger på samme plan | Statusfilen siger, hvem der kører den. Den anden får besked |
+| To kolleger på samme plan | Statusfilen siger, hvem der kører den. Den anden får besked. Låsen er en fil i en OneDrive-mappe, så en kollegas lås ses først, når den er synkroniseret: opretteren læser låsen igen `LOCK_CONFIRM_SECONDS` (2) sekunder efter, den er skrevet, og stopper, hvis den ikke længere er ens egen. Vinduet er lille, ikke lukket — driftsreglen er én navngiven operatør ad gangen (README). OneDrives konfliktkopier (`….status-PCNAVN.json`) vises som *Synkkonflikt* i listen, og kvitteringsflowet afviser en kopi (`….kvittering-PCNAVN.json`) til *Afvist* med en mail i stedet for at lade den ligge (R2-055) |
 | En gammel ordre efter en ny | Den nyeste ordre pr. plan bruges. Kvitteringsflowet afviser en kvittering, hvis `orderGuid` ikke er planens `SapOrderGuid` |
 | En plan trukket tilbage og godkendt igen | Flowet tømmer `SapOrderGuid`, når planen forlader *Ready* uden at være oprettet. Den nye godkendelse giver derfor en ny ordre, som erstatter den gamle |
 | En fremmed fil i Kvitteringer | Flowet tjekker også status og SAP-system. Biblioteket skal kun kunne skrives af Master Data og flowets servicekonto |
 | Første gang | *Bekræft hvert gem* er slået til: opretteren stopper før hvert gem, så I kan se SAP-billedet igennem |
+| Makroer i en fil, alle har en kopi af | Projektmappen signeres med et kodesigneringscertifikat fra IT og åbnes som fra en betroet udgiver, i stedet for at hver bruger fjerner blokeringen (`Build-Opretter.ps1 -SignThumbprint`, README). Spærren `ProdSystems` står fast i koden og kan ikke slås fra i arket *Indstillinger* (R2-058) |
 
 ## 8. Når noget går galt
 
@@ -302,7 +303,8 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 2. Byg de to flows efter docs/35 i solution BIO SAP og opret
    miljøvariablerne `BioSap-Environment` og `BioSap-SapSystem`.
 3. Synkronisér biblioteket med OneDrive på jeres pc'er.
-4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`. Kontrollér de
+4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`, signeret med
+  IT's kodesigneringscertifikat (`-SignThumbprint`, R2-058). Kontrollér de
   seedede værk- og PM03-opslag i arket *Opslag*, og tilpas kun hvis SAP-data
   lokalt afviger. Læg den, hvor teamet åbner den fra.
 5. Afprøv efter 9. med DEV-planer i GQ1.

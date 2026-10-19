@@ -67,12 +67,12 @@ CHAR_ITEMS = ("Filter(colDomChars, IsBlank(MeasuringPointType) || "
 def _num(v):
     """Tekstfeltets tal. En tom tekst er Blank(), og noget, der ikke er et
     tal, er ogsaa Blank() - saa en sammenligning aldrig fejler."""
-    return f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), IfError(Value(Trim({v})), Blank()))'
+    return f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), IfError({dp.dec_value(v)}, Blank()))'
 
 
 def _not_a_number(v):
     return (f'!IsBlank(Trim(Coalesce({v}, ""))) && '
-            f'IsBlank(IfError(Value(Trim({v})), Blank()))')
+            f'IsBlank(IfError({dp.dec_value(v)}, Blank()))')
 
 
 def _too_many_decimals(v):

@@ -43,6 +43,13 @@ Public Const SUFFIX_RECEIPT As String = ".kvittering.json"
 ' for doed (Excel lukket, pc'en gik i dvale). Saa maa en anden tage over.
 Public Const LOCK_STALE_MINUTES As Long = 120
 
+' Laasen er en fil i en synkroniseret mappe (R2-055). Efter den er skrevet,
+' ventes der saa mange sekunder, og filen laeses igen: har OneDrive i
+' mellemtiden hentet en kollegas laas, stopper koerslen, foer SAP roeres.
+' Det lukker ikke vinduet, men goer det lille. Driftsreglen er een operatoer
+' pr. plan ad gangen (README).
+Public Const LOCK_CONFIRM_SECONDS As Long = 2
+
 ' Mappen huskes pr. bruger i registreringsdatabasen (GetSetting), fordi
 ' OneDrive-stien indeholder brugernavnet og er forskellig paa hver pc. Navnet
 ' er det fra version 1.0, saa den valgte mappe huskes efter opdateringen.
@@ -83,6 +90,10 @@ Public Const SET_TASKLIST_TYPE As String = "TaskListType"
 Public Const SET_PM02_MATGROUP As String = "Pm02MatGroup"
 Public Const SET_DECIMAL_SEP As String = "DecimalSep"
 Public Const SET_PLAN_CATEGORY As String = "PlanCategory"
+' SAP-brugerens datoformat og logon-sprog (R2-059). Begge staar i SAP-
+' brugerprofilen (SU3) og er ikke noedvendigvis de samme for alle.
+Public Const SET_DATE_FORMAT As String = "DateFormat"
+Public Const SET_SAP_LANGUAGE As String = "SapLanguage"
 
 '--- Fejlnumre ----------------------------------------------------------------
 ' SAP svarede med en fejl. Intet blev gemt i det trin.
@@ -295,8 +306,13 @@ Public Const TX_FL_CHANGE As String = "/nIL02"
 Public Const TX_FL_DISPLAY As String = "/nIL03"
 
 ' Statuslinjen i IL01, naar maerket findes: "Functional location <FL> already
-' exists" (SPOOL sammenligner hele teksten). Engelsk logon som i dag.
+' exists" (SPOOL sammenligner hele teksten). Teksten kraever engelsk logon -
+' opretteren stopper foer SAP, hvis sproget ikke er SapLanguage (R2-059).
 Public Const FL_MSG_EXISTS As String = "already exists"
+' Samme besked som noegle (klasse/nummer, fx "IL/053"), sproguafhaengig. Tom,
+' indtil den er set i SAP (VhpSap.StatusMsgKey efter IL01 paa en FL, der
+' findes); saa bruges den foer teksten (R2-059).
+Public Const FL_MSG_EXISTS_KEY As String = ""
 
 '--- Indgangsbilledet (FillMasterdataFields) ----------------------------------
 Public Const IL01_FL As String = "wnd[0]/usr/txtIFLOS-STRNO"
@@ -384,12 +400,13 @@ Public Const POPUP_OPTION2 As String = "wnd[1]/usr/btnSPOP-OPTION2"
 
 ' Vaerdien for en noegle i tblIndstillinger. Mangler raekken eller tabellen,
 ' bruges standardvaerdien - saa en ny indstilling ikke stopper en gammel
-' projektmappe.
+' projektmappe. En laast noegle (IsLockedSetting) laeses aldrig fra arket.
 Public Function Setting(ByVal key As String) As String
     Dim lo As ListObject
     Dim r As Long
 
     Setting = DefaultSetting(key)
+    If IsLockedSetting(key) Then Exit Function
 
     On Error Resume Next
     Set lo = ThisWorkbook.Worksheets(SH_SETTINGS).ListObjects(LO_SETTINGS)
@@ -412,8 +429,19 @@ Public Function SettingIsYes(ByVal key As String) As Boolean
     End Select
 End Function
 
+' Sikkerhedsnoegler, der staar fast i koden (R2-058). Arket Indstillinger er
+' en kopi pr. bruger, som enhver kan rette i; spaerren mellem test og
+' produktion maa ikke kunne slaas fra der. ProdSystems aendres her og
+' bygges ind i en ny version. (SapSystem er det system, man VIL oprette i,
+' og skal kunne skiftes - det er ProdSystems, der spaerrer.)
+Public Function IsLockedSetting(ByVal key As String) As Boolean
+    Select Case key
+        Case SET_PROD_SYSTEMS: IsLockedSetting = True
+    End Select
+End Function
+
 ' Standardvaerdierne. Setup skriver dem i tblIndstillinger; herfra bruges de
-' kun, naar en raekke mangler.
+' kun, naar en raekke mangler - og altid for de laaste noegler.
 Public Function DefaultSetting(ByVal key As String) As String
     Select Case key
         Case SET_SAP_SYSTEM: DefaultSetting = "GQ1"
@@ -430,6 +458,8 @@ Public Function DefaultSetting(ByVal key As String) As String
         Case SET_PM02_MATGROUP: DefaultSetting = "B08.06"
         Case SET_DECIMAL_SEP: DefaultSetting = ","
         Case SET_PLAN_CATEGORY: DefaultSetting = "PM"
+        Case SET_DATE_FORMAT: DefaultSetting = "dd.mm.yyyy"
+        Case SET_SAP_LANGUAGE: DefaultSetting = "EN"
         Case Else: DefaultSetting = vbNullString
     End Select
 End Function

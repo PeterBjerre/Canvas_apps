@@ -13,6 +13,9 @@ import re
 
 from conftest import ROOT
 
+# R2-031: latest() tager kun beslutninger med (Decision in [...]).
+_L = r'Filter\(L, Stage = "(\w+)"(?: && Decision in \[[^\]]*\])?\)'
+
 SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenMdHub.pa.yaml")
 
 
@@ -21,8 +24,8 @@ def test_row_log_groupby_is_guarded():
     hits = [m.start() for m in re.finditer(r"GroupBy\(Filter\(L, ", text)]
     assert hits, "stripens GroupBy over L blev ikke fundet"
     for pos in hits:
-        before = text[max(0, pos - 140):pos]
-        assert re.search(r'If\(IsBlank\(Filter\(L, Stage = "\w+"\)\) \|\| IsEmpty\(Filter\(L, Stage = "\w+"\)\), Blank\(\), ForAll\($', before), \
+        before = text[max(0, pos - 400):pos]
+        assert re.search(r'If\(IsBlank\(' + _L + r'\) \|\| IsEmpty\(' + _L + r'\), Blank\(\), ForAll\($', before), \
             "GroupBy over L uden IsEmpty-vagt: " + text[pos:pos + 60]
 
 
@@ -33,6 +36,6 @@ def test_both_domains_groupby_is_guarded():
     raekke), og Materials grupperer System. Alle tre skal vaere vagtet -
     ellers er fejlen tilbage, bare for et andet domaene."""
     text = open(SCREEN, encoding="utf-8").read()
-    hits = re.findall(r'If\(IsBlank\(Filter\(L, Stage = "(\w+)"\)\)', text)
+    hits = re.findall(r'If\(IsBlank\(' + _L + r'\)', text)
     assert hits.count("System") >= 2, hits
     assert "Cost" in hits

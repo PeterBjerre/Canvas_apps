@@ -37,6 +37,9 @@
     naar html/kks.generated.js er aendret, og seedet er skrevet igen med:
         python3 tools/gen_kks_seed.py
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-KksLists.ps1 -SiteUrl "https://contoso.sharepoint.com/sites/SAPMasterdata" -SeedMasterData
 
@@ -55,6 +58,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $SeedMasterData,
     [switch] $Reseed,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -63,6 +67,7 @@ $ErrorActionPreference = 'Stop'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 $LIST = 'MD_KksFunctionKey'
 
@@ -100,8 +105,10 @@ if ($SeedMasterData -or $Reseed) {
     $path = Join-Path $PSScriptRoot '..\seed\MD_KksFunctionKey.csv'
     if (-not (Test-Path $path)) { throw "Finder ikke $path" }
 
-    $existing = (Get-PnPList -Identity $LIST).ItemCount
-    if ($existing -gt 0 -and -not $Reseed) {
+    $existing = if (Test-MdList $LIST) { (Get-PnPList -Identity $LIST).ItemCount } else { 0 }
+    if ($WhatIfOnly) {
+        Write-Host "  ? ville seede $LIST fra $path (har nu $existing raekker)" -ForegroundColor Yellow
+    } elseif ($existing -gt 0 -and -not $Reseed) {
         Write-Host "  = $LIST har allerede $existing raekker - springer over (brug -Reseed)" -ForegroundColor DarkGray
     } else {
         if ($existing -gt 0) {

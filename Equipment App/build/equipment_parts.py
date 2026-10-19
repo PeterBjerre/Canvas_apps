@@ -38,7 +38,6 @@ Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
 Provision-EqMatLists.ps1. Cellen Documentation aabner popuppen.
 """
-import attflows
 import domain_config as cfg
 import domain_parts as dp
 from build_helpers import card
@@ -78,6 +77,36 @@ def _cell(key, width=dp.CELL_W):
     return dp.field_grid_cell(key, width=width)
 
 
+# EQUIPMENTS EGNE KRAV (R2-040)
+# ----------------------------
+# En FAERDIG raekke kraever ogsaa udstyrstypen (SAP IE01: EQTYP) og
+# funktionspladsen - de to felter ud over beskrivelse og vaerk, der har
+# Required i MD_FLCharacteristic (docs/16-spool-regler.md: "Description,
+# Beskrivelse, Plant, Equipment Category og Func. location"). Mangler de,
+# gemmes raekken som kladde med besked om, hvad der mangler.
+#
+# Garanti til foer garanti fra er en FORKERT vaerdi, ikke en manglende -
+# den stoppes ogsaa paa en kladde (samme moenster som Materials' min/max).
+def _row_rules():
+    return [
+        (f'IsBlank(Trim(Coalesce({dp._var("EquipmentCategory")}, "")))',
+         "Equipment type is required."),
+        (f'IsBlank(Trim(Coalesce({dp._var(cfg.FL_FIELD)}, "")))',
+         "A functional location is required."),
+    ]
+
+
+WARRANTY_BAD = (f'!IsBlank({dp._var("WarrantyStart")}) && !IsBlank({dp._var("WarrantyEnd")}) && '
+                f'{dp._var("WarrantyEnd")} < {dp._var("WarrantyStart")}')
+WARRANTY_MSG = "Warranty to must be on or after warranty from."
+
+
+def save_fx(status):
+    """domain_parts' gem, plus Equipments egne krav (R2-040)."""
+    return dp.save_row_fx(status, required=_row_rules(),
+                          always=[(WARRANTY_BAD, WARRANTY_MSG)])
+
+
 def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
@@ -94,7 +123,7 @@ def build_form(panel=False):
             rows.append(dp.build_fl_msg())
         secs.append((key, title, None, rows))
     rows = dp.sectioned(secs)
-    buttons = dp.form_buttons(dp.save_row_fx, "Save row", "New row")
+    buttons = dp.form_buttons(save_fx, "Save row", "New row")
     return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
 
 
@@ -103,11 +132,12 @@ def build_form(panel=False):
 # ---------------------------------------------------------------------------
 # Appens sprog er engelsk (tools/check_language.py), saa overskrifterne er
 # formularens egne etiketter - i issuets raekkefoelge. "Status" i eq.png er
-# feltet Type (RequestType); statusmaerket foerst er VALIDATION.
+# feltet RequestType; det hedder nu REQUEST TYPE, og statusmaerket foerst
+# hedder STATUS som i Materials og MP (R2-072).
 #
 # (overskrift, udtryk, mindstebredde). Se domain_parts.build_list for, hvad
 # en plads er.
-TYPE = ("STATUS", "ThisItem.RequestType", 90)
+TYPE = ("REQUEST TYPE", "ThisItem.RequestType", 90)
 PLANT = ("PLANT", "ThisItem.Plant", 70)
 EQNO = ("EQUIPMENT NUMBER", "ThisItem.EquipmentNumber", 120)
 DESC = (cfg.TEXT_LABEL.upper(),
@@ -122,7 +152,7 @@ SLOTS = [TYPE, DESC, FL_C, EQTYPE, PLANT]
 
 
 def build_rows():
-    return dp.build_list(SLOTS, "VALIDATION",
+    return dp.build_list(SLOTS, "STATUS",
                          "Search FL, equipment no., serial no., description")
 
 

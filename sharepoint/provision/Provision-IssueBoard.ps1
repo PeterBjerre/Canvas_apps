@@ -92,13 +92,13 @@
     Toerloeb: vis hvad der ville ske, aendr intet.
 
 .EXAMPLE
-    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-biosap@orsted.com" -WhatIfOnly
+    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-konto@<domaene>" -WhatIfOnly
 
 .EXAMPLE
-    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-biosap@orsted.com"
+    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-konto@<domaene>"
 
 .EXAMPLE
-    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-biosap@orsted.com" -RemoveSharedIssues
+    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-konto@<domaene>" -RemoveSharedIssues
 
 .NOTES
     Kraever PnP.PowerShell. ClientId findes i tenanten:
@@ -142,55 +142,15 @@ $VISIBILITY = 'Reporter', 'Internal'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # Hjaelpere - samme moenster som Provision-VHPlanApproval.ps1
 # ---------------------------------------------------------------------------
-function New-List {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "  ? ville oprette listen '$Title'" -ForegroundColor Yellow
-        return
-    }
-    New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-    Set-PnPList -Identity $Title -Description $Description | Out-Null
-    Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-}
-
-function Add-Col {
-    param([string]$List, [string]$Name, [string]$Type, [string]$Description,
-          [string[]]$Choices, [switch]$Indexed)
-    # I et toerloeb findes en ny liste ikke endnu, og Get-PnPField paa en
-    # liste, der ikke findes, fejler i stedet for at svare tomt.
-    if ($WhatIfOnly -and -not (Get-PnPList -Identity $List -ErrorAction SilentlyContinue)) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-    if ($Choices) { $p.Choices = $Choices }
-    Add-PnPField @p -AddToDefaultView | Out-Null
-    $v = @{}
-    if ($Description) { $v.Description = $Description }
-    if ($Indexed)     { $v.Indexed = $true }
-    if ($v.Count) { Set-PnPField -List $List -Identity $Name -Values $v }
-    if ($Type -eq 'Note') {
-        # Ren tekst: SharePoint maa ikke saette HTML ind i det, brugeren skrev.
-        Set-PnPField -List $List -Identity $Name -Values @{ RichText = $false; NumberOfLines = 6 }
-    }
-    Write-Host "    + $Name ($Type)" -ForegroundColor Green
-}
+# New-MdList, New-MdField og New-MdNoteField staar i _Common.psm1 og
+# respekterer toerloebet (Set-MdWhatIf, R2-060). Rettighedshjaelperne
+# (Get-MdRoleName, Remove-MdGroupFromList, Set-MdReadOnlyList) ligeledes -
+# de bruges ogsaa af Provision-AdminLists.ps1 (R2-024).
 
 function Set-TitleOptional {
     # Flowet skriver Title. Den maa ikke vaere paakraevet, saa en raekke
@@ -198,38 +158,6 @@ function Set-TitleOptional {
     param([string]$List)
     if ($WhatIfOnly) { return }
     Set-PnPField -List $List -Identity 'Title' -Values @{ Required = $false }
-}
-
-function Get-RoleName {
-    # Rollernes navne er sprogafhaengige (Read/Laese ...). Typen er ikke.
-    param([string]$Kind)
-    $r = Get-PnPRoleDefinition | Where-Object { $_.RoleTypeKind -eq $Kind } | Select-Object -First 1
-    if (-not $r) { throw "Finder ingen rolle af typen $Kind paa sitet." }
-    return $r.Name
-}
-
-function Get-UniqueFlag {
-    param([string]$List)
-    $l = Get-PnPList -Identity $List -Includes HasUniqueRoleAssignments
-    return [bool]$l.HasUniqueRoleAssignments
-}
-
-function Remove-GroupFromList {
-    # Fjerner HELE gruppens rolletildeling paa listen (alle roller).
-    param([string]$List, $Group)
-    if (-not $Group) { return }
-    $l = Get-PnPList -Identity $List -Includes RoleAssignments
-    $ctx = Get-PnPContext
-    try {
-        $ra = $l.RoleAssignments.GetByPrincipalId($Group.Id)
-        $ctx.Load($ra)
-        $ra.DeleteObject()
-        Invoke-PnPQuery
-        Write-Host "    - $($Group.Title) har ikke laengere adgang" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "    = $($Group.Title) havde ingen adgang" -ForegroundColor DarkGray
-    }
 }
 
 function Set-PrivateList {
@@ -240,35 +168,14 @@ function Set-PrivateList {
         Write-Host "    ? ville lukke $List for Members og Visitors" -ForegroundColor Yellow
         return
     }
-    if (-not (Get-UniqueFlag $List)) {
+    if (-not (Test-MdUniquePermissions $List)) {
         Set-PnPList -Identity $List -BreakRoleInheritance -CopyRoleAssignments | Out-Null
         Write-Host "    ~ nedarvning brudt (kopieret)" -ForegroundColor Green
     }
-    Remove-GroupFromList $List (Get-PnPGroup -AssociatedMemberGroup)
-    Remove-GroupFromList $List (Get-PnPGroup -AssociatedVisitorGroup)
+    Remove-MdGroupFromList $List (Get-PnPGroup -AssociatedMemberGroup)
+    Remove-MdGroupFromList $List (Get-PnPGroup -AssociatedVisitorGroup)
     $owners = Get-PnPGroup -AssociatedOwnerGroup
     Set-PnPListPermission -Identity $List -Group $owners -AddRole $ROLE_FULL | Out-Null
-    if ($FlowAccount) {
-        Set-PnPListPermission -Identity $List -User $FlowAccount -AddRole $ROLE_FULL | Out-Null
-        Write-Host "    + $FlowAccount har Full Control" -ForegroundColor Green
-    }
-}
-
-function Set-ReadOnlyList {
-    # Alle laeser, kun ejerne og flowets konto skriver.
-    param([string]$List)
-    if ($WhatIfOnly) {
-        Write-Host "    ? ville goere $List skrivebeskyttet for Members" -ForegroundColor Yellow
-        return
-    }
-    if (-not (Get-UniqueFlag $List)) {
-        Set-PnPList -Identity $List -BreakRoleInheritance -CopyRoleAssignments | Out-Null
-        Write-Host "    ~ nedarvning brudt (kopieret)" -ForegroundColor Green
-    }
-    $members = Get-PnPGroup -AssociatedMemberGroup
-    Remove-GroupFromList $List $members
-    Set-PnPListPermission -Identity $List -Group $members -AddRole $ROLE_READ | Out-Null
-    Write-Host "    ~ $($members.Title) kan kun laese" -ForegroundColor Green
     if ($FlowAccount) {
         Set-PnPListPermission -Identity $List -User $FlowAccount -AddRole $ROLE_FULL | Out-Null
         Write-Host "    + $FlowAccount har Full Control" -ForegroundColor Green
@@ -290,15 +197,15 @@ function Set-OpenTicketList {
         Write-Host "    ? ville give Members Contribute, Read all / Edit own og admins Design paa $List" -ForegroundColor Yellow
         return
     }
-    if (-not (Get-UniqueFlag $List)) {
+    if (-not (Test-MdUniquePermissions $List)) {
         Set-PnPList -Identity $List -BreakRoleInheritance -CopyRoleAssignments | Out-Null
         Write-Host "    ~ nedarvning brudt (kopieret)" -ForegroundColor Green
     }
     $members = Get-PnPGroup -AssociatedMemberGroup
-    Remove-GroupFromList $List $members
+    Remove-MdGroupFromList $List $members
     Set-PnPListPermission -Identity $List -Group $members -AddRole $ROLE_CONTRIBUTE | Out-Null
     Write-Host "    ~ $($members.Title) har Contribute" -ForegroundColor Green
-    Remove-GroupFromList $List (Get-PnPGroup -AssociatedVisitorGroup)
+    Remove-MdGroupFromList $List (Get-PnPGroup -AssociatedVisitorGroup)
     $owners = Get-PnPGroup -AssociatedOwnerGroup
     Set-PnPListPermission -Identity $List -Group $owners -AddRole $ROLE_FULL | Out-Null
     if ($FlowAccount) {
@@ -373,32 +280,32 @@ function Set-TicketAuthors {
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $TICKETS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-New-List $TICKETS 'Issue Board: sagerne. Alle kan laese; hver opretter og retter sine egne, admins alle. Se issue #114 og #193.'
+New-MdList $TICKETS 'Issue Board: sagerne. Alle kan laese; hver opretter og retter sine egne, admins alle. Se issue #114 og #193.'
 Set-TitleOptional $TICKETS
-Add-Col 'IB_Tickets' 'TicketNo' Text -Indexed -Description 'Sagens nummer, fx ISS-000142. Saettes af flowet BioSap-IssueBoard-OnCreated ud fra ID.'
-Add-Col 'IB_Tickets' 'Description' Note -Description 'What happened?'
-Add-Col 'IB_Tickets' 'ReproSteps' Note -Description 'Steps to reproduce.'
-Add-Col 'IB_Tickets' 'ExpectedResult' Note
-Add-Col 'IB_Tickets' 'ActualResult' Note
-Add-Col 'IB_Tickets' 'Application' Text -Indexed -Description 'IB_AppSections.Application.'
-Add-Col 'IB_Tickets' 'Section' Text -Indexed -Description 'IB_AppSections.Section.'
-Add-Col 'IB_Tickets' 'OtherContext' Text -Description 'Beskrivelsen, naar Application eller Section er Other.'
-Add-Col 'IB_Tickets' 'RelatedRequestNo' Text -Description 'Anmodningsnummeret, sagen handler om (valgfrit).'
-Add-Col 'IB_Tickets' 'LayoutContext' Text -Description 'Hvor sagen blev meldt fra: skaerm, layout og stoerrelse.'
-Add-Col 'IB_Tickets' 'ClientContext' Text -Description 'Styresystem og browser/Power Apps-afspiller.'
-Add-Col 'IB_Tickets' 'Severity' Choice -Choices $SEVERITY
-Add-Col 'IB_Tickets' 'Priority' Choice -Choices $PRIORITY
-Add-Col 'IB_Tickets' 'Status' Choice -Choices $STATUS -Indexed
-Add-Col 'IB_Tickets' 'ReporterEmail' Text -Indexed -Description 'Rapportoeren med smaa bogstaver. Flowet BioSap-IssueBoard-OnCreated saetter den ud fra Created By.'
-Add-Col 'IB_Tickets' 'ReporterName' Text
-Add-Col 'IB_Tickets' 'AssignedToEmail' Text -Indexed -Description 'Admin, sagen er tildelt (trin 2).'
-Add-Col 'IB_Tickets' 'AssignedToName' Text
-Add-Col 'IB_Tickets' 'LastActivityOn' DateTime -Indexed -Description 'Seneste aendring eller kommentar.'
-Add-Col 'IB_Tickets' 'ResolvedOn' DateTime
-Add-Col 'IB_Tickets' 'ClosedOn' DateTime
-Add-Col 'IB_Tickets' 'IsArchived' Boolean -Indexed -Description 'Arkiveret: ude af de aktive visninger, men ikke slettet (trin 2).'
-Add-Col 'IB_Tickets' 'Resolution' Note
-Add-Col 'IB_Tickets' 'SharedItemId' Number -Description 'Udgaaet (#193): ID i den tidligere anonyme kopi IB_SharedIssues. Skrives ikke laengere.'
+New-MdField 'IB_Tickets' 'TicketNo' Text -Indexed -Description 'Sagens nummer, fx ISS-000142. Saettes af flowet BioSap-IssueBoard-OnCreated ud fra ID.'
+New-MdNoteField 'IB_Tickets' 'Description' -Description 'What happened?'
+New-MdNoteField 'IB_Tickets' 'ReproSteps' -Description 'Steps to reproduce.'
+New-MdNoteField 'IB_Tickets' 'ExpectedResult'
+New-MdNoteField 'IB_Tickets' 'ActualResult'
+New-MdField 'IB_Tickets' 'Application' Text -Indexed -Description 'IB_AppSections.Application.'
+New-MdField 'IB_Tickets' 'Section' Text -Indexed -Description 'IB_AppSections.Section.'
+New-MdField 'IB_Tickets' 'OtherContext' Text -Description 'Beskrivelsen, naar Application eller Section er Other.'
+New-MdField 'IB_Tickets' 'RelatedRequestNo' Text -Description 'Anmodningsnummeret, sagen handler om (valgfrit).'
+New-MdField 'IB_Tickets' 'LayoutContext' Text -Description 'Hvor sagen blev meldt fra: skaerm, layout og stoerrelse.'
+New-MdField 'IB_Tickets' 'ClientContext' Text -Description 'Styresystem og browser/Power Apps-afspiller.'
+New-MdField 'IB_Tickets' 'Severity' Choice -Choices $SEVERITY
+New-MdField 'IB_Tickets' 'Priority' Choice -Choices $PRIORITY
+New-MdField 'IB_Tickets' 'Status' Choice -Choices $STATUS -Indexed
+New-MdField 'IB_Tickets' 'ReporterEmail' Text -Indexed -Description 'Rapportoeren med smaa bogstaver. Flowet BioSap-IssueBoard-OnCreated saetter den ud fra Created By.'
+New-MdField 'IB_Tickets' 'ReporterName' Text
+New-MdField 'IB_Tickets' 'AssignedToEmail' Text -Indexed -Description 'Admin, sagen er tildelt (trin 2).'
+New-MdField 'IB_Tickets' 'AssignedToName' Text
+New-MdField 'IB_Tickets' 'LastActivityOn' DateTime -Indexed -Description 'Seneste aendring eller kommentar.'
+New-MdField 'IB_Tickets' 'ResolvedOn' DateTime
+New-MdField 'IB_Tickets' 'ClosedOn' DateTime
+New-MdField 'IB_Tickets' 'IsArchived' Boolean -Indexed -Description 'Arkiveret: ude af de aktive visninger, men ikke slettet (trin 2).'
+New-MdNoteField 'IB_Tickets' 'Resolution'
+New-MdField 'IB_Tickets' 'SharedItemId' Number -Description 'Udgaaet (#193): ID i den tidligere anonyme kopi IB_SharedIssues. Skrives ikke laengere.'
 # Trin 2: vedhaeftningerne ligger paa raekken. Det er SharePoints standard,
 # men slaas til her, saa ingen kan have slaaet det fra.
 if (-not $WhatIfOnly -and (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue)) {
@@ -409,41 +316,41 @@ if (-not $WhatIfOnly -and (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyC
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $COMMENTS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-New-List $COMMENTS 'Issue Board: kommentarer og haendelser, een raekke pr. haendelse. Privat - kun sagens rapportoer og admins kan laese en raekke. Skrives KUN af flowet.'
+New-MdList $COMMENTS 'Issue Board: kommentarer og haendelser, een raekke pr. haendelse. Privat - kun sagens rapportoer og admins kan laese en raekke. Skrives KUN af flowet.'
 Set-TitleOptional $COMMENTS
-Add-Col 'IB_TicketComments' 'TicketId' Number -Indexed -Description 'ID i IB_Tickets.'
-Add-Col 'IB_TicketComments' 'TicketNo' Text -Indexed
-Add-Col 'IB_TicketComments' 'AuthorEmail' Text
-Add-Col 'IB_TicketComments' 'AuthorName' Text
-Add-Col 'IB_TicketComments' 'AuthorRole' Choice -Choices $AUTHORROLE
-Add-Col 'IB_TicketComments' 'EventType' Choice -Choices $EVENTTYPE
-Add-Col 'IB_TicketComments' 'Visibility' Choice -Choices $VISIBILITY -Description 'Reporter: rapportoeren og admins. Internal: kun admins.'
-Add-Col 'IB_TicketComments' 'Content' Note
-Add-Col 'IB_TicketComments' 'PreviousStatus' Text
-Add-Col 'IB_TicketComments' 'NewStatus' Text
-Add-Col 'IB_TicketComments' 'EventOn' DateTime -Indexed
+New-MdField 'IB_TicketComments' 'TicketId' Number -Indexed -Description 'ID i IB_Tickets.'
+New-MdField 'IB_TicketComments' 'TicketNo' Text -Indexed
+New-MdField 'IB_TicketComments' 'AuthorEmail' Text
+New-MdField 'IB_TicketComments' 'AuthorName' Text
+New-MdField 'IB_TicketComments' 'AuthorRole' Choice -Choices $AUTHORROLE
+New-MdField 'IB_TicketComments' 'EventType' Choice -Choices $EVENTTYPE
+New-MdField 'IB_TicketComments' 'Visibility' Choice -Choices $VISIBILITY -Description 'Reporter: rapportoeren og admins. Internal: kun admins.'
+New-MdNoteField 'IB_TicketComments' 'Content'
+New-MdField 'IB_TicketComments' 'PreviousStatus' Text
+New-MdField 'IB_TicketComments' 'NewStatus' Text
+New-MdField 'IB_TicketComments' 'EventOn' DateTime -Indexed
 # Trin 2: en Attachment-haendelse fortaeller, hvilken fil, hvor stor, og om
 # den kom med indmeldingen eller senere. Selve filen ligger paa IB_Tickets.
-Add-Col 'IB_TicketComments' 'FileName' Text -Description 'Filnavnet ved EventType = Attachment.'
-Add-Col 'IB_TicketComments' 'FileSizeKb' Number -Description 'Filens stoerrelse i KB (afrundet op).'
-Add-Col 'IB_TicketComments' 'AtSubmission' Boolean -Description 'Ja = filen kom med indmeldingen.'
+New-MdField 'IB_TicketComments' 'FileName' Text -Description 'Filnavnet ved EventType = Attachment.'
+New-MdField 'IB_TicketComments' 'FileSizeKb' Number -Description 'Filens stoerrelse i KB (afrundet op).'
+New-MdField 'IB_TicketComments' 'AtSubmission' Boolean -Description 'Ja = filen kom med indmeldingen.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $SECTIONS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-New-List $SECTIONS 'Issue Board: Application og Section. Een raekke pr. Section. Seedes fra sharepoint/seed/IB_AppSections.csv.'
+New-MdList $SECTIONS 'Issue Board: Application og Section. Een raekke pr. Section. Seedes fra sharepoint/seed/IB_AppSections.csv.'
 if (-not $WhatIfOnly) {
     # Title er Application, saa listen kan laeses direkte i SharePoint.
     Set-PnPField -List $SECTIONS -Identity 'Title' -Values @{ Title = 'Application'; Indexed = $true }
     Write-Host "    ~ Title -> Application" -ForegroundColor Green
 }
-Add-Col 'IB_AppSections' 'Section' Text
-Add-Col 'IB_AppSections' 'AppOrder' Number -Description 'Applications raekkefoelge.'
-Add-Col 'IB_AppSections' 'SectionOrder' Number -Description 'Sectionens raekkefoelge under sin Application.'
-Add-Col 'IB_AppSections' 'IsActive' Boolean -Indexed -Description 'Nej = vises ikke i appen.'
-Add-Col 'IB_AppSections' 'ScreenKey' Text -Description 'Noeglen i tools/canvas_apps.json for skaermen (fx vhplan). Bruges til at foreslaa Application.'
-Add-Col 'IB_AppSections' 'DomainColor' Text -Description 'Farvetoken (tools/design_tokens.py), valgfri.'
-Add-Col 'IB_AppSections' 'IconRef' Text -Description 'Ikonnoegle (tools/icons.py), valgfri.'
+New-MdField 'IB_AppSections' 'Section' Text
+New-MdField 'IB_AppSections' 'AppOrder' Number -Description 'Applications raekkefoelge.'
+New-MdField 'IB_AppSections' 'SectionOrder' Number -Description 'Sectionens raekkefoelge under sin Application.'
+New-MdField 'IB_AppSections' 'IsActive' Boolean -Indexed -Description 'Nej = vises ikke i appen.'
+New-MdField 'IB_AppSections' 'ScreenKey' Text -Description 'Noeglen i tools/canvas_apps.json for skaermen (fx vhplan). Bruges til at foreslaa Application.'
+New-MdField 'IB_AppSections' 'DomainColor' Text -Description 'Farvetoken (tools/design_tokens.py), valgfri.'
+New-MdField 'IB_AppSections' 'IconRef' Text -Description 'Ikonnoegle (tools/icons.py), valgfri.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $SHARED (udgaaet, #193) ===" -ForegroundColor Cyan
@@ -508,10 +415,10 @@ Write-Host "`n=== Rettigheder ===" -ForegroundColor Cyan
 if ($SkipPermissions) {
     Write-Host "  springes over (-SkipPermissions)" -ForegroundColor Yellow
 } else {
-    $ROLE_READ = Get-RoleName 'Reader'
-    $ROLE_CONTRIBUTE = Get-RoleName 'Contributor'
-    $ROLE_DESIGN = Get-RoleName 'WebDesigner'
-    $ROLE_FULL = Get-RoleName 'Administrator'
+    $ROLE_READ = Get-MdRoleName 'Reader'
+    $ROLE_CONTRIBUTE = Get-MdRoleName 'Contributor'
+    $ROLE_DESIGN = Get-MdRoleName 'WebDesigner'
+    $ROLE_FULL = Get-MdRoleName 'Administrator'
     Write-Host "  $TICKETS (alle laeser, hver retter sine egne, admins alle)"
     Set-OpenTicketList $TICKETS
     if (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue) {
@@ -523,7 +430,7 @@ if ($SkipPermissions) {
     Write-Host "  $COMMENTS (privat)"
     Set-PrivateList $COMMENTS
     Write-Host "  $SECTIONS (alle laeser)"
-    Set-ReadOnlyList $SECTIONS
+    Set-MdReadOnlyList $SECTIONS $FlowAccount
 }
 
 # ---------------------------------------------------------------------------

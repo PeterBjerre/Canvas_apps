@@ -164,8 +164,8 @@ def save_fx(status="Kladde", step=1, notify=True):
     # den tilbage (tools/permissions.py).
     kept = (f'Coalesce(varFlReqNow.Status.Value, "{status}")' if status == ri.DRAFT
             else f'"{status}"')
-    new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
-    old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
+    new_rows = 'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
+    old_rows = 'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
     return f"""Clear(colFlSaveErrors);
 // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
 //    rettigheden i selve handlingen (tools/permissions.py).
@@ -215,12 +215,15 @@ If(
     CountRows(colFlSaveErrors) = 0,
 
     // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-    //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+    //    Listen hentes EEN gang (R2-043) og bruges af admin-loggen, Patch
+    //    og Remove herunder - foer var det fire ens Filter-kald pr. gem.
+    //    En admin i en andens anmodning faar dem ogsaa med felter, til loggen.
+    ClearCollect(colFlEx, Filter({L}, RequestGuid = varFlRequestGuid));
     If(
         {AS_ADMIN},
         ClearCollect(
             colFlAdmOld,
-            ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I,
+            ForAll(colFlEx As I,
                 {{ RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
                    KksType: I.KksType, AssignedClass: I.AssignedClass }})
         ),
@@ -228,7 +231,7 @@ If(
     );
     ClearCollect(
         colFlSp,
-        ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
+        ForAll(colFlEx As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
     );
     // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
     // een raekke giver en record, Collect en tabel - og compile svarer
@@ -242,11 +245,8 @@ If(
         false
     );
     IfError(
-        With(
-            {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
-            Patch({L}, ForAll({old_rows} As R, LookUp(ex, RowGuid = R.RowGuid)),
-                  ForAll({old_rows} As R, {_row_record()}))
-        );
+        Patch({L}, ForAll({old_rows} As R, LookUp(colFlEx, RowGuid = R.RowGuid)),
+              ForAll({old_rows} As R, {_row_record()}));
         true,
         Collect(colFlSaveErrors, {{ Where: "Rows", Msg: FirstError.Message }});
         false
@@ -256,11 +256,8 @@ If(
     //    stod: alle raekker, appen ikke kender. Saa slettede den, der
     //    gemte sidst, de raekker en anden havde tilfoejet imens.
     IfError(
-        With(
-            {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
-            Remove({L}, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
-                                   RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
-        );
+        Remove({L}, Filter(colFlEx, RowGuid in colFlDeleted.RowGuid ||
+                                    RowGuid in Filter(colFlRows, Status = "draft").RowGuid));
         true,
         Collect(colFlSaveErrors, {{ Where: "Deleted rows", Msg: FirstError.Message }});
         false

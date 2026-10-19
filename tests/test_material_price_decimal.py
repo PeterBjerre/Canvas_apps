@@ -41,11 +41,11 @@ def test_price_is_not_rounded():
 def test_save_writes_price_with_decimals():
     fx = _on_select(_text(), "btnMatSave")
     assert ('Price: If(IsBlank(Trim(Coalesce(varMatFPrice, ""))), Blank(), '
-            'IfError(Value(Trim(varMatFPrice)), Blank()))') in fx
+            'IfError(Value(Trim(varMatFPrice), "en-US"), Blank()))') in fx
 
 
 def test_save_rejects_price_that_is_not_a_number():
     fx = _on_select(_text(), "btnMatSave")
     assert ('!IsBlank(Trim(Coalesce(varMatFPrice, ""))) && '
-            'IsBlank(IfError(Value(Trim(varMatFPrice)), Blank()))') in fx
+            'IsBlank(IfError(Value(Trim(varMatFPrice), "en-US"), Blank()))') in fx
     assert '"Price must be a number, not text."' in fx

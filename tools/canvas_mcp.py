@@ -36,6 +36,7 @@ import argparse
 import difflib
 import json
 import os
+import queue
 import re
 import shlex
 import shutil
@@ -114,7 +115,19 @@ class McpClient:
                 % " ".join(self.command))
         t = threading.Thread(target=self._drain_stderr, daemon=True)
         t.start()
+        # stdout laeses ogsaa i en traad (R2-067): readline() blokerer,
+        # indtil serveren skriver, saa en server, der haenger midt i et
+        # kald (mistet coauthoring-session, lukket Studio-fane), ramte
+        # aldrig --timeout. Fra koeen kan der ventes MED timeout.
+        self._q = queue.Queue()
+        t = threading.Thread(target=self._drain_stdout, daemon=True)
+        t.start()
         self._handshake()
+
+    def _drain_stdout(self):
+        for line in self.proc.stdout:
+            self._q.put(line)
+        self._q.put(None)    # serveren lukkede stdout
 
     def _drain_stderr(self):
         for line in self.proc.stderr:
@@ -148,15 +161,22 @@ class McpClient:
         self.proc.stdin.flush()
 
     def _read_message(self, deadline):
-        """Laeser een JSON-besked. Tomme linjer springes over."""
+        """Laeser een JSON-besked. Tomme linjer springes over.
+
+        Venter paa koeen fra _drain_stdout i hoejst et sekund ad gangen,
+        saa deadline og en doed server opdages, ogsaa naar serveren intet
+        skriver."""
         while True:
-            if self.proc.poll() is not None:
-                raise McpError("MCP-serveren stoppede.\n" + self.server_log())
-            if time.time() > deadline:
-                raise McpError("Timeout - serveren svarede ikke i tide.\n"
-                               + self.server_log())
-            line = self.proc.stdout.readline()
-            if line == "":
+            try:
+                line = self._q.get(timeout=max(0.1, min(1.0, deadline - time.time())))
+            except queue.Empty:
+                if self.proc.poll() is not None:
+                    raise McpError("MCP-serveren stoppede.\n" + self.server_log())
+                if time.time() > deadline:
+                    raise McpError("Timeout - serveren svarede ikke i tide.\n"
+                                   + self.server_log())
+                continue
+            if line is None:
                 raise McpError("MCP-serveren lukkede forbindelsen.\n"
                                + self.server_log())
             line = line.strip()
@@ -440,7 +460,9 @@ def verify_tree(staging, app, files):
     out("")
     out("=== Traeet i Studio mod det byggede ===")
     for f in files:
-        if not f.startswith("Screen"):
+        # App.pa.yaml (OnStart, Formulas, OnError) sammenlignes egenskab
+        # for egenskab (R2-092); foer saa kun skaermene efter.
+        if not (f.startswith("Screen") or f == "App.pa.yaml"):
             continue
         a = os.path.join(src, f)
         b = os.path.join(staging, f)
@@ -448,7 +470,7 @@ def verify_tree(staging, app, files):
             out("   %-28s findes ikke paa serveren" % f)
             total += 1
             continue
-        found = dv.compare(a, b)
+        found = (dv.compare_app if f == "App.pa.yaml" else dv.compare)(a, b)
         total += len(found)
         out("   %-28s %s" % (f, "samme trae" if not found else "%d fund" % len(found)))
         for x in found:
@@ -678,13 +700,151 @@ def compile_errors(text):
     return len(re.findall(r"\berror:", text))
 
 
+def git_state():
+    """(kort commit-hash, er arbejdstraeet aendret?) - til deployets sidste
+    linje, saa "Faerdig" kan knyttes til en commit (R2-064)."""
+    try:
+        h = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
+                           capture_output=True, text=True).stdout.strip()
+        d = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                           cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    except OSError:
+        return "?", False
+    return h or "?", bool(d)
+
+
+def check_committed_yaml(app):
+    """deploy --no-build: er appens .pa.yaml det committede (R2-064)?
+
+    Uden byg sendes YAML'en paa disken, som den er. Er den aendret i
+    forhold til commit'en, er den ikke builderens - fx haandrettet for at
+    komme forbi en compile-fejl - og Studio og repoet ville saa have hver
+    sin sandhed om samme skaerm."""
+    if not app.get("folder"):
+        return
+    spec = app["folder"].replace("\\", "/") + "/*.pa.yaml"
+    try:
+        r = subprocess.run(["git", "status", "--porcelain", "--", spec],
+                           cwd=ROOT, capture_output=True, text=True)
+    except OSError:
+        raise SystemExit("--no-build: git findes ikke, saa det kan ikke ses, om "
+                         "YAML'en er builderens.\nByg (uden --no-build), eller "
+                         "brug --allow-dirty, hvis du ved hvad du goer.")
+    if r.returncode:
+        raise SystemExit("--no-build: git status fejlede:\n%s\nByg (uden "
+                         "--no-build), eller brug --allow-dirty." % r.stderr.strip())
+    if r.stdout.strip():
+        raise SystemExit(
+            "--no-build: %s har ucommittede .pa.yaml - de er ikke builderens:\n%s\n"
+            "Byg (uden --no-build), eller brug --allow-dirty, hvis du ved hvad du goer."
+            % (app["folder"], r.stdout.rstrip()))
+
+
+KEEP_SNAPSHOTS = 5
+_SNAP = re.compile(r"^\d{8}-\d{6}$")
+
+
+def snapshot(client, app, timeout):
+    """Aftryk af Studios tilstand FOER deployet (R2-062).
+
+    Samme kald som 'pull', men i en tidsstemplet mappe under
+    .canvas-sync/<app>/ (ignoreret af git). Gaar et deploy galt - fx en
+    tom skaerm efter --clean og en afvist compile - kan man se, hvad der
+    stod i Studio foer. De seneste KEEP_SNAPSHOTS aftryk beholdes."""
+    base = os.path.join(ROOT, ".canvas-sync", app["key"])
+    snap = os.path.join(base, time.strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(snap, exist_ok=True)
+    out("=== sync_canvas: aftryk af Studio foer deploy ===")
+    out(indent(client.call("sync_canvas", {"directoryPath": snap}, timeout=timeout)))
+    old = sorted(d for d in os.listdir(base)
+                 if _SNAP.match(d) and os.path.isdir(os.path.join(base, d)))
+    for d in old[:-KEEP_SNAPSHOTS]:
+        shutil.rmtree(os.path.join(base, d), ignore_errors=True)
+    out("Aftryk foer deploy: %s" % snap)
+    return snap
+
+
+def studio_drift(baseline, current):
+    """Er Studio aendret siden sidste deploy (R2-065)?
+
+    baseline er serverens tilstand lige efter sidste deploy fra denne pc
+    (gemt af cmd_deploy), current er aftrykket nu. Begge er serverens egne
+    udgaver, saa normaliseringen er ens, og sammenligningen er streng."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import deploy_verify as dv
+    found = []
+    names = sorted(f for f in set(yaml_files(baseline)) | set(yaml_files(current))
+                   if f.startswith("Screen") or f == "App.pa.yaml")
+    for f in names:
+        a, b = os.path.join(baseline, f), os.path.join(current, f)
+        if not os.path.exists(a):
+            found.append("%s: findes nu i Studio, men ikke ved sidste deploy" % f)
+        elif not os.path.exists(b):
+            found.append("%s: fandtes ved sidste deploy, men ikke i Studio nu" % f)
+        else:
+            fn = dv.compare_app if f == "App.pa.yaml" else dv.compare
+            found += ["%s: %s" % (f, x) for x in fn(a, b, strict=True)]
+    return found
+
+
+def restore_hint(snap):
+    out("")
+    out("Gendan: ret builderen og deploy igen, eller gendan en tidligere")
+    out("version i Studio (appens Details -> Versions).")
+    if snap:
+        out("Aftrykket af Studio foer deployet: %s" % snap)
+
+
 def cmd_deploy(client, args, cfg):
     app = pick_app(cfg, args.app)
     staging = os.path.abspath(args.stage or os.path.join(
         ROOT, ".canvas-deploy", app["key"]))
+    # Serverens tilstand lige efter SIDSTE deploy fra denne pc - gemt
+    # nederst i den her funktion. Det er den, Studio sammenlignes med.
+    baseline = staging + "-sidst"
     files = stage(app, staging)
 
     connect(client, app, args.login_hint, args.auth_flow)
+
+    snap = snapshot(client, app, args.timeout)
+    try:
+        _deploy(client, args, app, staging, baseline, files, snap)
+    except SystemExit as e:
+        if e.code in (1, 2):
+            restore_hint(snap)
+        raise
+
+
+def _deploy(client, args, app, staging, baseline, files, snap):
+    # DRIFT-KONTROL FOER DEPLOY (R2-065). Deploy erstatter appens indhold;
+    # en aendring lavet i Studio uden om repoet ville forsvinde uden et ord.
+    if os.path.isdir(baseline):
+        drift = studio_drift(baseline, snap)
+        if not drift:
+            out("Studio uaendret siden sidste deploy.")
+        else:
+            out("")
+            out("Studio er aendret siden sidste deploy (%d fund):" % len(drift))
+            for x in drift[:40]:
+                out("   " + x)
+            if len(drift) > 40:
+                out("   ... og %d mere" % (len(drift) - 40))
+            if not args.overwrite_studio:
+                out("")
+                out("STOP: Studio er aendret siden sidste deploy. Koer 'pull', flyt")
+                out("aendringen til builderen, eller deploy med --overwrite-studio.")
+                out("Aftrykket af Studio nu: %s" % snap)
+                raise SystemExit(3)
+            out("--overwrite-studio: aendringerne overskrives.")
+    else:
+        out("NB: ingen baseline fra et tidligere deploy paa denne pc - det kan")
+        out("ikke ses, om nogen har aendret appen i Studio siden. Aftrykket:")
+        out("    %s" % snap)
+    # Fra nu af kan Studio blive aendret. Baselinen gaelder kun, hvis
+    # deployet naar til sync - ellers ville naeste deploy se vores egen
+    # (halve) aendring som en Studio-aendring.
+    if os.path.isdir(baseline):
+        shutil.rmtree(baseline)
 
     if args.clean:
         blank = staging + "-tom"
@@ -737,12 +897,14 @@ def cmd_deploy(client, args, cfg):
 
     if args.compile_only:
         out("")
-        out("--compile-only: stopper foer sync.")
+        out("--compile-only: stopper foer sync. (Ingen baseline gemt - naeste")
+        out("deploy kan ikke se Studio-aendringer foer det.)")
         return
 
     out("=== sync_canvas (serverens tilstand tilbage) ===")
     out(indent(client.call("sync_canvas", {"directoryPath": staging},
                            timeout=args.timeout)))
+    shutil.copytree(staging, baseline)
 
     checkers(client)
     report_drift(staging, app, files)
@@ -761,7 +923,9 @@ def cmd_deploy(client, args, cfg):
         out("(fx ScreenMaterial), og deploy med --clean igen.")
         out("")
         raise SystemExit(2)
-    out("Faerdig. Traeet i Studio er det byggede.")
+    h, dirty = git_state()
+    out("Faerdig. Traeet i Studio er det byggede (commit %s%s)."
+        % (h, "-dirty" if dirty else ""))
 
 
 def cmd_check(client, args, cfg):
@@ -802,8 +966,15 @@ def main(argv=None):
     p.add_argument("--app", help="noeglen i tools/canvas_apps.json")
     p.add_argument("--out", help="pull: mappen der hentes ned i")
     p.add_argument("--stage", help="deploy: arbejdsmappen der sendes fra")
+    p.add_argument("--env", help="miljoeet i tools/canvas_apps.json (standard: "
+                                 "default_environment, dvs. dev)")
     p.add_argument("--no-build", action="store_true",
                    help="deploy: spring tools/build_all.py over")
+    p.add_argument("--allow-dirty", action="store_true",
+                   help="deploy --no-build: send ogsaa ucommittet YAML")
+    p.add_argument("--overwrite-studio", action="store_true",
+                   help="deploy: overskriv, selvom appen er aendret i Studio "
+                        "siden sidste deploy")
     p.add_argument("--clean", action="store_true",
                    help="deploy: send foerst en TOM skaerm, saa hele traeet "
                         "bygges paa ny (brug den, naar en kontrol er flyttet)")
@@ -825,13 +996,20 @@ def main(argv=None):
     if args.command == "raw" and not args.tool:
         raise SystemExit("raw kraever --tool NAVN")
 
-    cfg = load_config()
+    # Miljoeet saettes FOER env_config importeres: modulet vaelger miljoe
+    # ved import, og byggeriet (run_build) arver variablen.
+    if args.env:
+        os.environ["CANVAS_ENV"] = args.env
+    cfg = load_config(args.env)
+    out("Miljoe: %s (%s)" % (cfg["name"], cfg.get("environment_id")))
 
     # Tjek konfigurationen foer der bygges og logges ind - en manglende
     # app_id skal ikke koste et byg og et login foerst.
     if args.command in ("pull", "deploy", "check") or (
             args.command == "raw" and args.app):
-        pick_app(cfg, args.app)
+        app = pick_app(cfg, args.app)
+        if args.command == "deploy" and args.no_build and not args.allow_dirty:
+            check_committed_yaml(app)
 
     if args.command == "deploy" and not args.no_build:
         run_build(args.app)

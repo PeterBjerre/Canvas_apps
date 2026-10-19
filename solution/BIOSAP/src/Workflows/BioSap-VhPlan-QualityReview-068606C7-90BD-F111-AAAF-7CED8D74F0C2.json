@@ -99,6 +99,13 @@
             "schemaName": "orsted_BioSapEmailDomain"
           }
         },
+        "BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapServiceAccountEmail"
+          }
+        },
         "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
           "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
           "type": "String",
@@ -283,7 +290,7 @@
               "type": "Query",
               "inputs": {
                 "from": "@outputs('Get_log_all')?['body/value']",
-                "where": "@and(equals(item()?['Stage'], 'System'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')))"
+                "where": "@and(equals(item()?['Stage'], 'System'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')), or(empty(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')), equals(toLower(coalesce(item()?['Author']?['Email'], '')), toLower(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')))))"
               },
               "runAfter": {
                 "RequestGuid": [
@@ -307,7 +314,7 @@
               "type": "Query",
               "inputs": {
                 "from": "@outputs('Get_log_all')?['body/value']",
-                "where": "@and(equals(item()?['Stage'], 'Cost'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')))"
+                "where": "@and(equals(item()?['Stage'], 'Cost'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')), or(empty(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')), equals(toLower(coalesce(item()?['Author']?['Email'], '')), toLower(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')))))"
               },
               "runAfter": {
                 "Select_sys_guids": [
@@ -587,7 +594,7 @@
                             "approvalType": "CustomResponse",
                             "WebhookApprovalCreationInput/title": "@concat('Quality review - ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['PlantsInitial/Value'], ''))",
                             "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                            "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Items:**\n', join(body('Select_item_lines'), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                            "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Items:**\n', join(body('Select_item_lines'), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
                             "WebhookApprovalCreationInput/responseOptions": [
                               "Approve",
                               "Return"
@@ -866,7 +873,8 @@
                                   "operationId": "SendEmailV2"
                                 },
                                 "parameters": {
-                                  "emailMessage/To": "@triggerBody()?['Author/Email']",
+                                  "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                                  "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
                                   "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
                                   "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the quality review:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
                                   "emailMessage/Importance": "Normal"
@@ -921,8 +929,8 @@
                           },
                           "parameters": {
                             "emailMessage/To": "@outputs('Final_approver')",
-                            "emailMessage/Subject": "@concat('Reminder: maintenance plan ', triggerBody()?['PlanID'], ' is waiting for your approval')",
-                            "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The quality review of maintenance plan @{triggerBody()?['PlanID']} has not been answered. Respond in Teams under Approvals or in the email from Power Automate.</p>",
+                            "emailMessage/Subject": "@concat('Approval request for maintenance plan ', triggerBody()?['PlanID'], ' expired without a response')",
+                            "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The quality review request for maintenance plan @{triggerBody()?['PlanID']} expired after 14 days without a response and can no longer be answered. A new request has been sent to you - respond to that one in Teams under Approvals.</p>",
                             "emailMessage/Importance": "Normal"
                           },
                           "authentication": "@parameters('$authentication')"
@@ -1004,6 +1012,80 @@
                               "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
                               "emailMessage/Subject": "Quality approver missing - maintenance plan @{triggerBody()?['PlanID']}",
                               "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} was returned: the row for the plant is missing in MD_Approver or has no valid approver in Office 365.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Index_returned_no_approver": {
+                          "type": "If",
+                          "expression": {
+                            "greater": [
+                              "@length(outputs('Get_request_index')?['body/value'])",
+                              0
+                            ]
+                          },
+                          "actions": {
+                            "Patch_index_returned_no_approver": {
+                              "type": "OpenApiConnection",
+                              "runAfter": {},
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                  "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                  "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                  "item/Domain": {
+                                    "Value": "MaintenancePlan"
+                                  },
+                                  "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                  "item/Status": {
+                                    "Value": "AfventerInfo"
+                                  },
+                                  "item/StatusStep": 3,
+                                  "item/LastActionBy": "Quality review",
+                                  "item/LastActionOn": "@utcNow()",
+                                  "item/AssignedToEmail": "",
+                                  "item/AssignedToName": ""
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "Set_plan_returned_no_approver": [
+                              "Succeeded"
+                            ]
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Send_returned_mail_no_approver": {
+                          "type": "OpenApiConnection",
+                          "runAfter": {
+                            "Index_returned_no_approver": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped"
+                            ]
+                          },
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                              "connectionName": "shared_office365",
+                              "operationId": "SendEmailV2"
+                            },
+                            "parameters": {
+                              "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                              "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
+                              "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                              "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}) was returned by the quality review:</p><p style=\"font-family: Arial, sans-serif;\">The quality approver for the plant is not in MD_Approver or Office 365.</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
                               "emailMessage/Importance": "Normal"
                             },
                             "authentication": "@parameters('$authentication')"

@@ -1,8 +1,9 @@
 # SAP masterdata – canvas apps og indmeldinger
 
 Canvas app og indmeldingsflow til SAP masterdata. **Én app:
-[`BIO SAP App/`](BIO%20SAP%20App)**, med seks skærme — hub, VH-plan,
-Equipments, Materials, Functional Location og KKS-opslaget. Sidebaren og
+[`BIO SAP App/`](BIO%20SAP%20App)**, med otte skærme — hub, VH-plan,
+Equipments, Materials, Measuring Points, Functional Location, KKS-opslaget
+og Issue Board. Sidebaren og
 hubben navigerer mellem skærmene. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
 De fem enkeltapps er udfaset (2026-10-01, [`docs/33`](docs/33-udfasning.md)).
@@ -16,7 +17,9 @@ af dem:
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens JS (`html/*.js`) - se [`docs/31`](docs/31-functional-location-regler.md) |
+| **Measuring Points** | [`Measuring Point App/`](Measuring%20Point%20App) | Indmelding af målepunkter og tællere (issue #210). Kun en skærm i BIO SAP; bag feature-flaget `measuring_point` |
 | **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
+| **Issue Board** | [`Issue Board/`](Issue%20Board) | Fejl og ønsker fra test og drift (issue #114) — se [`docs/39`](docs/39-uat-github-issues.md). Kun en skærm i BIO SAP; bag feature-flaget `issue_board` |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
@@ -45,16 +48,19 @@ python3 tools/build.py           # det samme i én proces
 | PowerShell 7 (`pwsh`) med PnP.PowerShell 2.x+ — virker **ikke** i Windows PowerShell 5.1 (`Connect-PnPOnline` findes ikke dér) | `sharepoint/provision/*.ps1`, `sharepoint/inspect/*.ps1` |
 | pac CLI | `tools/export_solution.ps1` (hentes med `dnx`, hvis den mangler) |
 
-**Tjek en ny pc i én kommando** (også Windows — CI kan ikke køre i
-Ørsteds repo, fordi hostede runnere er slået fra):
+**Tjek en ny pc i én kommando** (også Windows). CI kører på GitHub
+(`PeterBjerre/Canvas_apps`); i Ørsteds interne kopi er hostede runnere slået
+fra, og dér er `tools/doctor.py` erstatningen:
 
 ```powershell
 python tools\doctor.py          # forudsætninger, byg, git-tjek, tests
 python tools\doctor.py --fix    # sletter desuden gamle filer fra før udfasningen
 ```
 
-Den gør det samme som `.github/workflows/build.yml` og siger præcis,
-hvad der mangler (Python-pakker, Node, PowerShell 7, PnP.PowerShell).
+Den gør det samme som `.github/workflows/build.yml`, fejler de samme steder
+(også på ucommittet `.pa.yaml`) og siger præcis, hvad der mangler
+(Python-pakker, jsonschema, Node, .NET/`dnx`, `pac`, PowerShell 7,
+PnP.PowerShell).
 
 Status på kendte fund og den prioriterede plan står i [`REVIEW.md`](REVIEW.md).
 
@@ -114,6 +120,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
 | `sharepoint/provision/Provision-SapCreation.ps1` | Biblioteket `SAP-oprettelse` og kolonnerne til numrene fra SAP — se `docs/34` |
+| `sharepoint/provision/Provision-AdminLists.ps1` | `UserAndGroups` og rettighederne på admin-/godkenderlisterne, `MD_ApprovalLog` og `SAP-oprettelse` — se `docs/32` §6 |
 | `sharepoint/github/Send-IssueBoardToGitHub.ps1` | Opretter GitHub-issues fra de Issue Board-sager, en admin har sat til Triaged — se `docs/39` |
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
@@ -175,21 +182,36 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 
 # Indekslisten bag landingssiden. -AddSampleRows giver fire prøverækker.
 .\sharepoint\provision\Provision-RequestIndex.ps1 -SiteUrl $site -AddSampleRows
+# Issue Board (IB_*-listerne)
+.\sharepoint\provision\Provision-IssueBoard.ps1               -SiteUrl $site
 
-# Domænernes lister
+# Domænernes lister (MaterialGroups FØR EqMatLists, MeasuringPointLists efter)
+.\sharepoint\provision\Provision-MaterialGroups.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-EqMatLists.ps1              -SiteUrl $site
+.\sharepoint\provision\Provision-MeasuringPointLists.ps1      -SiteUrl $site
 .\sharepoint\provision\Provision-FunctionalLocationLists.ps1 -SiteUrl $site
 .\sharepoint\provision\Provision-StrategyLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-TasklistLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-StandardTaskOperations.ps1  -SiteUrl $site
 .\sharepoint\provision\Provision-PlantList.ps1               -SiteUrl $site
+.\sharepoint\provision\Provision-SortFields.ps1              -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
 .\sharepoint\provision\Provision-SapCreation.ps1             -SiteUrl $site
 .\sharepoint\provision\Provision-HelpText.ps1                -SiteUrl $site
 # KKS-opslaget (efter FunctionalLocationLists - MD_FLKey genbruges)
 .\sharepoint\provision\Provision-KksLists.ps1                 -SiteUrl $site -SeedMasterData
+
+# Standardoperationerne ud i Excel og tilbage (ikke en del af opsætningen)
+.\sharepoint\provision\Sync-StandardTaskOperations.ps1 -SiteUrl $site -Export -Path .\StandardOps.xlsx
+
+# Til sidst: rettigheder paa admin-, godkender- og logliste og SAP-oprettelse
+# (R2-024, R2-032). Koer foerst med -WhatIfOnly.
+.\sharepoint\provision\Provision-AdminLists.ps1 -SiteUrl $site -FlowAccount <servicekonto> -MaintainerGroup "Master Data"
 ```
+
+Alle scripts tager `-WhatIfOnly`: et tørløb, der kun skriver, hvad der ville
+ske (`Set-MdWhatIf` i `_Common.psm1`).
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og

@@ -214,6 +214,6 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"            Notify(\"The {label.lower()} search failed. Try again.\", NotificationType.Error)\n"
         f"        )"
         + busy_off + "\n"
-        f"    )\n"
-        f")"
+        "    )\n"
+        ")"
     )

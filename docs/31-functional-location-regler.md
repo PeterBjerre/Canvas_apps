@@ -152,6 +152,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL68 | Indsend blokeres, så længe en ikke-tom række er `invalid`, der ingen klar række er, eller der er ændret noget siden sidste Verify | Opgaven, §3 "blokér indsend ved fejl"; HTML'ens "Ready for SAP" | `Submit is blocked: N row(s) have errors.` | Fejl | `fl_save.py` `SUBMIT_OK`, `SUBMIT_DM`, `SUBMIT_WHY`, `submit_fx` |
 | FL69 | Et indsendt sæt er låst (visning) | Samme mønster som Equipment/Material | – | Afledt | `fl_parts.py` `DM_EDIT` |
 | FL70 | "New request" tømmer siden og starter en ny anmodning med én tom række | Appens livsforløb (siden har kun én anmodning pr. indlæsning) | – | Afledt | `fl_parts.py` `NEW_FX` → `btnFlNew` |
+| FL71 | Én anmodning, ét værk: har rækkerne mere end ét værk (pos. 1-3), får hver række med FL en fejl | Review R2-074 (Peters beslutning: ét værk pr. anmodning - SAP-opretteren kører pr. værk, og `MD_RequestIndex.Plant` har ét værk) | `More than one plant in the request - use one request per plant.` | Fejl | `fl_validation.py` `MPlantMix` i `calc_rows`, `varFlPlantMix` i `DUPS`; harnessen lægger reglen oven på originalen og den flade plan (`appRules`) |
 
 ## Power Fx mod JavaScript
 
@@ -311,6 +312,10 @@ Fx) skal give ordret det samme, ellers er testen rød. Sager med samme
 | T55b | FL55 | ugyldig | `SSV10 LAC10AB001 -B01` | Pumpe | Operating pressure=`1234567890123` | invalid | GIV | Operating pressure: Max 12 characters. |
 | T56a | FL56 | gyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`   ` | valid | MKP | - |
 | T56b | FL56 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Atex=` XX ` | invalid | MKP | Atex: Allowed values: X. |
+| T71a | FL71 | gyldig (gruppe oneplant) | `SSV10 LAC10AB001` | Pumpe |  | valid | MKP | - |
+| T71b | FL71 | gyldig (gruppe oneplant) | `SSV10 LAC10AH001` | Pumpe |  | valid | ELF | - |
+| T71c | FL71 | ugyldig (gruppe twoplants) | `SSV10 LAC10AB001` | Pumpe |  | invalid | MKP | More than one plant in the request - use one request per plant. |
+| T71d | FL71 | ugyldig (gruppe twoplants) | `AVV10 LAC10AB001` | Pumpe |  | invalid | MKP | More than one plant in the request - use one request per plant. |
 <!-- TESTMATRIX:END -->
 
 UI-reglerne (FL2, FL26-FL29, FL57-FL66, FL68-FL69) kan ikke køres i Node.
@@ -346,7 +351,7 @@ De har deres egen matrix nedenfor og efterprøves i Studio efter deploy.
 | AQ5 | Skal Equipment Numbers-reglerne fra VBA'en ind nogen steder? | Nej. De findes ikke i JS'en, og udstyr har sin egen app |
 | AQ6 | JS'en har ingen gem/indsend - den eksporterer JSON. Appens gem og indsend (FL68/FL69, `MD_RequestIndex`) er nye | Bygget efter `powerfx/04-submit-patch.fx`. Selve valideringen er uændret |
 | AQ7 | Skal key users kunne rette nøgler, lister og regler uden en ny udgave af appen? | Nej, ikke i denne udgave. Reglerne er bygget ind fra `html/*.js`, præcis som siden har dem. En ændring er: ret JS'en → `node tools/fl/harness.js plan` → byg → deploy. `MD_FLKey` er seedet, så et senere skift til SharePoint-opslag har data at stå på |
-| AQ8 | Er `FL_LOOKUPS` og SPOOL-arket samme kilde? | Ja, for nøglerne: `node tools/fl/harness.js seed` genererer `sharepoint/seed/MD_FLKey.csv` ud af `FL_LOOKUPS`, og resultatet er **byte for byte** det samme som filen fra `tools/extract_spool_lists.py` (6.733 nøgler, heraf 6.441 funktionsnøgler efter normalisering). Afviger de en dag, er det `FL_LOOKUPS`, appen følger |
+| AQ8 | Er `FL_LOOKUPS` og SPOOL-arket samme kilde? | Ja, for nøglerne: `node tools/fl/harness.js seed` genererer `sharepoint/seed/MD_FLKey.csv` ud af `FL_LOOKUPS`, og resultatet er **byte for byte** det samme som filen fra `tools/extract_spool_lists.py` (6.733 nøgler, heraf 6.441 funktionsnøgler efter normalisering). Afviger de en dag, er det `FL_LOOKUPS`, appen følger. **Kæden (R2-076):** arket → `python3 tools/extract_spool_lists.py <xlsm> --write-js` → `html/lookups.generated.js` → `node tools/fl/harness.js plan` (appens regler) og `seed` (`MD_FLKey.csv`); `--check-js` sammenligner arket med den committede fil tabel for tabel uden at skrive, og `harness.js test` + `gen_kks_seed.py --check` holder JS, JSON og CSV i trit. Formatet (PowerShell 5.1's `ConvertTo-Json`) gengives byte for byte (`tests/test_lookups_generator.py`). Arket i `excel/artifact/` er dog **ældre** end JS-filen: nøgletabellerne (komponent, aggregat, `FunctionKeyDict`, BR18, `Plant`, `Char`) er ens, men `Table7`, `Design_flow_uom`, `SCEq` og `TEKDOC_BATCH` afviger, og `EQ_Cat` findes ikke i arket. Før `--write-js` bruges, skal det ark, JS-filen kom fra, lægges i repoet (`--check-js` skal da give 0 forskelle) |
 
 ## Byg, provisionér og deploy
 

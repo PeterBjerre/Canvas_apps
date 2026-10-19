@@ -13,6 +13,8 @@
     som foerste argumenter - tools/check_datasources.py laeser kaldene og
     ved derfor, hvilke lister og kolonner provisioneringen opretter.
 
+    Toerloeb: Set-MdWhatIf $WhatIfOnly lige efter Connect-MdSite (R2-060).
+
     Filen skal vaere ren ASCII med BOM (tools/check_ps1.py).
 #>
 
@@ -51,22 +53,70 @@ function Connect-MdSite {
     }
 }
 
+# ---------------------------------------------------------------------------
+# TOERLOEB (-WhatIfOnly, R2-060)
+#
+# Hvert script tager [switch] $WhatIfOnly og kalder lige efter
+# Connect-MdSite:
+#
+#     Set-MdWhatIf $WhatIfOnly
+#
+# Saa skriver hjaelperne nedenfor kun "? ville ..." og roerer intet. Det,
+# scriptet selv skriver (seed, visninger, rettigheder), pakkes i
+# if (-not $WhatIfOnly) { ... } - eller spoerger Test-MdWhatIf.
+#
+# Foer stod -WhatIfOnly i 7 af 16 scripts, og selv der oprettede
+# New-MdList/New-MdField lister og kolonner, fordi hjaelperne ikke kendte
+# parameteren. Et toerloeb, der skriver, er vaerre end intet toerloeb.
+# ---------------------------------------------------------------------------
+$script:MdWhatIf = $false
+
+function Set-MdWhatIf {
+    param([bool]$On)
+    $script:MdWhatIf = $On
+    if ($On) {
+        Write-Host "TOERLOEB (-WhatIfOnly): intet skrives til SharePoint." -ForegroundColor Yellow
+    }
+}
+
+function Test-MdWhatIf { return $script:MdWhatIf }
+
+# Findes listen? I et toerloeb er en ny liste ikke oprettet endnu, og
+# Get-PnPField paa en liste, der ikke findes, fejler i stedet for at svare
+# tomt. Derfor spoerges der foerst.
+function Test-MdList {
+    param([string]$Title)
+    return [bool](Get-PnPList -Identity $Title -ErrorAction SilentlyContinue)
+}
+
 function New-MdList {
     param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
+    if (Test-MdList $Title) {
         Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-    } else {
-        New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-        Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
+        if ($Description -and -not $script:MdWhatIf) {
+            Set-PnPList -Identity $Title -Description $Description | Out-Null
+        }
+        return
     }
-    if ($Description) { Set-PnPList -Identity $Title -Description $Description }
+    if ($script:MdWhatIf) {
+        Write-Host "  ? ville oprette listen '$Title'" -ForegroundColor Yellow
+        return
+    }
+    New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
+    if ($Description) { Set-PnPList -Identity $Title -Description $Description | Out-Null }
+    Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
 }
 
 function New-MdField {
     param(
         [string]$List, [string]$Name, [string]$Type,
-        [string[]]$Choices, [switch]$Indexed, [switch]$Required, [switch]$Unique
+        [string[]]$Choices, [switch]$Indexed, [switch]$Required, [switch]$Unique,
+        [string]$Description
     )
+    if ($script:MdWhatIf -and -not (Test-MdList $List)) {
+        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
+        return
+    }
     $f = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
     if ($f -and $Choices) {
         # Feltet findes: tilfoej de valg, der mangler (R2-012). Listerne fra
@@ -76,28 +126,45 @@ function New-MdField {
         # SchemaXml (samme som Add-Choices i Provision-VHPlanColumns.ps1).
         $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE | Where-Object { $_ })
         $missing = [string[]]@($Choices | Where-Object { $current -notcontains $_ })
-        if ($missing.Count) {
+        if (-not $missing.Count) {
+            Write-Host "    = $Name" -ForegroundColor DarkGray
+        } elseif ($script:MdWhatIf) {
+            Write-Host "    ? ville tilfoeje valg paa ${Name}: $($missing -join ', ')" -ForegroundColor Yellow
+        } else {
             $union = [string[]]($current + $missing)
             Set-PnPField -List $List -Identity $Name -Values @{ Choices = $union }
             Write-Host "    ~ $Name (choices +$($missing -join ', +'))" -ForegroundColor Green
-        } else {
-            Write-Host "    = $Name" -ForegroundColor DarkGray
         }
     } elseif ($f) {
         Write-Host "    = $Name" -ForegroundColor DarkGray
+    } elseif ($script:MdWhatIf) {
+        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
+        return
     } else {
         $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
         if ($Choices) { $p.Choices = $Choices }
         Add-PnPField @p -AddToDefaultView | Out-Null
+        # Beskrivelsen saettes kun ved oprettelsen; en beskrivelse, nogen
+        # har rettet i SharePoint, overskrives ikke.
+        if ($Description) { Set-PnPField -List $List -Identity $Name -Values @{ Description = $Description } }
         Write-Host "    + $Name ($Type)" -ForegroundColor Green
     }
     # Unikhed kraever indeksering, og indekseringen skal vaere paa plads FOER
     # listen passerer 5.000 elementer.
     $values = @{}
-    if ($Indexed -or $Unique) { $values.Indexed = $true }
-    if ($Required)            { $values.Required = $true }
-    if ($values.Count)        { Set-PnPField -List $List -Identity $Name -Values $values }
-    if ($Unique) {
+    if (($Indexed -or $Unique) -and -not ($f -and $f.Indexed)) { $values.Indexed = $true }
+    if ($Required -and -not ($f -and $f.Required))             { $values.Required = $true }
+    if ($Unique -and -not ($f -and $f.EnforceUniqueValues))    { $values.EnforceUniqueValues = $true }
+    if (-not $values.Count) { return }
+    if ($script:MdWhatIf) {
+        Write-Host "    ? ville saette $($values.Keys -join ', ') paa $Name" -ForegroundColor Yellow
+        return
+    }
+    # Indeksering foerst - EnforceUniqueValues kraever, at den er der.
+    $needUnique = $values.ContainsKey('EnforceUniqueValues')
+    $values.Remove('EnforceUniqueValues')
+    if ($values.Count) { Set-PnPField -List $List -Identity $Name -Values $values }
+    if ($needUnique) {
         Set-PnPField -List $List -Identity $Name -Values @{ EnforceUniqueValues = $true }
     }
 }
@@ -106,11 +173,20 @@ function New-MdField {
 # HTML-tags ind i JSON'en, og saa kan hverken appen, flowet eller SAP's
 # langtekstfelt laese den.
 function New-MdNoteField {
-    param([string]$List, [string]$Name, [int]$Lines = 6)
+    param([string]$List, [string]$Name, [int]$Lines = 6, [string]$Description, [switch]$Indexed)
+    if ($script:MdWhatIf -and -not (Test-MdList $List)) {
+        Write-Host "    ? ville oprette $Name (Note, plain)" -ForegroundColor Yellow
+        return
+    }
     if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
         Write-Host "    = $Name" -ForegroundColor DarkGray
+        if ($script:MdWhatIf) { return }
+    } elseif ($script:MdWhatIf) {
+        Write-Host "    ? ville oprette $Name (Note, plain)" -ForegroundColor Yellow
+        return
     } else {
-        Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type Note | Out-Null
+        Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type Note -AddToDefaultView | Out-Null
+        if ($Description) { Set-PnPField -List $List -Identity $Name -Values @{ Description = $Description } }
         Write-Host "    + $Name (Note, plain)" -ForegroundColor Green
     }
     Set-PnPField -List $List -Identity $Name -Values @{ RichText = $false; NumberOfLines = $Lines }
@@ -120,20 +196,29 @@ function New-MdNoteField {
 # Power Fx binder paa VISNINGSNAVNET.
 function Rename-MdTitle {
     param([string]$List, [string]$NewName)
+    if ($script:MdWhatIf) {
+        Write-Host "    ? ville omdoebe Title -> $NewName (og indeksere)" -ForegroundColor Yellow
+        return
+    }
     Set-PnPField -List $List -Identity 'Title' -Values @{ Title = $NewName; Indexed = $true }
     Write-Host "    ~ Title -> $NewName" -ForegroundColor Green
 }
 
 # Indeksering af en kolonne, der findes i forvejen. Et filter paa en
 # kolonne uden indeks fejler, naar listen passerer 5.000 elementer.
+# -WhatIfOnly paa kaldet virker stadig, men Set-MdWhatIf er nok.
 function Set-MdIndexed {
     param([string]$List, [string]$Name, [switch]$WhatIfOnly)
+    if ($script:MdWhatIf -and -not (Test-MdList $List)) {
+        Write-Host "    ? $List findes ikke endnu - $Name ville blive indekseret" -ForegroundColor Yellow
+        return
+    }
     $f = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
     if (-not $f) {
         Write-Host "    ! $List.$Name findes ikke - springes over" -ForegroundColor Yellow
     } elseif ($f.Indexed) {
         Write-Host "    = $List.$Name er indekseret" -ForegroundColor DarkGray
-    } elseif ($WhatIfOnly) {
+    } elseif ($WhatIfOnly -or $script:MdWhatIf) {
         Write-Host "    ? $List.$Name ville blive indekseret" -ForegroundColor Yellow
     } else {
         Set-PnPField -List $List -Identity $Name -Values @{ Indexed = $true }
@@ -141,5 +226,112 @@ function Set-MdIndexed {
     }
 }
 
-Export-ModuleMember -Function Connect-MdSite, New-MdList, New-MdField, New-MdNoteField,
-    Rename-MdTitle, Set-MdIndexed -Variable MdDefaultClientId
+# ---------------------------------------------------------------------------
+# RETTIGHEDER PAA EN LISTE (R2-024, R2-032)
+#
+# Samme moenster som Issue Board (Provision-IssueBoard.ps1): nedarvningen
+# brydes med en KOPI af sitets rettigheder, og saa justeres grupperne. En
+# person, der var tilfoejet direkte paa sitet, kopieres med og fjernes ikke
+# - scriptet fjerner ingen personer.
+# ---------------------------------------------------------------------------
+
+# Rollernes navne er sprogafhaengige (Read/Laese ...). Typen er ikke.
+function Get-MdRoleName {
+    param([string]$Kind)
+    $r = Get-PnPRoleDefinition | Where-Object { $_.RoleTypeKind -eq $Kind } | Select-Object -First 1
+    if (-not $r) { throw "Finder ingen rolle af typen $Kind paa sitet." }
+    return $r.Name
+}
+
+function Test-MdUniquePermissions {
+    param([string]$List)
+    $l = Get-PnPList -Identity $List -Includes HasUniqueRoleAssignments
+    return [bool]$l.HasUniqueRoleAssignments
+}
+
+# Fjerner HELE gruppens rolletildeling paa listen (alle roller).
+function Remove-MdGroupFromList {
+    param([string]$List, $Group)
+    if (-not $Group) { return }
+    $l = Get-PnPList -Identity $List -Includes RoleAssignments
+    $ctx = Get-PnPContext
+    try {
+        $ra = $l.RoleAssignments.GetByPrincipalId($Group.Id)
+        $ctx.Load($ra)
+        $ra.DeleteObject()
+        Invoke-PnPQuery
+        Write-Host "    - $($Group.Title) har ikke laengere adgang" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "    = $($Group.Title) havde ingen adgang" -ForegroundColor DarkGray
+    }
+}
+
+function Set-MdOwnersAndFlow {
+    param([string]$List, [string]$FlowAccount)
+    $full = Get-MdRoleName 'Administrator'
+    $owners = Get-PnPGroup -AssociatedOwnerGroup
+    Set-PnPListPermission -Identity $List -Group $owners -AddRole $full | Out-Null
+    Write-Host "    + $($owners.Title) har Full Control" -ForegroundColor Green
+    if ($FlowAccount) {
+        Set-PnPListPermission -Identity $List -User $FlowAccount -AddRole $full | Out-Null
+        Write-Host "    + $FlowAccount har Full Control" -ForegroundColor Green
+    }
+}
+
+# Alle LAESER, kun ejerne og flowets konto skriver. Til lister, der styrer
+# rettigheder (UserAndGroups, MD_Approver ...): med Contribute kunne enhver
+# bruger goere sig selv til admin eller godkender.
+function Set-MdReadOnlyList {
+    param([string]$List, [string]$FlowAccount)
+    if (-not (Test-MdList $List)) {
+        Write-Host "    ! $List findes ikke - springes over" -ForegroundColor Yellow
+        return
+    }
+    if ($script:MdWhatIf) {
+        Write-Host "    ? ville goere $List skrivebeskyttet: Members Read, Owners$(if ($FlowAccount) { ' + ' + $FlowAccount }) Full Control" -ForegroundColor Yellow
+        return
+    }
+    if (-not (Test-MdUniquePermissions $List)) {
+        Set-PnPList -Identity $List -BreakRoleInheritance -CopyRoleAssignments | Out-Null
+        Write-Host "    ~ nedarvning brudt (kopieret)" -ForegroundColor Green
+    }
+    $members = Get-PnPGroup -AssociatedMemberGroup
+    Remove-MdGroupFromList $List $members
+    Set-PnPListPermission -Identity $List -Group $members -AddRole (Get-MdRoleName 'Reader') | Out-Null
+    Write-Host "    ~ $($members.Title) kan kun laese" -ForegroundColor Green
+    Set-MdOwnersAndFlow $List $FlowAccount
+}
+
+# Alle laeser alt og opretter selv; hver retter kun SINE EGNE raekker
+# ("Create and Edit access: Create items and edit items that were created
+# by the user"). Ejerne og flowets konto (Full Control = Manage Lists)
+# er ikke bundet af det.
+function Set-MdOwnItemsList {
+    param([string]$List, [string]$FlowAccount)
+    if (-not (Test-MdList $List)) {
+        Write-Host "    ! $List findes ikke - springes over" -ForegroundColor Yellow
+        return
+    }
+    if ($script:MdWhatIf) {
+        Write-Host "    ? ville give Members Contribute med 'kun egne raekker' paa $List, Owners$(if ($FlowAccount) { ' + ' + $FlowAccount }) Full Control" -ForegroundColor Yellow
+        return
+    }
+    if (-not (Test-MdUniquePermissions $List)) {
+        Set-PnPList -Identity $List -BreakRoleInheritance -CopyRoleAssignments | Out-Null
+        Write-Host "    ~ nedarvning brudt (kopieret)" -ForegroundColor Green
+    }
+    $members = Get-PnPGroup -AssociatedMemberGroup
+    Remove-MdGroupFromList $List $members
+    Set-PnPListPermission -Identity $List -Group $members -AddRole (Get-MdRoleName 'Contributor') | Out-Null
+    Write-Host "    ~ $($members.Title) har Contribute" -ForegroundColor Green
+    Set-MdOwnersAndFlow $List $FlowAccount
+    # 1 = Read all items, 2 = Create items and edit items that were created by the user.
+    Set-PnPList -Identity $List -ReadSecurity 1 -WriteSecurity 2 | Out-Null
+    Write-Host "    ~ Read access: All items / Create and Edit access: Own items" -ForegroundColor Green
+}
+
+Export-ModuleMember -Function Connect-MdSite, Set-MdWhatIf, Test-MdWhatIf, Test-MdList,
+    New-MdList, New-MdField, New-MdNoteField, Rename-MdTitle, Set-MdIndexed,
+    Get-MdRoleName, Test-MdUniquePermissions, Remove-MdGroupFromList,
+    Set-MdReadOnlyList, Set-MdOwnItemsList -Variable MdDefaultClientId

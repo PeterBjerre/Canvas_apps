@@ -12,8 +12,9 @@ Opslaget er een delegerbar LookUp i en navngiven formel. Navngivne formler
 evalueres dovent og huskes, saa listen laeses hoejst een gang pr. session,
 og kun hvis en formel faktisk spoerger.
 
-UserAndGroups skal tilfoejes som datakilde i Studio (BIO SAP App har den
-ikke i dag).
+UserAndGroups er en FAST datakilde i BIO SAP App (DataSources.json i
+solution/) - den foelger ikke Issue Board-flaget, for hubben, VH-planen,
+Equipment, Material og Measuring Point bruger IsAdmin (R2-078).
 
 REGLEN
 ------
@@ -125,3 +126,17 @@ def may_change_ui(item, me):
     ser dem ogsaa paa andres i Kladde og AfventerInfo."""
     return (f"{is_owner(item + '.RequesterEmail', me)} || "
             f"({IS_ADMIN} && {_in(item + '.Status.Value', ADMIN_STATUSES)})")
+
+
+def may_close(item):
+    """Maa brugeren lukke anmodningen i hubben - "Mark created in SAP" eller
+    "Cancel" (R2-021)? Kun en admin, kun en aaben, indsendt anmodning
+    (request_index.CLOSABLE_FROM) og kun i de domaener, intet flow lukker
+    (request_index.CLOSE_DOMAINS). item: raekken i MD_RequestIndex."""
+    # Skrevet som "ikke de udelukkede" (VH-planen): saa naevner hubben
+    # ikke MeasuringPoint, naar MP-godkendelsen er slaaet fra
+    # (tests/test_mp_approval.py).
+    out = [d for d in ri.DOMAINS if d not in ri.CLOSE_DOMAINS]
+    dom = " && ".join(f'{item}.Domain.Value <> "{d}"' for d in out)
+    return (f"({IS_ADMIN} && {item}.IsOpen && {_in(item + '.Status.Value', ri.CLOSABLE_FROM)} && "
+            f"{dom})")

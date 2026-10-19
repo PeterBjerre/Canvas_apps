@@ -370,8 +370,20 @@ def provisioned_columns():
     return out
 
 
-def provisioned_choices():
-    """Valgvaerdier, som et provisioneringsscript opretter.
+def _ps_values(expr, variables):
+    """Vaerdierne i et PowerShell-udtryk: 'a','b' / @('a', $X) / $VAR."""
+    out = re.findall(r"'([^']*)'", expr)
+    for v in re.findall(r"\$(\w+)", expr):
+        out += variables.get(v.upper(), [])
+    return out
+
+
+# -Choices-argumentet: @( ... ), $VAR eller 'a','b' (evt. over flere linjer).
+_CHOICE_ARG = r"(@\([^)]*\)|\$\w+|'[^']*'(?:\s*,\s*'[^']*')*)"
+
+
+def provisioned_column_choices():
+    """Valgvaerdier, som et provisioneringsscript opretter - pr. KOLONNE.
 
     Samme sondring som for kolonner: en vaerdi, der er lagt ind i
     scriptet, men endnu ikke oprettet i SharePoint, er ikke en kodefejl -
@@ -379,24 +391,45 @@ def provisioned_choices():
     Uden den blev byggeriet roedt af en god grund, og saa bliver det
     ignoreret naeste gang det er roedt af en daarlig.
 
-    To former laeses:
-        -Choices 'a','b','c'        direkte paa feltet
-        $NAVN = 'a', 'b', 'c'       en variabel, der sendes som -Choices
-    """
+    Saettet er {(kolonne, vaerdi)} (R2-069). Foer var det eet fladt saet
+    af alle vaerdier i alle scripts, saa en valgvaerdi mod liste X blev
+    godkendt, blot ordet stod i et script for liste Y. Formerne:
+
+        New-MdField <liste> 'Kol' Choice ... -Choices 'a','b' | $VAR | @(...)
+        Add-Col / New-HelpField ... 'Kol' Choice -Choices ...
+        Set-ChoiceOrder / Add-Choices / Add-Choice <liste> 'Kol' @(...) | 'a'
+        Set-PnPField ... -Identity 'Kol' -Values @{ Choices = [string[]]@(...) }
+
+    $VAR slaas op i scriptets egne variabler ($VAR = 'a', 'b' - ogsaa over
+    flere linjer)."""
     out = set()
     d = os.path.join(ROOT, "sharepoint", "provision")
     if not os.path.isdir(d):
         return out
-    for fn in os.listdir(d):
+    for fn in sorted(os.listdir(d)):
         if not fn.endswith(".ps1"):
             continue
         txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
-        for m in re.finditer(r"-Choices\s+((?:'[^']*'\s*,\s*)*'[^']*')", txt):
-            out.update(re.findall(r"'([^']*)'", m.group(1)))
-        for m in re.finditer(r"^\s*\$[A-Za-z_]\w*\s*=\s*"
-                             r"((?:'[^']*'\s*,\s*)+'[^']*')\s*$", txt, re.M):
-            out.update(re.findall(r"'([^']*)'", m.group(1)))
+        variables = {}
+        for m in re.finditer(r"^\s*\$(\w+)\s*=\s*((?:@\()?'[^']*'(?:\s*,\s*'[^']*')*\)?)",
+                             txt, re.M):
+            variables[m.group(1).upper()] = re.findall(r"'([^']*)'", m.group(2))
+        for m in re.finditer(r"'(\w+)'\s+Choice\b((?:[^\n]*`\s*\n)*[^\n]*)", txt):
+            c = re.search(r"-Choices\s+" + _CHOICE_ARG, m.group(2))
+            if c:
+                out.update((m.group(1), v) for v in _ps_values(c.group(1), variables))
+        for m in re.finditer(r"\b(?:Set-ChoiceOrder|Add-Choices|Add-Choice)\s+\S+\s+'(\w+)'\s+"
+                             + _CHOICE_ARG, txt):
+            out.update((m.group(1), v) for v in _ps_values(m.group(2), variables))
+        for m in re.finditer(r"-Identity\s+'(\w+)'\s+-Values\s+@\{\s*Choices\s*=\s*"
+                             r"(?:\[string\[\]\])?(@\([^)]*\))", txt):
+            out.update((m.group(1), v) for v in _ps_values(m.group(2), variables))
     return out
+
+
+def provisioned_choices():
+    """Alle provisionerede valgvaerdier, uden kolonne (til testene)."""
+    return {v for _c, v in provisioned_column_choices()}
 
 
 def provisioned_lists():
@@ -436,6 +469,34 @@ def named_formulas():
     return out
 
 
+def classify(problems, prov, prov_choices):
+    """(problemer, ventende): et fund er "ventende", naar kolonnen eller
+    valgvaerdien (paa SAMME kolonne) oprettes af provisioneringen, men
+    endnu ikke staar i udtraekket."""
+    # Dubletter: samme fejl staar typisk i flere egenskaber.
+    seen, uniq, pending = set(), [], []
+    for lst, msg in problems:
+        key = (lst, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        # "R.Kolonne - kolonnen findes ikke" (ForAll-aliaset) har ingen
+        # anfoerselstegn om navnet; uden det andet moenster blev en
+        # provisioneret kolonne der meldt som en fejl.
+        m = (re.search(r"'([\w]+)'", msg)
+             or re.search(r"\.([\w]+) - kolonnen findes ikke", msg))
+        # Valgvaerdien sammenlignes paa (kolonne, vaerdi) - check_shape
+        # skriver kolonnen foerst i beskeden (R2-069).
+        mv = re.search(r'^(\w+): valgvaerdien "([^"]*)" findes ikke', msg)
+        if mv and (mv.group(1), mv.group(2)) in prov_choices:
+            pending.append("%s.%s (valgvaerdi \"%s\")" % (lst, mv.group(1), mv.group(2)))
+        elif not mv and m and (lst, m.group(1)) in prov:
+            pending.append(f"{lst}.{m.group(1)}")
+        else:
+            uniq.append(f"{lst}: {msg}")
+    return uniq, pending
+
+
 def main():
     schema = load_schema()
     if schema is None:
@@ -446,7 +507,7 @@ def main():
 
     problems, stats = [], {"checked": 0}
     prov = provisioned_columns()
-    prov_choices = provisioned_choices()
+    prov_choices = provisioned_column_choices()
     screens = []
     import env_config
     # Kun de apps, der bygges - ikke gamle filer i en udfaset apps mappe.
@@ -484,25 +545,7 @@ def main():
     missing_known = sorted(l for l in missing if l in prov_lists)
     missing_unknown = sorted(l for l in missing if l not in prov_lists)
 
-    # Dubletter: samme fejl staar typisk i flere egenskaber.
-    seen, uniq, pending = set(), [], []
-    for lst, msg in problems:
-        key = (lst, msg)
-        if key in seen:
-            continue
-        seen.add(key)
-        # "R.Kolonne - kolonnen findes ikke" (ForAll-aliaset) har ingen
-        # anfoerselstegn om navnet; uden det andet moenster blev en
-        # provisioneret kolonne der meldt som en fejl.
-        m = (re.search(r"'([\w]+)'", msg)
-             or re.search(r"\.([\w]+) - kolonnen findes ikke", msg))
-        mv = re.search(r'valgvaerdien "([^"]*)" findes ikke', msg)
-        if m and (lst, m.group(1)) in prov:
-            pending.append(f"{lst}.{m.group(1)}")
-        elif mv and mv.group(1) in prov_choices:
-            pending.append("%s (valgvaerdi \"%s\")" % (lst, mv.group(1)))
-        else:
-            uniq.append(f"{lst}: {msg}")
+    uniq, pending = classify(problems, prov, prov_choices)
 
     print(f"Datakilde-tjek: {len(screens)} fil(er), {len(schema)} lister i skemaet, "
           f"{stats['checked']} kolonnereferencer efterproevet.")
@@ -514,8 +557,8 @@ def main():
         print("  -> koer provisioneringen, og eksporter skemaet igen. "
               "Kolonnerne i dem er IKKE efterproevet.")
     if pending:
-        print(f"\n{len(pending)} kolonne(r) oprettes af provisioneringen, men "
-              f"findes ikke i udtraekket endnu:")
+        print(f"\n{len(set(pending))} kolonne(r)/valgvaerdi(er) oprettes af "
+              f"provisioneringen, men findes ikke i udtraekket endnu:")
         for x in sorted(set(pending)):
             print("  " + x)
         print("  -> koer sharepoint/provision-scriptet, og eksporter skemaet igen.")
@@ -531,7 +574,13 @@ def main():
         print("Er kolonnen NETOP oprettet, er udtraekket forældet - koer "
               "Export-ListSchema.ps1 igen.")
         return 1
-    print("Alle kolonner og valgvaerdier findes.")
+    waiting = len(set(pending)) + len(missing_known)
+    if waiting:
+        # "Alle ... findes" oven paa en liste af mangler fik laeseren til at
+        # overse dem (R2-069).
+        print("\nResten findes. %d ting venter paa provisionering/nyt udtraek." % waiting)
+    else:
+        print("Alle kolonner og valgvaerdier findes.")
     return 0
 
 

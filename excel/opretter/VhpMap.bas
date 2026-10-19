@@ -187,9 +187,73 @@ Public Function StartDate(ByVal firstDue As Date, ByVal cycle As Double, ByVal u
     StartDate = DateAdd(interval, -n, firstDue)
 End Function
 
-' Dato i SAP-brugerens format. Det gamle script brugte dd.mm.yyyy.
-Public Function SapDate(ByVal d As Date) As String
-    SapDate = Format$(d, "dd") & "." & Format$(d, "mm") & "." & Format$(d, "yyyy")
+' Dato i SAP-brugerens format (indstillingen DateFormat, R2-059). Tom =
+' dd.mm.yyyy, som det gamle script brugte. Format$ bruges kun til tallene:
+' et "/" i Format$ bliver til Windows' datoseparator. (fmt kopieres foer
+' det gives videre: LibreOffice giver et udeladt Optional videre som
+' "mangler" i stedet for standardvaerdien.)
+Public Function SapDate(ByVal d As Date, Optional ByVal fmt As String = "") As String
+    Dim f As String
+    f = fmt
+    SapDate = SapDateParts(Format$(d, "dd"), Format$(d, "mm"), Format$(d, "yyyy"), f)
+End Function
+
+' Dag, maaned og aar (tekst) i SAP-brugerens format.
+Public Function SapDateParts(ByVal dd As String, ByVal mm As String, ByVal yyyy As String, _
+                             Optional ByVal fmt As String = "") As String
+    Dim s As String
+    s = LCase$(Trim$(fmt))
+    If Len(s) = 0 Then s = "dd.mm.yyyy"
+    s = Replace(s, "yyyy", yyyy)
+    s = Replace(s, "dd", dd)
+    s = Replace(s, "mm", mm)
+    SapDateParts = s
+End Function
+
+' Kan opretteren skrive datoer i formatet? dd, mm og yyyy een gang hver med
+' samme skilletegn (. / -) - de formater, SAP-brugerprofilen tilbyder med
+' fire cifre i aaret.
+Public Function IsSapDateFormat(ByVal fmt As String) As Boolean
+    Dim s As String
+    Dim rest As String
+
+    s = LCase$(Trim$(fmt))
+    If Len(s) <> 10 Then Exit Function
+    If Len(s) - Len(Replace(s, "yyyy", "")) <> 4 Then Exit Function
+    rest = Replace(s, "yyyy", "")
+    If Len(rest) - Len(Replace(rest, "dd", "")) <> 2 Then Exit Function
+    If Len(rest) - Len(Replace(rest, "mm", "")) <> 2 Then Exit Function
+    rest = Replace(Replace(rest, "dd", ""), "mm", "")
+    If Len(rest) <> 2 Then Exit Function
+    If Left$(rest, 1) <> Right$(rest, 1) Then Exit Function
+    IsSapDateFormat = (InStr(1, "./-", Left$(rest, 1), vbBinaryCompare) > 0)
+End Function
+
+' Er SAP-sessionens sprog det, opretteren kraever (R2-059)? SAP GUI kan
+' give sproget med to bogstaver (EN) eller SAP's eet (E).
+Public Function SameSapLanguage(ByVal actual As String, ByVal wanted As String) As Boolean
+    actual = UCase$(Trim$(actual))
+    wanted = UCase$(Trim$(wanted))
+    If Len(actual) = 0 Or Len(wanted) = 0 Then Exit Function
+    If actual = wanted Then
+        SameSapLanguage = True
+    ElseIf Len(actual) = 1 And Len(wanted) = 2 Then
+        SameSapLanguage = (actual = OneLetterLanguage(wanted))
+    ElseIf Len(actual) = 2 And Len(wanted) = 1 Then
+        SameSapLanguage = (wanted = OneLetterLanguage(actual))
+    End If
+End Function
+
+' SAP's eet-bogstavs sprogkode for de sprog, der er relevante her.
+Private Function OneLetterLanguage(ByVal iso As String) As String
+    Select Case iso
+        Case "EN": OneLetterLanguage = "E"
+        Case "DA": OneLetterLanguage = "K"
+        Case "DE": OneLetterLanguage = "D"
+        Case "SV": OneLetterLanguage = "V"
+        Case "NL": OneLetterLanguage = "N"
+        Case Else: OneLetterLanguage = "?"
+    End Select
 End Function
 
 ' Tal til et SAP-felt: heltal uden decimaler, ellers med SAP-brugerens

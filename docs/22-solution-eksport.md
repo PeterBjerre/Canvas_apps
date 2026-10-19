@@ -9,6 +9,14 @@ references, tabeller — findes kun i browseren, indtil det bliver hentet ned.
 .\tools\export_solution.ps1 -Solution BIOSAP         # hent og rens
 ```
 
+## Seneste eksport
+
+[`solution/EXPORT.md`](../solution/EXPORT.md) siger, hvornår eksporten i
+repoet er hentet, og hvilken version af solutionen den er (i skrivende stund
+**1.1.0.8, 2026-10-13**). `export_solution.ps1` skriver filen ved hver
+eksport (dato, solution, `<Version>` fra `Solution.xml`, miljø), så svaret
+følger med filerne i samme commit.
+
 ## Hvad kæden gør
 
 ```
@@ -70,9 +78,11 @@ skiftet ud.
 > igennem, før du committer. Et hemmeligt felt kan hedde noget, ingen har
 > tænkt på.
 
-## Den ene regel
+## To regler: apps og flows
 
-**Eksporten er læsestof. Builderne er kilden.**
+**Canvas apps: eksporten er læsestof. Builderne er kilden.**
+**Flows: `solution/BIOSAP/src/Workflows/*.json` i repoet er kilden.**
+Se [Flowene: repoet er kilden](#flowene-repoet-er-kilden-r2-022) nedenfor.
 
 `solution/` indeholder også de to canvas apps som `.msapp`. De er
 *resultatet* af sidste deploy, ikke kilden til den næste. Retter nogen i en
@@ -144,5 +154,76 @@ er beregnet til det:
 python tools\canvas_mcp.py pull --app vhplan
 ```
 
-Og husk, at eksporten er et øjebliksbillede: ændrer nogen et flow, ved
-repoet det først, når den er hentet igen.
+For canvas apps er eksporten et øjebliksbillede. For flows gælder den
+modsatte regel – se næste afsnit.
+
+## Flowene: repoet er kilden (R2-022)
+
+**Besluttet 2026-10 (retning B, sådan projektet allerede arbejder):** flow-
+definitionerne i `solution/BIOSAP/src/Workflows/*.json` er kilden.
+Eksporten fra 2026-10-13 var udgangspunktet; siden rettes flowene i
+repoet. Der findes ikke længere en "læsestof"-regel for flows.
+
+Arbejdsgangen:
+
+1. **Ret i JSON'en** i repoet – ikke i designeren. Flowet ændres med et
+   lille Python-script eller i hånden, så filen bevarer sin formatering
+   (`json.dumps(..., indent=2)` giver samme fil tilbage).
+2. **Skriv en kontrakttest** i `tests/` (mønster:
+   `tests/test_material_approval.py`, `tests/test_request_index_flows.py`),
+   der læser JSON'en og låser rettelsen. Udtryk kan køres med
+   `tests/wdl_eval.py`.
+3. **Peter importerer solutionen** i DEV (`pac solution pack` +
+   `pac solution import`, eller *Import solution* i maker-portalen) og
+   tester forløbet. Først da kører rettelsen.
+4. **Eksport bagefter er en kontrol, ikke en kilde.** `export_solution.ps1`
+   sletter `solution/` og skriver DEV's tilstand. Kør den kun, når alle
+   repo-rettelser er importeret, og læs diffen i `Workflows/` igennem:
+   enhver forskel er en ændring, der er lavet i designeren eller ikke er
+   importeret. Behold den kun med vilje – og med en test.
+
+Er et flow alligevel rettet i designeren (en hastefejl), skal ændringen
+eksporteres og committes i samme PR, så repoet igen er kilden.
+
+**Værnet** `tests/test_solution_flows.py` holder JSON'en importerbar og
+fri for hemmeligheder: hver fil kan parses, `***REDACTED***` står kun som
+`defaultValue` på en parameter (aldrig midt i en handling, hvor den ville
+blive sendt bogstaveligt), `x-apikey` og `client_secret` læses fra
+miljøvariabler, hver miljøvariabel et flow bruger har en definition, og
+`scrub_solution.py` finder intet. Et import-script er bevidst ikke lavet:
+det ville kræve hemmeligheder på maskinen, der kører det.
+
+## Hemmeligheder: miljøvariabler og Key Vault (R2-023)
+
+Repo-delen er gjort: begge SAP-flows (`BioSap-Integration-FunctionalLocations`,
+`BioSap-Integration-Order-Objects`) læser API-nøglen fra miljøvariablen
+`BioSap-WOC-ApiKey` (`orsted_BioSapWocApiKey`) i `x-apikey`-headeren, og
+client secret fra `BioSap-WOC-Client-Secret`. Der står ingen nøgle i
+flow-definitionen; definitionerne har ingen standardværdi. Begge
+variabler er stadig af typen *Text* (String), fordi en Secret-variabel
+kræver Key Vault, som kun kan sættes op i Azure.
+
+**Peters skridt (kan ikke gøres fra repoet):**
+
+1. Efter import: sæt *Current value* på `BioSap-WOC-ApiKey` i hvert miljø
+   (maker-portalen → Solutions → BIO SAP → Environment variables). Indtil
+   da svarer API'et 401.
+2. Bed platformsteamet om en Azure Key Vault i Ørsteds tenant med to
+   secrets (fx `biosap-woc-client-secret`, `biosap-woc-api-key`), og om at
+   give Power Platform læseadgang (resource provider
+   `Microsoft.PowerPlatform` registreret i abonnementet, og rollen
+   *Key Vault Secrets User* til Dataverse-tjenesten).
+3. Opret to nye miljøvariabler af typen **Secret** (*Azure Key Vault*) i
+   solutionen, der peger på de to secrets
+   (`/subscriptions/<id>/resourceGroups/<rg>/providers/Microsoft.KeyVault/vaults/<vault>/secrets/<navn>`).
+4. Secret-variabler kan ikke bruges som parameter i et flow. I de to
+   flows hentes værdien med Dataverse-handlingen *Perform an unbound
+   action* → `RetrieveEnvironmentVariableSecretValue` (med *Secure
+   Outputs* slået til), og `x-apikey`/`client_secret` sættes til dens
+   output. Det kræver en Dataverse connection reference i solutionen.
+5. Slet de to String-variabler, eksportér, og kontrollér, at
+   `python3 tools/scrub_solution.py solution --report-only` siger "Intet
+   fundet", og at `tests/test_solution_flows.py` er grøn (testen skal da
+   rettes til den nye form).
+
+Ingen værdi må nogensinde stå i repoet – heller ikke i en test.

@@ -1,4 +1,4 @@
 {
-  "SapResult": "@{items('Each_row')?['result']}",
-  "SapMessage": "@{items('Each_row')?['sapMessage']}"
+  "SapResult": "@{if(equals(items('Each_row')?['done'], true), items('Each_row')?['result'], 'Failed')}",
+  "SapMessage": "@{replace(replace(replace(replace(replace(take(trim(string(coalesce(if(equals(items('Each_row')?['done'], true), items('Each_row')?['sapMessage'], items('Each_row')?['lastError']), ''))), 255), '\\', '\\\\'), '\"', '\\\"'), decodeUriComponent('%0D'), ''), decodeUriComponent('%0A'), ' '), decodeUriComponent('%09'), ' ')}"
 }

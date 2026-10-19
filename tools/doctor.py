@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 Er maskinen klar til at bygge og teste lokalt? Een kommando, ogsaa paa
-Windows - CI kan ikke koere i Oersteds repo (hostede runnere er slaaet fra).
+Windows. CI koerer paa GitHub (PeterBjerre/Canvas_apps); i Oersteds interne
+kopi er hostede runnere slaaet fra, og dér er det her erstatningen.
 
     python tools/doctor.py           # tjek forudsaetninger, byg, test
     python tools/doctor.py --fix     # slet desuden gamle filer i de
                                      # udfasede apps' mapper
     python tools/doctor.py --no-build   # kun forudsaetningerne
 
-Den goer det samme som .github/workflows/build.yml: byg alle apps og koer
-alle tjek, kraev at det committede .pa.yaml er det builderne laver, og koer
-testene. Foer det tjekker den det, der plejer at fejle paa en ny pc:
-Python-version, PyYAML/pytest, Node, gamle filer fra foer udfasningen og
-PowerShell 7 med PnP.PowerShell (til sharepoint/*.ps1).
+Den goer det samme som .github/workflows/build.yml og FEJLER de samme
+steder: byg alle apps og koer alle tjek, kraev at det committede .pa.yaml er
+det builderne laver (FEJL, som CI's git diff --exit-code), og koer testene.
+Foer det tjekker den det, der plejer at fejle paa en ny pc:
+Python-version, PyYAML/pytest/pyflakes (FEJL), jsonschema/openpyxl, Node,
+gamle filer fra foer udfasningen, PowerShell 7 med PnP.PowerShell (til
+sharepoint/*.ps1), dnx/pac (til deploy og solution-eksport) og linjeskift i git.
 """
 import argparse
 import os
@@ -46,7 +49,7 @@ def check_python():
 
 def check_packages():
     missing = []
-    for mod, pkg in (("yaml", "PyYAML"), ("pytest", "pytest")):
+    for mod, pkg in (("yaml", "PyYAML"), ("pytest", "pytest"), ("pyflakes", "pyflakes")):
         try:
             __import__(mod)
         except ImportError:
@@ -55,7 +58,17 @@ def check_packages():
         report(FAIL, "Mangler Python-pakker: " + ", ".join(missing),
                f'"{sys.executable}" -m pip install -r requirements.txt')
     else:
-        report(OK, "PyYAML og pytest er installeret")
+        report(OK, "PyYAML, pytest og pyflakes er installeret")
+    # Ikke kraevet af byggeriet, men uden dem springes noget over i stilhed:
+    # uden jsonschema springer test_example_matches_schema over (importorskip).
+    for mod, pkg, why in (
+            ("jsonschema", "jsonschema", "SAP-ordrens eksempler efterproeves ikke mod skemaet"),
+            ("openpyxl", "openpyxl", "Excel-vaerktoejerne (fx seed-generatorerne) kan ikke koere")):
+        try:
+            __import__(mod)
+        except ImportError:
+            report(WARN, f"{pkg} mangler - {why}",
+                   f'"{sys.executable}" -m pip install -r requirements.txt')
 
 
 def check_node():
@@ -118,6 +131,47 @@ def check_powershell():
         report(OK, f"PowerShell 7 med PnP.PowerShell {ver}")
 
 
+def check_dnx():
+    """dnx (fra .NET 10 SDK) starter MCP-serveren i tools/canvas_mcp.py og
+    henter pac i tools/export_solution.ps1, naar pac ikke er installeret.
+    Uden nogen af dem kan der hverken deployes eller eksporteres."""
+    dnx = shutil.which("dnx")
+    pac = shutil.which("pac")
+    dotnet = shutil.which("dotnet")
+    if dnx or pac:
+        report(OK, "dnx/pac: " + ", ".join(n for n, p in (("dnx", dnx), ("pac", pac)) if p)
+               + " findes (deploy og solution-eksport)")
+    elif dotnet:
+        report(WARN, "dnx og pac findes ikke i PATH - canvas_mcp.py bruger 'dotnet dnx', "
+                     "men export_solution.ps1 kraever dnx eller pac",
+               "Installer .NET 10 SDK (ikke kun runtime), og aabn en ny terminal:\n"
+               "https://dotnet.microsoft.com/download/dotnet/10.0")
+    else:
+        report(WARN, "Hverken dnx, pac eller dotnet findes - canvas_mcp.py (deploy) og "
+                     "export_solution.ps1 kan ikke koere",
+               "Installer .NET 10 SDK (ikke kun runtime):\n"
+               "https://dotnet.microsoft.com/download/dotnet/10.0")
+
+
+def check_eol():
+    """Filer, git har gemt med CRLF, selvom .gitattributes siger LF (R2-027).
+    De giver en diff paa hele filen, saa snart nogen gemmer dem igen."""
+    git = shutil.which("git")
+    if not git:
+        return
+    r = subprocess.run([git, "ls-files", "--eol"], cwd=ROOT, capture_output=True, text=True)
+    if r.returncode:
+        return
+    bad = [l.split("\t", 1)[-1] for l in r.stdout.splitlines()
+           if l.startswith("i/crlf") and "eol=lf" in l]
+    if bad:
+        report(WARN, f"{len(bad)} fil(er) ligger i git med CRLF, men .gitattributes siger LF "
+                     f"(fx {bad[0]})",
+               "Normaliseres i een commit for sig (R2-027):  git add --renormalize .")
+    else:
+        report(OK, "Linjeskift i git foelger .gitattributes")
+
+
 def run_build():
     print("\n=== Byg alle apps og koer alle tjek ===", flush=True)
     if subprocess.run([sys.executable, os.path.join("tools", "build_all.py")], cwd=ROOT).returncode:
@@ -131,8 +185,9 @@ def run_build():
                            cwd=ROOT, capture_output=True, text=True)
         changed = [l[3:] for l in r.stdout.splitlines() if l.strip()]
         if changed:
-            report(WARN, "Builderne aendrede committede .pa.yaml - commit dem med "
-                         "din aendring (ellers er de ude af trit med kilden):",
+            # FEJL, ikke NB: CI fejler paa praecis det her (git diff --exit-code).
+            report(FAIL, "Det committede output er ikke det, builderne laver - CI "
+                         "fejler paa det samme. Commit .pa.yaml med din aendring:",
                    "\n".join(changed))
         else:
             report(OK, "Det committede .pa.yaml er det, builderne laver")
@@ -158,6 +213,8 @@ def main():
     check_node()
     check_stale(a.fix)
     check_powershell()
+    check_dnx()
+    check_eol()
 
     if FAIL in results:
         print("\nRet FEJL ovenfor, og koer igen.")

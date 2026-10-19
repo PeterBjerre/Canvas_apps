@@ -39,7 +39,7 @@ hvem der svarede hvad og hvornår.
 | 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | Rækkerne `COST` og værkskoderne i `MD_Approver` (§6) |
 | 6 | Den, der udfylder appen, **er rekvirenten**. Er det ikke System Manageren, skal **System Manageren for systemet** godkende. Systemet bestemmes af Functional Location og slås op i en **Power BI semantisk model** | Nyt første trin: systemgodkendelse. Rekvirenten er planens opretter; der kommer ikke et ekstra felt |
 | 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
-| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@orsted.com`. Indholdet ligger i `flow/systemgodkendere.md`: systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
+| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@` + miljøvariablen `BioSap-EmailDomain`. Indholdet ligger i SharePoint-listen `MD_Approver` (ikke i git – repoet er offentligt): systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
 | 10 | Opslaget sker i **samme Power BI-datasæt som ObjectList-flowet**, i tabellen **`'Functional Locations'`**, og systemnummeret er **`Plant Section Key`** (fx `008`) | Workspace, datasæt, forbindelse, tabel og kolonne er kendt (§8) |
 | 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
@@ -69,8 +69,8 @@ flowchart TD
   C -- "alle items godkendt<br/>eller under grænsen" --> Q
   Q -- "Godkend" --> RS
   RS --> PB
-  S -- "mindst ét item sendt retur" --> RT
-  C -- "mindst ét item sendt retur" --> RT
+  S -- "mindst ét item returneret" --> RT
+  C -- "mindst ét item returneret" --> RT
   Q -- "Send retur" --> RT
   RT -- "rettet, Submit igen" --> S
 ```
@@ -116,13 +116,15 @@ Automate. Den ville derfor blive liggende åben hos 1. godkender, og et svar
 på den bagefter ville ikke blive brugt.
 
 **Undtagelsen:** systemgodkendelsen springes over for et item, når **den,
-der har oprettet itemet, er 1. eller 2. godkender** for itemets system.
+der indsendte planen, er 1. eller 2. godkender** for itemets system.
 
-"Oprettet itemet" er `Created By` på rækken i `MaintenanceItems`. Appen
-genopretter alle items ved hver gem (§6), så det er i praksis **den, der
-sidst gemte planen før Submit** – ikke nødvendigvis den, der startede den.
-Det er forsvarligt: gemmer og indsender en System Manager en plan, har
-vedkommende set den og står inde for den.
+"Den, der indsendte" er planens `SubmittedBy` (appen skriver den ved Submit);
+mangler den, bruges planens `Created By` (R2-083). Før brugte flowet itemets
+`Created By`, men siden D7 opdaterer appen items i stedet for at genskabe
+dem, så det var den, der *først* gemte itemet – også når en anden
+rekvirent senere redigerede og indsendte planen. Reglen er nu: gemmer og
+indsender en System Manager selv planen, har vedkommende set den og står
+inde for den.
 
 ## 5. Statusmodellen
 
@@ -138,7 +140,16 @@ nået til, står i en ny kolonne, `ApprovalStage`.
 | `In Progress` | `Quality` | Lokal ASM-leder | `UnderBehandling` | 3 |
 | `Ready for creation in SAP` | `Done` | Master Data | `KlarTilSAP` | 4 |
 | `Published` | `Done` | – | `OprettetISAP` | 5 |
-| **`Returned`** *(ny)* | *(tom)* | Rekvirenten | `AfventerInfo` | – |
+| **`Returned`** *(ny)* | *(tom)* | Rekvirenten | `AfventerInfo` | 3 |
+
+**Hvem skriver hvilken indeksstatus (R2-020).** Apperne skriver kun
+`Kladde` og `Indsendt` (`tools/request_index.py`, `DRAFT`/`SUBMITTED`).
+Alt andet skrives af flowene: `UnderBehandling`/`AfventerInfo` (trin 3),
+`KlarTilSAP` (trin 4) og `OprettetISAP` (trin 5, `IsOpen = false`). Gælder
+alle domæner – også Materials' og MP's systemgodkendelse: retur er
+`AfventerInfo`/3, godkendt er `KlarTilSAP`/4. Trinnet skal altid være
+`request_index.step(status)`; `tests/test_request_index_flows.py` tjekker
+hver `PatchItem` mod `MD_RequestIndex` i `solution/`.
 
 Hvorfor en ekstra kolonne og ikke flere statusværdier: Excel-makroen,
 hubben og den eksisterende mail kender allerede de fire værdier. Tre nye
@@ -150,6 +161,34 @@ læses kun af flowene og appens statusbanner.
 Tekst og tal frem for Person og Lookup, af samme grund som i resten af
 datamodellen (`02-datamodel-sharepoint.md`): de kan filtreres delegerbart og
 bruges i trigger conditions.
+
+### "Plan-id" – to id-rum (R2-095)
+
+Ordet *plan-id* bruges om to forskellige ting. Inden for hvert lag er det
+konsekvent, men ikke på tværs:
+
+- **Nøglen**: forretningsnøglen `MP0133` (`MaintenancePlans.PlanID`). Den
+  ser brugeren, og den står i ordren og i opretteren.
+- **SharePoint-ID'et**: rækkens tal-id i `MaintenancePlans` (`ID`, fx 68).
+  Det bruger flowene til at slå op.
+
+| Liste.kolonne | Type | Id-rum | Skrives af |
+|---|---|---|---|
+| `MaintenancePlans.PlanID` | Text | **nøglen** (`MP0133`) | appen, ved første gem |
+| `MaintenanceItems.MaintenancePlanNo` | Lookup → `PlanID` | **nøglen** (opslagets `Value`; `Id` er SharePoint-ID'et) | appen |
+| `TaskListMain.MaintenancePlanID` | Lookup → `PlanID` | **nøglen** (som ovenfor) | appen |
+| `MD_TasklistMaterial.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_TasklistAttachment.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_ApprovalLog.PlanId` | Number | **SharePoint-ID'et** | flowene F1–F4 og PlanPublished (`triggerBody()?['ID']`) |
+| `VHP_NoteToSelf.PlanId` | Number | **SharePoint-ID'et** | appen (`varVhpPlanSpId`) |
+| `MD_RequestIndex.SourceItemId` | Number | **SharePoint-ID'et** | appen (`tools/request_index.py`); flowene finder rækken med `SourceItemId eq <ID>` |
+| Ordren: `plan.planId` / `plan.spId` | string / integer | nøglen / SharePoint-ID'et | ordre-flowet (`schema/vhplan-sap-order.schema.json`) |
+| Opretteren: `OrderKey`, lås og "Oprettet"-opslag | – | **nøglen** | `excel/opretter/VhpRun.bas` |
+
+Et `Filter(MD_ApprovalLog, PlanId = varVhpPlanKey)` er altså tomt uden at
+fejle – loggen skal slås op med `varVhpPlanSpId`. En omdøbning af
+`MD_ApprovalLog.PlanId` til `PlanSpId` (ny kolonne + flows) giver kun mening,
+hvis loggen alligevel røres (R2-032).
 
 ### Godkendelsen følger itemet – `ItemGuid`
 
@@ -198,7 +237,8 @@ fordi rækken dér bliver erstattet ved næste gem.
 
 ### `MD_Approver` *(ny liste)* – alle godkendere i én tabel
 
-Udgangspunktet er tabellen i `flow/systemgodkendere.md`. Kolonnen
+Udgangspunktet er Master Datas oversigt over systemgodkendere. Den ligger i
+selve listen i SharePoint – ikke i git, fordi repoet er offentligt (R2-025). Kolonnen
 *Systemnummer* bliver en **nøgle**, der kan være tre ting. Hvilken slags
 række det er, ses af nøglen selv:
 
@@ -211,17 +251,25 @@ række det er, ses af nøglen selv:
 | Kolonne | Type | Bemærkning |
 |---|---|---|
 | `Title` → `ApproverKey` | Text Ⓘ, unik | Nøglen ovenfor. Tekst, også for systemnumrene, så de sammenlignes med modellens værdi uden typeomregning |
-| `Approver1` | Text | Initialer, fx `MAXJE` |
+| `Approver1` | Text | Initialer, fx `ABCDE` |
 | `Approver2` | Text | Initialer |
 | `Approver1Absent` | Yes/No | Ja → godkendelser går til 2. godkender (§4). Standard Nej |
 | `Notes` | Text | Fri tekst. Bruges ikke af flowet |
 
 **Startindhold:** [`sharepoint/seed/MD_Approver.csv`](../sharepoint/seed/MD_Approver.csv),
-25 rækker. Under test står **`PKBJE` som 1. og 2. godkender på alle
-rækker**. `Notes` har de rigtige systemgodkendere fra
-`flow/systemgodkendere.md` ("Drift: MAXJE / PEVAN"), så de kan sættes
-tilbage i listen, når flowet er testet. Værkerne og `COST` har ingen
-udpegede godkendere endnu.
+25 rækker med pladsholderne `APPR1`/`APPR2` som 1. og 2. godkender. Repoet
+er offentligt, så rigtige initialer står kun i listen i SharePoint (R2-025);
+seedet tilføjer kun rækker, der mangler, og rører aldrig de rækker, der er
+sat i hånden. Til et nyt miljø: læg en CSV med de rigtige godkendere uden for
+git og giv den med `-SeedPath`. Under test i DEV står testgodkenderen som 1.
+og 2. godkender på alle rækker. Værkerne og `COST` har ingen udpegede
+godkendere endnu.
+
+**Hvem må rette godkenderne:** kun sitets Owners og Master Data
+(`-MaintainerGroup`). `Provision-AdminLists.ps1` giver Members Read på
+`MD_Approver` og `UserAndGroups` (R2-024) – ellers kunne enhver med
+Contribute på sitet gøre sig selv til godkender for et system eller til
+admin.
 
 Så gælder reglerne i §4 – 1. godkender, 2. ved fravær – for alle tre trin,
 og der er ét sted at vedligeholde godkendere. Systemnumre og værkskoder kan
@@ -231,7 +279,7 @@ ikke forveksles, fordi de ene er tal og de andre bogstaver.
 rækker for samme system eller værk.
 
 Master Data står **ikke** i tabellen. Mailen til dem går til teamets
-fælles postkasse, `sapvedligehold@orsted.com`, som ikke kan skrives som
+fælles postkasse, som ikke kan skrives som
 initialer. Adressen står i miljøvariablen `BioSap-MasterDataEmail`.
 
 Flowet laver e-mailen som
@@ -250,18 +298,38 @@ mail til `BioSap-ErrorNotifiers`.
 | Kolonne | Type | Bemærkning |
 |---|---|---|
 | `RequestGuid` | Text Ⓘ | |
-| `PlanId` | Number Ⓘ | |
+| `PlanId` | Number Ⓘ | **SharePoint-ID'et** på planen, ikke nøglen `MP0133` (se "Plan-id" ovenfor) |
 | `Stage` | Text Ⓘ | `System`, `Cost`, `Quality`, `SapCreated` |
 | `ItemGuid` | Text Ⓘ | Itemets identitet (§6). Tom for `Quality` og `SapCreated` |
 | `ItemText` | Text | Itemets korttekst og FL, til visning |
 | `Fingerprint` | Text | Det, der blev godkendt: `SystemNo|FL` for `System`. Tom for de andre |
 | `Amount` | Number | Beløbet, der blev godkendt, for `Cost` |
-| `Decision` | Text | `Approve`, `Return`, `Skipped` |
+| `Decision` | Text | `Approve`, `Return`, `Skipped`, `Timeout` (ingen svar inden for 14 dage), `Requested` (Material/MP: spurgt, ikke afgjort) |
 | `Detail` | Text | Fx systemet, beløbet eller grunden til `Skipped` |
 | `DecidedByEmail` / `DecidedOn` | Text / DateTime | |
 | `Comment` | Note | |
 
-Brugerne har **kun læseadgang**. Flowene skriver med en serviceforbindelse.
+**Rettigheder (besluttet, R2-032).** Appen skriver selv to slags rækker som
+brugeren: admin-loggen (`AdminEdit`/`AdminDelete`, `tools/admin_log.py`) og
+"Counter created" (`Stage = Counter`, Measuring Point). Brugerne kan derfor
+ikke have ren læseadgang. Modellen er:
+
+| Hvem | Rettighed på `MD_ApprovalLog` |
+|---|---|
+| Members | Contribute med *Read access: All items* og *Create and Edit access: Create items and edit items that were created by the user* – en bruger kan oprette rækker og rette sine egne, aldrig flowenes |
+| Owners, flowenes servicekonto | Full Control (ikke bundet af "kun egne") |
+
+`Provision-AdminLists.ps1 -FlowAccount <servicekonto>` sætter det (kør først
+med `-WhatIfOnly`).
+
+Det er stadig ikke nok alene: en bruger kan *oprette* en række med
+`Stage = System`, `Decision = Approve` for en vilkårlig plan. Kvalitetsflowets
+værn (`Filter_sys_ok`/`Filter_cost_ok`, §7.3) tæller derfor kun `System`- og
+`Cost`-rækker, hvis `Author` er flowenes servicekonto – miljøvariablen
+`BioSap-ServiceAccountEmail`. Er variablen tom, er tjekket slået fra (som før).
+`Author` sættes af SharePoint og kan ikke skrives af appen, så det er den
+eneste "hvem", der ikke kan forfalskes.
+
 Det er vigtigt, fordi SharePoint-connectoren i appen kører som brugeren: en
 bruger med skriveadgang til `MaintenancePlans` kan i princippet selv sætte
 `ApprovalStage = Quality`. Kvalitetsflowet tjekker derfor loggen, før det
@@ -270,6 +338,26 @@ sender noget videre (§7.3).
 `Skipped` logges også, med grunden i `Detail` ("opretter er 2. godkender
 for system 7", "184.200 kr."). Så kan man bagefter se, *hvorfor* et item ikke blev
 godkendt af nogen. Appen kan vise loggen pr. item.
+
+**`Title` er kørslens id, ikke en læsbar titel (R2-084 pkt. 6).** Flowene
+skriver `workflow()?['run']?['name']` i `Title` og bruger den som nøgle:
+`Title eq '<run>'` finder én kørsels rækker (Material/MP's `Return_rows`,
+spærren mod dobbeltkørsel). Ret den ikke i hånden. Skal `Title` en dag være
+læsbar ("MP0068 System"), skal nøglen først flyttes til en ny kolonne
+`RunId` (provisionering + flowene).
+
+**Én kørsel ad gangen i Material/MP (R2-084 pkt. 2).** De to flows startes af
+appen (Request-trigger) og kan derfor ikke have concurrency 1 – det ville
+stille alle anmodninger i kø bag en ventende godkendelse. I stedet stopper en
+kørsel (*Cancelled*), hvis en anden kørsel inden for det seneste døgn har
+`Requested`-rækker for samme `RequestGuid`, som ikke er afgjort. Vinduet er
+kort, så en kørsel, der endte i `Catch`, ikke spærrer en ny indsendelse.
+
+**`LastActionBy` i indekset (R2-084 pkt. 7).** Appen skriver brugerens
+e-mail; flowene skriver en etiket (`System approval`, `Cost approval`,
+`Quality review`, `SAP`, `PRODOS/SRO counter`). Hubben skelner på `@`
+(`approval_flow._by`). Filtre på "min sidste handling" skal derfor bruge
+e-mail og vil aldrig ramme flowenes rækker – det er bevidst.
 
 ### Parametre
 
@@ -280,6 +368,9 @@ som allerede har `Option`/`Value` pr. miljø:
 |---|---|
 | `CostApprovalThresholdDkk` | `300000` |
 
+CostApproval læser rækken for sit eget miljø (`Environment eq
+<BioSap-Environment>`, R2-082); findes den ikke, bruges 300000.
+
 Det, kun flowene bruger, bliver **miljøvariabler** i solution BIO SAP,
 ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 `BioSap-ErrorNotifiers` i de flows, der findes i dag:
@@ -287,9 +378,10 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 | Miljøvariabel | Værdi |
 |---|---|
 | `BioSap-EmailDomain` | `orsted.com` |
-| `BioSap-List-Approver`, `BioSap-List-ApprovalLog` | Listenavnene |
-| `BioSap-MasterDataEmail` | `sapvedligehold@orsted.com` – Master Datas fælles postkasse (§7.4) |
-| `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
+| `MD_Approver`, `MD_ApprovalLog` (Data source-variabler `orsted_shared_sharepointonline_…`) | Listerne. De to String-variabler `BioSap-List-Approver`/`BioSap-List-ApprovalLog` bruges af ingen flows og kan slettes i miljøet (R2-033) |
+| `BioSap-MasterDataEmail` | Master Datas fælles postkasse (§7.4) |
+| `BioSap-ServiceAccountEmail` | Flowenes servicekonto. Kvalitetsflowet stoler kun på `System`/`Cost`-rækker i `MD_ApprovalLog`, som den konto har oprettet (se `MD_ApprovalLog` ovenfor). Tom = tjekket er slået fra |
+| `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. Miljøvariabler (`orsted_BioSapPowerBIWorkspaceId`, `orsted_BioSapPowerBIDatasetId`) i de fire godkendelsesflows (VH System, Material System/ResolveApprovers, MP) siden R2-033, så TEST og PROD kan pege et andet sted hen. Værdien sættes i hvert miljø. ObjectList- og Vendor-flowene har dem stadig skrevet direkte ind |
 
 ## 7. Flowene
 
@@ -317,10 +409,15 @@ Fælles for dem:
   næste flow.
 - **Send retur:** sendte mindst ét item retur, bliver `Status = Returned`,
   `ApprovalStage` tømmes, `ReturnComment` får én linje pr. returneret item,
-  og rekvirenten får mail.
+  og rekvirenten får mail. Det gælder også grenene "ingen items" og
+  "ingen godkender" (R2-028): de sætter indekset til `AfventerInfo`/3 og
+  mailer ejeren; ved manglende godkender får `BioSap-ErrorNotifiers` mail
+  derudover.
 - **Timeout** `P14D` på *Wait*. Ved timeout: påmindelse, og `StageRunId`
   tømmes. Så starter samme flow forfra. De items, der nåede at blive
   godkendt, står i loggen og sendes ikke igen.
+  Har et andet item samtidig fået *Send retur*, vinder returen (R2-029):
+  planen sendes retur med kommentaren i stedet for at starte forfra.
 - **Fejl:** `Catch` sender fejlmailen, læser planen igen og tømmer
   `StageRunId`, hvis det stadig er denne kørsels id (en nyere kørsel kan
   have taget trinnet). Derefter `Terminate` med status *Failed*. Uden det
@@ -334,14 +431,15 @@ Fælles for dem:
   connection references (`orsted_BioSapPowerBIConn` findes allerede til
   Power BI).
 
-**Mails.** Alle mails i forløbet – sendt til godkendelse, sendt retur,
-påmindelse, klar til oprettelse i SAP og oprettet i SAP – bruger den samme
-HTML-skabelon, `flow/email-plan-submitted.html`, og sendes af ét child
-flow, `BioSap-VhPlan-SendMail`. Flowene nedenfor kalder det med planens
-`ID` og mailtypen. Hvilken mail der sendes hvornår, og til hvem, står i
-[`17-flow-email.md`](17-flow-email.md#samme-skabelon-i-alle-mails). Selve
+**Mails.** Hvert flow sender sine egne mails (*Submitted for approval*,
+*Returned*, *Reminder*, *Ready for creation in SAP*, *Created in SAP*);
+der er intet fælles child flow (R2-053, beslutning (b)). Mailens HTML står
+inline i `BioSap-EmailNotification-NewPlanCreated` (`Compose-EmailContent`),
+og `PlanPublished` og `ToMasterData` har samme opbygning. Hvilken mail der
+sendes hvornår, til hvem og med hvilket emne, står i
+[`17-flow-email.md`](17-flow-email.md#mailene-i-forløbet). Selve
 godkendelsesanmodningerne sendes af Approvals-connectoren og bruger ikke
-skabelonen.
+den HTML.
 
 ### 7.1 F1 `BioSap-VhPlan-SystemApproval` – pr. item
 
@@ -361,14 +459,14 @@ skabelonen.
    - Findes der i loggen en `Approve` for `Stage = System` med **samme
      `ItemGuid`** og samme `Fingerprint` (`SystemNo|FL`) → log `Skipped`
      med "godkendt tidligere".
-   - Er itemets *Created By* **1. eller 2. godkender** for systemet → log
-     `Skipped` med hvem.
+   - Er planens indsender (`SubmittedBy`, ellers planens *Created By*) **1.
+     eller 2. godkender** for systemet → log `Skipped` med hvem (§4, R2-083).
    - Ellers: godkendelse til 1. godkender, eller til 2. godkender, hvis
      `Approver1Absent` er Ja (§4). Detaljerne har itemets korttekst, FL,
      systemnummer og operationerne.
 5. Alle godkendt eller sprunget over → `ApprovalStage = Cost`.
 
-*Created By* sammenlignes med godkendernes adresser med `toLower` på
+Indsenderen sammenlignes med godkendernes adresser med `toLower` på
 begge sider.
 
 Ved genindsendelse efter *Send retur* sendes derfor kun de items igen, der
@@ -428,7 +526,9 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
 ```
 
 Mailen fra [`17-flow-email.md`](17-flow-email.md) (*"VH-plan … sendt til
-oprettelse"*) til `BioSap-MasterDataEmail`. Sætter `MasterDataNotified = true`.
+oprettelse"*) til `BioSap-MasterDataEmail`. Sætter `MasterDataNotified = true`
+**efter** mailen (R2-051), så en fejlet mail sendes ved næste kørsel. Item- og
+godkendelseslinjerne escapes.
 
 Den må **ikke** bruge `InitialEmailSent`. Den kolonne ejes af det
 eksisterende flow `BioSap-EmailNotification-NewPlanCreated`, som ved
@@ -441,11 +541,14 @@ stående som kvittering for indsendelsen. Mailens tekst bør dog rettes til
 
 Flowet findes allerede. Det trigges af `Status = Published` og et udfyldt
 `SAPNum` og sender *"Bio Sap: Maintenance Plan Published"* til rekvirenten
-(`Author`) med den sidste redaktør på cc.
+(ejeren i `MD_RequestIndex`, R2-049) med indsenderen på cc, når det er en
+anden. Den sidste redaktør er ikke længere på cc (R2-048): efter
+kvitteringsflowets MERGE er det servicekontoen.
 
-**Det har ingen spærre.** Triggeren kører hvert minut, og enhver senere
-ændring af en publiceret plan opfylder betingelsen igen, så rekvirenten får
-mailen igen. Det rettes med samme mønster som `NewPlanCreated`:
+**Spærren er indført.** Uden den kørte triggeren hvert minut, og enhver
+senere ændring af en publiceret plan opfyldte betingelsen igen, så
+rekvirenten fik mailen igen. Flowet bruger nu samme mønster som
+`NewPlanCreated`:
 
 ```
 @and(
@@ -455,8 +558,8 @@ mailen igen. Det rettes med samme mønster som `NewPlanCreated`:
 )
 ```
 
-og et `Update item` / HTTP-kald til sidst, der sætter
-`RequesterNotified = true`. I samme omgang: log i `MD_ApprovalLog`
+og et HTTP-kald til sidst, der sætter `RequesterNotified = true`. I samme
+omgang: log i `MD_ApprovalLog`
 (`Stage = SapCreated`) og indeksrækken → `OprettetISAP`,
 `SapObjectNo = SAPNum`, `IsOpen = false`.
 
@@ -593,10 +696,10 @@ ved `System`, men de spørger ikke igen om det, der allerede er godkendt:
 |---|---|
 | System | itemet er nyt, eller dets FL eller systemnummer er ændret. Ellers logges `Skipped` "Approved earlier" (§7.1) |
 | Cost | itemet er nyt, eller dets total er **højere** end det godkendte beløb (§7.2) |
-| Quality | altid – det er ét svar for hele planen og er aldrig givet, når planen er sendt retur |
+| Quality | altid – det er ét svar for hele planen og er aldrig givet, når planen er returneret |
 
-Så går en plan, der blev sendt retur i Quality, direkte videre til Quality,
-når intet item er ændret, og en plan, der blev sendt retur i System, sender
+Så går en plan, der blev returneret i Quality, direkte videre til Quality,
+når intet item er ændret, og en plan, der blev returneret i System, sender
 kun det returnerede item (og nye eller ændrede items) til godkendelse igen.
 
 ## 10. Hubben
@@ -623,6 +726,14 @@ samme flow, med små bogstaver):
 godkendes eller er klar til SAP, og når et VH-trin afleveres til det næste
 (`Patch_index_progress`) – det næste trins flow skriver sin egen godkender.
 
+**Timeout i Material og MP (R2-030).** Svarer en godkender ikke inden for
+14 dage, logger `BioSap-Material-SystemApproval`/`BioSap-MeasuringPoint-Approval`
+en `Timeout`-række pr. ubesvaret række ("No answer from … within 14 days"),
+godkenderen får besked om, at anmodningen er udløbet, og anmodningen sendes
+**retur** til rekvirenten (indeks `AfventerInfo`/3) med forklaringen. Ved
+genindsendelse spørges godkenderen igen. (VH-flowene starter i stedet
+trinnet forfra.)
+
 ## 11. Rækkefølge
 
 | Fase | Indhold | Hvorfor i den rækkefølge |
@@ -633,15 +744,15 @@ godkendes eller er klar til SAP, og når et VH-trin afleveres til det næste
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
 | 5 | F2 og F3, derefter F1 | F1 afhænger af fase 2 |
 
-### Test med `PKBJE` på alle rækker
+### Test med samme testgodkender på alle rækker
 
-Så længe alle rækker har `PKBJE` som godkender, gælder undtagelsen i §4 for
-**alle** items, som `PKBJE` selv opretter: systemgodkendelsen springes over
+Så længe alle rækker har testgodkenderen som godkender, gælder undtagelsen i §4 for
+**alle** items, som testgodkenderen selv opretter: systemgodkendelsen springes over
 med "opretter er 1. godkender". Omkostning og kvalitet har ingen undtagelse
-og lander hos `PKBJE` som forventet.
+og lander hos testgodkenderen som forventet.
 
 Systemgodkendelsen testes derfor ved, at **en anden bruger** gemmer og
-indsender testplanen. Så går alle tre trin til `PKBJE`. Testplanen bør
+indsender testplanen. Så går alle tre trin til testgodkenderen. Testplanen bør
 have:
 
 | Item | Tester |
@@ -652,13 +763,13 @@ have:
 | FL fra et andet værk end planens | Planen sendes retur med forklaring |
 | *Copy item* af et godkendt item, med samme FL | Kopien skal godkendes; originalen genbruges |
 
-Derefter samme plan indsendt af `PKBJE` selv (undtagelsen), én runde med
+Derefter samme plan indsendt af testgodkenderen selv (undtagelsen), én runde med
 `Approver1Absent = Ja` på en række (2. godkender), og én *Send retur* for at
 se, at kun ændrede items sendes igen.
 
-Mailen til Master Data går til `sapvedligehold@orsted.com` fra første
-test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV til
-`pkbje@orsted.com`.
+Mailen til Master Data går til den fælles postkasse (`BioSap-MasterDataEmail`)
+fra første test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV
+til testgodkenderens egen adresse.
 
 ### Fase 1 – sådan køres scriptet
 

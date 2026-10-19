@@ -1656,7 +1656,8 @@ Screens:
                                                       TasklistKey: "",
                                                       TasklistName: "",
                                                       Status: "draft",
-                                                      SpId: 0
+                                                      SpId: 0,
+                                                      ItemGuid: Text(GUID())
                                                   });
                                               Clear(colVhpFl);
                                               With(
@@ -1826,7 +1827,7 @@ Screens:
                                               IfError(
                                                   Concurrent(
                                                       Set(varVhpPlanOff, With(
-                                                      { r: First(Sort(MaintenancePlans, ID, SortOrder.Descending)) },
+                                                      { r: First(Sort(Filter(MaintenancePlans, StartsWith(PlanID, "MP")), ID, SortOrder.Descending)) },
                                                       If(
                                                           IsBlank(r.ID), 0,
                                                           IsNumeric(Mid(r.PlanID, 3)),
@@ -1835,7 +1836,7 @@ Screens:
                                                       )
                                                   )),
                                                       Set(varVhpItemOff, With(
-                                                      { r: First(Sort(MaintenanceItems, ID, SortOrder.Descending)) },
+                                                      { r: First(Sort(Filter(MaintenanceItems, StartsWith(ItemID, "MI")), ID, SortOrder.Descending)) },
                                                       If(
                                                           IsBlank(r.ID), 0,
                                                           IsNumeric(Mid(r.ItemID, 3)),
@@ -1844,7 +1845,7 @@ Screens:
                                                       )
                                                   )),
                                                       Set(varVhpTaskOff, With(
-                                                      { r: First(Sort(TaskListMain, ID, SortOrder.Descending)) },
+                                                      { r: First(Sort(Filter(TaskListMain, StartsWith(TaskItemID, "TI")), ID, SortOrder.Descending)) },
                                                       If(
                                                           IsBlank(r.ID), 0,
                                                           IsNumeric(Mid(r.TaskItemID, 3)),
@@ -1856,7 +1857,7 @@ Screens:
                                                   );
                                                   If(
                                                       !IsBlank(varVhpIdxNow) &&
-                                                      !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
+                                                      !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "Kladde" || If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "AfventerInfo")) || (IsAdmin && (If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "Kladde" || If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "AfventerInfo"))),
                                                       Collect(colVhpSaveErrors, {
                                                           Where: "Request",
                                                           Msg: "This request can no longer be changed."
@@ -1909,7 +1910,7 @@ Screens:
                                                           Status: If(!IsBlank(varVhpPlanNow) && ((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) || varVhpPlanNow.Status.Value = "Returned"), varVhpPlanNow.Status, { Value: "Draft" }),
                                                           PlantsInitial: { Value: varVhpPlan.Plant },
                                                           Cycle: varVhpPlan.Cycle,
-                                                          Unit: { Value: varVhpPlan.Unit },
+                                                          Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit }),
                                                           PlannedDate: Date(
                                                               varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
                                                           ),
@@ -1981,6 +1982,7 @@ Screens:
                                                               ForAll(old As IT, {
                                                               ItemID: LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey,
                                                               Title: IT.ShortText,
+                                                              ItemGuid: IT.ItemGuid,
                                                               Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                               MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
@@ -2032,6 +2034,7 @@ Screens:
                                                                       ForAll(src, Defaults(MaintenanceItems)),
                                                                       ForAll(src As IT, {
                                                               Title: IT.ShortText,
+                                                              ItemGuid: IT.ItemGuid,
                                                               Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                               MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
@@ -2263,39 +2266,7 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
-                                                  ClearCollect(colVhpOldAtts, Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
-                                                  With(
-                                                      { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
-                                                      If(
-                                                          CountRows(srcAtt) > 0,
-                                                          Patch(
-                                                              MD_TasklistAttachment,
-                                                              ForAll(srcAtt, Defaults(MD_TasklistAttachment)),
-                                                              ForAll(
-                                                                  srcAtt As AT,
-                                                                  {
-                                                                      FileName: AT.FileName,
-                                                                      PlanKey: varVhpPlanKey,
-                                                                      ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,
-                                                                      OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                                                      FileSize: AT.FileSize,
-                                                                      FileUrl: AT.FileUrl,
-                                                                      UploadStatus: { Value: Coalesce(AT.Status, "Pending") }
-                                                                  }
-                                                              )
-                                                          )
-                                                      )
-                                                  );
-                                                  true,
-                                                  Collect(colVhpSaveErrors, { Where: "Documents", Msg: FirstError.Message });
-                                                  false
-                                              )
-                                              );
-                                              If(
-                                                  CountRows(colVhpSaveErrors) = 0,
-                                              IfError(
                                                   Remove(MD_TasklistMaterial, colVhpOldMats);
-                                                  Remove(MD_TasklistAttachment, colVhpOldAtts);
                                                   Remove(TaskListMain, Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId)));
                                                   Remove(MaintenanceItems, Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId)));
                                                   true,
@@ -2339,7 +2310,7 @@ Screens:
                                                       varVhpSubmitting,
                                                       Set(
                                                           varVhpPlanRec,
-                                                          Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "", NoteToApprover: varVhpNoteApprover, SubmittedBy: varVhpMe })
+                                                          Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "", InitialEmailSent: false, NoteToApprover: varVhpNoteApprover, SubmittedBy: varVhpMe })
                                                       );
                                                       Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: "" })
                                                   );
@@ -2369,6 +2340,31 @@ Screens:
                                                           LastActionBy: varVhpMe
                                                       },
                                                       { HasApproverNote: !IsBlank(Trim(varVhpNoteApprover)) }
+                                                  ),
+                                                      varVhpPlanRec.Status.Value = "Returned",
+                                                  Patch(
+                                                      MD_RequestIndex,
+                                                      Coalesce(
+                                                          varVhpIdxNow,
+                                                          Defaults(MD_RequestIndex)
+                                                      ),
+                                                      {
+                                                          RequestNo: varVhpPlanKey,
+                                                          Domain: { Value: "MaintenancePlan" },
+                                                          Status: { Value: "AfventerInfo" },
+                                                          StatusStep: 3,
+                                                          IsOpen: true,
+                                                          RequestGuid: varVhpRequestGuid,
+                                                          RequesterEmail: Coalesce(varVhpIdxNow.RequesterEmail, varVhpMe),
+                                                          RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
+                                                          ShortText: varVhpPlan.PlanText,
+                                                          Plant: varVhpPlan.Plant,
+                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                          SourceItemId: varVhpPlanSpId,
+                                                          AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
+                                                          LastActionOn: Now(),
+                                                          LastActionBy: varVhpMe
+                                                      }
                                                   ),
                                                   Patch(
                                                       MD_RequestIndex,
@@ -2401,7 +2397,10 @@ Screens:
                                                   false
                                               )
                                               );
-                                              If(
+                                              With(
+                                                  { sub: varVhpSubmitting },
+                                                  Set(varVhpSubmitting, false);
+                                                  If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                                   Set(varVhpSavedJson, VhpStateJson);
                                               If(
@@ -2446,7 +2445,7 @@ Screens:
                                                   ),
                                                   Value,
                                                   "; "
-                                              ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(varVhpSubmitting, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
+                                              ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
                                                       If(
                                                           !IsBlank(c),
                                                           IfError(
@@ -2467,10 +2466,10 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                  If(varVhpSubmitting, Set(gblToast, { Text: "Submitted as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true, Set(gblToast, { Text: "Saved as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true),
-                                                  If(varVhpSubmitting, Set(gblToast, { Text: "Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true, Set(gblToast, { Text: "Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true)
+                                                  If(sub, Set(gblToast, { Text: "Submitted as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true, Set(gblToast, { Text: "Saved as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true),
+                                                  If(sub, Set(gblToast, { Text: "Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true, Set(gblToast, { Text: "Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true)
+                                                  )
                                               );
-                                              Set(varVhpSubmitting, false);
                                               Set(varVhpSaving, false)
                                               )
                                           RadiusBottomLeft: |-
@@ -6203,7 +6202,7 @@ Screens:
                                                               OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,
                                                               NonFlowUserStatus: src.NonFlowUserStatus,
                                                               TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft",
-                                                              SpId: 0
+                                                              SpId: 0, ItemGuid: Text(GUID())
                                                           }
                                                       );
                                                       Collect(
@@ -6333,7 +6332,7 @@ Screens:
                                                           ItemId: varVhpNextItemId, ShortText: "", FunctionalLocation: "", FlDescription: "",
                                                           MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
                                                           OrstedResponsible: "", Initials: Upper(First(Split(varVhpMe, "@")).Value), LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "",
-                                                          Status: "draft", SpId: 0
+                                                          Status: "draft", SpId: 0, ItemGuid: Text(GUID())
                                                       }
                                                   );
                                                   Set(varVhpActiveItemId, varVhpNextItemId);
@@ -6925,7 +6924,7 @@ Screens:
                                                           ItemId: varVhpNextItemId, ShortText: "", FunctionalLocation: "", FlDescription: "",
                                                           MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
                                                           OrstedResponsible: "", Initials: Upper(First(Split(varVhpMe, "@")).Value), LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "",
-                                                          Status: "draft", SpId: 0
+                                                          Status: "draft", SpId: 0, ItemGuid: Text(GUID())
                                                       }
                                                   );
                                                   Set(varVhpActiveItemId, varVhpNextItemId);
@@ -10366,7 +10365,7 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (36), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), 360)) + (232) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (112), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (112), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (36), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), 360)) + (232) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (112), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold, false), 8 + (20), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (112), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -10795,7 +10794,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), 360)) + (232) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (112), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (112), 0)
+                                  =26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), 360)) + (232) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (112), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold, false), 8 + (20), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (112), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12793,6 +12792,43 @@ Screens:
                                               =0
                                           Y: |-
                                               =0
+                              - txtVhpOpsCostOver:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'state-warn-fg'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        ="Over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - this item needs cost approval after submit."
+                                    Visible: |-
+                                        =IfError(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold, false)
+                                    Width: |-
+                                        =Parent.Width
+                                    Wrap: |-
+                                        =true
                               - conVhpOpsEmptyM:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -14226,7 +14262,7 @@ Screens:
                                   IfError(
                                       Concurrent(
                                           Set(varVhpPlanOff, With(
-                                          { r: First(Sort(MaintenancePlans, ID, SortOrder.Descending)) },
+                                          { r: First(Sort(Filter(MaintenancePlans, StartsWith(PlanID, "MP")), ID, SortOrder.Descending)) },
                                           If(
                                               IsBlank(r.ID), 0,
                                               IsNumeric(Mid(r.PlanID, 3)),
@@ -14235,7 +14271,7 @@ Screens:
                                           )
                                       )),
                                           Set(varVhpItemOff, With(
-                                          { r: First(Sort(MaintenanceItems, ID, SortOrder.Descending)) },
+                                          { r: First(Sort(Filter(MaintenanceItems, StartsWith(ItemID, "MI")), ID, SortOrder.Descending)) },
                                           If(
                                               IsBlank(r.ID), 0,
                                               IsNumeric(Mid(r.ItemID, 3)),
@@ -14244,7 +14280,7 @@ Screens:
                                           )
                                       )),
                                           Set(varVhpTaskOff, With(
-                                          { r: First(Sort(TaskListMain, ID, SortOrder.Descending)) },
+                                          { r: First(Sort(Filter(TaskListMain, StartsWith(TaskItemID, "TI")), ID, SortOrder.Descending)) },
                                           If(
                                               IsBlank(r.ID), 0,
                                               IsNumeric(Mid(r.TaskItemID, 3)),
@@ -14256,7 +14292,7 @@ Screens:
                                       );
                                       If(
                                           !IsBlank(varVhpIdxNow) &&
-                                          !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
+                                          !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "Kladde" || If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "AfventerInfo")) || (IsAdmin && (If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "Kladde" || If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value) = "AfventerInfo"))),
                                           Collect(colVhpSaveErrors, {
                                               Where: "Request",
                                               Msg: "This request can no longer be changed."
@@ -14309,7 +14345,7 @@ Screens:
                                               Status: If(!IsBlank(varVhpPlanNow) && ((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) || varVhpPlanNow.Status.Value = "Returned"), varVhpPlanNow.Status, { Value: "Draft" }),
                                               PlantsInitial: { Value: varVhpPlan.Plant },
                                               Cycle: varVhpPlan.Cycle,
-                                              Unit: { Value: varVhpPlan.Unit },
+                                              Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit }),
                                               PlannedDate: Date(
                                                   varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
                                               ),
@@ -14381,6 +14417,7 @@ Screens:
                                                   ForAll(old As IT, {
                                                   ItemID: LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey,
                                                   Title: IT.ShortText,
+                                                  ItemGuid: IT.ItemGuid,
                                                   Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                   MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
                                                   ItemDescription: Coalesce(IT.LongText, IT.ShortText),
@@ -14432,6 +14469,7 @@ Screens:
                                                           ForAll(src, Defaults(MaintenanceItems)),
                                                           ForAll(src As IT, {
                                                   Title: IT.ShortText,
+                                                  ItemGuid: IT.ItemGuid,
                                                   Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                   MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
                                                   ItemDescription: Coalesce(IT.LongText, IT.ShortText),
@@ -14663,39 +14701,7 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
-                                      ClearCollect(colVhpOldAtts, Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
-                                      With(
-                                          { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
-                                          If(
-                                              CountRows(srcAtt) > 0,
-                                              Patch(
-                                                  MD_TasklistAttachment,
-                                                  ForAll(srcAtt, Defaults(MD_TasklistAttachment)),
-                                                  ForAll(
-                                                      srcAtt As AT,
-                                                      {
-                                                          FileName: AT.FileName,
-                                                          PlanKey: varVhpPlanKey,
-                                                          ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,
-                                                          OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                                          FileSize: AT.FileSize,
-                                                          FileUrl: AT.FileUrl,
-                                                          UploadStatus: { Value: Coalesce(AT.Status, "Pending") }
-                                                      }
-                                                  )
-                                              )
-                                          )
-                                      );
-                                      true,
-                                      Collect(colVhpSaveErrors, { Where: "Documents", Msg: FirstError.Message });
-                                      false
-                                  )
-                                  );
-                                  If(
-                                      CountRows(colVhpSaveErrors) = 0,
-                                  IfError(
                                       Remove(MD_TasklistMaterial, colVhpOldMats);
-                                      Remove(MD_TasklistAttachment, colVhpOldAtts);
                                       Remove(TaskListMain, Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId)));
                                       Remove(MaintenanceItems, Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId)));
                                       true,
@@ -14739,7 +14745,7 @@ Screens:
                                           varVhpSubmitting,
                                           Set(
                                               varVhpPlanRec,
-                                              Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "", NoteToApprover: varVhpNoteApprover, SubmittedBy: varVhpMe })
+                                              Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "", InitialEmailSent: false, NoteToApprover: varVhpNoteApprover, SubmittedBy: varVhpMe })
                                           );
                                           Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: "" })
                                       );
@@ -14769,6 +14775,31 @@ Screens:
                                               LastActionBy: varVhpMe
                                           },
                                           { HasApproverNote: !IsBlank(Trim(varVhpNoteApprover)) }
+                                      ),
+                                          varVhpPlanRec.Status.Value = "Returned",
+                                      Patch(
+                                          MD_RequestIndex,
+                                          Coalesce(
+                                              varVhpIdxNow,
+                                              Defaults(MD_RequestIndex)
+                                          ),
+                                          {
+                                              RequestNo: varVhpPlanKey,
+                                              Domain: { Value: "MaintenancePlan" },
+                                              Status: { Value: "AfventerInfo" },
+                                              StatusStep: 3,
+                                              IsOpen: true,
+                                              RequestGuid: varVhpRequestGuid,
+                                              RequesterEmail: Coalesce(varVhpIdxNow.RequesterEmail, varVhpMe),
+                                              RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
+                                              ShortText: varVhpPlan.PlanText,
+                                              Plant: varVhpPlan.Plant,
+                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                              SourceItemId: varVhpPlanSpId,
+                                              AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
+                                              LastActionOn: Now(),
+                                              LastActionBy: varVhpMe
+                                          }
                                       ),
                                       Patch(
                                           MD_RequestIndex,
@@ -14801,7 +14832,10 @@ Screens:
                                       false
                                   )
                                   );
-                                  If(
+                                  With(
+                                      { sub: varVhpSubmitting },
+                                      Set(varVhpSubmitting, false);
+                                      If(
                                       CountRows(colVhpSaveErrors) = 0,
                                       Set(varVhpSavedJson, VhpStateJson);
                                   If(
@@ -14846,7 +14880,7 @@ Screens:
                                       ),
                                       Value,
                                       "; "
-                                  ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(varVhpSubmitting, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
+                                  ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
                                           If(
                                               !IsBlank(c),
                                               IfError(
@@ -14867,10 +14901,10 @@ Screens:
                                           )
                                       )
                                   );
-                                      If(varVhpSubmitting, Set(gblToast, { Text: "Submitted as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true, Set(gblToast, { Text: "Saved as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true),
-                                      If(varVhpSubmitting, Set(gblToast, { Text: "Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true, Set(gblToast, { Text: "Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true)
+                                      If(sub, Set(gblToast, { Text: "Submitted as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true, Set(gblToast, { Text: "Saved as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true),
+                                      If(sub, Set(gblToast, { Text: "Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true, Set(gblToast, { Text: "Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true)
+                                      )
                                   );
-                                  Set(varVhpSubmitting, false);
                                   Set(varVhpSaving, false)
                                   )
                               RadiusBottomLeft: |-
@@ -22280,8 +22314,12 @@ Screens:
                                   =Set(varVhpConfirmSubmit, false);
                                   Set(varVhpNoteApprover, inpVhpNoteA.Text);
                                   Set(varVhpNoteSelf, If(Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, inpVhpNoteS.Text, varVhpNoteSelf));
-                                  Set(varVhpSubmitting, true);
-                                  Select(btnVhpSaveDraft)
+                                  If(
+                                      btnVhpSaveDraft.DisplayMode = DisplayMode.Edit,
+                                      Set(varVhpSubmitting, true);
+                                      Select(btnVhpSaveDraft),
+                                      Set(gblToast, { Text: "The plan cannot be submitted right now - save it first.", Kind: "Warning", At: Now() }); true
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -22653,7 +22691,8 @@ Screens:
                                     TasklistKey: "",
                                     TasklistName: "",
                                     Status: "draft",
-                                    SpId: 0
+                                    SpId: 0,
+                                    ItemGuid: Text(GUID())
                                 });
                             Clear(colVhpFl);
                             With(
@@ -26129,7 +26168,7 @@ Screens:
                             Clear(colVhpObjDraft);
                             Clear(colVhpMaterials);
                             Clear(colVhpAttachments);
-                            If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
+                            If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0, ItemGuid: "" }));
                 
                             If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", FileCount: 0, SpId: 0 }));
                 
@@ -26287,7 +26326,8 @@ Screens:
                                     TasklistKey: "",
                                     TasklistName: "",
                                     Status: "draft",
-                                    SpId: 0
+                                    SpId: 0,
+                                    ItemGuid: Text(GUID())
                                 }),
                 
                                 Set(varVhpRequestGuid, gblVhpReqId);
@@ -26323,7 +26363,8 @@ Screens:
                                                 TasklistKey: "",
                                                 TasklistName: "",
                                                 Status: "draft",
-                                                SpId: 0
+                                                SpId: 0,
+                                                ItemGuid: Text(GUID())
                                             }),
                 
                                             IfError(
@@ -26397,7 +26438,8 @@ Screens:
                                                             TasklistKey: "",
                                                             TasklistName: "",
                                                             Status: "valid",
-                                                            SpId: IT.ID
+                                                            SpId: IT.ID,
+                                                            ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))
                                                         }
                                                     )
                                                 ),

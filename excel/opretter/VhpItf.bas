@@ -22,6 +22,13 @@ Option Explicit
 ' Et "<" eller ">" i selve teksten ville SAPscript laese som starten paa et
 ' format. De skrives som de typografisk naesten ens tegn U+2039 og U+203A,
 ' der findes i Windows' tegnsaet.
+'
+' TEGNSAET (R2-088). ITF-filen skrives i Windows' tegnsaet (cp1252). Et tegn
+' uden for det bliver stille til "?" i SAP. De kendte (>=, <=, minustegn,
+' pile, mikro ...) erstattes med noget, der ligner (ToWindowsChars) - et
+' ">=" bliver derfor til U+203A og "=", som ethvert ">" i teksten. Resten
+' finder NonWindowsChars, og valideringen (VhpOrder) giver en advarsel, der
+' ogsaa staar i kvitteringen.
 '==============================================================================
 
 Private Const LF As String = vbLf
@@ -360,6 +367,7 @@ Private Function SoftBreak(ByVal s As String) As String
 End Function
 
 Private Function EscapeText(ByVal s As String) As String
+    s = ToWindowsChars(s)
     s = Replace(s, "<", ChrW$(8249))
     s = Replace(s, ">", ChrW$(8250))
     EscapeText = s
@@ -403,6 +411,110 @@ Private Function StartsWithBreak(ByVal html As String) As Boolean
     ElseIf LCase$(Left$(s, 3)) = "<br" Then
         StartsWithBreak = True
     End If
+End Function
+
+'==============================================================================
+' Windows' tegnsaet (R2-088)
+'==============================================================================
+
+' Kendte tegn uden for cp1252 erstattes med noget, der ligner.
+Private Function ToWindowsChars(ByVal s As String) As String
+    Dim i As Long
+    Dim code As Long
+    Dim ch As String
+    Dim out As String
+    Dim anyWide As Boolean
+
+    For i = 1 To Len(s)
+        If (AscW(Mid$(s, i, 1)) And &HFFFF&) > 255 Then
+            anyWide = True
+            Exit For
+        End If
+    Next i
+    If Not anyWide Then
+        ToWindowsChars = s
+        Exit Function
+    End If
+
+    For i = 1 To Len(s)
+        ch = Mid$(s, i, 1)
+        code = AscW(ch) And &HFFFF&
+        If code > 255 Then ch = WindowsReplacement(code, ch)
+        out = out & ch
+    Next i
+    ToWindowsChars = out
+End Function
+
+Private Function WindowsReplacement(ByVal code As Long, ByVal ch As String) As String
+    Select Case code
+        Case &H2264&: WindowsReplacement = "<="                 ' mindre end eller lig
+        Case &H2265&: WindowsReplacement = ">="                 ' stoerre end eller lig
+        Case &H2212&, &H2010&, &H2011&: WindowsReplacement = "-"   ' minus, bindestreger
+        Case &H2192&: WindowsReplacement = "->"
+        Case &H2190&: WindowsReplacement = "<-"
+        Case &H2194&: WindowsReplacement = "<->"
+        Case &H21D2&: WindowsReplacement = "=>"
+        Case &H2248&: WindowsReplacement = "~"                  ' cirka
+        Case &H3BC&: WindowsReplacement = ChrW$(181)            ' graesk my -> mikro
+        Case &H3A9&, &H2126&: WindowsReplacement = "Ohm"
+        Case &H2103&: WindowsReplacement = ChrW$(176) & "C"     ' grader celsius
+        Case &H2032&: WindowsReplacement = "'"
+        Case &H2033&: WindowsReplacement = Chr$(34)
+        Case &H2215&: WindowsReplacement = "/"
+        Case &H2219&, &H22C5&: WindowsReplacement = ChrW$(183)  ' prik
+        Case &H2002& To &H200A&, &H202F&: WindowsReplacement = " "   ' smalle mellemrum
+        Case &H200B&, &HFEFF&: WindowsReplacement = ""          ' usynlige
+        Case Else: WindowsReplacement = ch
+    End Select
+End Function
+
+' Findes tegnet (UTF-16-enheden) i cp1252?
+Private Function IsWindowsChar(ByVal code As Long) As Boolean
+    If code < 128 Or (code >= 160 And code <= 255) Then
+        IsWindowsChar = True
+        Exit Function
+    End If
+    Select Case code
+        Case &H20AC&, &H201A&, &H192&, &H201E&, &H2026&, &H2020&, &H2021&, &H2C6&, &H2030&, _
+             &H160&, &H2039&, &H152&, &H17D&, &H2018&, &H2019&, &H201C&, &H201D&, &H2022&, _
+             &H2013&, &H2014&, &H2DC&, &H2122&, &H161&, &H203A&, &H153&, &H17E&, &H178&
+            IsWindowsChar = True
+    End Select
+End Function
+
+' De tegn i SAP-teksten, Windows' tegnsaet ikke har, hvert een gang:
+' "<tegn> (U+2713), ...". "" = alle kommer med. Til valideringens advarsel.
+Public Function NonWindowsChars(ByVal text As String) As String
+    Dim i As Long
+    Dim code As Long
+    Dim lowCode As Long
+    Dim ch As String
+    Dim cp As Long
+    Dim entry As String
+    Dim result As String
+
+    i = 1
+    Do While i <= Len(text)
+        ch = Mid$(text, i, 1)
+        code = AscW(ch) And &HFFFF&
+        cp = code
+        If code >= &HD800& And code <= &HDBFF& And i < Len(text) Then
+            lowCode = AscW(Mid$(text, i + 1, 1)) And &HFFFF&
+            If lowCode >= &HDC00& And lowCode <= &HDFFF& Then
+                cp = &H10000 + (code - &HD800&) * &H400& + (lowCode - &HDC00&)
+                ch = Mid$(text, i, 2)
+                i = i + 1
+            End If
+        End If
+        If Not IsWindowsChar(cp) Then
+            entry = ch & " (U+" & Right$("000" & Hex$(cp), IIf(cp > &HFFFF&, 5, 4)) & ")"
+            If InStr(1, ", " & result & ",", ", " & entry & ",", vbBinaryCompare) = 0 Then
+                result = result & IIf(Len(result) > 0, ", ", "") & entry
+            End If
+        End If
+        i = i + 1
+    Loop
+    NonWindowsChars = result
 End Function
 
 '==============================================================================

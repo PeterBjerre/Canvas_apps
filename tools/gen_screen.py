@@ -83,7 +83,10 @@ def __getattr__(name):
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from design_tokens import ref as _t, TRANSPARENT
-from layout_tokens import if_below, SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+# SHELL_W bruges ikke her, men builderne importerer den herfra. __all__
+# fortaeller pyflakes, at den genudsendes (som i doc_upload.py).
+__all__ = ["SHELL_W"]
 
 # ---------------------------------------------------------------------------
 # Farver
@@ -155,17 +158,9 @@ FONT = "Font.'Segoe UI'"
 # det, platformen giver: se RAMMEN i layout_tokens.py for hvorfor det ikke
 # maa vaere et gaet paa det praecise tal.
 
-# Bredden af items-skinnen naar de to kort staar side om side.
-RAIL_W = 360
-SPLIT_GAP = 20
-# Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
-#
-# Her stod "App.Width < 1000". Det var eet af FIRE braekpunkter mellem 996
-# og 1024, spredt over fire filer - heroen stablede ved 996, det her ved
-# 1000, hubbens fliser ved 1004 og FillPortions ved 1024. Alle fire stod
-# for det samme skift, og ingen af dem var valgt i forhold til de tre
-# andre. Nu er de eet tal. Se tools/layout_tokens.py.
-EDITOR_W = if_below("Desktop", SHELL_W, f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP}")
+# RAIL_W, SPLIT_GAP og EDITOR_W (items-skinnen og Item Editoren) staar i
+# Maintenance Plan App/build/build_items.py - VH-planen er eneste bruger
+# (R2-093).
 
 
 # ---------------------------------------------------------------------------

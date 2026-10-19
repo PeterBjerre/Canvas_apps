@@ -229,6 +229,8 @@ SVC = {
     "shared_powerbi": "orsted_BioSapPowerBIConn",
     "shared_approvals": "orsted_BioSapApprovalsConn",
     "shared_office365": "orsted_BioSapOutlookConn",
+    # R2-084 pkt. 3: godkenderen slaas op i Entra (2. godkender som reserve).
+    "shared_office365users": "orsted_BioSapOffice365UsersConn",
 }
 
 
@@ -464,7 +466,7 @@ def test_the_prodos_creator_is_the_plants_row_in_md_approver():
     assert creator("AVV") == "xyz"          # 1. godkender fravaerende
     assert creator("HEV") == ""             # ingen raekke for vaerket
     email = _find("Creator_email")["inputs"]
-    assert "parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in email
+    assert "parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in email
 
 
 def test_a_counter_is_requested_once_and_only_while_it_is_missing():
@@ -489,7 +491,7 @@ def test_every_log_row_is_system_or_counter_with_no_plan_id():
         assert "item/PlanId" not in p
         assert p["item/RequestGuid"] == "@outputs('RequestGuid')"
         assert p["item/Title"] == "@outputs('RunName')"
-        assert p["item/Decision"] in ("Approve", "Return", "Requested", "Skipped")
+        assert p["item/Decision"] in ("Approve", "Return", "Requested", "Skipped", "Timeout")  # R2-030
     counter = {p["item/Decision"] for p in posts if p["item/Stage"] == "Counter"}
     # "Done" skriver appen, naar opretteren markerer i Details.
     assert counter == {"Requested", "Skipped"}
@@ -521,6 +523,7 @@ def test_the_mails_come_from_the_service_account():
     mails = [(n, a) for n, a in _actions(_definition()["actions"]) if _op(a) == "SendEmailV2"]
     names = {n for n, _a in mails}
     assert names == {"Send_returned_mail", "Send_counter_mail", "Send_approved_mail",
+                     "Send_reminder",   # R2-030: timeout
                      "Send_notification_to_development_team"}
     for _n, m in mails:
         assert m["inputs"]["host"]["connectionName"] == "shared_office365"

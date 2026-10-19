@@ -192,7 +192,7 @@ MIN_MAX_MSG = "Min stock must be less than or equal to max stock."
 # moenster som mp_parts._not_a_number).
 PRICE = dp._var("Price")
 PRICE_BAD = (f'!IsBlank(Trim(Coalesce({PRICE}, ""))) && '
-             f'IsBlank(IfError(Value(Trim({PRICE})), Blank()))')
+             f'IsBlank(IfError({dp.dec_value(PRICE)}, Blank()))')
 PRICE_MSG = "Price must be a number, not text."
 
 
@@ -366,8 +366,8 @@ def _dirty():
     kopi har taget objekter med). En HENTET raekke: formularen er ikke den
     samme som raekken i listen - samme sammenligning, som admin-loggen
     bruger (admin_log.diff)."""
-    new = [f'!IsBlank(Trim(Coalesce(varDomFText, "")))',
-           f'!IsBlank(Trim(Coalesce(varDomFPlant, "")))',
+    new = ['!IsBlank(Trim(Coalesce(varDomFText, "")))',
+           '!IsBlank(Trim(Coalesce(varDomFPlant, "")))',
            f"CountRows({OBJECTS}) > 0"]
     defaults = dp.HOOKS["field_defaults"]
     for col, _l, kind, _ch in dp.FIELDS:
@@ -685,7 +685,7 @@ def row_actions():
                                       list_src=f"{dp.ACTIVE}.ObjectList",
                                       fl_src=f"{dp.ACTIVE}.FunctionalLocation")),
                      _w("btnDomRowObjects", "Objects (00)"), line=2,
-                     label=f'"Functional locations for " & ThisItem.ItemKey'),
+                     label='"Functional locations for " & ThisItem.ItemKey'),
         dp.RowAction("btnDomRowCopy", '"Copy"', dp.copy_row_fx(), _w("btnDomRowCopy", "Copy"),
                      mode=dp.ROW_MODES["btnDomRowCopy"], line=2),
         dp.RowAction("btnDomRowDelete", '"Delete row"', dp.delete_this_row_fx(),
