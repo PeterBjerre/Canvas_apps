@@ -884,12 +884,14 @@ def test_comment_posting_is_shown_in_the_comment_area():
     assert "varIbPosting" not in loading["imgIbActBlock"].props["Visible"]
     assert "varIbAct" not in P.POST
     assert loading["tmrIbPost"].props["Start"] == 'varIbPostStage = "posting" || varIbPostStage = "done"'
-    # Hjulet og teksten staar i kommentarfeltets sted.
-    assert P.POSTING_HERE in ctrls["conIbPosting"].props["Visible"]
-    assert f"!({P.POSTING_HERE})" in ctrls["conIbComposer"].props["Visible"]
+    # Hjulet staar i send-ikonets sted, og teksten under feltet viser
+    # trinnet (issue #411 - foer #411 erstattede hjulet hele feltet).
+    assert ctrls["spnIbPosting"].props["Visible"] == P.POSTING_HERE
+    assert f"!({P.POSTING_HERE})" in ctrls["btnIbPost"].props["Visible"]
     assert ctrls["spnIbPosting"].control.startswith("ModernSpinner")
     for stage in ("Posting comment...", "Updating activity..."):
-        assert stage in ctrls["spnIbPosting"].props["Label"]
+        assert stage in ctrls["spnIbPosting"].props["AccessibleLabel"]
+        assert stage in ctrls["txtIbCommentHint"].props["Text"]
     assert '"Comment posted."' in ctrls["txtIbPosted"].props["Text"]
     # Raekkefoelgen i formlen: posting -> kald -> updating -> done / failed.
     post = P.POST

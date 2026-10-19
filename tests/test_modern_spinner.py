@@ -52,11 +52,11 @@ SPINNERS = {
         "spnVhpVenBusy": ("varVhpVenBusy", '"Searching..."'),
     },
     # Gem/upload viser tilstanden i knappen (issue #420, ACT_SPINNERS).
-    # Hjulet er kommentarens egen ventetilstand i kommentarfeltet (issue #370);
-    # det staar i en container, der kun vises, mens der sendes. Teksten skifter
-    # (tests/test_issue_board.py) - her tjekkes kun, at den ikke er tom.
+    # Hjulet er kommentarens egen ventetilstand (issue #370) - siden #411 i
+    # send-ikonets sted nederst i feltet, uden egen tekst (trinnet staar
+    # under feltet, tests/test_issue_board.py).
     "ScreenIssueBoard.pa.yaml": {
-        "spnIbPosting": ("true", None),
+        "spnIbPosting": (None, '""'),
         # Formularens gem i sidepanelet (issue #402).
         "spnIbEditorSaving": ('IfError(varIbPanelSave = "saving", false)', '"Saving..."'),
     },

@@ -304,20 +304,28 @@ COST_OVER_TEXT = ('"Plan over " & ' + lay.num_text("VhpCostThreshold") +
 # B2): "7" og "1,192" - ikke "7," og "1.192,00".
 ITEM_COST_TEXT = ('"Total cost: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, Cost)") + ' & " DKK"')
 ITEM_DUR_TEXT = ('"Duration: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, DurationHours)") + ' & " h"')
-TOTALS_CARD_W = 250
-TOTALS_CARD_H = 88
+TOTALS_CARD_W = 230
+# Kortet staar i sektionsoverskriftens raekke og saetter dens hoejde. Med
+# tre linjer (88 px) blev overskriften hoej og fuld af tom plads (Peter
+# 2026-10-19). Nu to linjer; den tredje kun, naar planen er over graensen.
+TOTALS_CARD_H = 60
+TOTALS_CARD_H_OVER = 80
 
 
 def totals_card():
     """Kortet med itemets Total cost og Duration (oeverst til hoejre)."""
-    return modern_card(
+    c = modern_card(
         "crdVhpOpsTotals", ITEM_COST_TEXT, ITEM_DUR_TEXT,
-        f'If({COST_OVER_ON}, {COST_OVER_TEXT}, "For the selected item")',
+        f"If({COST_OVER_ON}, {COST_OVER_TEXT}, Blank())",
         width=TOTALS_CARD_W, height=TOTALS_CARD_H, fill=C_NEUTRAL_BG,
-        title_color=C_TITLE, subtitle_color=C_TITLE,
-        description_color=f"If({COST_OVER_ON}, {C_WARN_FG}, {C_MUTED})",
-        title_size=14, subtitle_size=13, description_size=11,
+        title_color=C_TITLE, subtitle_color=C_MUTED, description_color=C_WARN_FG,
+        title_size=13, subtitle_size=12, description_size=11,
         visible=TOTALS_ON)
+    h = f"If({COST_OVER_ON}, {TOTALS_CARD_H_OVER}, {TOTALS_CARD_H})"
+    c.props["Height"] = h
+    c.h = h
+    c.props["AlignInContainer"] = "AlignInContainer.Center"
+    return c
 
 
 # ---------------------------------------------------------------------------
