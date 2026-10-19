@@ -27,7 +27,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_TRANSPARENT, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, checkbox_theme, row_hit
+from build_helpers import text_ctrl, group, button, button_row, row_hit, text_input, pin_widths
 from design_tokens import ref_hex
 from build_plan_header import help_panel
 
@@ -40,9 +40,14 @@ OPS_CW = f"({SHELL_W} - 36)"
 
 # Matricens maal. Label-kolonnen er fast; pakkekolonnerne kommer fra
 # strategien, saa bredden er dynamisk.
-LBL_W = 260
+# Samme maal som operationstabellen (build_tasklist.OPS_COLS): OP NO. 60,
+# OPERATION SHORT TEXT 200, felter paa 32 px i raekker paa 44 px.
+OPNO_W = 60
+TEXT_W = 200
+LBL_GAP = 8
+LBL_W = OPNO_W + LBL_GAP + TEXT_W + LBL_GAP
 CELL_W = 64
-ROW_H = 40
+ROW_H = 44
 GAL_ROW_H = ROW_H + 2
 MATRIX_W = f"{LBL_W} + CountRows({PKGS}) * {CELL_W}"
 
@@ -140,15 +145,11 @@ def _pill_svg(w, h=PILL_H):
             "</svg>" + '"')
 
 
-def pkg_pills(prefix, op_no, key, width=PILLS_W):
-    """Pillerne for een operation. op_no og key er Power Fx-udtryk for
-    operationens nummer og PackagesKey, set fra der hvor galleriet staar
-    (raekken i operationstabellen eller popup'en)."""
+def _pill_parts(prefix, pill_w, img, tpl_h, x="0"):
+    """Pillen (Image) og kliklaget oven paa den for een pakke paa een
+    operation. Laeser ThisItem.PackageNo, OpNo, Sel og ShortCode i det
+    galleri, pillen staar i - operationsraekken eller pakkefanen."""
     sel = "ThisItem.Sel"
-    pill_w = f"If({_IS_COMPACT}, {PILL_W_COMPACT}, {PILL_W})"
-    img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({_IS_COMPACT},\n'
-           f'    {_pill_svg(PILL_W_COMPACT)},\n    {_pill_svg(PILL_W)}\n))')
-    tpl_h = PILL_H + 2   # galleriets hoejde minus TemplatePadding
     on_select = (
         "If(!varVhpViewOnly,\n"
         "    With(\n"
@@ -184,20 +185,33 @@ def pkg_pills(prefix, op_no, key, width=PILLS_W):
             "Image": img,
             "ImagePosition": "ImagePosition.Fit",
             "TabIndex": "0",
-            "Width": "Parent.TemplateWidth",
-            "X": "0",
+            "Width": pill_w,
+            "X": x,
             "Y": y,
         }, h=PILL_H)
     hit = row_hit(
         f"btn{prefix}PillHit", on_select,
         (f'"Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & '
          f'If({sel}, ", selected", ", not selected")'),
-        "Parent.TemplateWidth", PILL_H, radius=PILL_H // 2)
+        pill_w, PILL_H, radius=PILL_H // 2)
+    hit.props["X"] = x
     hit.props["Y"] = y
     # View: pillerne viser valget, men et klik aendrer intet (issue #390).
     hit.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
     hit.props["Tooltip"] = ('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & '
                             'ThisItem.CycleUnit')
+    return pill, hit
+
+
+def pkg_pills(prefix, op_no, key, width=PILLS_W):
+    """Pillerne for een operation. op_no og key er Power Fx-udtryk for
+    operationens nummer og PackagesKey, set fra der hvor galleriet staar
+    (raekken i operationstabellen eller popup'en)."""
+    pill_w = f"If({_IS_COMPACT}, {PILL_W_COMPACT}, {PILL_W})"
+    img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({_IS_COMPACT},\n'
+           f'    {_pill_svg(PILL_W_COMPACT)},\n    {_pill_svg(PILL_W)}\n))')
+    tpl_h = PILL_H + 2   # galleriets hoejde minus TemplatePadding
+    pill, hit = _pill_parts(prefix, "Parent.TemplateWidth", img, tpl_h)
     items = (
         "With(\n"
         f"    {{ op: {op_no}, k: Coalesce({key}, \";\") }},\n"
@@ -368,91 +382,78 @@ def build_strategy_body():
     actionRow = button_row("conVhpPkgActionRow", [btnHier, btnAll, btnClear], OPS_CW)
 
     # --- matrix-overskrift ---------------------------------------------------
-    headLbl = text_ctrl("txtVhpPkgHeadLabel", "\"OPERATION\"", size=11, weight="Semibold", color=C_MUTED,
-                        height=ROW_H, width=LBL_W, wrap="false")
-    headCellText = text_ctrl(
-        "txtVhpPkgHeadCell",
-        # Kun pakkekoden - cyklussen staar paa meta-linjen over matricen, og
-        # "M12 (12 MON)" ville blive klippet i en kolonne paa 64 px.
-        "ThisItem.ShortCode",
-        size=12, weight="Semibold", height=ROW_H, width=CELL_W, wrap="false",
-        extra={"Align": "Align.Center"})
-    headCell = group("conVhpPkgHeadCell", [headCellText], direction="Horizontal", gap=0, height=ROW_H,
-                     align_items="Center", justify="Center", width="Parent.TemplateWidth")
-    headGal = _pkg_cell_gallery("galVhpPkgHead", headCell)
-    matrixHead = group("conVhpPkgHeadRow", [headLbl, headGal], direction="Horizontal", gap=0,
-                       height=ROW_H, align_items="Center", width=MATRIX_W)
+    # SAMME DESIGN SOM OPERATIONSTABELLEN (Peter 2026-10-19): overskriften er
+    # en HtmlViewer med daempede versaler paa en afrundet flade
+    # (build_tasklist._ops_header_html), og hver celle er en pakke-pille som
+    # paa operationslinjen - ikke et flueben. Pakkernes koder staar
+    # centreret over deres kolonne; kolonnerne kommer fra strategien, saa
+    # den del af HTML'en bygges i appen med Concat.
+    mut = ref_hex("text-muted")
+    bg = ref_hex("bg-muted")
+    head_html = (
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
+        "span{flex:none;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}</style>"
+        "<div style='display:flex;align-items:center;height:30px;line-height:30px;overflow:hidden;"
+        "border-radius:8px;background:\" & " + bg + " & \";"
+        "color:\" & " + mut + " & \";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
+        f"<span style='width:{OPNO_W + LBL_GAP}px;padding-left:8px'>OP NO.</span>"
+        f"<span style='width:{TEXT_W + LBL_GAP}px;padding-left:8px'>OPERATION SHORT TEXT</span>\" &\n"
+        f"Concat({PKGS_SORTED}, \"<span style='width:{CELL_W}px;text-align:center'>\" & ShortCode & \"</span>\") &\n"
+        "\"</div>\""
+    )
+    matrixHead = Ctrl("htmVhpPkgHeader", "HtmlViewer", props={
+        "Fill": C_TRANSPARENT, "Height": "34", "HtmlText": head_html,
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Width": MATRIX_W,
+    }, h=34)
     divider = group("conVhpPkgDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal",
                     width=MATRIX_W)
 
     # --- matrix-raekker ------------------------------------------------------
-    # Den skjulte labels tekst er den eneste maade at laese den YDRE gallerys
-    # raekke inde fra den INDRE gallery: en kontrolreference inde i en
-    # skabelon oploeses til den aktuelle raekkes instans.
-    rowOpNo = text_ctrl("txtVhpPkgRowOpNo", "ThisItem.OperationNo", size=12, color=C_MUTED, height=ROW_H,
-                        width=56, wrap="false")
-    rowText = text_ctrl("txtVhpPkgRowText",
-                        "If(IsBlank(ThisItem.OperationShortText), \"(no text)\", ThisItem.OperationShortText)",
-                        size=13, height=ROW_H, width=LBL_W - 56, wrap="false")
+    # Nummer og tekst er de samme felter som paa operationslinjen, men laast:
+    # her vaelges kun pakker. De rettes under Operations.
+    rowOpNo = text_input("inpVhpPkgRowOpNo", "ThisItem.OperationNo", width=OPNO_W, height=32,
+                         display_mode="DisplayMode.View",
+                         label='"Operation number " & ThisItem.OperationNo')
+    rowText = text_input("inpVhpPkgRowText",
+                         "If(IsBlank(ThisItem.OperationShortText), \"(no text)\", ThisItem.OperationShortText)",
+                         width=TEXT_W, height=32, display_mode="DisplayMode.View",
+                         label='"Operation text"')
     cur_key = ("Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId "
-               "&& OperationNo = ThisItem.OpNo).PackagesKey, \";\")")
+               "&& OperationNo = ThisItem.OperationNo).PackagesKey, \";\")")
 
-    chkCell = Ctrl(
-        "chkVhpPkgCell", "ModernCheckbox",
-        props=checkbox_theme({
-            "AccessibleLabel": ("\"Package \" & ThisItem.ShortCode & \" on operation \" & ThisItem.OpNo"),
-            "AlignInContainer": "AlignInContainer.Center",
-            "Default": f"\";\" & Text(ThisItem.PackageNo) & \";\" in {cur_key}",
-            "Height": "24",
-            "OnCheck": (
-                "With(\n"
-                "    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },\n"
-                "    UpdateIf(\n"
-                "        colVhpOperations,\n"
-                "        ItemId = varVhpActiveItemId && OperationNo = op,\n"
-                "        {\n"
-                "            PackagesKey:\n"
-                "                If(\n"
-                "                    \";\" & pkg & \";\" in Coalesce(PackagesKey, \";\"),\n"
-                "                    Coalesce(PackagesKey, \";\"),\n"
-                "                    Coalesce(PackagesKey, \";\") & pkg & \";\"\n"
-                "                )\n"
-                "        }\n"
-                "    )\n"
-                ")"
-            ),
-            "OnUncheck": (
-                "With(\n"
-                "    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },\n"
-                "    UpdateIf(\n"
-                "        colVhpOperations,\n"
-                "        ItemId = varVhpActiveItemId && OperationNo = op,\n"
-                "        { PackagesKey: Substitute(Coalesce(PackagesKey, \";\"), \";\" & pkg & \";\", \";\") }\n"
-                "    )\n"
-                ")"
-            ),
-            "Width": "30",
-        }), h=24)
-    # View: fluebenene staar, men kan ikke slaas til/fra (issue #390).
-    chkCell.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
-    cellWrap = group("conVhpPkgCell", [chkCell], direction="Horizontal", gap=0, height=ROW_H,
-                     align_items="Center", justify="Center", width="Parent.TemplateWidth")
+    # Een pille pr. celle, centreret i kolonnen. Klikket slaar pakken til
+    # eller fra paa operationen - samme handling som pillerne paa
+    # operationslinjen (_pill_parts), saa de to visninger ikke kan glide fra
+    # hinanden.
+    cell_img = f'"data:image/svg+xml;utf8," & EncodeUrl({_pill_svg(PILL_W)})'
+    cellPill, cellHit = _pill_parts("VhpPkg", str(PILL_W), cell_img, ROW_H,
+                                    x=str((CELL_W - PILL_W) // 2))
     cell_items = (
         "With(\n"
-        "    { op: ThisItem.OperationNo },\n"
+        f"    {{ op: ThisItem.OperationNo, k: {cur_key} }},\n"
         f"    ForAll(\n"
         f"        {PKGS_SORTED} As P,\n"
-        "        { PackageNo: P.PackageNo, ShortCode: P.ShortCode, OpNo: op }\n"
+        "        {\n"
+        "            PackageNo: P.PackageNo, ShortCode: P.ShortCode,\n"
+        "            CycleLength: P.CycleLength, CycleUnit: P.CycleUnit, OpNo: op,\n"
+        "            Sel: \";\" & Text(P.PackageNo) & \";\" in k,\n"
+        "            NoPkg: Len(k) <= 1\n"
+        "        }\n"
         "    )\n"
         ")"
     )
-    cellsGal = _pkg_cell_gallery("galVhpPkgCells", cellWrap, items=cell_items)
+    cellsGal = _pkg_cell_gallery("galVhpPkgCells", None, items=cell_items)
+    cellsGal.children = [cellPill, cellHit]
 
     # Hele skabelonens hoejde, ikke "- 2": cellerne er ROW_H hoeje, og
     # skabelonen er ROW_H. Med "- 2" var raekken 38 px til 40 px indhold.
     # Det kunne foerst ses, da skabelonens hoejde blev skrevet ud som et
     # tal (gen_screen.resolve_templates) i stedet for Parent.TemplateHeight.
-    matrixRow = group("conVhpPkgRow", [rowOpNo, rowText, cellsGal], direction="Horizontal", gap=0,
+    lblGap = group("conVhpPkgRowGap", [], direction="Horizontal", height=0, width=str(LBL_GAP))
+    lblGap2 = group("conVhpPkgRowGap2", [], direction="Horizontal", height=0, width=str(LBL_GAP))
+    matrixRow = group("conVhpPkgRow", pin_widths([rowOpNo, lblGap, rowText, lblGap2, cellsGal]),
+                      direction="Horizontal", gap=0,
                       height="Parent.TemplateHeight", align_items="Center",
                       width="Parent.TemplateWidth")
 
