@@ -38,7 +38,11 @@ from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_reque
                            with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
 
-NARROW = below("Tablet")
+# Under Desktop er headerens Edit, Save draft og Submit kun deres ikon
+# (_bar_btn). FL har ingen bundbjaelke (issue #392), saa knapperne SKAL
+# staa i headeren - og titlen skal stadig kunne staa ved siden af dem
+# paa en tablet.
+NARROW = below("Desktop")
 
 # Indsendt = laast (FL69).
 DM_EDIT = 'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)'
@@ -150,16 +154,14 @@ def _fit(btn, icon=False):
 
 
 def _bar_btn(btn):
-    """Under Tablet er bjaelkens knapper kun deres ikon, saa alle tre kan
-    staa ved siden af titlen - ingen af dem skjules."""
+    """Under Desktop er bjaelkens knapper kun deres ikon, saa alle tre kan
+    staa ved siden af titlen - ingen af dem skjules (issue #392)."""
     w = btn.props["Width"]
     btn.props["Width"] = f"If({NARROW}, 40, {w})"
     btn.props["Layout"] = f"If({NARROW}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     return btn
 
 
-
-BAR_ACTIONS = []
 # Save draft - og panelets Save, som er det samme gem (issue #308).
 SAVE_DM = (f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
            f'DisplayMode.Disabled, DisplayMode.Edit)')
@@ -189,8 +191,8 @@ def build_bar():
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
     actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
-    # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
-    BAR_ACTIONS[:] = [save, submit]
+    # Ingen bundbjaelke paa FL (issue #392): Save draft og Submit staar i
+    # headeren paa alle skaermbredder.
     # Synlig kant rundt om alle sekundaere knapper (feedback).
     for b in (new, edit, save):
         b.props["Appearance"] = "ButtonAppearance.Outline"

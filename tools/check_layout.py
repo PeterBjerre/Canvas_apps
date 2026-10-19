@@ -1153,6 +1153,17 @@ def rule_23(ctx):
             if len(bodies) != 1:
                 problems.append(f"[23a] {rname}: rammen skal have praecis een krop "
                                 f"med LayoutOverflowY = Scroll (fandt {len(bodies)})")
+            # d. Headeren SKAL vaere rammens foerste barn og kroppen det
+            #    andet (issue #392). Rammen er lodret, saa raekkefoelgen ER
+            #    placeringen: staar kroppen foerst, fylder den skaermen
+            #    (FillPortions), og headeren med knapperne havner nederst.
+            names = [list(k)[0] for k in rkids]
+            if (len(bodies) == 1 and len(names) >= 2
+                    and (rkids.index(bodies[0]) != 1
+                         or not names[0].endswith("Header"))):
+                problems.append(f"[23d] {rname}: headeren skal vaere rammens "
+                                f"foerste barn og kroppen det andet - fandt "
+                                f"{', '.join(names)}")
             for k in rkids:
                 (kn, kb), = k.items()
                 kp = kb.get("Properties") or {}
