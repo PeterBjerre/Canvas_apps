@@ -5,7 +5,9 @@ bjaelke midt paa siden bag det.
 
   - Functional Location (Edit, Class data, Manufacturer, Warranty - samme
     panel), Materials, Equipment og Measuring Points har den samme linje
-    over bundbjaelken: hjulet med "Saving...", eller "Save failed" og Retry.
+    over bundbjaelken: "Save failed" og Retry. Mens der gemmes, siger Save
+    selv "Saving..." - det eneste ventetegn (issue #441; foer stod et hjul
+    med "Saving..." i linjen OGSAA).
   - Save og Retry er det samme gem, er spaerret, mens der gemmes, og
     tilstanden saettes foer og efter selve gemmet - ingen timer.
   - Panelets Save taender ikke sidens gem-sloer (img<App>Saving).
@@ -77,13 +79,17 @@ def test_status_line_sits_above_the_footer(screen):
     p, _save = SCREENS[screen]
     kids = _children(screen, f"con{p}EditorPanel")
     assert kids[-2:] == [f"con{p}EditorSaveStatus", f"con{p}EditorFooter"]
+    # Kun fejlen og Retry (issue #441): mens der gemmes, siger Save selv
+    # "Saving..." - hjulet med "Saving..." over bundbjaelken er vaek.
     assert _children(screen, f"con{p}EditorSaveStatus") == [
-        f"spn{p}EditorSaving", f"txt{p}EditorSaveFailed", f"btn{p}EditorRetry"]
+        f"txt{p}EditorSaveFailed", f"btn{p}EditorRetry"]
+    assert "ModernSpinner" not in str(_ctrl(screen, f"con{p}EditorSaveStatus"))
+    assert f"spn{p}EditorSaving" not in str(_tree(screen))
     state = f"var{p}PanelSave"
-    assert _ctrl(screen, f"spn{p}EditorSaving")["Control"].startswith("ModernSpinner")
-    assert _prop(screen, f"spn{p}EditorSaving", "Label") == '"Saving..."'
-    assert _prop(screen, f"spn{p}EditorSaving", "Visible") == f'IfError({state} = "saving", false)'
     failed = f'IfError({state} = "failed", false)'
+    assert _prop(screen, f"con{p}EditorSaveStatus", "Visible") == failed
+    assert _prop(screen, _save, "Text").startswith(
+        f'If(IfError({state} = "saving", false), "Saving...", ')
     assert _prop(screen, f"txt{p}EditorSaveFailed", "Visible") == failed
     assert "Save failed" in _prop(screen, f"txt{p}EditorSaveFailed", "Text")
     assert _prop(screen, f"btn{p}EditorRetry", "Visible") == failed
@@ -139,8 +145,13 @@ def test_issue_board_form_shows_the_save_state_in_the_panel():
     issue/Save changes viser tilstanden under knappen i sidepanelet."""
     foot = _children(IB, "conIbFormFoot")
     assert foot.index("conIbFormFooter") < foot.index("conIbEditorSaveStatus")
+    # Kun fejlen og Retry - knappen siger selv "Submitting..."/"Saving..."
+    # (issue #441).
     assert _children(IB, "conIbEditorSaveStatus") == [
-        "spnIbEditorSaving", "txtIbEditorSaveFailed", "btnIbEditorRetry"]
+        "txtIbEditorSaveFailed", "btnIbEditorRetry"]
+    assert _prop(IB, "conIbEditorSaveStatus", "Visible") == 'IfError(varIbPanelSave = "failed", false)'
+    assert _prop(IB, "btnIbFormSubmit", "Text").startswith(
+        'If(IfError(varIbPanelSave = "saving", false), If(')
     fx = _prop(IB, "btnIbFormSubmit", "OnSelect")
     # Baade ny sag og Edit: panelets tilstand - ikke sidens varIbBusy-sloer.
     assert "varIbBusy, true" not in fx and "Set(varIbBusy, false)" not in fx

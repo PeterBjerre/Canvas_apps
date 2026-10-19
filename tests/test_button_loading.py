@@ -9,7 +9,8 @@ knap, der startede handlingen.
     er slettet, og check_layout regel 16f afviser en bjaelke.
   - Hver knap, der foer taendte bjaelken, siger "Saving..." /
     "Submitting..." / "Deleting..." o.l., mens dens handling koerer, og er
-    spaerret, mens en handling paa skaermen koerer. Hjulet staar ved den.
+    spaerret, mens en handling paa skaermen koerer. Det er handlingens
+    eneste ventetegn (issue #441) - intet hjul ved siden af.
   - Tilstanden saettes lige foer og lige efter selve handlingen - ingen
     timer i OnSelect. Udfaldet ("<noegle>:ok"/":failed") staar ved knappen.
   - Et gennemsigtigt lag fanger tryk imens; det tegner intet.
@@ -166,18 +167,20 @@ def test_state_is_set_right_before_and_after_the_action(screen):
 
 
 @pytest.mark.parametrize("screen", sorted(BUTTONS))
-def test_wheel_and_note_sit_next_to_the_buttons(screen):
+def test_note_sits_next_to_the_buttons(screen):
+    """"Saved"/"Save failed" ved knapperne (issue #420). Hjulet ved siden
+    af er vaek (issue #441) - kun en ren ikonknap har det stadig, se
+    tests/test_one_loading_indicator.py."""
     var = BUTTONS[screen][0]
     text = _read(screen)
-    spins = re.findall(r"^ *- (spn\w+Act):\n", text, re.M)
-    assert spins, screen
-    for s in spins:
-        note = "txt" + s[3:] + "Note"
+    notes = re.findall(r"^ *- (txt\w+ActNote):\n", text, re.M)
+    assert notes, screen
+    for note in notes:
         nb = _block(text, note)
         assert ":ok" in _prop(nb, "Text") and ":failed" in _prop(nb, "Text"), note
         # Groen ved succes, roed ved fejl.
         assert "state-error-fg" in _prop(nb, "Color") and "state-ok-fg" in _prop(nb, "Color")
-        assert var in _prop(_block(text, s), "Visible"), s
+        assert var in _prop(nb, "Visible"), note
 
 
 @pytest.mark.parametrize("screen", sorted(BUTTONS))
