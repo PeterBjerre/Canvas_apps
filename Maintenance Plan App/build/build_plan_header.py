@@ -222,6 +222,7 @@ def summary_height(text_ref):
 CHIP_H = 24
 CHIP_CHAR_W = 7          # 12 px Segoe UI, en lidt rummelig gennemsnitsbredde
 CHIP_PAD = 10
+CHIP_BORDER = 1
 
 
 def status_icon(name, ok_fx, size=20, label_ok="Complete", label_bad="Needs attention"):
@@ -243,18 +244,29 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
     - eller value_chars tegn, naar vaerdiens laengde er kendt."""
     if label_w is None:
         label_w = text_px(label.strip('"'), 12, False) + 2
-    lab = text_ctrl(f"txt{name[3:]}Label", label, size=12, color=C_MUTED, height=CHIP_H, width=label_w,
+    # Teksterne er pillens INDRE hoejde (issue #421): pillen er CHIP_H hoej
+    # med 1 px kant, saa der er CHIP_H - 2 inden i. Var teksterne CHIP_H
+    # hoeje, var de hoejere end pladsen, og med LayoutOverflow.Hide blev
+    # pillen tegnet som en tom kasse med kant.
+    inner_h = CHIP_H - 2 * CHIP_BORDER
+    lab = text_ctrl(f"txt{name[3:]}Label", label, size=12, color=C_MUTED, height=inner_h, width=label_w,
                     wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
     vw = (str(value_chars * CHIP_CHAR_W) if value_chars is not None
           else f"Len({value_fx}) * {CHIP_CHAR_W} + 2")
-    val = text_ctrl(f"txt{name[3:]}Value", value_fx, size=12, weight="Semibold", height=CHIP_H, width=vw,
+    val = text_ctrl(f"txt{name[3:]}Value", value_fx, size=12, weight="Semibold", height=inner_h, width=vw,
                     wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
     w = f"{2 * CHIP_PAD + 4} + ({label_w}) + ({vw})"
     return group(name, [lab, val], direction="Horizontal", gap=4, height=CHIP_H, width=w,
                  align_items="Center", fill=C_NEUTRAL_BG, radius=CHIP_H // 2,
-                 border_color=C_DIVIDER, border_thickness="1",
+                 border_color=C_DIVIDER, border_thickness=str(CHIP_BORDER),
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
+
+# Planens samlede omkostning: alle items' operationer (som build_tasklist.
+# PLAN_COST - den kan ikke importeres herfra, build_tasklist importerer os).
+# Blank (ingen operationer) og 0 giver begge false.
+PLAN_COST = "Sum(colVhpOperations, Cost)"
+FOLD_COST_ON = f"IfError({PLAN_COST} > 0, false)"
 
 FOLD_H = 24                  # titelraekken: ikon og titel (Show staar nu ved resumeet)
 
@@ -272,8 +284,14 @@ def plan_fold_row(fold, toggle_set, show):
     # Planens samlede omkostning (Peter 2026-10-19): omkostningsgodkendelsen
     # gaelder hele planen, saa summen af alle items' operationer staar
     # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
+    #
+    # KUN NAAR DER ER EN SUM (issue #421): uden operationer - eller med en
+    # sum paa 0 - var pillen en tom kasse med kant over Show-knappen. Nu er
+    # den skjult (Visible=false), og en skjult kontrol fylder intet i en
+    # auto-layout-raekke; titlens bredde regner den kun med, naar den ses
+    # (gen_screen._resolve_grow).
     cost = value_chip("conVhpPlanFoldCost", '"Total cost"',
-                      lay.num_text("Sum(colVhpOperations, Cost)") + ' & " DKK"')
+                      lay.num_text(PLAN_COST) + ' & " DKK"', visible=FOLD_COST_ON)
     top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
     # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og
