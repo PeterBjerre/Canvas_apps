@@ -5421,7 +5421,7 @@ Screens:
                                           Text: |-
                                               ="Plan header"
                                           Width: |-
-                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - ((24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)) + 10) - 2)
+                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - (If(IfError(Sum(colVhpOperations, Cost) > 0, false), (24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)) + 10, 0)) - 2)
                                           Wrap: |-
                                               =false
                                     - conVhpPlanFoldCost:
@@ -5468,6 +5468,8 @@ Screens:
                                               =12
                                           RadiusTopRight: |-
                                               =12
+                                          Visible: |-
+                                              =IfError(Sum(colVhpOperations, Cost) > 0, false)
                                           Width: |-
                                               =24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)
                                         Children:
@@ -5489,7 +5491,7 @@ Screens:
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
-                                                    =24
+                                                    =22
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5526,7 +5528,7 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =24
+                                                    =22
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
