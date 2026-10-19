@@ -157,16 +157,17 @@ anmodningen bliver *OprettetISAP*.
 
 ## 5. Flowene
 
-> **Status (R2-021, 2026-10):** flow C og D findes **ikke** i solution-
-> eksporten (`solution/BIOSAP/src/Workflows/`). Om de er bygget i DEV, kan
-> kun ses i Power Automate. **Peters skridt:** se efter
-> `BioSap-FL-SapOrder`/`BioSap-FL-SapReceipt` i DEV. Findes de, så tilføj
-> dem til solution BIO SAP og eksportér (`tools/export_solution.ps1`), så de
-> kommer i repoet – derefter er repoets JSON kilden (docs/22), og
-> `tests/test_request_index_flows.py` tjekker også deres indeksstatus
-> (`OprettetISAP`/trin 5/`IsOpen = false`). Findes de ikke, så byg dem efter
-> dette afsnit med **engelske** mailtekster (emnet nedenfor). Indtil da
-> lukkes FL-anmodninger i indekset kun af en admin i hubben (R2-021).
+> **Status (R2-021, 2026-10):** flow C og D ligger nu i solution-eksporten
+> (`solution/BIOSAP/src/Workflows/BioSap-FL-SapOrder-…json` og
+> `BioSap-FL-SapReceipt-…json`) sammen med de to nye miljøvariabler.
+> Repoets JSON er kilden (docs/22); `tests/test_fl_sap_flows.py` tjekker, at
+> den bruger snippets nedenfor, og `tests/test_request_index_flows.py`
+> tjekker indeksstatussen (`OprettetISAP`/trin 5/`IsOpen = false`).
+> **Peters skridt:** importér solution BIO SAP, sæt de aktuelle værdier på
+> `BioSap-List-FunctionalLocationRequests` og `-Items` (DEV-listerne er
+> standardværdier i flowene), tjek forbindelserne og slå de to flows til.
+> Er et flow D bygget i hånden i DEV, så slet det, så kvitteringerne ikke
+> behandles to gange.
 
 To nye flows i solution BIO SAP, bygget som VH-planernes i
 [`35-flow-sap-ordre.md`](35-flow-sap-ordre.md). Variablen
@@ -181,7 +182,7 @@ forbindelser er de samme. Afsnittet her siger kun, hvad der er anderledes.
    `SapCreatedOn` og `SapCreatedBy` (FunctionalLocationRequests) samt
    `SapResult` og `SapMessage` (FunctionalLocationItems). FL-listerne skal
    findes i forvejen (`Provision-FunctionalLocationLists.ps1`).
-2. To nye miljøvariabler af typen *Data source (liste)*:
+2. To nye miljøvariabler af typen *Data source (liste)* (følger med solutionen):
    `BioSap-List-FunctionalLocationRequests` og
    `BioSap-List-FunctionalLocationItems`. `BioSap-Environment`,
    `BioSap-SapSystem`, `BioSap-SiteUrl` og `BioSap-ErrorNotifiers` findes
@@ -298,16 +299,6 @@ Try
 Catch                                  fejlmail
 ```
 
-**Et flow D bygget før R2-057** (oktober 2026) skal rettes i designeren: indsæt
-den nye `fl-kvittering-2-betingelse.txt` i *Valid receipt* og den nye
-`fl-kvittering-3-merge-row.json` i *Set row result*, og læg *Set index row*,
-*Set request created*, flytningen og mailen ind i Ja-grenen af en ny
-betingelse *Is created* med Nej-grenen nedenfor. Flowet ligger ikke i
-solution-eksporten i repoet, så det kan ikke rettes herfra. Indtil det er
-gjort, afviser det gamle flow en `Partial`-kvittering til *Afvist* med en
-mail til `BioSap-ErrorNotifiers` – intet går tabt, men rækkerne får ikke
-deres resultat.
-
 Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
 
 - ***Get files***: *Limit Entries to Folder* `/SAP-oprettelse/Kvitteringer/FL`.
@@ -332,8 +323,8 @@ Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
   (MERGE på anmodningen med `fl-kvittering-7-merge-request-partial.json`),
   *Move file* til *Behandlet* og en mail til `BioSap-MasterDataEmail` med
   emnet `FL request @{outputs('Receipt')?['requestNo']} partly created in SAP`,
-  rækkerne med `SapResult = Failed` og deres fejl (samme escaping som
-  *Warning lines* i docs/35) og `FlowRunHistoryLink`. Rekvirenten får først
+  rækkerne med `SapResult = Failed` og deres fejl (HTML-escapet, som
+  afvisningsmailen i docs/35) og `FlowRunHistoryLink`. Rekvirenten får først
   mailen, når anmodningen er helt oprettet.
 - ***Set index row***: MERGE på landingssidens række,
   `_api/web/lists/GetByTitle('MD_RequestIndex')/items(@{body('Get_request')?['IndexItemId']})`,
