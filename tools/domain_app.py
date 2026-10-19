@@ -247,7 +247,11 @@ def build_screen(cfg, parts, render):
                   if dp.DOCS and not (panel_enabled and hasattr(parts, "editor_panel_content"))
                   else [])
     # Sloeret: med sidepanel er dokumentpopuppen den eneste, der bruger det.
-    backdrop = [] if (panel_enabled and not dp.DOCS) else [dp.build_backdrop()]
+    # Uden popup intet sloer (issue #393): Materials Documents-FANE saetter
+    # varDomDocsId, og et sloer uden popup laa saa graat over listen, og
+    # intet kunne lukke det.
+    backdrop = ([dp.build_backdrop()]
+                if not panel_enabled or docs_popup else [])
     if panel_enabled:
         extras = _panel_extras(parts)
         if hasattr(parts, "editor_panel_content"):
@@ -273,6 +277,12 @@ def build_screen(cfg, parts, render):
     # sloer/klik-udenfor-lag - ellers tegnes de bagved (issue #279).
     own = parts.build_popups() if hasattr(parts, "build_popups") else []
     below, above = ([], own) if panel_enabled else (own, [])
+    # Dokumentpopuppen aabnes fra sidepanelets Documents-knap (Equipment),
+    # saa den skal ligge OVER panelet og klik-udenfor-laget - ellers laa
+    # den graat bagved, og et klik paa den lukkede panelet (issue #393).
+    docs_above = [*backdrop, *docs_popup] if panel_enabled else []
+    if panel_enabled:
+        backdrop, docs_popup = [], []
     # Appens egne linjer nederst i detaljeruden (opt-in, issue #210).
     extra = parts.details_extra if hasattr(parts, "details_extra") else ()
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
@@ -284,11 +294,13 @@ def build_screen(cfg, parts, render):
                if panel_enabled else [])
     return render(cfg.SCREEN,
                   {"Fill": C_APP_BG, "OnVisible": on_visible(),
-                   **({"OnHidden": "Set(varDomEditorOpen, false)"} if panel_enabled else {})},
+                   **({"OnHidden": "Set(varDomEditorOpen, false)"
+                       + (";\n" + dp.docs_cleanup_fx() if dp.docs_cleanup_fx() else "")}
+                      if panel_enabled else {})},
                                     [root, *nav, *backdrop,
                                      *([] if panel_enabled else [dp.build_details(extra=extra)]),
                                      *docs_popup, *below, *overlay, *outside, *editor,
-                                     *above,
+                                     *docs_above, *above,
                                      *dp.build_row_menu(), *dp.build_paste(),
                    # Bekraeftelserne og ventespinneren - oeverst.
                    *dp.build_delete_confirm(), *dp.build_submit_confirm()])
