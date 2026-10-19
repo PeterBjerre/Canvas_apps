@@ -81,14 +81,15 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            flow_row, grow, icon_on_mobile, label_row, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
-                           ICON_W, modern_badge, spinner)
+                           ICON_W, modern_badge, spinner, panel_save_fx, panel_save_mode,
+                           panel_save_status, panel_save_block, panel_save_text,
+                           act_fx, act_mark, act_button, act_status, act_layers)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex as _hex
 import icons
 import status_chip as sc
 import app_icons
 import layout_tokens as lay
-from progress_overlay import progress_overlay
 from layout_tokens import SHELL_W, below, at_least, if_below
 
 import ib_config as cfg
@@ -126,7 +127,10 @@ INIT_STATE = (
     "    Set(varIbSelFullFor, -1);\n"
     "    Set(varIbTried, false);\n"
     "    Set(varIbBusy, false);\n"
+    '    Set(varIbPanelSave, "");\n'
     "    Set(varIbUploading, false);\n"
+    # Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+    '    Set(varIbAct, "");\n'
     "    Set(varIbSelPeek, false);\n"
     "    Set(varIbPosting, false);\n"
     '    Set(varIbPostStage, "");\n'
@@ -596,7 +600,11 @@ OPEN_EDIT = (
     "Set(varIbDetailOn, false);\n"
     "Set(varIbFormOn, true)"
 )
-CLOSE_FORM = 'Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDetailOn, true))'
+# Formularens gem-tilstand i panelet: saving, failed eller tom (issue #402,
+# build_helpers.panel_save_status). Nulstilles, naar formularen lukkes.
+IB_SAVE = "varIbPanelSave"
+CLOSE_FORM = ('Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDetailOn, true));\n'
+              f'Set({IB_SAVE}, "")')
 
 
 def build_bar():
@@ -1642,6 +1650,15 @@ SAVE_EDIT = (
     "Set(varIbBusy, false)"
 )
 
+def _in_panel(fx):
+    """SUBMIT/SAVE_EDIT fra formularens sidepanel (issue #402): samme gem,
+    men tilstanden er panelets (IB_SAVE) i stedet for sidens varIbBusy."""
+    on, off = "Set(varIbBusy, true);\n", ";\nSet(varIbBusy, false)"
+    assert fx.startswith(on) and fx.endswith(off), fx[:40]
+    return panel_save_fx(IB_SAVE, fx[len(on):-len(off)],
+                         f'Set({IB_SAVE}, If(varIbSaved, "", "failed"))')
+
+
 SIMILAR_ITEMS = (
     "With(\n"
     '    { w: Filter(ForAll(Split(Trim(inpIbTitle.Text), " ") As s, { Word: s.Value }), Len(Word) >= 4) },\n'
@@ -1924,20 +1941,28 @@ def build_form():
     # mens felterne er ufuldstaendige - et tryk siger, hvad der mangler.
     # Kun mens et kald koerer er den laast, og OnSelect tjekker det selv:
     # et hurtigt dobbeltklik naar ikke at sende sagen to gange.
+    # Gemmets tilstand vises i panelet under knappen - ikke som sidens sloer
+    # og bjaelke (issue #402). Retry er det samme tryk.
+    submit_fx = ("If(\n    varIbBusy,\n    false,\n"
+                 f"    !({VALID}),\n"
+                 "    Set(varIbTried, true);\n"
+                 f"    Notify({missing_text}, NotificationType.Warning),\n"
+                 f"    If(\n        {EDITING},\n        "
+                 + _in_panel(SAVE_EDIT).replace("\n", "\n        ") + ",\n        "
+                 + _in_panel(SUBMIT).replace("\n", "\n        ") + "\n    )\n)")
+    idle = "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
     submit = button("btnIbFormSubmit", f'If({EDITING}, "Save changes", "Submit issue")',
-                    "If(\n    varIbBusy,\n    false,\n"
-                    f"    !({VALID}),\n"
-                    "    Set(varIbTried, true);\n"
-                    f"    Notify({missing_text}, NotificationType.Warning),\n"
-                    f"    If(\n        {EDITING},\n        "
-                    + SAVE_EDIT.replace("\n", "\n        ") + ",\n        "
-                    + SUBMIT.replace("\n", "\n        ") + "\n    )\n)", primary=True,
+                    submit_fx, primary=True,
                     width=fit_button_width('"Save changes"') + ICON_W, height=36,
                     icon=f'If({EDITING}, "Save", "Send")',
-                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+                    display_mode=panel_save_mode(IB_SAVE, idle))
+    # "Saving..." / "Submitting..." i knappen, mens der gemmes (issue #420).
+    panel_save_text(submit, IB_SAVE, "Submitting...",
+                    f'If({EDITING}, "Saving...", "Submitting...")')
     footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    foot = group("conIbFormFoot", [footer, missing], direction="Vertical", gap=8)
+    status = panel_save_status("Ib", IB_SAVE, submit_fx, idle)
+    foot = group("conIbFormFoot", [footer, status, missing], direction="Vertical", gap=8)
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
             manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
@@ -1971,22 +1996,32 @@ DET_SAFE_MIN_H = 160
 AFTER_CHANGE = RELOAD_SEL + ";\nIf(IbSeeActivity,\n" + LOAD_ACTIVITY + "\n)"
 
 
-def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
-    """Et kald til flowet med ventespinner og svar. ok_fx koeres kun, naar
-    flowet svarer ok - ellers staar flowets egen grund i beskeden."""
-    return (
-        f"Set({busy}, true);\n"
+# Knappernes ventetilstand (issue #420, build_helpers.act_fx): "reopen",
+# "archive", "delete" eller "upload", mens kaldet koerer, og
+# "<noegle>:ok"/":failed" bagefter. Foer var det et graat sloer med en
+# bjaelke midt paa skaermen (varIbBusy/varIbUploading - de spaerrer stadig
+# de andre knapper).
+IB_ACT = "varIbAct"
+
+
+def _run(action, payload, ok_fx, fail_text, key, busy="varIbBusy"):
+    """Et kald til flowet med knappens ventetilstand og svar. ok_fx koeres
+    kun, naar flowet svarer ok - ellers staar flowets egen grund i
+    beskeden, og "Reopen failed" o.l. ved knappen."""
+    body = (
         f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
         f'    "{action}",\n'
         f"    JSON({payload})\n"
         f"), {FALLBACK}));\n"
         "If(\n"
         '    varIbRes.ok = "yes",\n'
+        f"    {act_mark(IB_ACT, key)};\n"
         "    " + ok_fx.replace("\n", "\n    ") + ",\n"
+        f"    {act_mark(IB_ACT, key, False)};\n"
         f'    Notify("{fail_text} " & varIbRes.message, NotificationType.Error)\n'
-        ");\n"
-        f"Set({busy}, false)"
+        ")"
     )
+    return act_fx(IB_ACT, key, body, busy_var=busy)
 
 
 # Kommentar og intern note (issue #212): flowet svarer foerst, naar
@@ -2078,14 +2113,14 @@ REOPEN = _run(
     # Filtrene roeres ikke (issue #229) - raekken er opdateret i listen.
     'Notify("The issue has been reopened. An administrator will look at it again.", '
     "NotificationType.Success)",
-    "The issue could not be reopened.")
+    "The issue could not be reopened.", "reopen")
 
 ARCHIVE = _run(
     cfg.ACT_ARCHIVE, f"{{ ticketId: varIbSelId, archived: !{SEL}.Archived }}",
     AFTER_CHANGE + ";\n"
     f'Notify(If({SEL}.Archived, "The issue has been archived. It is kept under Archived.", '
     '"The issue has been restored."), NotificationType.Success)',
-    "The issue could not be changed.")
+    "The issue could not be changed.", "archive")
 
 # Permanent sletning: kun fra sin egen bekraeftelse, kun naar nummeret er
 # skrevet, og varIbBusy saettes, foer kaldet gaar - et dobbeltklik rammer
@@ -2097,7 +2132,7 @@ DELETE = _run(
     "Set(varIbDiscardOn, false);\n"
     "Set(varIbDetailOn, false);\n"
     f'Notify({SEL}.TicketNo & " has been deleted permanently.", NotificationType.Success)',
-    "The issue could not be deleted.")
+    "The issue could not be deleted.", "delete")
 
 # Gem filerne (issue #300): EEN Patch af sagens Attachments med kontrollens
 # Attachments-output - nye filer laegges paa, fjernede slettes. Ingen flow
@@ -2105,10 +2140,13 @@ DELETE = _run(
 # allerede findes, faar selv et suffiks af kontrollen (MS Learn), saa
 # appens eget dublet-tjek er ikke noedvendigt mere. Bagefter hentes sagen
 # og filerne igen (AFTER_CHANGE).
-UPLOAD_FILES = attflows.save_fx(
+# Knappens tilstand (issue #420): "upload" mens der gemmes; succes-grenen
+# skriver ":ok", og en Patch, der fejlede, efterlader ":failed".
+UPLOAD_FILES = act_fx(IB_ACT, "upload", attflows.save_fx(
     cfg.L_TICKETS, f"LookUp({cfg.L_TICKETS}, ID = varIbSelId)", "attIbFiles",
     "varIbUploading", None, AFTER_CHANGE + ";",
-    extra_fields=", LastActivityOn: Now()")
+    on_ok=act_mark(IB_ACT, "upload") + ";",
+    extra_fields=", LastActivityOn: Now()"), left="failed")
 
 
 # Issue #369: indholdet i fanen Description staar hver i sin diskrete
@@ -2191,6 +2229,9 @@ def _actions():
                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
     reopen.props["LayoutMinWidth"] = reopen.props["Width"]
     reopen.props["Size"] = str(lay.SIZE_SMALL)
+    # "Reopening..." i knappen (issue #420). Ikon-knapperne har ingen tekst
+    # at skifte - hjulet foran raekken viser, at kaldet koerer.
+    act_button(reopen, IB_ACT, "reopen")
     # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
     # felter, oversigten ikke henter, blive gemt tomme.
     ready = "varIbSelFullFor = varIbSelId"
@@ -2216,7 +2257,11 @@ def _actions():
                           "IbCanManage", '"Delete issue"',
                           '"Delete issue permanently - you confirm first"',
                           "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
-    row = group("conIbDetActions", [reopen, edit, archive, restore, delete], direction="Horizontal",
+    # Hjulet og "Reopened"/"Update failed" foran knapperne (issue #420).
+    # Delete koerer i sin egen popup og viser sin tilstand dér.
+    status = act_status("IbDetAct", IB_ACT, ("reopen", "archive"))
+    row = group("conIbDetActions", [*status, reopen, edit, archive, restore, delete],
+                direction="Horizontal",
                 gap=4, height=f"{hit_size(ICON_BTN)} + 2 * {ACT_PAD}", align_items="Center",
                 justify="End", visible=CAN_ACT)
     # Luft over og under knapperne: kanten og fokusrammen tegnes uden for
@@ -2247,12 +2292,16 @@ def _files_panel():
                 accessible='"Save the attachments on this issue"',
                 display_mode=("If(attIbFiles.IsUploading || varIbUploading || "
                               "varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)"))
-    up.props["AlignInContainer"] = "AlignInContainer.End"
+    # "Saving..." i knappen og hjulet/beskeden lige foran den (issue #420).
+    act_button(up, IB_ACT, "upload")
+    up_row = group("conIbFileSave", [*act_status("IbFilesAct", IB_ACT, ("upload",)), up],
+                   direction="Horizontal", gap=8, height=36, justify="End",
+                   align_items="Center")
     hint = text_ctrl("txtIbFilesHint",
                      f'"Up to {cfg.MAX_FILES} files, {cfg.MAX_FILE_MB} MB each. Everyone '
                      'who uses the Issue Board can open the files - leave out personal data."',
                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    adder = group("conIbFileAdd", [hint, up], direction="Vertical", gap=8,
+    adder = group("conIbFileAdd", [hint, up_row], direction="Vertical", gap=8,
                   visible="IbCanAttach")
     panel = group("conIbDetFiles", [state, picker, adder], direction="Vertical", gap=12,
                   visible='varIbTab = "files"')
@@ -2685,7 +2734,9 @@ def build_delete():
     skrives, teksten siger, at det ikke kan fortrydes, og knappen er laast,
     til nummeret passer, og mens kaldet koerer. Close er eneste vej ud."""
     del_on = "IfError(varIbDelOn, false)"
-    head = _head("IbDel", f'"Delete " & {SEL}.TicketNo & " permanently?"', "Set(varIbDelOn, false)")
+    head = _head("IbDel", f'"Delete " & {SEL}.TicketNo & " permanently?"',
+                 'Set(varIbDelOn, false);\nIf(IfError(varIbAct = "delete:failed", false), '
+                 'Set(varIbAct, ""))')
     warn = text_ctrl(
         "txtIbDelWarn",
         '"This cannot be undone. The issue, all its comments and activity, and its attachments '
@@ -2704,7 +2755,11 @@ def build_delete():
                 width=fit_button_width('"Delete permanently"') + ICON_W, height=36, icon="Delete",
                 accessible=f'"Delete " & {SEL}.TicketNo & " permanently"',
                 display_mode=f"If({match} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    footer = group("conIbDelFooter", [ok], direction="Horizontal", gap=8, height=36,
+    # "Deleting..." i knappen og hjulet ved den; popuppen lukker, naar
+    # sagen er slettet - ellers staar "Delete failed" her (issue #420).
+    act_button(ok, IB_ACT, "delete")
+    footer = group("conIbDelFooter", [*act_status("IbDelAct", IB_ACT, ("delete",)), ok],
+                   direction="Horizontal", gap=8, height=36,
                    justify="End", align_items="Center")
     return [_popup("IbDel", [head, warn, confirm_f], del_on, width="Min(480, App.Width - 24)",
                    foot=footer)]
@@ -2733,11 +2788,13 @@ def _post_timer():
 def build_loading():
     # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
     # hjulet daekker kun det, brugeren selv har sat i gang.
-    # Gem og upload er en ubestemt Progress bar (issue #305); samme Visible.
+    # Gem og upload viser deres tilstand i knappen, der startede dem (issue
+    # #420) - ingen bjaelke midt paa skaermen.
     # En kommentar har sin egen ventetilstand i kommentarfeltet (issue #370) -
     # varIbPosting daekker ikke skaermen.
     return [_post_timer(),
-            *progress_overlay("imgIbBusy", "varIbBusy && !varIbUploading",
-                              "Sending, please wait"),
-            *progress_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
-                              caption="Saving files...")]
+            # Formularens gem: et gennemsigtigt lag, ingen sloer (issue #402).
+            panel_save_block("Ib", IB_SAVE),
+            # Reopen, Archive, Delete og Save documents: knappen viser det
+            # selv (issue #420) - et gennemsigtigt lag, ingen bjaelke.
+            *act_layers("Ib", IB_ACT)]

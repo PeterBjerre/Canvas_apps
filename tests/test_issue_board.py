@@ -376,8 +376,10 @@ def test_new_issue_popup_submits_once_and_closes_only_on_success():
     # siger et tryk hvad - valgfrie felter indgaar ikke i VALID.
     assert submit.startswith(f"If(\n    varIbBusy,\n    false,\n    !({P.VALID}),\n"
                              "    Set(varIbTried, true);\n    Notify(")
-    assert form["btnIbFormSubmit"].props["DisplayMode"] == \
-        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
+    # Issue #402: ogsaa laast, mens panelet gemmer (varIbPanelSave).
+    assert form["btnIbFormSubmit"].props["DisplayMode"] == (
+        'If(IfError(varIbPanelSave = "saving", false), DisplayMode.Disabled, '
+        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit))")
     for optional in ("inpIbSteps", "inpIbExpected", "inpIbActual", "inpIbRelated", "drpIbSeverity"):
         assert optional not in P.VALID
     for required in ("inpIbTitle", "inpIbDesc", "inpIbOther"):
@@ -487,7 +489,9 @@ def test_detail_popup_hierarchy_and_single_close():
     # som ikoner i een raekke under fakta - hver kun, naar den er tilladt;
     # Delete sidst og i fare-farven.
     assert "btnIbMoreActs" not in ctrls and "conIbActsMenu" not in ctrls
-    assert [k.name for k in ctrls["conIbDetActions"].children] == ["btnIbReopen", "btnIbEdit",
+    # Foran knapperne: hjulet og beskeden for Reopen/Archive (issue #420).
+    assert [k.name for k in ctrls["conIbDetActions"].children] == ["spnIbDetAct", "txtIbDetActNote",
+                                                                   "btnIbReopen", "btnIbEdit",
                                                                    "btnIbArchive", "btnIbRestore",
                                                                    "btnIbDelete"]
     assert ctrls["btnIbEdit"].props["Visible"] == "IbCanEdit"
@@ -848,10 +852,11 @@ def test_refresh_never_empties_what_is_shown():
     assert "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh)" in P.LOAD_ACTIVITY
     # Ingen timer til hentningen. Timerne er beskedens (tools/toast.py),
     # der kun taeller, mens en besked er synlig, og kommentarens (issue
-    # #370), der kun taeller, mens en kommentar sendes eller lige er sendt.
+    # #370), der kun taeller, mens en kommentar sendes eller lige er sendt,
+    # og knappernes (issue #420), der kun skjuler en "Saved"-besked igen.
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
-    assert text.count("Control: Timer") == 2
-    assert "tmrIbToast:" in text and "tmrIbPost:" in text
+    assert text.count("Control: Timer") == 3
+    assert "tmrIbToast:" in text and "tmrIbPost:" in text and "tmrIbActDone:" in text
 
 
 def test_changes_update_the_open_issue_and_its_row_without_a_reload():
@@ -878,8 +883,11 @@ def test_comment_posting_is_shown_in_the_comment_area():
     import ib_parts as P
     ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
     loading = {c.name: c for c in _walk_ctrls(P.build_loading())}
-    # Sloeret over hele skaermen gaelder ikke laengere kommentaren.
-    assert "varIbPosting" not in loading["imgIbBusy"].props["Visible"]
+    # Intet lag over hele skaermen, mens en kommentar sendes (issue #420:
+    # sloeret er vaek; det gennemsigtige lag er kun knappernes handlinger).
+    assert "imgIbBusy" not in loading
+    assert "varIbPosting" not in loading["imgIbActBlock"].props["Visible"]
+    assert "varIbAct" not in P.POST
     assert loading["tmrIbPost"].props["Start"] == 'varIbPostStage = "posting" || varIbPostStage = "done"'
     # Hjulet staar i send-ikonets sted, og teksten under feltet viser
     # trinnet (issue #411 - foer #411 erstattede hjulet hele feltet).

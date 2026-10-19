@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Issue #309: paa Functional Location-siden staar Rows oeverst som det
-primaere arbejdsomraade, derefter Classes og saa Structure.
+primaere arbejdsomraade, derefter Classes. Structure-kortet er fjernet
+(issue #432).
 
 Testen laeser den GENEREREDE skaerm i BIO SAP App og laaser raekkefoelgen
 af kortene i conFlBody, saa en senere aendring ikke flytter Rows ned.
@@ -36,10 +37,10 @@ def _body_children(text):
     return names
 
 
-def test_rows_classes_structure_order():
+def test_rows_classes_order():
     text = open(SCREEN, encoding="utf-8").read()
     kids = _body_children(text)
-    assert kids[:3] == ["conFlRowsCard", "conFlClassesCard", "conFlStructCard"], kids
+    assert kids == ["conFlRowsCard", "conFlClassesCard"], kids
 
 
 def test_rows_card_keeps_its_actions():

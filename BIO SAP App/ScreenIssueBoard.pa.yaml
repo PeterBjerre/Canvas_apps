@@ -37,7 +37,9 @@ Screens:
               Set(varIbSelFullFor, -1);
               Set(varIbTried, false);
               Set(varIbBusy, false);
+              Set(varIbPanelSave, "");
               Set(varIbUploading, false);
+              Set(varIbAct, "");
               Set(varIbSelPeek, false);
               Set(varIbPosting, false);
               Set(varIbPostStage, "");
@@ -6796,7 +6798,8 @@ Screens:
                         ),
                         Set(varIbDiscardOn, true),
                         Set(varIbFormOn, false);
-                        If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                        If(varIbFormMode = "edit", Set(varIbDetailOn, true));
+                        Set(varIbPanelSave, "")
                     )
                 )
             PressedFill: |-
@@ -6991,7 +6994,8 @@ Screens:
                                     ),
                                     Set(varIbDiscardOn, true),
                                     Set(varIbFormOn, false);
-                                    If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                                    If(varIbFormMode = "edit", Set(varIbDetailOn, true));
+                                    Set(varIbPanelSave, "")
                                 )
                             )
                         PressedFill: |-
@@ -7021,7 +7025,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(60, Min(94 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 36 - 12 - ((44) + 12 + (1) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)))))
+                      =Max(60, Min(94 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 36 - 12 - ((44) + 12 + (1) + 12 + (36 + If(IfError(varIbPanelSave = "saving", false) || IfError(varIbPanelSave = "failed", false), 8 + (32), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9680,7 +9684,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)
+                      =36 + If(IfError(varIbPanelSave = "saving", false) || IfError(varIbPanelSave = "failed", false), 8 + (32), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9729,7 +9733,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  =If(varIbFormMode = "edit", "Save changes", "Submit issue")
+                                  =If(IfError(varIbPanelSave = "saving", false), If(varIbFormMode = "edit", "Saving...", "Submitting..."), If(varIbFormMode = "edit", "Save changes", "Submit issue"))
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -9739,7 +9743,7 @@ Screens:
                               Color: |-
                                   =C.'text-on-primary'
                               DisplayMode: |-
-                                  =If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(IfError(varIbPanelSave = "saving", false), DisplayMode.Disabled, If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -9749,7 +9753,7 @@ Screens:
                               Icon: |-
                                   =If(varIbFormMode = "edit", "Save", "Send")
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(IfError(varIbPanelSave = "saving", false), ButtonLayout.TextOnly, ButtonLayout.IconBefore)
                               OnSelect: |-
                                   =If(
                                       varIbBusy,
@@ -9759,7 +9763,7 @@ Screens:
                                       Set(gblToast, { Text: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", Kind: "Warning", At: Now() }); true,
                                       If(
                                           varIbFormMode = "edit",
-                                          Set(varIbBusy, true);
+                                          Set(varIbPanelSave, "saving");
                                           Set(varIbSaved, false);
                                           Set(varIbCur, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
                                           If(
@@ -9850,8 +9854,8 @@ Screens:
                                                   Set(gblToast, { Text: "Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), Kind: "Warning", At: Now() }); true
                                               )
                                           );
-                                          Set(varIbBusy, false),
-                                          Set(varIbBusy, true);
+                                          Set(varIbPanelSave, If(varIbSaved, "", "failed")),
+                                          Set(varIbPanelSave, "saving");
                                           Set(varIbSaved, false);
                                           IfError(
                                               Set(varIbNewRow, Patch(
@@ -9938,7 +9942,7 @@ Screens:
                                               Set(varIbDetailOn, true);
                                               Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
                                           );
-                                          Set(varIbBusy, false)
+                                          Set(varIbPanelSave, If(varIbSaved, "", "failed"))
                                       )
                                   )
                               RadiusBottomLeft: |-
@@ -9952,11 +9956,344 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  =If(varIbFormMode = "edit", "Save changes", "Submit issue")
+                                  =If(IfError(varIbPanelSave = "saving", false), If(varIbFormMode = "edit", "Saving...", "Submitting..."), If(varIbFormMode = "edit", "Save changes", "Submit issue"))
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
                                   =164
+                  - conIbEditorSaveStatus:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =32
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =IfError(varIbPanelSave = "saving", false) || IfError(varIbPanelSave = "failed", false)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - spnIbEditorSaving:
+                            Control: ModernSpinner@1.1.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Saving"
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =32
+                              Label: |-
+                                  ="Saving..."
+                              Size: |-
+                                  =T.body
+                              Visible: |-
+                                  =IfError(varIbPanelSave = "saving", false)
+                              Width: |-
+                                  =120
+                        - txtIbEditorSaveFailed:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Save failed. Your changes are kept."
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-error-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =0
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Save failed. Your changes are kept."
+                              Visible: |-
+                                  =IfError(varIbPanelSave = "failed", false)
+                              Width: |-
+                                  =Max(0, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 18 - 18))) - (If(IfError(varIbPanelSave = "saving", false), (120) + 8, 0)) - (If(IfError(varIbPanelSave = "failed", false), (73) + 8, 0)) - 2)
+                              Wrap: |-
+                                  =false
+                        - btnIbEditorRetry:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Retry"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IfError(varIbPanelSave = "saving", false), DisplayMode.Disabled, If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit))
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =If(
+                                      varIbBusy,
+                                      false,
+                                      !(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))),
+                                      Set(varIbTried, true);
+                                      Set(gblToast, { Text: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", Kind: "Warning", At: Now() }); true,
+                                      If(
+                                          varIbFormMode = "edit",
+                                          Set(varIbPanelSave, "saving");
+                                          Set(varIbSaved, false);
+                                          Set(varIbCur, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
+                                          If(
+                                              IsBlank(varIbCur),
+                                              Set(gblToast, { Text: "The issue could not be loaded. It may have been deleted - close it and try again.", Kind: "Error", At: Now() }); true,
+                                              !IsAdmin && (varIbCur.Status.Value <> "New" || Coalesce(varIbCur.IsArchived, false)),
+                                              Set(gblToast, { Text: "You can edit your issue only while it is New. Add a comment instead.", Kind: "Warning", At: Now() }); true,
+                                              IfError(
+                                                  Set(varIbEdited, Patch(
+                                                      IB_Tickets,
+                                                      varIbCur,
+                                                      {
+                                                          Title: Trim(inpIbTitle.Text),
+                                                          Description: Trim(inpIbDesc.Text),
+                                                          ReproSteps: Trim(inpIbSteps.Text),
+                                                          ExpectedResult: Trim(inpIbExpected.Text),
+                                                          ActualResult: Trim(inpIbActual.Text),
+                                                          Application: varIbFormApp,
+                                                          Section: varIbFormSection,
+                                                          OtherContext: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                          RelatedRequestNo: Trim(inpIbRelated.Text),
+                                                          Severity: { Value: Coalesce(drpIbSeverity.Selected.Value, "Minor") },
+                                                          Status: { Value: If(IsAdmin, Coalesce(drpIbStatus.Selected.Value, varIbCur.Status.Value), varIbCur.Status.Value) },
+                                                          Priority: { Value: If(IsAdmin, Coalesce(drpIbPriority.Selected.Value, varIbCur.Priority.Value, "Normal"), Coalesce(varIbCur.Priority.Value, "Normal")) },
+                                                          AssignedToEmail: If(IsAdmin, Lower(Coalesce(drpIbAssignee.Selected.Email, "")), varIbCur.AssignedToEmail),
+                                                          AssignedToName: If(IsAdmin, If(IsBlank(Lower(Coalesce(drpIbAssignee.Selected.Email, ""))), "", Upper(First(Split(Lower(Coalesce(drpIbAssignee.Selected.Email, "")), "@")).Value)), varIbCur.AssignedToName),
+                                                          Resolution: If(IsAdmin, Trim(inpIbResolution.Text), varIbCur.Resolution),
+                                                          LastActivityOn: Now()
+                                                      }
+                                                  ));
+                                                  Set(varIbSaved, true),
+                                                  Set(gblToast, { Text: "The changes could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true
+                                              )
+                                          );
+                                          If(
+                                              varIbSaved,
+                                              Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                                  "edit",
+                                                  JSON({
+                                                      ticketId: varIbSelId,
+                                                      prev: {
+                                                          title: Coalesce(varIbCur.Title, ""),
+                                                          description: Coalesce(varIbCur.Description, ""),
+                                                          steps: Coalesce(varIbCur.ReproSteps, ""),
+                                                          expected: Coalesce(varIbCur.ExpectedResult, ""),
+                                                          actual: Coalesce(varIbCur.ActualResult, ""),
+                                                          application: Coalesce(varIbCur.Application, ""),
+                                                          section: Coalesce(varIbCur.Section, ""),
+                                                          other: Coalesce(varIbCur.OtherContext, ""),
+                                                          relatedNo: Coalesce(varIbCur.RelatedRequestNo, ""),
+                                                          severity: Coalesce(varIbCur.Severity.Value, ""),
+                                                          status: Coalesce(varIbCur.Status.Value, "New"),
+                                                          priority: Coalesce(varIbCur.Priority.Value, "Normal"),
+                                                          assignee: Lower(Coalesce(varIbCur.AssignedToEmail, "")),
+                                                          resolution: Coalesce(varIbCur.Resolution, "")
+                                                      }
+                                                  })
+                                              ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                              Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbEdited.ID).HasFiles, false), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSelFullFor, varIbSelId);
+                                              UpdateIf(colIbAll, Id = varIbSelId, varIbSel);
+                                              Set(varIbActBusy, true);
+                                              Set(varIbActFailed, IfError(ClearCollect(
+                                                  colIbActFresh,
+                                                  { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                  ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                      With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                          { Kind: k,
+                                                            Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                            Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                            Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                  k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                  Coalesce(r.Content, "")),
+                                                            At: Coalesce(r.EventOn, r.Created),
+                                                            Internal: r.Visibility.Value = "Internal",
+                                                            IsSystem: k <> "Comment",
+                                                            File: Coalesce(r.FileName, ""),
+                                                            SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                            Initial: atSub })))
+                                              ; false, true));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
+                                              Set(varIbActBusy, false);
+                                              Set(varIbFormOn, false);
+                                              Set(varIbDetailOn, true);
+                                              If(
+                                                  varIbRes.ok = "yes",
+                                                  Set(gblToast, { Text: "Your changes have been saved.", Kind: "Success", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), Kind: "Warning", At: Now() }); true
+                                              )
+                                          );
+                                          Set(varIbPanelSave, If(varIbSaved, "", "failed")),
+                                          Set(varIbPanelSave, "saving");
+                                          Set(varIbSaved, false);
+                                          IfError(
+                                              Set(varIbNewRow, Patch(
+                                                  IB_Tickets,
+                                                  Defaults(IB_Tickets),
+                                                  {
+                                                      Title: Trim(inpIbTitle.Text),
+                                                      Description: Trim(inpIbDesc.Text),
+                                                      ReproSteps: Trim(inpIbSteps.Text),
+                                                      ExpectedResult: Trim(inpIbExpected.Text),
+                                                      ActualResult: Trim(inpIbActual.Text),
+                                                      Application: varIbFormApp,
+                                                      Section: varIbFormSection,
+                                                      OtherContext: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                      RelatedRequestNo: Trim(inpIbRelated.Text),
+                                                      Severity: { Value: Coalesce(drpIbSeverity.Selected.Value, "Minor") },
+                                                      LayoutContext: Left("Opened from " & Coalesce(If(IbFrom = "", Blank(), IbFrom), "the Issue Board") & " · " & LayoutContext & " layout · " & App.Width & " x " & App.Height, 250),
+                                                      ClientContext: Left(Host.OSType & " · " & Host.BrowserUserAgent, 250),
+                                                      Priority: { Value: "Normal" },
+                                                      Status: { Value: "New" },
+                                                      ReporterEmail: varIbMe,
+                                                      ReporterName: Left(User().FullName, 255),
+                                                      LastActivityOn: Now(),
+                                                      IsArchived: false
+                                                  }
+                                              ));
+                                              Set(varIbSaved, true),
+                                              Set(gblToast, { Text: "The issue could not be submitted. " & FirstError.Message, Kind: "Error", At: Now() }); true
+                                          );
+                                          If(
+                                              varIbSaved,
+                                              Set(varIbSelId, varIbNewRow.ID);
+                                              Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), HasFiles: false, PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              RemoveIf(colIbAll, Id = varIbSelId);
+                                              Collect(colIbAll, varIbNew);
+                                              Set(varIbScope, "mine");
+                                              Set(varIbState, "open");
+                                              Set(varIbFormOn, false);
+                                              Set(varIbFormApp, "");
+                                              Set(varIbFormSection, "");
+                                              Set(varIbMore, false);
+                                              Reset(drpIbFormApp);
+                                              Reset(drpIbFormSection);
+                                              Reset(inpIbOther);
+                                              Reset(inpIbTitle);
+                                              Reset(inpIbDesc);
+                                              Reset(inpIbSteps);
+                                              Reset(inpIbExpected);
+                                              Reset(inpIbActual);
+                                              Reset(inpIbRelated);
+                                              Reset(drpIbSeverity);
+                                              Reset(drpIbStatus);
+                                              Reset(drpIbPriority);
+                                              Reset(drpIbAssignee);
+                                              Reset(inpIbResolution);
+                                              Set(varIbSel, varIbNew);
+                                              Set(varIbSelPeek, false);
+                                              Set(varIbSelFullFor, varIbSelId);
+                                              Set(varIbTab, "details");
+                                              Set(varIbInternal, false);
+                                              Set(varIbFilesFor, -1);
+                                              Reset(inpIbComment);
+                                              Set(varIbActBusy, true);
+                                              Set(varIbActFailed, IfError(ClearCollect(
+                                                  colIbActFresh,
+                                                  { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                  ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                      With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                          { Kind: k,
+                                                            Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                            Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                            Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                  k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                  Coalesce(r.Content, "")),
+                                                            At: Coalesce(r.EventOn, r.Created),
+                                                            Internal: r.Visibility.Value = "Internal",
+                                                            IsSystem: k <> "Comment",
+                                                            File: Coalesce(r.FileName, ""),
+                                                            SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                            Initial: atSub })))
+                                              ; false, true));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
+                                              Set(varIbActBusy, false);
+                                              Set(varIbDetailOn, true);
+                                              Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
+                                          );
+                                          Set(varIbPanelSave, If(varIbSaved, "", "failed"))
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Retry"
+                              Tooltip: |-
+                                  ="Try to save again"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =IfError(varIbPanelSave = "failed", false)
+                              Width: |-
+                                  =73
                   - txtIbFormMissing:
                       Control: ModernText
                       Properties:
@@ -10277,7 +10614,8 @@ Screens:
                         OnSelect: |-
                             =Set(varIbDiscardOn, false);
                             Set(varIbFormOn, false);
-                            If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                            If(varIbFormMode = "edit", Set(varIbDetailOn, true));
+                            Set(varIbPanelSave, "")
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -11925,11 +12263,75 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - spnIbDetAct:
+                            Control: ModernSpinner@1.1.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Switch(varIbAct, "reopen", "Reopening, please wait", "archive", "Updating, please wait", "Please wait")
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =24
+                              Label: |-
+                                  =""
+                              LayoutMinWidth: |-
+                                  =24
+                              Visible: |-
+                                  =(IfError(varIbAct = "reopen", false) || IfError(varIbAct = "archive", false))
+                              Width: |-
+                                  =24
+                        - txtIbDetActNote:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(IfError(varIbAct in ["reopen:failed", "archive:failed"], false), C.'state-error-fg', C.'state-ok-fg')
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =Switch(varIbAct, "reopen:ok", 68, "archive:ok", 59, "reopen:failed", 91, "archive:failed", 89, 0)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  =Switch(varIbAct, "reopen:ok", "Reopened", "archive:ok", "Updated", "reopen:failed", "Reopen failed", "archive:failed", "Update failed", "")
+                              Visible: |-
+                                  =IfError(varIbAct in ["reopen:ok", "archive:ok", "reopen:failed", "archive:failed"], false)
+                              Width: |-
+                                  =Switch(varIbAct, "reopen:ok", 68, "archive:ok", 59, "reopen:failed", 91, "archive:failed", 89, 0)
+                              Wrap: |-
+                                  =false
                         - btnIbReopen:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Reopen this issue - the problem is still there"
+                                  =If(IfError(varIbAct = "reopen", false), "Reopening...", "Reopen this issue - the problem is still there")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -11943,7 +12345,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), DisplayMode.Disabled, If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -11953,15 +12355,17 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =89
+                                  =If(IfError(varIbAct = "reopen", false), Max(130, 89), 89)
                               OnSelect: |-
-                                  =Set(varIbBusy, true);
+                                  =Set(varIbAct, "reopen");
+                                  Set(varIbBusy, true);
                                   Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
                                       "reopen",
                                       JSON({ ticketId: varIbSelId, reason: "" })
                                   ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                   If(
                                       varIbRes.ok = "yes",
+                                      Set(varIbAct, "reopen:ok");
                                       With(
                                           { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                           If(
@@ -12006,9 +12410,11 @@ Screens:
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: "The issue has been reopened. An administrator will look at it again.", Kind: "Success", At: Now() }); true,
+                                      Set(varIbAct, "reopen:failed");
                                       Set(gblToast, { Text: "The issue could not be reopened. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
-                                  Set(varIbBusy, false)
+                                  Set(varIbBusy, false);
+                                  If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), Set(varIbAct, ""))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -12020,13 +12426,13 @@ Screens:
                               Size: |-
                                   =T.small
                               Text: |-
-                                  ="Reopen"
+                                  =If(IfError(varIbAct = "reopen", false), "Reopening...", "Reopen")
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
                                   =IbCanReopen
                               Width: |-
-                                  =89
+                                  =If(IfError(varIbAct = "reopen", false), Max(130, 89), 89)
                         - btnIbEdit:
                             Control: ModernButton
                             Properties:
@@ -12133,13 +12539,15 @@ Screens:
                               ImagePosition: |-
                                   =ImagePosition.Center
                               OnSelect: |-
-                                  =Set(varIbBusy, true);
+                                  =Set(varIbAct, "archive");
+                                  Set(varIbBusy, true);
                                   Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
                                       "archive",
                                       JSON({ ticketId: varIbSelId, archived: !varIbSel.Archived })
                                   ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                   If(
                                       varIbRes.ok = "yes",
+                                      Set(varIbAct, "archive:ok");
                                       With(
                                           { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                           If(
@@ -12184,9 +12592,11 @@ Screens:
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
+                                      Set(varIbAct, "archive:failed");
                                       Set(gblToast, { Text: "The issue could not be changed. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
-                                  Set(varIbBusy, false)
+                                  Set(varIbBusy, false);
+                                  If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), Set(varIbAct, ""))
                               PressedFill: |-
                                   =If((If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                               RadiusBottomLeft: |-
@@ -12239,13 +12649,15 @@ Screens:
                               LayoutMinWidth: |-
                                   =44
                               OnSelect: |-
-                                  =Set(varIbBusy, true);
+                                  =Set(varIbAct, "archive");
+                                  Set(varIbBusy, true);
                                   Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
                                       "archive",
                                       JSON({ ticketId: varIbSelId, archived: !varIbSel.Archived })
                                   ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                   If(
                                       varIbRes.ok = "yes",
+                                      Set(varIbAct, "archive:ok");
                                       With(
                                           { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                           If(
@@ -12290,9 +12702,11 @@ Screens:
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
+                                      Set(varIbAct, "archive:failed");
                                       Set(gblToast, { Text: "The issue could not be changed. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
-                                  Set(varIbBusy, false)
+                                  Set(varIbBusy, false);
+                                  If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), Set(varIbAct, ""))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -14700,104 +15114,200 @@ Screens:
                                         ="Up to 10 files, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
                                     Wrap: |-
                                         =true
-                              - btnIbUpload:
-                                  Control: ModernButton
+                              - conIbFileSave:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Save the attachments on this issue"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.End
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    Color: |-
-                                        =C.'text-on-primary'
-                                    DisplayMode: |-
-                                        =If(attIbFiles.IsUploading || varIbUploading || varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
                                         =36
-                                    Icon: |-
-                                        ="Save"
-                                    Layout: |-
-                                        =ButtonLayout.IconBefore
-                                    OnSelect: |-
-                                        =Set(varIbUploading, true);
-                                        IfError(
-                                            Patch(
-                                                IB_Tickets,
-                                                LookUp(IB_Tickets, ID = varIbSelId),
-                                                { Attachments: attIbFiles.Attachments, LastActivityOn: Now() }
-                                            );
-                                            true,
-                                            Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
-                                            With(
-                                                { r: LookUp(IB_Tickets, ID = varIbSelId) },
-                                                If(
-                                                    IsBlank(r),
-                                                    RemoveIf(colIbAll, Id = varIbSelId);
-                                                    Set(varIbDetailOn, false),
-                                                    Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                                    Set(varIbSelFullFor, varIbSelId);
-                                                    If(varIbTab = "files",
-                                                        Set(varIbFilesBusy, true);
-                                                        Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
-                                                        Set(varIbFilesFor, varIbSelId);
-                                                        If(!varIbFilesFailed,
-                                                            Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
-                                                            UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
-                                                        Set(varIbFilesBusy, false)
-                                                    , Set(varIbFilesFor, -1));
-                                                    UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
-                                                )
-                                            );
-                                            If(IbSeeActivity,
-                                            Set(varIbActBusy, true);
-                                            Set(varIbActFailed, IfError(ClearCollect(
-                                                colIbActFresh,
-                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                                ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                                    With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                        { Kind: k,
-                                                          Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
-                                                          Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
-                                                          Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                                k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                                Coalesce(r.Content, "")),
-                                                          At: Coalesce(r.EventOn, r.Created),
-                                                          Internal: r.Visibility.Value = "Internal",
-                                                          IsSystem: k <> "Comment",
-                                                          File: Coalesce(r.FileName, ""),
-                                                          SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                          Initial: atSub })))
-                                            ; false, true));
-                                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
-                                            Set(varIbActBusy, false)
-                                            );
-                                            Reset(attIbFiles);
-                                            Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
-                                        );
-                                        Set(varIbUploading, false)
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =T.input
-                                    Text: |-
-                                        ="Save documents"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutJustifyContent: |-
+                                        =LayoutJustifyContent.End
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =179
+                                        =Parent.Width
+                                  Children:
+                                    - spnIbFilesAct:
+                                        Control: ModernSpinner@1.1.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Switch(varIbAct, "upload", "Saving, please wait", "Please wait")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =24
+                                          Label: |-
+                                              =""
+                                          LayoutMinWidth: |-
+                                              =24
+                                          Visible: |-
+                                              =(IfError(varIbAct = "upload", false))
+                                          Width: |-
+                                              =24
+                                    - txtIbFilesActNote:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(IfError(varIbAct in ["upload:failed"], false), C.'state-error-fg', C.'state-ok-fg')
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          LayoutMinWidth: |-
+                                              =Switch(varIbAct, "upload:ok", 72, "upload:failed", 72, 0)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =Switch(varIbAct, "upload:ok", "Files saved", "upload:failed", "Save failed", "")
+                                          Visible: |-
+                                              =IfError(varIbAct in ["upload:ok", "upload:failed"], false)
+                                          Width: |-
+                                              =Switch(varIbAct, "upload:ok", 72, "upload:failed", 72, 0)
+                                          Wrap: |-
+                                              =false
+                                    - btnIbUpload:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(IfError(varIbAct = "upload", false), "Saving...", "Save the attachments on this issue")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          Color: |-
+                                              =C.'text-on-primary'
+                                          DisplayMode: |-
+                                              =If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), DisplayMode.Disabled, If(attIbFiles.IsUploading || varIbUploading || varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit))
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Icon: |-
+                                              ="Save"
+                                          Layout: |-
+                                              =ButtonLayout.IconBefore
+                                          OnSelect: |-
+                                              =Set(varIbAct, "upload");
+                                              Set(varIbUploading, true);
+                                              IfError(
+                                                  Patch(
+                                                      IB_Tickets,
+                                                      LookUp(IB_Tickets, ID = varIbSelId),
+                                                      { Attachments: attIbFiles.Attachments, LastActivityOn: Now() }
+                                                  );
+                                                  true,
+                                                  Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
+                                                  With(
+                                                      { r: LookUp(IB_Tickets, ID = varIbSelId) },
+                                                      If(
+                                                          IsBlank(r),
+                                                          RemoveIf(colIbAll, Id = varIbSelId);
+                                                          Set(varIbDetailOn, false),
+                                                          Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                          Set(varIbSelFullFor, varIbSelId);
+                                                          If(varIbTab = "files",
+                                                              Set(varIbFilesBusy, true);
+                                                              Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                              Set(varIbFilesFor, varIbSelId);
+                                                              If(!varIbFilesFailed,
+                                                                  Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                                  UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                              Set(varIbFilesBusy, false)
+                                                          , Set(varIbFilesFor, -1));
+                                                          UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
+                                                      )
+                                                  );
+                                                  If(IbSeeActivity,
+                                                  Set(varIbActBusy, true);
+                                                  Set(varIbActFailed, IfError(ClearCollect(
+                                                      colIbActFresh,
+                                                      { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                      ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                          With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                              { Kind: k,
+                                                                Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                                Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                                Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                      k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                      Coalesce(r.Content, "")),
+                                                                At: Coalesce(r.EventOn, r.Created),
+                                                                Internal: r.Visibility.Value = "Internal",
+                                                                IsSystem: k <> "Comment",
+                                                                File: Coalesce(r.FileName, ""),
+                                                                SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                                Initial: atSub })))
+                                                  ; false, true));
+                                                  If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
+                                                  Set(varIbActBusy, false)
+                                                  );
+                                                  Set(varIbAct, "upload:ok");
+                                                  Reset(attIbFiles);
+                                                  Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
+                                              );
+                                              Set(varIbUploading, false);
+                                              If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), Set(varIbAct, varIbAct & ":failed"))
+                                          RadiusBottomLeft: |-
+                                              =R.input
+                                          RadiusBottomRight: |-
+                                              =R.input
+                                          RadiusTopLeft: |-
+                                              =R.input
+                                          RadiusTopRight: |-
+                                              =R.input
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =If(IfError(varIbAct = "upload", false), "Saving...", "Save documents")
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =If(IfError(varIbAct = "upload", false), Max(126, 179), 179)
       - conIbDelBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -14986,7 +15496,8 @@ Screens:
                               LayoutMinWidth: |-
                                   =44
                               OnSelect: |-
-                                  =Set(varIbDelOn, false)
+                                  =Set(varIbDelOn, false);
+                                  If(IfError(varIbAct = "delete:failed", false), Set(varIbAct, ""))
                               PressedFill: |-
                                   =C.'row-pressed'
                               RadiusBottomLeft: |-
@@ -15197,11 +15708,75 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - spnIbDelAct:
+                            Control: ModernSpinner@1.1.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Switch(varIbAct, "delete", "Deleting, please wait", "Please wait")
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =24
+                              Label: |-
+                                  =""
+                              LayoutMinWidth: |-
+                                  =24
+                              Visible: |-
+                                  =(IfError(varIbAct = "delete", false))
+                              Width: |-
+                                  =24
+                        - txtIbDelActNote:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(IfError(varIbAct in ["delete:failed"], false), C.'state-error-fg', C.'state-ok-fg')
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =Switch(varIbAct, "delete:ok", 53, "delete:failed", 83, 0)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  =Switch(varIbAct, "delete:ok", "Deleted", "delete:failed", "Delete failed", "")
+                              Visible: |-
+                                  =IfError(varIbAct in ["delete:ok", "delete:failed"], false)
+                              Width: |-
+                                  =Switch(varIbAct, "delete:ok", 53, "delete:failed", 83, 0)
+                              Wrap: |-
+                                  =false
                         - btnIbDelConfirm:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Delete " & varIbSel.TicketNo & " permanently"
+                                  =If(IfError(varIbAct = "delete", false), "Deleting...", "Delete " & varIbSel.TicketNo & " permanently")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -15215,7 +15790,7 @@ Screens:
                               Color: |-
                                   =C.'state-error-fg'
                               DisplayMode: |-
-                                  =If(Upper(Trim(inpIbDelConfirm.Text)) = Upper(varIbSel.TicketNo) && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)
+                                  =If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), DisplayMode.Disabled, If(Upper(Trim(inpIbDelConfirm.Text)) = Upper(varIbSel.TicketNo) && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -15227,21 +15802,25 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.IconBefore
                               OnSelect: |-
-                                  =Set(varIbBusy, true);
+                                  =Set(varIbAct, "delete");
+                                  Set(varIbBusy, true);
                                   Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
                                       "delete",
                                       JSON({ ticketId: varIbSelId, confirm: Trim(inpIbDelConfirm.Text) })
                                   ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                   If(
                                       varIbRes.ok = "yes",
+                                      Set(varIbAct, "delete:ok");
                                       RemoveIf(colIbAll, Id = varIbSelId);
                                       Set(varIbDelOn, false);
                                       Set(varIbDiscardOn, false);
                                       Set(varIbDetailOn, false);
                                       Set(gblToast, { Text: varIbSel.TicketNo & " has been deleted permanently.", Kind: "Success", At: Now() }); true,
+                                      Set(varIbAct, "delete:failed");
                                       Set(gblToast, { Text: "The issue could not be deleted. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
-                                  Set(varIbBusy, false)
+                                  Set(varIbBusy, false);
+                                  If(IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false), Set(varIbAct, ""))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -15253,11 +15832,11 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Delete permanently"
+                                  =If(IfError(varIbAct = "delete", false), "Deleting...", "Delete permanently")
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =201
+                                  =If(IfError(varIbAct = "delete", false), Max(137, 201), 201)
       - tmrIbPost:
           Control: Timer
           Properties:
@@ -15284,17 +15863,17 @@ Screens:
                 =false
             Width: |-
                 =1
-      - imgIbBusy:
+      - imgIbEditorSaveBlock:
           Control: Image
           Properties:
             AccessibleLabel: |-
-                ="Sending, please wait"
+                ="Saving, please wait"
             BorderStyle: |-
                 =BorderStyle.None
             BorderThickness: |-
                 =0
             Fill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             FocusedBorderColor: |-
                 =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
@@ -15302,143 +15881,77 @@ Screens:
             Height: |-
                 =App.Height
             HoverFill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             Image: |-
                 =""
             PressedFill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varIbBusy && !varIbUploading, false)
+                =IfError(varIbPanelSave = "saving", false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
-      - prgIbBusy:
-          Control: ModernProgressBar@1.0.0
+      - tmrIbActDone:
+          Control: Timer
           Properties:
-            AccessibleLabel: |-
-                ="Sending, please wait"
-            Height: |-
-                =8
-            Indeterminate: |-
-                =true
-            ProgressColor: |-
-                =ProgressColor.Brand
-            Shape: |-
-                =ProgressShape.Rounded
-            Thickness: |-
-                =ProgressThickness.Large
-            Visible: |-
-                =IfError(varIbBusy && !varIbUploading, false)
-            Width: |-
-                =Min(320, App.Width - 32)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =(App.Height - Self.Height) / 2
-      - imgIbUploading:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Saving files, please wait"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =0
-            Visible: |-
-                =IfError(varIbUploading, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - prgIbUploading:
-          Control: ModernProgressBar@1.0.0
-          Properties:
-            AccessibleLabel: |-
-                ="Saving files, please wait"
-            Height: |-
-                =8
-            Indeterminate: |-
-                =true
-            ProgressColor: |-
-                =ProgressColor.Brand
-            Shape: |-
-                =ProgressShape.Rounded
-            Thickness: |-
-                =ProgressThickness.Large
-            Visible: |-
-                =IfError(varIbUploading, false)
-            Width: |-
-                =Min(320, App.Width - 32)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =(App.Height - Self.Height) / 2
-      - txtIbUploadingCaption:
-          Control: ModernText
-          Properties:
-            AccessibleLabel: |-
-                ="Saving files..."
-            Align: |-
-                =Align.Center
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Color: |-
-                =C.'text-primary'
-            Fill: |-
-                =RGBA(0, 0, 0, 0)
-            Font: |-
-                =Font.'Segoe UI'
-            FontWeight: |-
-                =FontWeight.Semibold
-            Height: |-
-                =24
-            PaddingBottom: |-
-                =0
-            PaddingLeft: |-
-                =0
-            PaddingRight: |-
-                =0
-            PaddingTop: |-
-                =0
-            Size: |-
-                =T.input
-            Text: |-
-                ="Saving files..."
-            Visible: |-
-                =IfError(varIbUploading, false)
-            Width: |-
-                =Min(320, App.Width - 32)
-            Wrap: |-
+            AutoPause: |-
                 =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =4000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(IfError(EndsWith(varIbAct, ":ok"), false), Set(varIbAct, ""))
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(EndsWith(varIbAct, ":ok"), false)
+            Start: |-
+                =IfError(EndsWith(varIbAct, ":ok"), false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
+      - imgIbActBlock:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Please wait"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =RGBA(0, 0, 0, 0)
+            Image: |-
+                =""
+            PressedFill: |-
+                =RGBA(0, 0, 0, 0)
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(!IsBlank(varIbAct) && !(":" in varIbAct), false)
+            Width: |-
+                =App.Width
             X: |-
-                =(App.Width - Self.Width) / 2
+                =0
             Y: |-
-                =App.Height / 2 + 16
+                =0
       - conIbToast:
           Control: GroupContainer
           Variant: AutoLayout

@@ -51,19 +51,25 @@ from gen_screen import (Ctrl, SHELL_W, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTE
                         C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG)
 import layout_tokens as lay
-from progress_overlay import progress_overlay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker,
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, top_bar, grow, flow_ok,
                            flow_row, label_px, text_px,
-                           with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           act_fx, act_mark, act_button, act_status, act_layers,
+                           confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
                            request_actions, row_list)
 
-# Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
-SAVING_VAR = "varDomSaving"
+# Knappernes ventetilstand (issue #420, build_helpers.act_fx): handlingens
+# noegle ("save", "submit", "duplicate", "delete", "add"), mens den koerer,
+# og "<noegle>:ok"/":failed" bagefter. Foer var det varDomSaving og et graat
+# sloer med en bjaelke midt paa skaermen.
+ACT_VAR = "varDomAct"
+# Sidepanelets gem-tilstand: "saving", "failed" eller tom (issue #402,
+# build_helpers.panel_save_status).
+PANEL_SAVE_VAR = "varDomPanelSave"
 
 # Appens "Data row limit" (Studio -> Settings). Standard er 500. Rammer
 # raekkespejlet det, mangler de aeldste raekker - txtDomRowsCap under
@@ -465,13 +471,17 @@ def duplicate_fx():
         "        Set(varDomCanEdit, false);\n"
         + _indent(clear_form_fx(), 8) + ";\n"
         + refresh_rows_fx(8) + ";\n"
+        f"        {act_mark(ACT_VAR, 'duplicate')};\n"
         '        Notify("Duplicated as a new draft request. Choose Save draft to keep it.", NotificationType.Success),\n'
+        f"        {act_mark(ACT_VAR, 'duplicate', False)};\n"
         '        Notify("Could not duplicate the request: " & FirstError.Message, NotificationType.Error)\n'
         "    )\n"
         ")")
 
 
 BAR_ACTIONS = []
+# Hjulet og beskeden i bundbjaelken under Desktop (issue #420).
+ACT_FOOT = []
 
 
 def build_bar():
@@ -491,7 +501,7 @@ def build_bar():
 
     no_rows = f"CountRows({SENDABLE}) = 0"
     save = sized(button(
-        "btnDomSendDraft", '"Save draft"', with_busy(SAVING_VAR, send_fx(False)),
+        "btnDomSendDraft", '"Save draft"', act_fx(ACT_VAR, "save", send_fx(False)),
         icon=ICON_SAVE,
         display_mode=f'If(varDomViewOnly || {no_rows}, DisplayMode.Disabled, DisplayMode.Edit)',
         # Hvorfor er den graa? (UX-review, Materials): "Add a row first".
@@ -513,7 +523,7 @@ def build_bar():
     # "New request" - den faelles tekst (build_helpers.new_request_label).
     new = new_request_label(button(
         "btnDomNewRequest", '"New request"',
-        'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + SESSION_FX + ";\n" + refresh_rows_fx() + ";\n" + clear_form_fx(),
+        f'Set({ACT_VAR}, "");\n' + 'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + SESSION_FX + ";\n" + refresh_rows_fx() + ";\n" + clear_form_fx(),
         tooltip='"Start a new request - your saved rows stay in SharePoint"'))
     # Edit og Delete er VH-planens (issue #94): de faelles knapper i
     # build_helpers, samme synlighed, placering og ikon-kun under Tablet.
@@ -524,14 +534,19 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE ANDRE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne, der stadig er kladder - de sendes ikke med.
-    dup = button("btnDomDuplicate", '"Duplicate"', with_busy(SAVING_VAR, duplicate_fx()),
+    dup = button("btnDomDuplicate", '"Duplicate"', act_fx(ACT_VAR, "duplicate", duplicate_fx()),
                  icon="Copy", visible=DUP_VIS,
                  tooltip='"Copy all rows to a new draft request - documents are not copied"')
     sized(dup, True)
     dup.props["Width"] = f"If({below('Tablet')}, 40, {dup.props['Width']})"
     dup.props["Layout"] = f"If({below('Tablet')}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
+    # Hjulet og "Saved"/"Save failed" lige foran Save draft (issue #420) -
+    # fra Desktop; under Desktop staar de i bundbjaelken (ACT_FOOT).
+    status = act_status("DomAct", ACT_VAR, ("save", "submit", "duplicate"),
+                        visible=at_least("Desktop"))
+    ACT_FOOT[:] = act_status("DomFootAct", ACT_VAR, ("save", "submit", "duplicate"))
     actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
-                              extra=[edit, dup])
+                              extra=[edit, dup, *status])
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
     BAR_ACTIONS[:] = [save, submit]
     narrow = below("Tablet")
@@ -542,6 +557,10 @@ def build_bar():
     if ICON_SUBMIT:
         submit.props["Width"] = f"If({narrow}, 40, {submit.props['Width']})"
         submit.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
+    # "Saving..." / "Submitting..." / "Duplicating..." paa knapperne (#420).
+    act_button(save, ACT_VAR, "save")
+    act_button(submit, ACT_VAR, "submit")
+    act_button(dup, ACT_VAR, "duplicate")
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    actions + [delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)],
                    icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo",
@@ -876,6 +895,8 @@ def clear_form_fx():
              f'Set(varDomFPlant, {tok.pref_get("prefDomNewPlant")});']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, false);')
+        # Panelets gem-tilstand hoerer til den raekke, der var aaben (#402).
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     if docs_cleanup_fx():
@@ -976,6 +997,7 @@ def copy_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, true);')
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
@@ -1044,6 +1066,7 @@ def load_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, true);')
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     # En anden raekke: den forrige raekkes dokumenter lukkes (issue #393).
@@ -1254,6 +1277,8 @@ def save_row_fx(status="valid", required=(), always=()):
           + ",\n"
         "\n"
         '    Set(varDomInfo, "Save failed: " & FirstError.Message);\n'
+        + (f'    Set({PANEL_SAVE_VAR}, "failed");\n'
+           if getattr(cfg, "ROW_PANEL_ENABLED", False) else "") +
         '    Notify("Save failed: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
@@ -1335,6 +1360,7 @@ def delete_confirmed_fx():
         "        IfError(\n"
         f"            Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = {DELETE_ID}));\n"
         "            true,\n"
+        f"            {act_mark(ACT_VAR, 'delete', False)};\n"
         '            Notify("Delete failed: " & FirstError.Message, NotificationType.Error);\n'
         "            false\n"
         "        ),\n"
@@ -1352,6 +1378,7 @@ def delete_confirmed_fx():
         "            " + clear_form_fx().replace("\n", "\n            ") + "\n"
         "        );\n"
         + refresh_rows_fx(8) + ";\n"
+        f"        {act_mark(ACT_VAR, 'delete')};\n"
         '        Set(varDomInfo, "Row deleted.");\n'
         '        Notify("Row deleted.", NotificationType.Success)\n'
         "    )\n"
@@ -1367,8 +1394,8 @@ def build_delete_confirm():
         f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & ' +
         ('" is deleted in SharePoint, together with its attached documents."' if DOCS
          else '" is deleted in SharePoint."'),
-        "Delete", with_busy(SAVING_VAR, delete_confirmed_fx()),
-        "btnDomDeleteConfirm", icon="Delete")
+        "Delete", delete_confirmed_fx(),
+        "btnDomDeleteConfirm", icon="Delete", act=(ACT_VAR, "delete"))
 
 # ---------------------------------------------------------------------------
 # Dokumentruden
@@ -1733,6 +1760,8 @@ def send_fx(submit):
     # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
     # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
     label = "Submitted" if submit else "Saved"
+    # Knappens noegle (issue #420) - udfaldet skrives i grenene herunder.
+    key = "submit" if submit else "save"
     action = "Submit" if submit else "Save"
     # Efter Submit er anmodningen afleveret. Stod GUID og nummer tilbage,
     # patchede naeste "Save as draft" i samme session den INDSENDTE
@@ -1880,10 +1909,12 @@ def send_fx(submit):
         + refresh_rows_fx(8) + ";\n"
         + admin_submit_log +
         "\n"
+        f"        {act_mark(ACT_VAR, key)};\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"
         + submit_extra + after + ',\n'
         "\n"
+        f"        {act_mark(ACT_VAR, key, False)};\n"
         f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
         f"        {msg.failed(action)}\n"
         "    )\n"
@@ -1900,9 +1931,11 @@ def build_submit_confirm():
     return confirm_modal(
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
-        "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
+        "Submit", act_fx(ACT_VAR, "submit", send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
         "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + [
-        *progress_overlay("imgDomSaving", SAVING_VAR, "Saving, please wait")]
+        # Mens en handling koerer: knappen viser det selv (issue #420) - et
+        # gennemsigtigt lag oeverst, intet sloer og ingen bjaelke.
+        *act_layers("Dom", ACT_VAR)]
 
 
 # ---------------------------------------------------------------------------
@@ -2247,6 +2280,8 @@ def form_footer(buttons):
 # Add row-formlen - saettes af form_buttons, saa listens tomme tilstand kan
 # bruge den samme (build_list kaldes efter build_form).
 ADD_ROW_FX = [None]
+# Det samme gem med panelets egen tilstand - sidepanelets Save (issue #402).
+PANEL_SAVE_FX = [None]
 
 
 def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
@@ -2267,7 +2302,8 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
     # hentet. Den gemmer som faerdig eller som kladde efter
     # kravene (save_row_fx("auto")). "Save row draft" er vaek. save_text
     # bruges ikke laengere - teksten er den samme i alle domaener.
-    ADD_ROW_FX[0] = with_busy(SAVING_VAR, save_fx("auto"))
+    ADD_ROW_FX[0] = act_fx(ACT_VAR, "save", save_fx("auto"))
+    PANEL_SAVE_FX[0] = panel_save_fx(PANEL_SAVE_VAR, save_fx("auto"))
     add = icon_on_mobile(fit(button(
         "btnDomSave", '"Update row"', ADD_ROW_FX[0],
         primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
@@ -2866,9 +2902,11 @@ def _paste_add_fx():
         + refresh_rows_fx(4) + ";\n"
         '    Notify(Text(CountRows(Filter(colDomPaste, Ok))) & " rows added as drafts. Open each row to complete it.", '
         "NotificationType.Success);\n"
+        f"    {act_mark(ACT_VAR, 'add')};\n"
         f"    Set({PASTE_VAR}, false);\n"
         f'    Set({PASTE_TEXT}, "");\n'
         "    Clear(colDomPaste),\n"
+        f"    {act_mark(ACT_VAR, 'add', False)};\n"
         '    Notify("Could not add the rows: " & FirstError.Message, NotificationType.Error)\n'
         ")")
 
@@ -2881,7 +2919,8 @@ def build_paste():
     """Popuppen "Paste rows" - [sloer, popup]."""
     from build_helpers import popup_head, popup_body_max
     vis = f"IfError({PASTE_VAR}, false)"
-    close = f"Set({PASTE_VAR}, false)"
+    close = (f"Set({PASTE_VAR}, false);\n"
+             f'If(IfError({ACT_VAR} = "add:failed", false), Set({ACT_VAR}, ""))')
     backdrop = tap_backdrop("conDomPasteBackdrop", vis, close)
     title = text_ctrl("txtDomPasteTitle", '"Paste rows"', size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=26, wrap="false")
@@ -2919,10 +2958,14 @@ def build_paste():
     }, children=[line], h=gal_h, vis="!IsEmpty(colDomPaste)")
     ok_n = "CountRows(Filter(colDomPaste, Ok))"
     add_txt = f'If({ok_n} = 0, "Add rows", "Add " & Text({ok_n}) & " rows")'
-    add = button("btnDomPasteAdd", add_txt, with_busy(SAVING_VAR, _paste_add_fx()), primary=True,
+    add = button("btnDomPasteAdd", add_txt, act_fx(ACT_VAR, "add", _paste_add_fx()), primary=True,
                  icon="Add", width=fit_button_width('"Add 00 rows"') + ICON_W, height=36,
                  display_mode=f"If({ok_n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
-    footer = group("conDomPasteFooter", [preview, add], direction="Horizontal", gap=8,
+    # "Adding..." i knappen og hjulet ved den; popuppen lukker, naar
+    # raekkerne er tilfoejet - ellers staar "Add failed" her (issue #420).
+    act_button(add, ACT_VAR, "add")
+    status = act_status("DomPasteAct", ACT_VAR, ("add",))
+    footer = group("conDomPasteFooter", [preview, *status, add], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     body = du.capped_body("conDomPasteBody", [help_, inp, gal],
                           popup_body_max([head.h, footer.h]))

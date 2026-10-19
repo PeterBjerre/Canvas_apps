@@ -53,8 +53,11 @@ def test_submitting_flag_is_reset_before_the_message():
     fx = build_save.save_action()
     reset = fx.index("{ sub: varVhpSubmitting },\n    Set(varVhpSubmitting, false);")
     assert reset < fx.index("Set(varVhpSavedJson, VhpStateJson)")
-    # Spinneren via with_busy (A12): taendt foerst, slukket til sidst.
-    assert fx.rstrip().endswith("Set(varVhpSaving, false)\n)")
+    # varVhpSaving eet sted (A12): taendt foerst, slukket til sidst - og
+    # knappens tilstand faar udfaldet lige efter (issue #420).
+    assert fx.rstrip().endswith(
+        "Set(varVhpSaving, false);\n"
+        'Set(varVhpAct, varVhpAct & If(CountRows(colVhpSaveErrors) = 0, ":ok", ":failed"))\n)')
     assert fx.count("Set(varVhpSaving, true)") == 1
 
 
