@@ -65,10 +65,10 @@ C_HELP_KEY    = "HelpKey"     # Title, omdoebt
 HELP_APP      = "MaintenancePlan"
 
 # --- omkostningsgraensen (docs/32 §9, R2-082) -------------------------------
-# Graensen, over hvilken et item skal omkostningsgodkendes. Den staar i
+# Graensen, over hvilken en plan skal omkostningsgodkendes. Den staar i
 # AppSettings, een raekke PR. MILJOE (Provision-VHPlanApproval.ps1), og
 # BioSap-VhPlan-CostApproval laeser den samme raekke. Appen viser den kun
-# som information under operationernes total - flowet regner selv.
+# som information i tasklistens kort - flowet regner selv.
 L_SETTINGS      = "AppSettings"
 COST_OPTION     = "CostApprovalThresholdDkk"
 # Flowets reserve, naar raekken mangler.

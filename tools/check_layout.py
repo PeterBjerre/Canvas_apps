@@ -2296,7 +2296,7 @@ def rule_33(ctx):
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
               "ModernTabList": "tab", "ModernProgressBar": "prg", "ModernBadge": "bdg",
-              "ModernSpinner": "spn"}
+              "ModernSpinner": "spn", "ModernCard": "crd"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):

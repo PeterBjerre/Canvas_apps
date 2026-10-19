@@ -4,14 +4,15 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
                         C_MODAL_BG, C_PRIMARY_SOFT,
-                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W, C_WARN_FG)
+                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W, C_WARN_FG,
+                        C_NEUTRAL_BG, C_TITLE)
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
-                           tab_list, tabs_w)
+                           tab_list, tabs_w, modern_card)
 from build_plan_header import section_header, help_panel, section_footer
 
 # Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
@@ -275,58 +276,48 @@ def _ops_header_html():
 
 
 # ---------------------------------------------------------------------------
-# Totaler
+# Noegletal (Total cost og Duration)
 # ---------------------------------------------------------------------------
-# Summerne staar i en HtmlViewer med PRAECIS samme grid som overskriften.
-# En raekke almindelige kontroller ville skulle holde de tolv kolonnebredder
-# ved lige for anden gang, og de gled fra hinanden sidst det blev proevet -
-# det var derfor overskriften blev genereret herfra til at begynde med.
+# Summerne stod foer i en raekke under operationstabellen ("Total for this
+# item"). Peter 2026-10-19: et kort oeverst til hoejre i sektionen, ved
+# Valid-maerket, med Total cost og Duration. Kortet er det moderne Card
+# (build_helpers.modern_card), som Peter bad om. Summerne gaelder det valgte
+# item - det er dets operationer, tabellen viser.
 OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
 
-# Timer, antal og kroner i appens ENE talformat (layout_tokens.num_text,
-# UX-review B2): "7" og "1,192" - ikke "7," og "1.192,00". Kulturen er
-# givet som argument, saa separatoren ikke skifter med brugerens sprog.
-_TOTALS = {
-    "WORK (H)": lay.num_text(f"Sum({OPS_ACTIVE}, WorkHours)"),
-    "NO.":      lay.num_text(f"Sum({OPS_ACTIVE}, Persons)"),
-    "DUR. (H)": lay.num_text(f"Sum({OPS_ACTIVE}, DurationHours)"),
-    "COST":     lay.num_text(f"Sum({OPS_ACTIVE}, Cost)"),
-}
-
-
-def _ops_totals_html():
-    cols = " ".join(f"{w}px" for _, w in OPS_COLS)
-    head = (
-        "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
-        "span{overflow:hidden;text-overflow:ellipsis}</style>"
-        f"<div style='display:grid;grid-template-columns:{cols};"
-        f"column-gap:\" & {OPS_GAP} & \"px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
-        "color:\" & " + PRI_HEX + " & \";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
-    )
-    parts = [head]
-    for title, _ in OPS_COLS:
-        if title == "OPERATION SHORT TEXT":
-            parts.append("\"<span style='color:\" & " + MUT_HEX +
-                         " & \";font-weight:600'>Total for this item</span>\"")
-        elif title in _TOTALS:
-            parts.append("\"<span>\" & " + _TOTALS[title] + " & \"</span>\"")
-        else:
-            parts.append("\"<span></span>\"")
-    parts.append("\"</div>\"")
-    return " &\n".join(parts)
-
-
-# Tom tabel har ingen sum at vise - saa staar tomme-teksten der i stedet.
+# Tom tabel har ingen sum at vise - saa er kortet skjult.
 TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
              f"CountRows({OPS_ACTIVE}) > 0, false)")
 
-# OVER OMKOSTNINGSGRAENSEN (docs/32 §9, R2-082). En linje under totalen,
-# naar itemets sum er over graensen fra AppSettings (sp_config:
+# Planens samlede omkostning: alle items' operationer. Den er det,
+# omkostningsgodkendelsen sammenligner med graensen (docs/32 §2 #7).
+PLAN_COST = "Sum(colVhpOperations, Cost)"
+
+# OVER OMKOSTNINGSGRAENSEN (docs/32, R2-082). Kortets beskrivelse siger det,
+# naar PLANENS sum er over graensen fra AppSettings (sp_config:
 # VhpCostThreshold). Kun information - godkendelsesflowet regner selv.
-COST_OVER_ON = (f"IfError({TOTALS_ON} && "
-                f"Sum({OPS_ACTIVE}, Cost) > VhpCostThreshold, false)")
-COST_OVER_TEXT = ('"Over " & ' + lay.num_text("VhpCostThreshold") +
-                  ' & " DKK - this item needs cost approval after submit."')
+COST_OVER_ON = f"IfError({PLAN_COST} > VhpCostThreshold, false)"
+COST_OVER_TEXT = ('"Plan over " & ' + lay.num_text("VhpCostThreshold") +
+                  ' & " DKK - needs cost approval"')
+
+# Timer og kroner i appens ENE talformat (layout_tokens.num_text, UX-review
+# B2): "7" og "1,192" - ikke "7," og "1.192,00".
+ITEM_COST_TEXT = ('"Total cost: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, Cost)") + ' & " DKK"')
+ITEM_DUR_TEXT = ('"Duration: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, DurationHours)") + ' & " h"')
+TOTALS_CARD_W = 250
+TOTALS_CARD_H = 88
+
+
+def totals_card():
+    """Kortet med itemets Total cost og Duration (oeverst til hoejre)."""
+    return modern_card(
+        "crdVhpOpsTotals", ITEM_COST_TEXT, ITEM_DUR_TEXT,
+        f'If({COST_OVER_ON}, {COST_OVER_TEXT}, "For the selected item")',
+        width=TOTALS_CARD_W, height=TOTALS_CARD_H, fill=C_NEUTRAL_BG,
+        title_color=C_TITLE, subtitle_color=C_TITLE,
+        description_color=f"If({COST_OVER_ON}, {C_WARN_FG}, {C_MUTED})",
+        title_size=14, subtitle_size=13, description_size=11,
+        visible=TOTALS_ON)
 
 
 # ---------------------------------------------------------------------------
@@ -938,7 +929,7 @@ def build_tasklist_section():
     # Trin-badget (issue #123): "Valid", naar alle items har tasklist og
     # operationer, og ingen tasklist-/operationsregel fejler.
     header = section_header("conVhpOpsHead", "Task list and operations", "Step 3",
-                            valid_fx="VhpOpsValid")
+                            valid_fx="VhpOpsValid", extra_right=[totals_card()])
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
@@ -1317,20 +1308,10 @@ def build_tasklist_section():
     opsEmpty = empty_state("conVhpOpsEmpty", OPS_EMPTY, icon_path=icons.LIST,
                            visible=f"!{has_ops}", width=str(OPS_TABLE_W))
 
-    opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
-                             direction="Horizontal", width=str(OPS_TABLE_W),
-                             visible=TOTALS_ON)
-    opsTotals = Ctrl("htmVhpOpsTotals", "HtmlViewer", props={
-        "Fill": C_TRANSPARENT, "Height": "24", "HtmlText": _ops_totals_html(),
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
-        "Width": str(OPS_TABLE_W),
-    }, h=24)
-    opsTotals.vis = TOTALS_ON
-
     # Tabellen har fast bredde (summen af kolonnerne). Paa smalle skaerme
     # scroller den vandret i stedet for at klippe kolonner af.
     opsTableWrap = group("conVhpOpsTableWrap",
-                         [opsHeader, opsDivider, gallery, opsTotalsDivider, opsTotals, opsEmpty],
+                         [opsHeader, opsDivider, gallery, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                          align_items="Start", visible=at_least("Tablet"))
 
@@ -1341,11 +1322,8 @@ def build_tasklist_section():
     # materialeruden allerede gjorde.
     opsEmptyM = empty_state("conVhpOpsEmptyM", OPS_EMPTY, icon_path=icons.LIST,
                             visible=f"!{has_ops} && {below('Tablet')}")
-    opsCostOver = text_ctrl("txtVhpOpsCostOver", COST_OVER_TEXT, size=12, color=C_WARN_FG,
-                            weight="Semibold", wrap="true", height=20, width="Parent.Width",
-                            visible=COST_OVER_ON)
     opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(),
-                                      opsCostOver, opsEmptyM],
+                                      opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
                     visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()

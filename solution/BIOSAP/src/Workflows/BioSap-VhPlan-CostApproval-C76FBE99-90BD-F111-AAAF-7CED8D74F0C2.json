@@ -540,28 +540,22 @@
                         "actions": {}
                       }
                     },
-                    "For_each_item": {
-                      "type": "Foreach",
-                      "foreach": "@outputs('Get_items_MaintenanceItems')?['body/value']",
-                      "runtimeConfiguration": {
-                        "concurrency": {
-                          "repetitions": 10
-                        }
-                      },
+                    "Plan_cost": {
+                      "type": "Scope",
                       "actions": {
                         "ItemGuid": {
                           "type": "Compose",
-                          "inputs": "@coalesce(items('For_each_item')?['ItemGuid'], concat('legacy-', string(items('For_each_item')?['ID'])))",
+                          "inputs": "PLAN",
                           "runAfter": {}
                         },
                         "Filter_ops": {
                           "type": "Query",
                           "inputs": {
                             "from": "@outputs('Get_tasks')?['body/value']",
-                            "where": "@equals(item()?['MaintenanceItemNo']?['Id'], items('For_each_item')?['ID'])"
+                            "where": "@contains(body('Select_item_ids'), item()?['MaintenanceItemNo']?['Id'])"
                           },
                           "runAfter": {
-                            "ItemGuid": [
+                            "Select_item_ids": [
                               "Succeeded"
                             ]
                           }
@@ -653,7 +647,7 @@
                                       "item/DecidedOn": "@utcNow()",
                                       "item/Detail": "@concat(string(outputs('Total')), ' DKK (threshold ', string(outputs('Threshold')), ' DKK)')",
                                       "item/ItemGuid": "@outputs('ItemGuid')",
-                                      "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                      "item/ItemText": "Whole plan",
                                       "item/Amount": "@outputs('Total')"
                                     },
                                     "authentication": "@parameters('$authentication')"
@@ -685,7 +679,7 @@
                                       "item/DecidedOn": "@utcNow()",
                                       "item/Detail": "Approved earlier",
                                       "item/ItemGuid": "@outputs('ItemGuid')",
-                                      "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                      "item/ItemText": "Whole plan",
                                       "item/Amount": "@outputs('Total')"
                                     },
                                     "authentication": "@parameters('$authentication')"
@@ -707,9 +701,9 @@
                                   },
                                   "parameters": {
                                     "approvalType": "CustomResponse",
-                                    "WebhookApprovalCreationInput/title": "@concat('Cost approval - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
+                                    "WebhookApprovalCreationInput/title": "@concat('Cost approval - ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''))",
                                     "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', coalesce(items('For_each_item')?['FunctionalLocation'], ''), '\n\n**Cost per execution:** ', string(outputs('Total')), ' DKK (threshold ', string(outputs('Threshold')), ' DKK)', '\n\n**Operations:**\n', join(take(body('Select_op_lines'), 15), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
+                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Items:** ', string(length(outputs('Get_items_MaintenanceItems')?['body/value'])), '\n\n**Total cost per execution (whole plan):** ', string(outputs('Total')), ' DKK (threshold ', string(outputs('Threshold')), ' DKK)', '\n\n**Operations:**\n', join(take(body('Select_op_lines'), 30), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
                                     "WebhookApprovalCreationInput/responseOptions": [
                                       "Approve",
                                       "Return"
@@ -756,7 +750,7 @@
                                         "item/Detail": "Cost",
                                         "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
                                         "item/ItemGuid": "@outputs('ItemGuid')",
-                                        "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                        "item/ItemText": "Whole plan",
                                         "item/Amount": "@outputs('Total')"
                                       },
                                       "authentication": "@parameters('$authentication')"
@@ -792,7 +786,7 @@
                                           "item/Detail": "Cost",
                                           "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
                                           "item/ItemGuid": "@outputs('ItemGuid')",
-                                          "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                          "item/ItemText": "Whole plan",
                                           "item/Amount": "@outputs('Total')"
                                         },
                                         "authentication": "@parameters('$authentication')"
@@ -826,7 +820,7 @@
                                     "item/DecidedOn": "@utcNow()",
                                     "item/Detail": "@concat('No response from ', outputs('Final_approver'))",
                                     "item/ItemGuid": "@outputs('ItemGuid')",
-                                    "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                    "item/ItemText": "Whole plan",
                                     "item/Amount": "@outputs('Total')"
                                   },
                                   "authentication": "@parameters('$authentication')"
@@ -848,13 +842,25 @@
                                   "parameters": {
                                     "emailMessage/To": "@outputs('Final_approver')",
                                     "emailMessage/Subject": "@concat('Approval request for maintenance plan ', triggerBody()?['PlanID'], ' expired without a response')",
-                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The cost approval request for item '@{items('For_each_item')?['Title']}' in maintenance plan @{triggerBody()?['PlanID']} expired after 14 days without a response and can no longer be answered. A new request will be sent to you shortly, unless the plan has been returned in the meantime - respond to the new one in Teams under Approvals.</p>",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The cost approval request for maintenance plan @{triggerBody()?['PlanID']} expired after 14 days without a response and can no longer be answered. A new request will be sent to you shortly, unless the plan has been returned in the meantime - respond to the new one in Teams under Approvals.</p>",
                                     "emailMessage/Importance": "Normal"
                                   },
                                   "authentication": "@parameters('$authentication')"
                                 }
                               }
                             }
+                          }
+                        },
+                        "Select_item_ids": {
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@outputs('Get_items_MaintenanceItems')?['body/value']",
+                            "select": "@item()?['ID']"
+                          },
+                          "runAfter": {
+                            "ItemGuid": [
+                              "Succeeded"
+                            ]
                           }
                         }
                       },
@@ -868,7 +874,7 @@
                     "Get_log_results": {
                       "type": "OpenApiConnection",
                       "runAfter": {
-                        "For_each_item": [
+                        "Plan_cost": [
                           "Succeeded"
                         ]
                       },

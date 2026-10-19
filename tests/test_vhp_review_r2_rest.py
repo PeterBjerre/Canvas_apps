@@ -119,11 +119,13 @@ def test_cost_threshold_formula_is_environment_filtered():
     assert cfg.SETTINGS_ENV in ("DEV", "TEST", "PROD")
 
 
-def test_cost_over_line_under_the_totals():
+def test_cost_over_shown_on_the_totals_card():
     import build_tasklist as bt
-    assert "Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold" in bt.COST_OVER_ON
+    # Graensen gaelder hele planen (Peter 2026-10-19), ikke det enkelte item.
+    assert "Sum(colVhpOperations, Cost) > VhpCostThreshold" in bt.COST_OVER_ON
     screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
-    assert "txtVhpOpsCostOver" in screen
+    assert "crdVhpOpsTotals" in screen
+    assert "txtVhpOpsCostOver" not in screen and "htmVhpOpsTotals" not in screen
 
 
 # --- R2-093: VH-konstanter ud af de faelles moduler -------------------------

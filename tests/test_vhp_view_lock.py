@@ -58,7 +58,7 @@ def test_named_controls_follow_view_mode():
     # Materialepopup'en: Add/Remove slaaet fra, raekkevalg skrivebeskyttet.
     for name in ("btnVhpAddMaterial", "btnVhpRemoveMaterial"):
         assert VIEW in c[name][1]["DisplayMode"] and "DisplayMode.Disabled" in c[name][1]["DisplayMode"], name
-    for name in ("chkVhpMatSel", "chkVhpPkgCell", "btnVhpOpPillHit", "btnVhpOpMPillHit", "btnVhpMgHit"):
+    for name in ("chkVhpMatSel", "btnVhpPkgPillHit", "btnVhpOpPillHit", "btnVhpOpMPillHit", "btnVhpMgHit"):
         assert c[name][1]["DisplayMode"].strip() == f"=If({VIEW}, DisplayMode.View, DisplayMode.Edit)", name
     # Felterne i materialepopup'en laases af gen_screen.
     for name in ("inpVhpMatNo", "inpVhpMatQty"):

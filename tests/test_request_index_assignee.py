@@ -138,9 +138,9 @@ def test_vh_flows_assign_the_approver_just_before_asking(name):
     guard = acts["Index_assigned"]
     assert guard["expression"] == {"greater": [
         "@length(outputs('Get_request_index')?['body/value'])", 0]}
-    # Godkendelsen (Cost: loekken) venter paa indeksraekken, men ikke paa
+    # Godkendelsen (Cost: scopet) venter paa indeksraekken, men ikke paa
     # at den lykkes.
-    first = "For_each_item" if name.endswith("CostApproval") else "Start_and_wait_for_an_approval"
+    first = "Plan_cost" if name.endswith("CostApproval") else "Start_and_wait_for_an_approval"
     assert acts[first]["runAfter"] == {"Index_assigned": ["Succeeded", "Failed"]}
 
 
