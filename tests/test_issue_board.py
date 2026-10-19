@@ -376,8 +376,10 @@ def test_new_issue_popup_submits_once_and_closes_only_on_success():
     # siger et tryk hvad - valgfrie felter indgaar ikke i VALID.
     assert submit.startswith(f"If(\n    varIbBusy,\n    false,\n    !({P.VALID}),\n"
                              "    Set(varIbTried, true);\n    Notify(")
-    assert form["btnIbFormSubmit"].props["DisplayMode"] == \
-        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
+    # Issue #402: ogsaa laast, mens panelet gemmer (varIbPanelSave).
+    assert form["btnIbFormSubmit"].props["DisplayMode"] == (
+        'If(IfError(varIbPanelSave = "saving", false), DisplayMode.Disabled, '
+        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit))")
     for optional in ("inpIbSteps", "inpIbExpected", "inpIbActual", "inpIbRelated", "drpIbSeverity"):
         assert optional not in P.VALID
     for required in ("inpIbTitle", "inpIbDesc", "inpIbOther"):

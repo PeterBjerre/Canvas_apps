@@ -128,3 +128,27 @@ def test_state_is_cleared_when_the_panel_opens_or_closes():
         p = SCREENS[screen][0]
         assert f'Set(var{p}PanelSave, "");' in _prop(screen, f"btn{p}EditorClose", "OnSelect")
         assert f'Set(var{p}PanelSave, "");' in _prop(screen, f"btn{p}EditorNext", "OnSelect")
+
+
+IB = "ScreenIssueBoard.pa.yaml"
+
+
+def test_issue_board_form_shows_the_save_state_in_the_panel():
+    """Issue Board blev foejet til #402: New issue/Edit-formularens Submit
+    issue/Save changes viser tilstanden under knappen i sidepanelet."""
+    foot = _children(IB, "conIbFormFoot")
+    assert foot.index("conIbFormFooter") < foot.index("conIbEditorSaveStatus")
+    assert _children(IB, "conIbEditorSaveStatus") == [
+        "spnIbEditorSaving", "txtIbEditorSaveFailed", "btnIbEditorRetry"]
+    fx = _prop(IB, "btnIbFormSubmit", "OnSelect")
+    # Baade ny sag og Edit: panelets tilstand - ikke sidens varIbBusy-sloer.
+    assert "varIbBusy, true" not in fx and "Set(varIbBusy, false)" not in fx
+    assert fx.count('Set(varIbPanelSave, "saving");') == 2
+    assert fx.count('Set(varIbPanelSave, If(varIbSaved, "", "failed"))') == 2
+    assert _prop(IB, "btnIbEditorRetry", "OnSelect") == fx
+    assert _prop(IB, "btnIbEditorRetry", "DisplayMode") == _prop(IB, "btnIbFormSubmit", "DisplayMode")
+    top = _top(IB)
+    assert _prop(IB, "imgIbEditorSaveBlock", "Visible") == 'IfError(varIbPanelSave = "saving", false)'
+    # Sidens sloer er der stadig til de andre handlinger.
+    assert "imgIbBusy" in top
+    assert _prop(IB, "btnIbFormClose", "OnSelect").count('Set(varIbPanelSave, "")') >= 1

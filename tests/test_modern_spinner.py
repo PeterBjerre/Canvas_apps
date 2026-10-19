@@ -56,6 +56,8 @@ SPINNERS = {
     # (tests/test_issue_board.py) - her tjekkes kun, at den ikke er tom.
     "ScreenIssueBoard.pa.yaml": {
         "spnIbPosting": ("true", None),
+        # Formularens gem i sidepanelet (issue #402).
+        "spnIbEditorSaving": ('IfError(varIbPanelSave = "saving", false)', '"Saving..."'),
     },
     "ScreenKks.pa.yaml": {
         "spnKksLoading": ("IfError(varKksLoading, false)", '""'),
@@ -113,7 +115,7 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 19
+    assert total == 20
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
