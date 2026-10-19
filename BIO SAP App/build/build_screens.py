@@ -123,24 +123,27 @@ def slow_var(tag):
     return f"var{tag}LoadSlow"
 
 
-# Issue #391: kun en eksisterende VH-plan er tung nok (materialer,
+# Issue #391/#407: kun en eksisterende VH-plan er tung nok (materialer,
 # dokumenter, standardarbejdsplaner) til kortet "Opening request". De
-# andre domaener aabner en gemt anmodning hurtigt og uden kort; en ny
-# anmodning ("Preparing a new request") og en fejl viser det stadig.
+# andre domaener aabner en gemt anmodning uden kort, og en NY anmodning
+# viser aldrig et blokerende kort (issue #407 - "Preparing a new request"
+# stod kun et sekunds tid og afbroed bare). En fejl viser altid kortet
+# (Retry/Close).
 CARD_ON_OPEN = {"vhplan"}
 
 
 def card_var(tag):
-    """Sand, naar indlaesningskortet maa vises, mens der indlaeses -
-    kun domaener uden for CARD_ON_OPEN har den (issue #391). Den saettes
-    sammen med var<X>Loading: i OnVisible ud fra det, der er bedt om, og i
-    open_block, saa snart anmodningens id kendes. Ingen timer."""
+    """Sand, naar indlaesningskortet maa vises, mens der indlaeses - kun
+    domaener i CARD_ON_OPEN har den: sand for en gemt anmodning, falsk for
+    en ny (issue #407). Den saettes sammen med var<X>Loading: i OnVisible
+    ud fra det, der er bedt om, og i open_block, saa snart anmodningens id
+    kendes. Kortet lukker, naar var<X>Loading bliver falsk. Ingen timer."""
     return f"var{tag}LoadCard"
 
 
-def quiet_open(domain):
-    """Aabnes en gemt anmodning uden kort i dette domaene? (issue #391)"""
-    return domain["key"] not in CARD_ON_OPEN
+def card_on_open(domain):
+    """Viser dette domaene kortet, mens en gemt anmodning aabnes? (#391/#407)"""
+    return domain["key"] in CARD_ON_OPEN
 
 
 def open_button(tag):
@@ -218,9 +221,9 @@ def open_block(domain, init, new_step=STEP_NEW):
         f"        Set({failed_var(t)}, false);\n"
         f"        Set({slow_var(t)}, false);\n"
         f'        Set({step_var(t)}, If(IsBlank({cb.reqid_var(t)}), "{new_step}", "{STEP_FIND}"));\n'
-        + (f"        // Issue #391: en gemt anmodning aabnes uden kort.\n"
-           f"        Set({card_var(t)}, IsBlank({cb.reqid_var(t)}));\n"
-           if quiet_open(domain) else "")
+        + (f"        // Issue #407: kun en gemt anmodning viser kortet - en ny ikke.\n"
+           f"        Set({card_var(t)}, !IsBlank({cb.reqid_var(t)}));\n"
+           if card_on_open(domain) else "")
         + f"        {body}\n"
         "    )\n"
         ")"
@@ -341,12 +344,13 @@ def attach_open(domain, seen, fx, label):
     t = domain["tag"]
     btn = open_button(t)
     loading, failed, slow, step = cb.loading_var(t), failed_var(t), slow_var(t), step_var(t)
-    opened, want, reqid = cb.opened_var(t), cb.want_var(t), cb.reqid_var(t)
+    opened, want = cb.opened_var(t), cb.want_var(t)
     key = f'If(gblNavTo = "{t}", "new:0", Coalesce({want}, {opened}))'
-    quiet = quiet_open(domain)
-    # Issue #391: her (uden for VH-planen) kun kort, naar det er en NY
-    # anmodning - en gemt aabnes uden. Afgoeres foer sloeret taendes.
-    card = (f";\n    Set({card_var(t)}, StartsWith({key}, \"new\"))" if quiet else "")
+    on_open = card_on_open(domain)
+    # Issue #391/#407: kun kort, naar en GEMT anmodning aabnes i et domaene i
+    # CARD_ON_OPEN (VH-planen) - en ny anmodning aldrig. Afgoeres foer
+    # sloeret taendes.
+    card = (f";\n    Set({card_var(t)}, !StartsWith({key}, \"new\"))" if on_open else "")
     seen["props"]["OnVisible"] = (
         "// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen\n"
         "// (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes\n"
@@ -365,7 +369,7 @@ def attach_open(domain, seen, fx, label):
     seen["children"].extend(open_overlay(
         t, loading, failed, slow,
         title_fx=(f'If(IfError({failed}, false), "Could not open the request", '
-                  f'IsBlank({reqid}), "Preparing a new request", "Opening request")'),
+                  f'"Opening request")'),
         step_fx=(f'If(IfError({failed}, false), "Stopped while " & {lower_step}, '
                  f'Coalesce({step}, ""))'),
         hint_fx=(f'If(IfError({failed}, false), "Check your connection and try again.", '
@@ -377,7 +381,7 @@ def attach_open(domain, seen, fx, label):
         close_fx=(f"Set({failed}, false);\nSet({want}, Blank());\n"
                   f'Set({opened}, "");\nNavigate({hub}, ScreenTransition.None)'),
         label=f"Loading {label}, please wait",
-        show_fx=f"IfError({card_var(t)}, false)" if quiet else None))
+        show_fx=f"IfError({card_var(t)}, false)" if on_open else "false"))
 
 
 def _write(screen_name, text, domain=None):
