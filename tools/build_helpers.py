@@ -2151,6 +2151,24 @@ def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
                  gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)
 
 
+def panel_save_text(btn, state_var, text="Saving..."):
+    """Panelets Save siger selv "Saving...", mens der gemmes - samme
+    moenster som sidernes knapper (issue #420). Hjulet staar lige over
+    knappen (panel_save_status), saa ikonet viger for teksten imens: saa
+    kan "Saving..." staa i knappens egen bredde, og bundbjaelkens bredder
+    (editor_footer regner med tal) staar fast."""
+    saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    width = int(btn.props["Width"])
+    assert fit_button_width(f'"{text}"') <= width, (btn.name, text)
+    btn.props["Text"] = f'If({saving}, "{text}", {btn.props["Text"]})'
+    acc = btn.props.get("AccessibleLabel")
+    if acc and acc != "Self.Text":
+        btn.props["AccessibleLabel"] = f'If({saving}, "{text}", {acc})'
+    if btn.props.get("Icon"):
+        btn.props["Layout"] = f'If({saving}, ButtonLayout.TextOnly, {btn.props["Layout"]})'
+    return btn
+
+
 def panel_save_space(status):
     """Det, scrollen skal give af, naar statuslinjen staar der (+ panelets gap)."""
     return f"If({status.props['Visible']}, {PANEL_SAVE_H + 12}, 0)"
