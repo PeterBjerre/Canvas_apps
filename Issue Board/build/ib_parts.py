@@ -1193,12 +1193,29 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
     if own_scroll:
         parts = [head] + rest + ([foot] if foot is not None else [])
     else:
-        fixed = f"({head.h})" + (f" + {POP_GAP} + ({foot.h})" if foot is not None else "")
-        room = f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - {POP_GAP} - {fixed}"
-        natural = stack_height(rest, POP_GAP)
+        # Issue #413: hele det faste (hoved, fod og deres luft) traekkes fra -
+        # foer stod foden uden parentes, saa dens hoejde blev LAGT TIL pladsen,
+        # kroppen blev for hoej, og Save changes blev skubbet ud under kanten
+        # (modalen klipper), naar "Add more details" var foldet ud.
+        foot_parts = []
+        if foot is not None and side_panel:
+            # Sidepanelet: en tynd streg skiller den faste fod fra det, der
+            # scroller - og kroppen har luft forneden, saa det sidste felt
+            # (Resolution) ikke staar klemt op mod foden.
+            foot_parts.append(group(f"con{prefix}FootRule", [], direction="Horizontal",
+                                    height=1, fill=C_DIVIDER))
+        if foot is not None:
+            foot_parts.append(foot)
+        fixed = " + ".join([f"({head.h})"] + [f"{POP_GAP} + ({f.h})" for f in foot_parts])
+        # Sidepanelet staar i fuld hoejde (App.Height) uden margen omkring.
+        margin = "" if side_panel else f" - {2 * POP_MARGIN}"
+        room = f"App.Height{margin} - {2 * POP_PAD} - {POP_GAP} - ({fixed})"
+        body_pad_b = 8 if side_panel and foot is not None else 0
+        natural = stack_height(rest, POP_GAP, pad_b=body_pad_b)
         body = group(f"con{prefix}Body", rest, direction="Vertical", gap=POP_GAP,
-                     height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll")
-        parts = [head, body] + ([foot] if foot is not None else [])
+                     height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll",
+                     pad=(0, 0, body_pad_b, 0) if body_pad_b else None)
+        parts = [head, body] + foot_parts
     modal = group(f"con{prefix}Modal", parts, direction="Vertical", gap=POP_GAP, fill=C_MODAL_BG,
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
