@@ -947,11 +947,6 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     }, h="App.Height", vis=vis)
 
 
-def with_busy(busy_var, fx):
-    """fx med ventespinneren taendt, mens den koerer."""
-    return f"Set({busy_var}, true);\n{fx};\nSet({busy_var}, false)"
-
-
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
                   confirm_name, icon=ICON_SUBMIT, danger=None, act=None):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
@@ -2168,19 +2163,23 @@ def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
                  gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)
 
 
-def panel_save_text(btn, state_var, text="Saving..."):
+def panel_save_text(btn, state_var, text="Saving...", text_fx=None):
     """Panelets Save siger selv "Saving...", mens der gemmes - samme
     moenster som sidernes knapper (issue #420). Hjulet staar lige over
     knappen (panel_save_status), saa ikonet viger for teksten imens: saa
     kan "Saving..." staa i knappens egen bredde, og bundbjaelkens bredder
-    (editor_footer regner med tal) staar fast."""
+    (editor_footer regner med tal) staar fast.
+
+    text_fx: teksten som udtryk (fx Submit eller Save) - text er da den
+    laengste af dem, som bredden tjekkes mod."""
     saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
     width = int(btn.props["Width"])
     assert fit_button_width(f'"{text}"') <= width, (btn.name, text)
-    btn.props["Text"] = f'If({saving}, "{text}", {btn.props["Text"]})'
+    shown = text_fx or f'"{text}"'
+    btn.props["Text"] = f'If({saving}, {shown}, {btn.props["Text"]})'
     acc = btn.props.get("AccessibleLabel")
     if acc and acc != "Self.Text":
-        btn.props["AccessibleLabel"] = f'If({saving}, "{text}", {acc})'
+        btn.props["AccessibleLabel"] = f'If({saving}, {shown}, {acc})'
     if btn.props.get("Icon"):
         btn.props["Layout"] = f'If({saving}, ButtonLayout.TextOnly, {btn.props["Layout"]})'
     return btn
@@ -2308,6 +2307,8 @@ def act_button(btn, act_var, key, text=None, grow=True):
     if not grow:
         return btn
     layout = btn.props.get("Layout", "")
+    if layout == "ButtonLayout.IconOnly":
+        return btn
     when = busy
     if layout.startswith("If(") and "IconOnly" in layout:
         # If(<smal>, ButtonLayout.IconOnly, ...): kun bredere, naar teksten ses.
