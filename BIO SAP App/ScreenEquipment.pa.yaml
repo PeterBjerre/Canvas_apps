@@ -4,7 +4,8 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnHidden: |-
-          =Set(varEqEditorOpen, false)
+          =Set(varEqEditorOpen, false);
+          If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()))
       OnVisible: |-
           =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
@@ -581,6 +582,7 @@ Screens:
                                   Set(varEqFText, "");
                                   Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                   Set(varEqEditorOpen, false);
+                                  If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                   Set(varEqFRequestType, "");
                                   Set(varEqFEquipmentCategory, "");
                                   Set(varEqFManufacturer, "");
@@ -773,6 +775,7 @@ Screens:
                                           Set(varEqFText, "");
                                           Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                           Set(varEqEditorOpen, false);
+                                          If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                           Set(varEqFRequestType, "");
                                           Set(varEqFEquipmentCategory, "");
                                           Set(varEqFManufacturer, "");
@@ -1717,6 +1720,7 @@ Screens:
                                         Set(varEqFText, "");
                                         Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                         Set(varEqEditorOpen, false);
+                                        If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                         Set(varEqFRequestType, "");
                                         Set(varEqFEquipmentCategory, "");
                                         Set(varEqFManufacturer, "");
@@ -2109,6 +2113,7 @@ Screens:
                                         Set(varEqFText, ThisItem.Description);
                                         Set(varEqFPlant, ThisItem.Plant);
                                         Set(varEqEditorOpen, true);
+                                        If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                         Set(varEqFRequestType, ThisItem.RequestType);
                                         Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
                                         Set(varEqFManufacturer, ThisItem.Manufacturer);
@@ -2456,6 +2461,7 @@ Screens:
                                               Set(varEqFText, ThisItem.Description);
                                               Set(varEqFPlant, ThisItem.Plant);
                                               Set(varEqEditorOpen, true);
+                                              If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                               Set(varEqFRequestType, ThisItem.RequestType);
                                               Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
                                               Set(varEqFManufacturer, ThisItem.Manufacturer);
@@ -2744,6 +2750,7 @@ Screens:
                                               Set(varEqFText, ThisItem.Description);
                                               Set(varEqFPlant, ThisItem.Plant);
                                               Set(varEqEditorOpen, true);
+                                              If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                               Set(varEqFRequestType, ThisItem.RequestType);
                                               Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
                                               Set(varEqFManufacturer, ThisItem.Manufacturer);
@@ -3022,6 +3029,7 @@ Screens:
                                         Set(varEqFText, "");
                                         Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                         Set(varEqEditorOpen, false);
+                                        If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                         Set(varEqFRequestType, "");
                                         Set(varEqFEquipmentCategory, "");
                                         Set(varEqFManufacturer, "");
@@ -3271,6 +3279,7 @@ Screens:
                                               Set(varEqFText, ThisItem.Description);
                                               Set(varEqFPlant, ThisItem.Plant);
                                               Set(varEqEditorOpen, true);
+                                              If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                               Set(varEqFRequestType, ThisItem.RequestType);
                                               Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
                                               Set(varEqFManufacturer, ThisItem.Manufacturer);
@@ -4579,455 +4588,6 @@ Screens:
                       =Max(0, ((App.Width + 2) - 16) - ((56) + 6) - ((32) + 6) - 2)
                   Wrap: |-
                       =false
-      - conEqBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank());
-                Reset(attEqPicker);
-                Set(varEqAttRow, Blank())))
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =If(LayoutRank < 2, 0, -1)
-            Visible: |-
-                =!IsBlank(varEqDocsId)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conEqAttModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =80 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14))
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =14
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =R.modal
-            RadiusBottomRight: |-
-                =R.modal
-            RadiusTopLeft: |-
-                =R.modal
-            RadiusTopRight: |-
-                =R.modal
-            Visible: |-
-                =!IsBlank(varEqDocsId)
-            Width: |-
-                =Min(760, App.Width - 32)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - conEqAttHead:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =44
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =12
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - txtEqAttH:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            =Self.Text
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-primary'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        FillPortions: |-
-                            =0
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =26
-                        LayoutMinWidth: |-
-                            =0
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.cardTitle
-                        Text: |-
-                            ="Documents · " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
-                        Width: |-
-                            =Max(0, (((Min(760, App.Width - 32)) - 18 - 18)) - ((44) + 12) - 2)
-                        Wrap: |-
-                            =false
-                  - btnEqAttClose:
-                      Control: Image
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        AlignInContainer: |-
-                            =AlignInContainer.Start
-                        BorderColor: |-
-                            =RGBA(0, 0, 0, 0)
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        DisabledFill: |-
-                            =RGBA(0, 0, 0, 0)
-                        DisplayMode: |-
-                            =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Height: |-
-                            =44
-                        HoverFill: |-
-                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                        Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M6 6l12 12M18 6L6 18'/></g></svg>"))
-                        ImagePosition: |-
-                            =ImagePosition.Center
-                        LayoutMinWidth: |-
-                            =44
-                        OnSelect: |-
-                            =Set(varEqDocsId, Blank());
-                            Reset(attEqPicker);
-                            Set(varEqAttRow, Blank())
-                        PressedFill: |-
-                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                        RadiusBottomLeft: |-
-                            =6
-                        RadiusBottomRight: |-
-                            =6
-                        RadiusTopLeft: |-
-                            =6
-                        RadiusTopRight: |-
-                            =6
-                        TabIndex: |-
-                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                        Tooltip: |-
-                            ="Close"
-                        Width: |-
-                            =44
-            - conEqAttBody:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14)
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Stretch
-                  LayoutDirection: |-
-                      =LayoutDirection.Vertical
-                  LayoutGap: |-
-                      =12
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Scroll
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - attEqPicker:
-                      Control: ModernAttachments@1.3.0
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Documents on the selected row"
-                        DisplayMode: |-
-                            =If(!((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varEqAttBusy, false), false) || IsBlank(varEqAttRow), DisplayMode.Disabled, DisplayMode.Edit)
-                        Height: |-
-                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0))))
-                        Items: |-
-                            =varEqAttRow.Attachments
-                        MaxAttachmentSize: |-
-                            =10
-                        MaxAttachments: |-
-                            =10
-                        OnError: |-
-                            =Set(gblToast, { Text: "This file could not be added. A row can have up to 10 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
-                        Width: |-
-                            =Parent.Width
-                  - txtEqAttLimits:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Up to 10 files, 10 MB each."
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =18
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.small
-                        Text: |-
-                            ="Up to 10 files, 10 MB each."
-                        Visible: |-
-                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
-                        Wrap: |-
-                            =true
-                  - conEqAttActions:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =36
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =8
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Visible: |-
-                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - btnEqAttUpload:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Save the documents on this row"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              Color: |-
-                                  =C.'text-on-primary'
-                              DisplayMode: |-
-                                  =If(IfError(Coalesce(varEqAttBusy, false), false) || attEqPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =36
-                              Icon: |-
-                                  ="Save"
-                              Layout: |-
-                                  =ButtonLayout.IconBefore
-                              LayoutMinWidth: |-
-                                  =179
-                              OnSelect: |-
-                                  =If(
-                                      IsBlank(varEqAttRow),
-                                      Set(gblToast, { Text: "Save the row first - documents are attached to the saved row.", Kind: "Warning", At: Now() }); true,
-                                      Set(varEqAttBusy, true);
-                                      IfError(
-                                          Set(
-                                              varEqAttRowSaved,
-                                              Patch(
-                                                  EquipmentItems,
-                                                  varEqAttRow,
-                                                  { Attachments: attEqPicker.Attachments, FileCount: attEqPicker.AttachmentsCount }
-                                              )
-                                          );
-                                          true,
-                                          Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
-                                          Set(varEqAttRow, LookUp(EquipmentItems, ID = varEqAttRowSaved.ID));
-                                          UpdateIf(colEqRows, RowId = varEqAttRowSaved.ID, { FileCount: Coalesce(varEqAttRowSaved.FileCount, 0) });
-                                          Reset(attEqPicker);
-                                          Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
-                                      );
-                                      Set(varEqAttBusy, false)
-                                  )
-                              RadiusBottomLeft: |-
-                                  =R.input
-                              RadiusBottomRight: |-
-                                  =R.input
-                              RadiusTopLeft: |-
-                                  =R.input
-                              RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
-                                  ="Save documents"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Visible: |-
-                                  =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
-                              Width: |-
-                                  =179
-                  - txtEqAttStatus:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            =If(IfError(Coalesce(varEqAttBusy, false), false), "Saving documents... please wait.", "")
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =18
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.small
-                        Text: |-
-                            =If(IfError(Coalesce(varEqAttBusy, false), false), "Saving documents... please wait.", "")
-                        Visible: |-
-                            =IfError(Coalesce(varEqAttBusy, false), false)
-                        Wrap: |-
-                            =true
-                  - txtEqAttReadOnly:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Read only. You can open the documents, but not add or remove them."
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =18
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.small
-                        Text: |-
-                            ="Read only. You can open the documents, but not add or remove them."
-                        Visible: |-
-                            =!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
-                        Wrap: |-
-                            =true
       - imgEqNavScrim:
           Control: Image
           Properties:
@@ -7164,6 +6724,7 @@ Screens:
                 Set(varEqFText, "");
                 Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                 Set(varEqEditorOpen, false);
+                If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                 Set(varEqFRequestType, "");
                 Set(varEqFEquipmentCategory, "");
                 Set(varEqFManufacturer, "");
@@ -7217,6 +6778,7 @@ Screens:
                 Set(varEqFText, "");
                 Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                 Set(varEqEditorOpen, false);
+                If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                 Set(varEqFRequestType, "");
                 Set(varEqFEquipmentCategory, "");
                 Set(varEqFManufacturer, "");
@@ -7453,6 +7015,7 @@ Screens:
                             Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
                             Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
                             Set(varEqEditorOpen, true);
+                            If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                             Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
                             Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
                             Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
@@ -7607,6 +7170,7 @@ Screens:
                             Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
                             Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
                             Set(varEqEditorOpen, true);
+                            If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                             Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
                             Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
                             Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
@@ -7709,6 +7273,7 @@ Screens:
                             Set(varEqFText, "");
                             Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                             Set(varEqEditorOpen, false);
+                            If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                             Set(varEqFRequestType, "");
                             Set(varEqFEquipmentCategory, "");
                             Set(varEqFManufacturer, "");
@@ -10954,6 +10519,7 @@ Screens:
                                   Set(varEqFText, "");
                                   Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                   Set(varEqEditorOpen, false);
+                                  If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                   Set(varEqFRequestType, "");
                                   Set(varEqFEquipmentCategory, "");
                                   Set(varEqFManufacturer, "");
@@ -11050,6 +10616,7 @@ Screens:
                                   Set(varEqFText, "");
                                   Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                   Set(varEqEditorOpen, false);
+                                  If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                   Set(varEqFRequestType, "");
                                   Set(varEqFEquipmentCategory, "");
                                   Set(varEqFManufacturer, "");
@@ -11562,6 +11129,455 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =104
+      - conEqBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank());
+                Reset(attEqPicker);
+                Set(varEqAttRow, Blank())))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =!IsBlank(varEqDocsId)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conEqAttModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =80 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14))
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =14
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =!IsBlank(varEqDocsId)
+            Width: |-
+                =Min(760, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conEqAttHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtEqAttH:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Documents · " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
+                        Width: |-
+                            =Max(0, (((Min(760, App.Width - 32)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnEqAttClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M6 6l12 12M18 6L6 18'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqDocsId, Blank());
+                            Reset(attEqPicker);
+                            Set(varEqAttRow, Blank())
+                        PressedFill: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - conEqAttBody:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - attEqPicker:
+                      Control: ModernAttachments@1.3.0
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Documents on the selected row"
+                        DisplayMode: |-
+                            =If(!((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varEqAttBusy, false), false) || IsBlank(varEqAttRow), DisplayMode.Disabled, DisplayMode.Edit)
+                        Height: |-
+                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0))))
+                        Items: |-
+                            =varEqAttRow.Attachments
+                        MaxAttachmentSize: |-
+                            =10
+                        MaxAttachments: |-
+                            =10
+                        OnError: |-
+                            =Set(gblToast, { Text: "This file could not be added. A row can have up to 10 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
+                        Width: |-
+                            =Parent.Width
+                  - txtEqAttLimits:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Up to 10 files, 10 MB each."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Up to 10 files, 10 MB each."
+                        Visible: |-
+                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Wrap: |-
+                            =true
+                  - conEqAttActions:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =36
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - btnEqAttUpload:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Save the documents on this row"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varEqAttBusy, false), false) || attEqPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Icon: |-
+                                  ="Save"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =179
+                              OnSelect: |-
+                                  =If(
+                                      IsBlank(varEqAttRow),
+                                      Set(gblToast, { Text: "Save the row first - documents are attached to the saved row.", Kind: "Warning", At: Now() }); true,
+                                      Set(varEqAttBusy, true);
+                                      IfError(
+                                          Set(
+                                              varEqAttRowSaved,
+                                              Patch(
+                                                  EquipmentItems,
+                                                  varEqAttRow,
+                                                  { Attachments: attEqPicker.Attachments, FileCount: attEqPicker.AttachmentsCount }
+                                              )
+                                          );
+                                          true,
+                                          Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
+                                          Set(varEqAttRow, LookUp(EquipmentItems, ID = varEqAttRowSaved.ID));
+                                          UpdateIf(colEqRows, RowId = varEqAttRowSaved.ID, { FileCount: Coalesce(varEqAttRowSaved.FileCount, 0) });
+                                          Reset(attEqPicker);
+                                          Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
+                                      );
+                                      Set(varEqAttBusy, false)
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Save documents"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                              Width: |-
+                                  =179
+                  - txtEqAttStatus:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), "Saving documents... please wait.", "")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), "Saving documents... please wait.", "")
+                        Visible: |-
+                            =IfError(Coalesce(varEqAttBusy, false), false)
+                        Wrap: |-
+                            =true
+                  - txtEqAttReadOnly:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Read only. You can open the documents, but not add or remove them."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Read only. You can open the documents, but not add or remove them."
+                        Visible: |-
+                            =!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Wrap: |-
+                            =true
       - imgEqRowMenuBackdrop:
           Control: Image
           Properties:
@@ -12748,6 +12764,7 @@ Screens:
                                         Set(varEqFText, "");
                                         Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                                         Set(varEqEditorOpen, false);
+                                        If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                                         Set(varEqFRequestType, "");
                                         Set(varEqFEquipmentCategory, "");
                                         Set(varEqFManufacturer, "");
@@ -13867,6 +13884,7 @@ Screens:
                             Set(varEqFText, "");
                             Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
                             Set(varEqEditorOpen, false);
+                            If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
                             Set(varEqFRequestType, "");
                             Set(varEqFEquipmentCategory, "");
                             Set(varEqFManufacturer, "");
