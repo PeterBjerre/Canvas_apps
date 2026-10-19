@@ -80,7 +80,7 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
                            ICON_W, modern_badge, spinner)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
-from design_tokens import ref as _t
+from design_tokens import ref as _t, ref_hex as _hex
 import icons
 import status_chip as sc
 import app_icons
@@ -997,6 +997,51 @@ def _attach_btn(name, visible, width=ACT_BTN):
     return b
 
 
+# CLAUDE-ikonet i kolonnen Assigned to (issue #423): en lille gnist foran
+# navnet, kun naar sagen er tildelt CLAUDE. Kun her i oversigten - ikke i
+# dropdown'en, popuppen eller det kompakte kort.
+CLAUDE_ICON = 14
+CLAUDE_GAP = 4
+IS_CLAUDE_ROW = f'ThisItem.AssignedEmail = "{cfg.CLAUDE_EMAIL}"'
+
+
+def claude_svg():
+    """Gnisten som data-URI i tokenfarven (foelger temaet)."""
+    color = '" & %s & "' % _hex(icons.CLAUDE_TOKEN)
+    body = icons.svg(icons.CLAUDE, color, size=CLAUDE_ICON, width=icons.CLAUDE_STROKE)
+    return f'"data:image/svg+xml;utf8," & EncodeUrl("{body}")'
+
+
+def _assigned_cell(txt):
+    """Kolonnen Assigned to: [gnist] navn. Cellen er een gruppe i
+    kolonnens bredde, saa overskrift og raekke flugter som foer; ikonet
+    tager kun plads, naar det vises, og teksten rykker ind efter det."""
+    icon = Ctrl("imgIbRowClaude", "Image", props={
+        "AccessibleLabel": '"Claude"',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(CLAUDE_ICON),
+        "Image": claude_svg(),
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Visible": IS_CLAUDE_ROW,
+        "Width": str(CLAUDE_ICON),
+    }, h=CLAUDE_ICON, vis=IS_CLAUDE_ROW)
+    # Synligheden naevner ThisItem og kan ikke regnes paa i galleritjekket
+    # (gen_screen._gallery_checks); cellen staar kun paa en bred skaerm.
+    icon.props["_FitGuard"] = WIDE
+    name = txt("txtIbRowAssigned", "ASG",
+               'If(IsBlank(ThisItem.Assigned), "Unassigned", ThisItem.Assigned)',
+               size=lay.SIZE_SMALL,
+               color=f"If(IsBlank(ThisItem.Assigned), {C_MUTED}, {C_TITLE})",
+               accessible='"Assigned to: " & Self.Text')
+    name.props["Width"] = f'({COL_W["ASG"]} - If({IS_CLAUDE_ROW}, {CLAUDE_ICON + CLAUDE_GAP}, 0))'
+    return group("conIbRowAssigned", [icon, name], direction="Horizontal", gap=CLAUDE_GAP,
+                 height=20, width=COL_W["ASG"], align_items="Center")
+
+
 # Application med sit ikon foran (issue #415): det kompakte, farvede ikon
 # fra hubbens anmodningsliste (tools/app_icons.py) og navnet ved siden af.
 # Cellen er praecis lige saa bred som foer (COL_W["APP"]); teksten faar
@@ -1050,11 +1095,7 @@ def _table_row():
         "PRI": _pri_badge("txtIbRowPriority", "ThisItem.Priority", width=COL_W["PRI"]),
         "STATUS": _chip("txtIbRowStatus", "ThisItem.Status", "ThisItem.Archived",
                         width=COL_W["STATUS"]),
-        "ASG": txt("txtIbRowAssigned", "ASG",
-                   'If(IsBlank(ThisItem.Assigned), "Unassigned", ThisItem.Assigned)',
-                   size=lay.SIZE_SMALL,
-                   color=f"If(IsBlank(ThisItem.Assigned), {C_MUTED}, {C_TITLE})",
-                   accessible='"Assigned to: " & Self.Text'),
+        "ASG": _assigned_cell(txt),
         "REP": txt("txtIbRowReported", "REP", f"Text(ThisItem.CreatedOn, {DATE_FMT})",
                    size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Reported: " & Self.Text'),
         "UPD": txt("txtIbRowUpdated", "UPD",
@@ -1739,10 +1780,15 @@ def build_form():
     pr = themed_dropdown("drpIbPriority", _table([p for p, _r in cfg.PRIORITY]),
                          f'Coalesce({SEL_REF}.Priority, "{cfg.PRIORITY_DEFAULT}")',
                          label='"Priority"')
-    asg_items = ('Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }) }, '
+    # CLAUDE (issue #423) staar lige under "Not assigned", foer admins -
+    # en fast pseudo-bruger (cfg.CLAUDE_EMAIL), ikke en raekke i
+    # colIbAdmins. Kun navnet - ikonet vises ikke i dropdown'en.
+    asg_items = ('Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }, '
+                 f'{{ Email: "{cfg.CLAUDE_EMAIL}", Name: "{cfg.CLAUDE_NAME}" }}) }}, '
                  '{ x: SortByColumns(colIbAdmins, "Name", SortOrder.Ascending) }), x)')
     asg = themed_dropdown("drpIbAssignee", asg_items,
                           f'If(IsBlank({SEL_REF}.AssignedEmail), "Not assigned", '
+                          f'{SEL_REF}.AssignedEmail = "{cfg.CLAUDE_EMAIL}", "{cfg.CLAUDE_NAME}", '
                           f'Coalesce(LookUp(colIbAdmins, Email = {SEL_REF}.AssignedEmail).Name, '
                           f'{SEL_REF}.Assigned, "Not assigned"))',
                           value_col="Name", label='"Assigned to"')
