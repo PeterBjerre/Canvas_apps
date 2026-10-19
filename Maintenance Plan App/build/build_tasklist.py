@@ -286,7 +286,8 @@ def _ops_header_html():
 # ---------------------------------------------------------------------------
 # Summerne stod foer i en raekke under operationstabellen ("Total for this
 # item"). Peter 2026-10-19: et kort oeverst til hoejre i sektionen, ved
-# Valid-maerket, med Total cost og Duration. Kortet er det moderne Card
+# Valid-maerket, med Total cost og Duration. Senere samme dag flyttet ned i
+# raekken med task listen og knapperne. Kortet er det moderne Card
 # (build_helpers.modern_card), som Peter bad om. Summerne gaelder det valgte
 # item - det er dets operationer, tabellen viser.
 OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
@@ -947,7 +948,7 @@ def build_tasklist_section():
     # Trin-badget (issue #123): "Valid", naar alle items har tasklist og
     # operationer, og ingen tasklist-/operationsregel fejler.
     header = section_header("conVhpOpsHead", "Task list and operations", "Step 3",
-                            valid_fx="VhpOpsValid", extra_right=[totals_card()])
+                            valid_fx="VhpOpsValid")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
@@ -1059,11 +1060,16 @@ def build_tasklist_section():
     opsMenu.props["LayoutMinWidth"] = "190"
     opsMenu.vis = below("Tablet")
     opsMenu.props["Visible"] = below("Tablet")
-    tb_kids = [tasklistCell, btnAddLines, btnAddOp, opsMenu]
-    on_line = flow_ok(tb_kids, OPS_CW, 12)
-    for b in add_btns + [opsMenu]:
+    # Kortet med Total cost og Duration staar hoejrestillet i samme raekke
+    # som task listen og knapperne (Peter 2026-10-19). I overskriften gjorde
+    # det hele overskriften hoej. Et tomt mellemrum tager resten af linjen.
+    totals = totals_card()
+    tbGap = group("conVhpOpsToolbarGap", [], direction="Horizontal", height=0, width="0")
+    tb_kids = [tasklistCell, btnAddLines, btnAddOp, opsMenu, tbGap, totals]
+    on_line = flow_ok(tb_kids, OPS_CW, 12, flex=tbGap)
+    for b in add_btns + [opsMenu, totals]:
         b.props["AlignInContainer"] = f"If({on_line}, AlignInContainer.End, AlignInContainer.Start)"
-    toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
+    toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12, flex=tbGap)
 
     # Reset (kun dropdownen tilbage) er fjernet (UX-review): task listen
     # vaelges bare om. Sektionen afsluttes med Save (beslutning 1a,
