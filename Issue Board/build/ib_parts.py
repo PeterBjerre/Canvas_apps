@@ -1792,8 +1792,7 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
 # igen: intet blink, intet ekstra kald. Rollen er flowets egen regel (Admin,
 # naar en admin skriver paa en andens sag).
 #
-# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Kaldet tager omkring 10
-# sekunder. Intet sloer over hele skaermen: feltet erstattes af et lille hjul
+# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Intet sloer over hele skaermen: feltet erstattes af et lille hjul
 # med en tekst, der skifter (varIbPostStage: "posting" -> "updating" ->
 # "done" eller "failed"). Resten af appen kan bruges imens. Teksten, sagen og
 # "intern" gemmes FOER kaldet (varIbPostText/-For/-Internal): svaret skrives
@@ -1802,6 +1801,15 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
 # Feltet toemmes foerst ved succes; fejler kaldet, staar teksten der igen
 # (inpIbComment.Default) med Retry. Eget svar (varIbPostRes): Reopen eller
 # Archive imens maa ikke overskrive varIbRes under kommentaren.
+#
+# HURTIGERE (issue #384). Kaldet tog omkring 10 sekunder, fordi flowet
+# lavede 7 + 2 x (antal admins) SharePoint-kald efter hinanden, foer det
+# svarede. Nu: sagen og admin-listen hentes samtidig, rapportoeren slaas op
+# samtidig med Touch_ticket, og admins' rettigheder paa raekken gives EFTER
+# svaret (en fejl der har aldrig rullet kommentaren tilbage). Foer svaret:
+# raekken skrevet, nedarvningen brudt og rapportoeren Read. Ventetilstanden
+# foelger kaldet: hjulet staar, til svaret er der - ingen fast varighed, og
+# teksten lover ingen bestemt tid.
 POSTING_HERE = ('varIbPostFor = varIbSelId && '
                 '(varIbPostStage = "posting" || varIbPostStage = "updating")')
 POST_FAILED_HERE = 'varIbPostFor = varIbSelId && varIbPostStage = "failed"'
@@ -1810,7 +1818,6 @@ POST_DONE_HERE = 'varIbPostFor = varIbSelId && varIbPostStage = "done"'
 POST_SECS = "DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds)"
 POST_STAGE_TEXT = (
     'If(varIbPostStage = "updating", "Updating activity...", '
-    f'{POST_SECS} >= 8, "Saving it to the issue...", '
     f'{POST_SECS} >= 3, "Still posting, please wait...", '
     'If(varIbPostInternal, "Adding internal note...", "Posting comment..."))'
 )
@@ -2367,7 +2374,7 @@ def build_detail():
                         label=POST_STAGE_TEXT, size=lay.SIZE_BODY, weight="Semibold")
     post_spin.props["LayoutMinWidth"] = "0"
     post_note = text_ctrl("txtIbPostingNote",
-                          '"This usually takes about 10 seconds. You can keep using the app meanwhile."',
+                          '"You can keep using the app meanwhile."',
                           size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
     posting = group("conIbPosting", [post_spin, post_note], direction="Vertical", gap=4,
                     fill=C_MUTED_BG, radius=10, pad=(12, 12, 12, 12),
