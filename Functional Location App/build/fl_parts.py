@@ -30,13 +30,15 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
 import layout_tokens as lay
-from progress_overlay import progress_overlay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
-                           with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
+                           act_fx, act_button, act_status, act_layers, panel_save_text,
+                           confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
+                           panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
+                           panel_save_block)
 
 # Under Desktop er headerens Edit, Save draft og Submit kun deres ikon
 # (_bar_btn). FL har ingen bundbjaelke (issue #392), saa knapperne SKAL
@@ -162,6 +164,13 @@ def _bar_btn(btn):
     return btn
 
 
+# Knappernes ventetilstand (issue #420, build_helpers.act_fx): "save" eller
+# "submit", mens der gemmes, og "<noegle>:ok"/":failed" bagefter.
+ACT = "varFlAct"
+SAVE_DRAFT_FX = act_fx(ACT, "save", S.save_fx(), ok="CountRows(colFlSaveErrors) = 0")
+# Indsend: lykkedes, naar anmodningen staar som Indsendt bagefter.
+SUBMIT_FX = act_fx(ACT, "submit", S.submit_fx(), ok='varFlStatus = "Indsendt"')
+
 # Save draft - og panelets Save, som er det samme gem (issue #308).
 SAVE_DM = (f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
            f'DisplayMode.Disabled, DisplayMode.Edit)')
@@ -171,7 +180,7 @@ def build_bar():
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
-    save = _fit(button("btnFlSaveDraft", '"Save draft"', with_busy("varFlSaving", S.save_fx()),
+    save = _fit(button("btnFlSaveDraft", '"Save draft"', SAVE_DRAFT_FX,
                        icon=ICON_SAVE, display_mode=SAVE_DM), icon=True)
     save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
                              'it can still be edited."')
@@ -190,7 +199,9 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
-    actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
+    # Hjulet og "Saved"/"Save failed" lige foran Save draft (issue #420).
+    status = act_status("FlAct", ACT, ("save", "submit"))
+    actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit, *status])
     # Ingen bundbjaelke paa FL (issue #392): Save draft og Submit staar i
     # headeren paa alle skaermbredder.
     # Synlig kant rundt om alle sekundaere knapper (feedback).
@@ -204,6 +215,9 @@ def build_bar():
     # med hele sin tekst (issue #243).
     if ICON_SUBMIT:
         _bar_btn(submit)
+    # "Saving..." / "Submitting..." paa knapperne, mens der gemmes (#420).
+    act_button(save, ACT, "save")
+    act_button(submit, ACT, "submit")
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
                   actions + [delete_button("Fl", "varFlViewOnly", "varFlRequestGuid")],
@@ -730,6 +744,7 @@ def open_row_panel_fx(guid, jump='""'):
             f"Set(varFlPanelJump, {jump});\n"
             f"{PANEL_FILL};\n"
             f"{PANEL_SNAP};\n"
+            f'Set({PANEL_SAVE}, "");\n'
             "Set(varFlPanelOpen, true)")
 
 
@@ -776,7 +791,12 @@ PANEL_COLS = (f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
 # KKS type + Assigned class: side om side, og under hinanden (KKS type
 # foerst), naar to kolonner ikke kan faa PANEL_COL_MIN hver.
 PANEL_SUB_COLS = f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1)"
-CLOSE_PANEL_FX = ('Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); '
+# Panelets gem-tilstand: "saving", "failed" eller tom (issue #402,
+# build_helpers.panel_save_status). Hoerer til den raekke, der er aaben -
+# den nulstilles, naar panelet aabnes paa en raekke og naar det lukkes.
+PANEL_SAVE = "varFlPanelSave"
+CLOSE_PANEL_FX = (f'Set({PANEL_SAVE}, ""); '
+                  'Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); '
                   'Set(varFlDetailRow, ""); Clear(colFlDet); '
                   'Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)')
 
@@ -846,23 +866,34 @@ def build_row_panel():
     sections = ([show_all] + [_panel_section(k, t) for k, t in cfg.PANEL_SECTIONS]
                 + [no_cls])
     footer = _panel_footer()
+    # Gemmets tilstand lige over bundbjaelken (issue #402).
+    status = panel_save_status("Fl", PANEL_SAVE, PANEL_SAVE_FX, SAVE_DM)
     # Pad (2 x 16), overskrift, bundbjaelken og to mellemrum: bunden
     # klippes aldrig, og bundbjaelken staar fast under det, der scroller.
-    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+    # Statuslinjen tager kun plads, mens den vises.
+    scroll_h = (f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+                f" - {panel_save_space(status)}")
     scroll = group("conFlEditorSections", sections, direction="Vertical", gap=PANEL_SECTION_GAP,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, PANEL_PAD, 16, PANEL_PAD))
-    panel = group("conFlEditorPanel", [heading, scroll, footer], direction="Vertical", gap=12,
+    panel = group("conFlEditorPanel", [heading, scroll, status, footer], direction="Vertical", gap=12,
                   height="App.Height", width=lay.PANEL_W_AT, fill=C_CARD_BG,
                   border_color=C_CARD_BORDER, pad=(16, PANEL_PAD, 16, PANEL_PAD),
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
-    # Bekraeftelserne ligger OVER panelet.
-    return [backdrop, panel] + _panel_confirms()
+    # Mens panelet gemmer: et gennemsigtigt lag over alt. Bekraeftelserne
+    # ligger OVER panelet.
+    return [backdrop, panel, panel_save_block("Fl", PANEL_SAVE)] + _panel_confirms()
 
 
 PANEL_SAVE_W = fit_button_width('"Save"') + ICON_W + 8
+# Panelets Save - og Retry: det samme gem som Save draft, men uden sidens
+# sloer og bjaelke (issue #402). Lykkes det, lukker panelet; ellers staar
+# raekken, som brugeren efterlod den, med "Save failed" og Retry.
+PANEL_SAVE_FX = panel_save_fx(
+    PANEL_SAVE, S.save_fx(),
+    f'If(CountRows(colFlSaveErrors) = 0, {CLOSE_PANEL_FX}, Set({PANEL_SAVE}, "failed"))')
 
 
 def _panel_footer():
@@ -882,13 +913,12 @@ def _panel_footer():
                     f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n);\n"
                     f"{CLOSE_PANEL_FX}",
                     width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
-    save = button("btnFlEditorSave", '"Save"',
-                  with_busy("varFlSaving", S.save_fx()) + ";\n"
-                  f"If(CountRows(colFlSaveErrors) = 0, {CLOSE_PANEL_FX})",
+    save = button("btnFlEditorSave", '"Save"', PANEL_SAVE_FX,
                   primary=True, width=PANEL_SAVE_W, height=lay.HIT_TOUCH,
-                  display_mode=SAVE_DM, icon='"Save"',
+                  display_mode=panel_save_mode(PANEL_SAVE, SAVE_DM), icon='"Save"',
                   tooltip='"Save the request with this row and close the panel"')
     save.props["AccessibleLabel"] = "Self.Text"
+    panel_save_text(save, PANEL_SAVE)
     return editor_footer("Fl", delete, reset, cancel, save)
 
 
@@ -1316,6 +1346,7 @@ Clear(colFlPanelSnap);
 Clear(colFlPanelSnapVals)"""
 
 NEW_FX = RESET_FX + """;
+Set(varFlAct, "");
 Set(varFlRequestGuid, "");
 Set(varFlRequestNo, "");
 Set(varFlStatus, "");
@@ -1339,9 +1370,11 @@ def build_submit_confirm():
     return confirm_modal(
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
-        "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
+        "Submit", SUBMIT_FX, "btnFlSubmitConfirm") + delete_modal(
         "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
-        *progress_overlay("imgFlSaving", "varFlSaving", "Saving, please wait")]
+        # Mens der gemmes: Save draft/Submit viser det selv (issue #420) -
+        # et gennemsigtigt lag, intet sloer og ingen bjaelke.
+        *act_layers("Fl", ACT)]
 
 
 # ---------------------------------------------------------------------------
