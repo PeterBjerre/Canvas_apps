@@ -27,6 +27,9 @@
                         laese dem. Siden issue #300 laegger appen dem selv
                         paa med Patch (brugerens egen forbindelse) - det
                         kraever, at rapportoeren er raekkens Created By.
+                        FileCount er antallet af vedhaeftninger (issue
+                        #442, #443): appen skriver det i samme Patch som
+                        filerne, og scriptet taeller de gamle sager op.
     IB_TicketComments   kommentarer og haendelser, een raekke pr. haendelse
                         (aldrig en samlet tekst). PRIVAT: kun ejerne og
                         flowets konto paa listen. Hver raekke faar sine egne
@@ -55,6 +58,13 @@
     vedhaefte filer (issue #300: "En bruger maa gerne redigere sit eget
     issue"). Scriptet saetter Created By til rapportoeren (ReporterEmail)
     paa de sager, hvor de to ikke er den samme. Modified roeres ikke.
+
+    ANTALLET AF FILER (issue #442, #443)
+    -------------------
+    Kolonnen FileCount oprettes, og hver sag, hvor tallet ikke passer
+    med de vedhaeftninger, der ligger paa raekken, faar det rigtige tal
+    (ogsaa 0). SystemUpdate: Modified og Modified By roeres ikke, og der
+    kommer ingen ny version. Kan koeres igen og igen.
 
     ADMINS
     ------
@@ -246,6 +256,44 @@ function Reset-TicketItemPermissions {
     Write-Host "    ~ $n gamle sag(er) arver nu listens rettigheder" -ForegroundColor Green
 }
 
+function Set-TicketFileCounts {
+    # Issue #442, #443: FileCount = antallet af vedhaeftninger paa sagen.
+    # Appen holder tallet ved lige fra nu af; her taelles de sager op, der
+    # fandtes foer kolonnen. Kun raekker med et forkert (eller tomt) tal
+    # roeres. AttachmentFiles hentes kun, naar SharePoint siger, at
+    # raekken HAR vedhaeftninger (feltet Attachments).
+    param([string]$List)
+    if (-not (Get-PnPField -List $List -Identity 'FileCount' -ErrorAction SilentlyContinue)) {
+        Write-Host "    ? FileCount findes ikke endnu - intet at taelle" -ForegroundColor Yellow
+        return
+    }
+    $items = Get-PnPListItem -List $List -PageSize 500 -Fields 'ID', 'Attachments', 'FileCount'
+    $n = 0
+    foreach ($it in $items) {
+        $count = 0
+        if ($it.FieldValues.Attachments) {
+            $files = Get-PnPProperty -ClientObject $it -Property AttachmentFiles
+            $count = @($files).Count
+        }
+        $current = $it.FieldValues.FileCount
+        if ($null -ne $current -and [int]$current -eq $count) { continue }
+        if ($WhatIfOnly) {
+            Write-Host "    ? ville saette FileCount = $count paa sag $($it.Id)" -ForegroundColor Yellow
+        } else {
+            try {
+                Set-PnPListItem -List $List -Identity $it.Id -Values @{ FileCount = $count } `
+                    -UpdateType SystemUpdate | Out-Null
+            }
+            catch {
+                Write-Host "    ! sag $($it.Id): $($_.Exception.Message)" -ForegroundColor Red
+                continue
+            }
+        }
+        $n++
+    }
+    Write-Host "    ~ $n sag(er) har nu det rigtige FileCount" -ForegroundColor Green
+}
+
 function Set-TicketAuthors {
     # Issue #300: rapportoeren retter selv sin sag (og dens vedhaeftninger)
     # med Patch, og listen tillader kun "edit own items". Sager, flowet
@@ -306,11 +354,17 @@ New-MdField 'IB_Tickets' 'ClosedOn' DateTime
 New-MdField 'IB_Tickets' 'IsArchived' Boolean -Indexed -Description 'Arkiveret: ude af de aktive visninger, men ikke slettet (trin 2).'
 New-MdNoteField 'IB_Tickets' 'Resolution'
 New-MdField 'IB_Tickets' 'SharedItemId' Number -Description 'Udgaaet (#193): ID i den tidligere anonyme kopi IB_SharedIssues. Skrives ikke laengere.'
+New-MdField 'IB_Tickets' 'FileCount' Number -Description 'Antallet af vedhaeftninger paa sagen. Skrives af appen sammen med filerne (issue #442, #443).'
 # Trin 2: vedhaeftningerne ligger paa raekken. Det er SharePoints standard,
 # men slaas til her, saa ingen kan have slaaet det fra.
 if (-not $WhatIfOnly -and (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue)) {
     Set-PnPList -Identity $TICKETS -EnableAttachments $true | Out-Null
     Write-Host "    ~ vedhaeftninger slaaet til" -ForegroundColor Green
+}
+# Issue #442, #443: de gamle sagers antal filer.
+if (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue) {
+    Write-Host "  $TICKETS - FileCount paa de gamle sager"
+    Set-TicketFileCounts $TICKETS
 }
 
 # ---------------------------------------------------------------------------
@@ -451,5 +505,7 @@ Write-Host "  3. Datakilderne i Studio: $TICKETS, $COMMENTS, $SECTIONS og flowet
 Write-Host "     BioSap-IssueBoard-Submit. $SHARED bruges ikke laengere."
 Write-Host "     Appen vedhaefter filer med Patch paa $TICKETS (issue #300) - flowets"
 Write-Host "     handling attach bruges ikke laengere."
+Write-Host "     Efter den nye kolonne FileCount (issue #442, #443): opdater datakilden"
+Write-Host "     $TICKETS i Studio, foer appen gemmes."
 Write-Host "  4. Koer sharepoint/inspect/Export-ListSchema.ps1, saa schema.md kender"
 Write-Host "     listerne."
