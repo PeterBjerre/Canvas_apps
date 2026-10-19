@@ -975,6 +975,14 @@ def build_item_editor():
 ITEM_SAVE_W = fit_button_width("\"Done\"", min_w=96) + ICON_W
 
 
+# Object list-popuppens bredde (maks 640, aldrig bredere end skaermen minus
+# 20 px i hver side), dens polstring og pladsen inden i den. Listen tager
+# hele den indre bredde (issue #385).
+OBJ_MODAL_W = "Min(640, App.Width - 40)"
+OBJ_MODAL_PAD = 18
+OBJ_LIST_W = f"({OBJ_MODAL_W}) - {2 * OBJ_MODAL_PAD}"
+
+
 def build_object_list_modal():
     """Object list som popup (issue #54).
 
@@ -1044,7 +1052,16 @@ def build_object_list_modal():
             "TabIndex": "0",
             "TemplatePadding": "2",
             "TemplateSize": str(OBJ_ROW_H),
-            "Width": "Parent.Width",
+            # Issue #385: listens bredde er popuppens INDRE bredde - samme
+            # udtryk som popuppens Width minus dens polstring - og ikke
+            # Parent.Width. Med Parent.Width var bredden et gaet for
+            # gen_screen, der derfor trak GALLERY_RESERVE (40 px) fra
+            # raekken: den blaa baggrund stoppede 40 px foer listens kant,
+            # og teksten blev klippet tilsvarende tidligt. Nu er listen,
+            # raekken (Parent.TemplateWidth) og teksten (resten af raekken)
+            # regnet af een og samme responsive bredde.
+            "Width": OBJ_LIST_W,
+            "AlignInContainer": "AlignInContainer.Start",
             "WrapCount": "1",
         },
         children=[objRowTpl], h=OBJ_ROWS * (OBJ_ROW_H + 2))
@@ -1087,7 +1104,7 @@ def build_object_list_modal():
     modal = group(
         "conVhpObjListModal", [headRow, under, galObj, objEmpty, footer], direction="Vertical",
         gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-        pad=(18, 18, 18, 18), width="Min(640, App.Width - 40)", drop_shadow="ExtraBold",
+        pad=(OBJ_MODAL_PAD,) * 4, width=OBJ_MODAL_W, drop_shadow="ExtraBold",
         visible="varVhpObjListOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
