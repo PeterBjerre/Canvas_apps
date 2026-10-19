@@ -86,6 +86,13 @@ def test_open_remembers_the_text():
     assert fx.index("varMatPoBefore") < fx.index("Set(varMatPoOpen, true)")
 
 
+def _idle(layout):
+    """Knappens layout, naar intet gemmes: sidste gren af If(..., TextOnly, x)."""
+    if layout.startswith("If("):
+        return layout.rsplit(", ", 1)[-1][:-1]
+    return layout
+
+
 def test_footer_is_cancel_then_save_and_fixed():
     ctrls, _ = _controls()
     modal = ctrls["conMatPoModal"]
@@ -100,8 +107,11 @@ def test_footer_is_cancel_then_save_and_fixed():
     side_cancel, side_save = ctrls["btnMatEditorCancel"], ctrls["btnMatSave"]
     for mine, theirs in ((ctrls["btnMatPoCancel"], side_cancel),
                          (ctrls["btnMatPoSave"], side_save)):
-        for key in ("Height", "Appearance", "BasePaletteColor", "BorderColor", "Icon", "Layout"):
+        for key in ("Height", "Appearance", "BasePaletteColor", "BorderColor", "Icon"):
             assert _prop(mine, key) == _prop(theirs, key), key
+        # Layout: samme i hvile; mens der gemmes, viger ikonet for teksten (#420).
+        assert _idle(_prop(mine, "Layout")) == _idle(_prop(theirs, "Layout"))
+    assert "varMatPoSaving, ButtonLayout.TextOnly" in _prop(ctrls["btnMatPoSave"], "Layout")
     assert _prop(ctrls["btnMatPoCancel"], "Text") == '"Cancel"'
 
 
