@@ -28,7 +28,6 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
                         C_CARD_BG, C_DIVIDER)
-from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
@@ -1247,86 +1246,6 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
         "WrapCount": cols,
     }, children=[tile], h=gal_h, vis=vis)
     return gal
-
-
-
-# ---------------------------------------------------------------------------
-# Strukturen - HTML, KUN til visning (README, beslutning 3)
-# ---------------------------------------------------------------------------
-LIVE = 'Filter(colFlRows, Status <> "draft" && !IsBlank(FL))'
-
-
-def _esc(x):
-    return f'Substitute(Substitute(Substitute({x}, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")'
-
-
-# Skillelinjen mellem raekkerne - samme token som galleriernes (C_DIVIDER).
-_RULE = f'border-bottom:1px solid " & {ref_hex("border-subtle")} & ";'
-
-
-def _cell(x, muted=False, bold=False):
-    color = ref_hex("text-muted") if muted else ref_hex("text-primary")
-    weight = "font-weight:600;" if bold else ""
-    return (f'"<td style=\'padding:6px 10px 6px 0;{_RULE}{weight}color:" & {color} & "\'>" & '
-            f'{x} & "</td>"')
-
-
-def structure_html():
-    """FL-hierarkiet: vaerk -> KKS-noeglerne i positionerne, som motoren
-    laeser dem (0: 1-3, 7: 7-9, 12: 12-13, 17: 17-18, 18: 18-19). Hver
-    raekke viser sin klasse og status. Laeses, redigeres ikke."""
-    head_cells = ["Plant", "Unit", "Function key", "No.", "Aggregate", "Pos. 14-16",
-                  "Pos. 17-21", "Class", "Status"]
-    th = "".join(
-        f"<th style='text-align:left;padding:3px 10px 6px 0;{_RULE}font-weight:600;color:\" & "
-        f"{ref_hex('text-muted')} & \"'>{h}</th>" for h in head_cells)
-    row = " & ".join([
-        _cell('""'),
-        _cell(_esc("Mid(R.FL, 4, 3)"), muted=True),
-        _cell(_esc("Mid(R.FL, 7, 3)"), bold=True),
-        _cell(_esc("Mid(R.FL, 10, 2)"), muted=True),
-        _cell(_esc("Mid(R.FL, 12, 2)"), bold=True),
-        _cell(_esc("Mid(R.FL, 14, 3)"), muted=True),
-        _cell(_esc("Mid(R.FL, 17, 5)"), bold=True),
-        _cell(_esc('Coalesce(R.AssignedClass, "-")'), bold=True),
-        _cell('Switch(R.Status, "valid", "&#10004; Ready", "warning", "&#9888; Warning", '
-              '"&#10006; Error")'),
-    ])
-    return (f'"<div style=\'font-family:Segoe UI;font-size:13px;color:" & {ref_hex("text-primary")} & "\'>" &\n'
-            f'"<table style=\'border-collapse:collapse;width:100%\'><tr>{th}</tr>" &\n'
-            f"Concat(\n"
-            f"    Sort(Distinct({LIVE}, Left(FL, 3)), Value) As P,\n"
-            f'    "<tr><td colspan=\'9\' style=\'padding:10px 0 4px 0;font-weight:700;color:" & {ref_hex("text-primary")} & "\'>" & {_esc("P.Value")} & "</td></tr>" &\n'
-            f"    Concat(\n"
-            f"        Sort(Filter({LIVE}, Left(FL, 3) = P.Value), FL) As R,\n"
-            f'        "<tr>" & {row} & "</tr>"\n'
-            f"    )\n"
-            f") &\n"
-            f'"</table></div>"')
-
-
-def build_structure():
-    title = text_ctrl("txtFlStructH", '"Structure"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=26, wrap="false")
-    sub = text_ctrl("txtFlStructSub",
-                    '"The KKS keys the rules read, per plant. For viewing only - edit the rows above."',
-                    size=12, color=C_MUTED, height=18, wrap="false")
-    # Hoejden er indholdets: overskrift + en raekke pr. FL og pr. vaerk.
-    # Uden raekker er HTML'en skjult - ingen tom tabeloverskrift.
-    has = f"IfError(CountRows({LIVE}) > 0, false)"
-    h = f"Min(34 + 30 * (CountRows({LIVE}) + CountRows(Distinct({LIVE}, Left(FL, 3)))), 600)"
-    html = Ctrl("htmFlStructure", "HtmlViewer", props={
-        "Fill": C_TRANSPARENT,
-        "Height": h,
-        "HtmlText": structure_html(),
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
-        "Visible": has,
-        "Width": "Parent.Width",
-    }, h=h, vis=has)
-    empty = text_ctrl("txtFlStructNone",
-                      '"Enter a Functional Location above to see its structure."',
-                      size=13, color=C_MUTED, height=20, wrap="false", visible=f"!({has})")
-    return card("conFlStructCard", [title, sub, html, empty], gap=10)
 
 
 # ---------------------------------------------------------------------------
