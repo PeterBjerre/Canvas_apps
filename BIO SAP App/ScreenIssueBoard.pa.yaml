@@ -2491,6 +2491,35 @@ Screens:
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
+                              - imgIbRowApp:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Application icon: " & ThisItem.Application
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Height: |-
+                                        =20
+                                    Image: |-
+                                        =Coalesce(LookUp(IbAppIcons, Application = ThisItem.Application).Uri, LookUp(IbAppIcons, Application = "Other").Uri)
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    Visible: |-
+                                        =(LayoutRank >= 3) && (!IsBlank(ThisItem.Application))
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowApp:
                                   Control: ModernText
                                   Properties:
@@ -2523,13 +2552,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowSection:
                                   Control: ModernText
                                   Properties:

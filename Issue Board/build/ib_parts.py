@@ -83,6 +83,7 @@ from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
 import icons
 import status_chip as sc
+import app_icons
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import SHELL_W, below, at_least, if_below
@@ -466,6 +467,12 @@ IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 // hentet. Ellers af Activity (Attachment-haendelserne fra foer #300), saa
 // fanen kan vise et tal uden at hente filerne.
 IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), Blank());'''
+
+# Application-kolonnens ikoner (issue #415): den FAELLES tabel
+# (tools/app_icons.py) - samme ikon og farve som sidebaren og hubben.
+# Regnet een gang pr. tema, ikke pr. raekke (som hubbens MdIcons).
+APP_ICONS = "IbAppIcons"
+FORMULAS += "\n" + app_icons.formula(APP_ICONS)
 
 
 # Statussen er den faelles statuschip (tools/status_chip.py, UX-review T4):
@@ -990,6 +997,40 @@ def _attach_btn(name, visible, width=ACT_BTN):
     return b
 
 
+# Application med sit ikon foran (issue #415): det kompakte, farvede ikon
+# fra hubbens anmodningsliste (tools/app_icons.py) og navnet ved siden af.
+# Cellen er praecis lige saa bred som foer (COL_W["APP"]); teksten faar
+# resten efter ikonet og afkortes med ellipse som foer.
+APP_ICON_GAP = 6
+
+
+def _app_cell():
+    has = "!IsBlank(ThisItem.Application)"
+    img = Ctrl("imgIbRowApp", "Image", props={
+        # Pynt ved teksten. App checker kraever alligevel et tab stop og en
+        # etiket paa et Image (issue #165) - som hubbens domaeneikon.
+        "AccessibleLabel": '"Application icon: " & ThisItem.Application',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT,
+        "Height": str(app_icons.TILE),
+        "Image": app_icons.uri(APP_ICONS, "ThisItem.Application"),
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": str(app_icons.TILE),
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Visible": has,
+        "Width": str(app_icons.TILE),
+    }, h=app_icons.TILE, vis=has)
+    text_w = f'({COL_W["APP"]} - If({has}, {app_icons.TILE + APP_ICON_GAP}, 0))'
+    txt = text_ctrl("txtIbRowApp", "ThisItem.Application", size=lay.SIZE_BODY, height=20,
+                    width=text_w, wrap="false", accessible='"Application: " & Self.Text')
+    return group("conIbRowApp", [img, txt], direction="Horizontal", gap=APP_ICON_GAP,
+                 height=20, width=COL_W["APP"], align_items="Center",
+                 layout_min_width=COL_W["APP"])
+
+
 def _table_row():
     """Tabelraekken (Desktop og op) - een celle pr. kolonne i LIST_COLS."""
     def txt(name, key, expr, **kw):
@@ -1001,8 +1042,7 @@ def _table_row():
         # Kun titlen, paa een linje - en lang titel afkortes med ellipse.
         "TITLE": txt("txtIbRowTitle", "TITLE", "ThisItem.Title", weight="Semibold",
                      accessible='"Title: " & ThisItem.Title'),
-        "APP": txt("txtIbRowApp", "APP", "ThisItem.Application",
-                   accessible='"Application: " & Self.Text'),
+        "APP": _app_cell(),
         "SECTION": txt("txtIbRowSection", "SECTION", "ThisItem.Section", color=C_MUTED,
                        accessible='"Section: " & Self.Text'),
         "REQ": txt("txtIbRowReq", "REQ", requester("ThisItem"),
