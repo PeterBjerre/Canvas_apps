@@ -686,8 +686,10 @@ PANEL_ISSUE = V.field_issue("varFlDetailRow", "ThisItem.Field").replace("\n", " 
 # Som Materials' panel (build_helpers.editor_footer). Felterne skriver
 # stadig direkte i raekken (de skal valideres, mens man skriver), saa
 # panelet tager et AFTRYK af raekken, naar det aabnes paa den (PANEL_SNAP):
-#   Reset   raekken tilbage til aftrykket - spoerger foerst, hvis der er
-#           aendret noget (Materials' "Discard unsaved changes?").
+#   Reset   raekken tilbage til aftrykket, og panelet bliver aabent
+#           (issue #403). Slaaet fra, naar intet er aendret. Ingen
+#           bekraeftelse og intet sloer: dens graa sloer kunne blive
+#           staaende og laase siden (issue #405).
 #   Cancel  raekken tilbage til aftrykket, og panelet lukker.
 #   Save    anmodningen gemmes (samme gem som Save draft), og panelet
 #           lukker, naar gemmet lykkedes.
@@ -715,6 +717,8 @@ PANEL_RESTORE = f"""With(
 {REVERIFY}"""
 PANEL_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 PANEL_DM = f"If({PANEL_LOCKED}, DisplayMode.Disabled, DisplayMode.Edit)"
+# Reset er slaaet fra, naar raekken allerede er som ved aabningen (#403).
+RESET_DM = f"If({PANEL_LOCKED} || !({PANEL_DIRTY}), DisplayMode.Disabled, DisplayMode.Edit)"
 
 
 def open_row_panel_fx(guid, jump='""'):
@@ -867,8 +871,12 @@ def _panel_footer():
     delete = button("btnFlEditorDelete", '"Delete row"', "Set(varFlPanelDelAsk, true)",
                     danger=True, width=fit_button_width('"Delete row"'), height=lay.HIT_TOUCH,
                     display_mode=PANEL_DM, visible="!IsBlank(varFlDetailRow)")
-    reset = button("btnFlEditorReset", '"Reset"', f"If({PANEL_DIRTY}, Set(varFlPanelResetAsk, true))",
-                   width=fit_button_width('"Reset"'), height=lay.HIT_TOUCH, display_mode=PANEL_DM,
+    # Reset: direkte tilbage til aftrykket - intet sloer, ingen popup og
+    # ingen ventevariabel, saa intet kan blive haengende (issue #405).
+    # Panelet bliver aabent (issue #403).
+    reset = button("btnFlEditorReset", '"Reset"',
+                   f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n)",
+                   width=fit_button_width('"Reset"'), height=lay.HIT_TOUCH, display_mode=RESET_DM,
                    tooltip='"Undo the changes made to this row since it was opened"')
     cancel = button("btnFlEditorCancel", '"Cancel"',
                     f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n);\n"
@@ -885,18 +893,15 @@ def _panel_footer():
 
 
 def _panel_confirms():
-    """Delete row og Reset spoerger foerst - som Materials."""
+    """Delete row spoerger foerst - som Materials. Reset spoerger ikke
+    (issue #405): den kasserer kun aendringerne siden panelet blev aabnet."""
     pos = 'Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos)'
     delete = confirm_modal(
         "FlRowDel", "varFlPanelDelAsk", "Delete row?",
         f'"Row " & {pos} & " is removed from the request. Save the request to delete it in SharePoint too."',
         "Delete", delete_row_fx("varFlDetailRow") + ";\n" + CLOSE_PANEL_FX,
         "btnFlRowDelConfirm", icon="Delete")
-    reset = confirm_modal(
-        "FlRowReset", "varFlPanelResetAsk", "Discard unsaved changes?",
-        '"The row returns to how it was when you opened it. Other rows and the request are not changed."',
-        "Reset", PANEL_RESTORE, "btnFlRowResetConfirm", icon=None, danger=True)
-    return delete + reset
+    return delete
 
 
 def build_rows():

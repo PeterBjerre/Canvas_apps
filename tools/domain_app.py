@@ -200,8 +200,9 @@ def _row_editor(form, panel_content=None, reset=None):
                   display_mode=dp.DM_ROW, icon='"Save"')
     save.props["AccessibleLabel"] = "Self.Text"
     if reset is None:
-        reset = button("btnDomNew", '"Reset"', dp.clear_form_fx(),
-                       tooltip='"Clear the form and start a new row"')
+        # Reset kasserer kun de ugemte aendringer og lader panelet staa
+        # aabent (issue #403, #405) - Cancel er den, der lukker.
+        reset = dp.reset_button()
     reset.props["Width"] = str(fit_button_width('"Reset"'))
     reset.props["Height"] = str(lay.HIT_TOUCH)
     reset.h = lay.HIT_TOUCH
