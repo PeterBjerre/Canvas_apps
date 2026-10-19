@@ -96,3 +96,30 @@ def test_summary_width_and_height_leave_room_for_show():
     body = _block(y, "conVhpPlanFoldBody", 2000)
     bh = body[body.index("Height:"):body.index("Height:") + 400]
     assert "(36))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
+
+
+def _prop(block, prop):
+    """Vaerdien af en egenskab i en kontrol-blok (foerste forekomst)."""
+    i = block.index(f" {prop}: |-\n")
+    return block[i:].splitlines()[1].strip()
+
+
+def test_fold_cost_chip_is_hidden_without_a_total_and_fits_its_border():
+    """Issue #421: Total cost-pillen i det foldede planhoved var en tom kasse
+    med kant over Show. Den er nu kun synlig, naar planen har en sum over 0,
+    teksterne er pillens indre hoejde (inden for kanten), og titlen regner
+    kun med pillens bredde, naar den ses."""
+    y, _ = _summary()
+    chip = _block(y, "conVhpPlanFoldCost", 6000)
+    head = chip[:chip.index("Children:")]
+    assert _prop(head, "Visible") == "=IfError(Sum(colVhpOperations, Cost) > 0, false)"
+    assert _prop(head, "Height") == "=24"
+    assert _prop(head, "BorderThickness") == "=1"
+    for kid in ("txtVhpPlanFoldCostLabel", "txtVhpPlanFoldCostValue"):
+        assert _prop(_block(y, kid, 3000), "Height") == "=22", kid
+    title = _block(y, "txtVhpPlanFoldTitle", 3000)
+    assert "If(IfError(Sum(colVhpOperations, Cost) > 0, false), (24 + (66)" in _prop(title, "Width")
+    # Show bliver i resumeets raekke, hoejrestillet - uberoert af pillen.
+    body = _block(y, "conVhpPlanFoldBody", 40000)
+    assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
+    assert "LayoutJustifyContent.SpaceBetween" in body[:body.index("Children:")]
