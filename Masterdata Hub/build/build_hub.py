@@ -254,7 +254,9 @@ SCOPE_IF = (
 # FLAT_SCOPE = False bygger If-formen fra #84 igen uden anden kodeaendring,
 # hvis Studio/SharePoint igen afviser forespoergslen. Efterproev i Studio
 # med Monitor (eet $filter med alle led) og Data row limit = 1.
-FLAT_SCOPE = True
+# 2026-10-19: Studio gav delegeringsadvarsel paa galMdRequests.Items
+# (SortByColumns over det flade Filter), saa If-formen fra #84 er tilbage.
+FLAT_SCOPE = False
 SCOPE_CONDS = (
     'varMdView <> "mine" || RequesterEmail = varMdMe',
     'varMdStatusMode <> "open" || IsOpen = true',
