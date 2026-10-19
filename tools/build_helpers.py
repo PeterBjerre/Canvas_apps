@@ -962,7 +962,7 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
 
     act: (act_var, key) - handlingen koerer I popuppen (issue #420): den
     lukker ikke foerst, knappen siger fx "Deleting..." med hjulet ved
-    siden af, og popuppen lukker, naar handlingen lykkes. Fejler den,
+    siden af, og popuppen lukker, naar handlingen er faerdig. Fejler den,
     bliver popuppen staaende med "Delete failed" ved knappen. confirm_fx
     skriver selv sit udfald (act_mark)."""
     if danger is None:
@@ -974,8 +974,10 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
         av, key = act
         # Lukket uden at lykkes: beskeden hoerer til denne popup.
         close_fx += f';\nIf(IfError({av} = "{key}:failed", false), Set({av}, ""))'
+        # Lukker, medmindre handlingen fejlede - ogsaa naar den blev stoppet
+        # med sin egen besked (fx "Select a row first"), som foer.
         run_fx = (act_fx(av, key, confirm_fx) + ";\n"
-                  f'If(IfError({av} = "{key}:ok", false), Set({open_var}, false))')
+                  f'If(!IfError({av} = "{key}:failed", false), Set({open_var}, false))')
     backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, close_fx)
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
