@@ -77,8 +77,8 @@ def on_visible():
 
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
-    # EEN spalte: Validation (raekkerne, issue #232), Classes og
-    # strukturen. Raekkens Class data, Manufacturer og Warranty og Classes'
+    # EEN spalte: Validation (raekkerne, issue #232) og Classes. Structure-
+    # kortet er fjernet (issue #432). Raekkens Class data, Manufacturer og Warranty og Classes'
     # Edit aabner sidepanelet (build_row_panel, issue #278, #346). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
     bar = P.build_bar()
@@ -90,7 +90,7 @@ def build_screen(render=render_screen):
     # bliver i headeren; under Tablet er de kun ikoner (P._bar_btn), saa
     # New request, Save draft og Submit kan staa paa een linje.
     root, = request_shell("Fl", bar, None, None,
-                          [P.build_rows(), P.build_classes(), P.build_structure()])
+                          [P.build_rows(), P.build_classes()])
     # Sidebaren: skinnen efter rammen, det aabne panel efter den (tools/
     # side_nav.py). LAGENE ER RAEKKEFOELGEN - senere ligger oeverst:
     # raekkens sidepanel, Paste rows og til sidst Submit-bekraeftelsen og
