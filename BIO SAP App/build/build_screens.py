@@ -123,6 +123,26 @@ def slow_var(tag):
     return f"var{tag}LoadSlow"
 
 
+# Issue #391: kun en eksisterende VH-plan er tung nok (materialer,
+# dokumenter, standardarbejdsplaner) til kortet "Opening request". De
+# andre domaener aabner en gemt anmodning hurtigt og uden kort; en ny
+# anmodning ("Preparing a new request") og en fejl viser det stadig.
+CARD_ON_OPEN = {"vhplan"}
+
+
+def card_var(tag):
+    """Sand, naar indlaesningskortet maa vises, mens der indlaeses -
+    kun domaener uden for CARD_ON_OPEN har den (issue #391). Den saettes
+    sammen med var<X>Loading: i OnVisible ud fra det, der er bedt om, og i
+    open_block, saa snart anmodningens id kendes. Ingen timer."""
+    return f"var{tag}LoadCard"
+
+
+def quiet_open(domain):
+    """Aabnes en gemt anmodning uden kort i dette domaene? (issue #391)"""
+    return domain["key"] not in CARD_ON_OPEN
+
+
 def open_button(tag):
     """Den skjulte knap, der baerer klargoeringen - se attach_open()."""
     return f"btn{tag}Open"
@@ -198,7 +218,10 @@ def open_block(domain, init, new_step=STEP_NEW):
         f"        Set({failed_var(t)}, false);\n"
         f"        Set({slow_var(t)}, false);\n"
         f'        Set({step_var(t)}, If(IsBlank({cb.reqid_var(t)}), "{new_step}", "{STEP_FIND}"));\n'
-        f"        {body}\n"
+        + (f"        // Issue #391: en gemt anmodning aabnes uden kort.\n"
+           f"        Set({card_var(t)}, IsBlank({cb.reqid_var(t)}));\n"
+           if quiet_open(domain) else "")
+        + f"        {body}\n"
         "    )\n"
         ")"
     )
@@ -319,12 +342,17 @@ def attach_open(domain, seen, fx, label):
     btn = open_button(t)
     loading, failed, slow, step = cb.loading_var(t), failed_var(t), slow_var(t), step_var(t)
     opened, want, reqid = cb.opened_var(t), cb.want_var(t), cb.reqid_var(t)
+    key = f'If(gblNavTo = "{t}", "new:0", Coalesce({want}, {opened}))'
+    quiet = quiet_open(domain)
+    # Issue #391: her (uden for VH-planen) kun kort, naar det er en NY
+    # anmodning - en gemt aabnes uden. Afgoeres foer sloeret taendes.
+    card = (f";\n    Set({card_var(t)}, StartsWith({key}, \"new\"))" if quiet else "")
     seen["props"]["OnVisible"] = (
         "// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen\n"
         "// (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes\n"
         "// her med det samme, naar der tydeligvis skal klargoeres.\n"
-        f'If(IsBlank({opened}) || If(gblNavTo = "{t}", "new:0", Coalesce({want}, {opened})) <> {opened},\n'
-        f"    Set({loading}, true)\n);\n"
+        f'If(IsBlank({opened}) || {key} <> {opened},\n'
+        f"    Set({loading}, true){card}\n);\n"
         f"Select({btn})")
     hidden = button(btn, '"Open"', fx, width=72, height=36, visible="false",
                     accessible='"Open the request"')
@@ -348,7 +376,8 @@ def attach_open(domain, seen, fx, label):
                   f'Set({opened}, "");\nSet({loading}, true);\nSelect({btn})'),
         close_fx=(f"Set({failed}, false);\nSet({want}, Blank());\n"
                   f'Set({opened}, "");\nNavigate({hub}, ScreenTransition.None)'),
-        label=f"Loading {label}, please wait"))
+        label=f"Loading {label}, please wait",
+        show_fx=f"IfError({card_var(t)}, false)" if quiet else None))
 
 
 def _write(screen_name, text, domain=None):

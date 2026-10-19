@@ -824,7 +824,7 @@ def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
 
 
 def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, hint_fx,
-                 retry_fx, close_fx, label, slow_ms=6000):
+                 retry_fx, close_fx, label, slow_ms=6000, show_fx=None):
     """Indlaesningen af en anmodning - [sloer, kort, timer] (issue #92).
 
     Erstatter det store hjul med den faste billedtekst. Et lille, centreret
@@ -851,10 +851,14 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
     ---------------------------------------
     Den starter, naar busy_var bliver sand, og nulstilles, naar den bliver
     falsk. Naar den udloeber, saettes slow_var - og hint_fx viser en
-    besked om det trin, der er i gang. Den skifter aldrig trinteksten."""
+    besked om det trin, der er i gang. Den skifter aldrig trinteksten.
+
+    show_fx (issue #391): en betingelse, der ogsaa skal vaere sand, for at
+    sloer og kort vises, mens der indlaeses. Uden den vises de hele tiden.
+    En fejl viser altid kortet (Retry/Close)."""
     busy = f"IfError({busy_var}, false)"
     failed = f"IfError({failed_var}, false)"
-    vis = f"{busy} || {failed}"
+    vis = f"{busy} || {failed}" if show_fx is None else f"({busy} && {show_fx}) || {failed}"
     scrim = Ctrl(f"img{prefix}Loading", "Image", props={
         "AccessibleLabel": f'"{label}"',
         "BorderStyle": "BorderStyle.None",

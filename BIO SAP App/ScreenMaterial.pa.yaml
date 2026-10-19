@@ -10,7 +10,8 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varMatOpened) || If(gblNavTo = "Mat", "new:0", Coalesce(gblMatWant, varMatOpened)) <> varMatOpened,
-              Set(varMatLoading, true)
+              Set(varMatLoading, true);
+              Set(varMatLoadCard, StartsWith(If(gblNavTo = "Mat", "new:0", Coalesce(gblMatWant, varMatOpened)), "new"))
           );
           Select(btnMatOpen)
     Children:
@@ -18111,6 +18112,8 @@ Screens:
                             Set(varMatLoadFailed, false);
                             Set(varMatLoadSlow, false);
                             Set(varMatLoadStep, If(IsBlank(gblMatReqId), "Setting up a new request", "Finding the request"));
+                            // Issue #391: en gemt anmodning aabnes uden kort.
+                            Set(varMatLoadCard, IsBlank(gblMatReqId));
                             If(false, ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: "", PriceUnit: "", StockUnit: "", IsStockItem: false, MinStock: 0, MaxStock: 0, StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacesExisting: false, ReplacedMaterialNo: "", FunctionalLocation: "", ObjectList: "", ObjectListJson: "", ApprovalRequired: false, CreatedMaterialNo: "", RequesterName: "", RequesterEmail: "", SubmittedOn: Blank() }));
                 
                             If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
@@ -18517,7 +18520,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varMatLoading, false) || IfError(varMatLoadFailed, false)
+                =(IfError(varMatLoading, false) && IfError(varMatLoadCard, false)) || IfError(varMatLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -18569,7 +18572,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =IfError(varMatLoading, false) || IfError(varMatLoadFailed, false)
+                =(IfError(varMatLoading, false) && IfError(varMatLoadCard, false)) || IfError(varMatLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
