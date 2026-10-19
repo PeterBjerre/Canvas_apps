@@ -1771,6 +1771,9 @@ DETAIL_PANEL_W = lay.PANEL_W_AT
 DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
 DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
+# Kommentarfeltet (issue #411): hoejden og ikonets afstand til feltets kant.
+COMMENT_H = 72
+SEND_INSET = 4
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 # Indholdsfladen i sagens popup: mindst saa hoej, naar skaermen tillader det -
@@ -1809,8 +1812,8 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
 # igen: intet blink, intet ekstra kald. Rollen er flowets egen regel (Admin,
 # naar en admin skriver paa en andens sag).
 #
-# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Intet sloer over hele skaermen: feltet erstattes af et lille hjul
-# med en tekst, der skifter (varIbPostStage: "posting" -> "updating" ->
+# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Intet sloer over hele skaermen: send-ikonet erstattes af et lille hjul
+# (issue #411) og teksten under feltet skifter (varIbPostStage: "posting" -> "updating" ->
 # "done" eller "failed"). Resten af appen kan bruges imens. Teksten, sagen og
 # "intern" gemmes FOER kaldet (varIbPostText/-For/-Internal): svaret skrives
 # paa den sag, kommentaren hoerer til, ogsaa hvis man har aabnet en anden
@@ -2352,17 +2355,66 @@ def build_detail():
     # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
     # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
     # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
+    # KOMMENTARFELTET MED SEND-IKONET (issue #411). Feltet og ikonet staar i
+    # EEN ManualLayout-container (conIbCommentBox), der er lige saa bred som
+    # Activity-fanens indhold (Parent.Width - ingen egen bredde): ikonet
+    # ligger nederst til hoejre inden i feltet, og feltet har polstring til
+    # hoejre, saa teksten aldrig loeber ind under ikonet. Venstre polstring
+    # er ACT_ROW_PAD - teksten flugter med teksten i kommentarerne over.
+    # Mens kommentaren sendes, staar et lille hjul i ikonets sted (kun
+    # her), feltet er skrivebeskyttet, og teksten under feltet siger, hvor
+    # langt den er (issue #370's trin). Toemmes foerst ved succes.
+    #
+    # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
+    # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
+    # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
     comment = text_input("inpIbComment", f'If({POST_FAILED_HERE}, varIbPostText, "")',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
                                       '"Write a comment for the administrators")'),
-                         max_length=2000, height=72, ttype="Multiline", label='"Comment"')
-    # Post comment laases op, mens man skriver - ikke foerst, naar feltet
-    # mister fokus (saa ville det foerste klik paa knappen gaa tabt).
+                         max_length=2000, height=COMMENT_H, ttype="Multiline", label='"Comment"',
+                         display_mode=f"If({POSTING_HERE}, DisplayMode.View, DisplayMode.Edit)")
+    # Send-ikonet laases op, mens man skriver - ikke foerst, naar feltet
+    # mister fokus (saa ville det foerste klik paa ikonet gaa tabt).
     comment.props["TriggerOutput"] = "TriggerOutput.Keypress"
+    comment.props.pop("LayoutMinWidth", None)
+    comment.props.update({
+        "X": "0", "Y": "0", "Width": "Parent.Width",
+        "PaddingLeft": str(ACT_ROW_PAD),
+        "PaddingRight": f"{lay.HIT} + {2 * SEND_INSET}",
+        "PaddingTop": "8", "PaddingBottom": "8",
+    })
+    send_label = 'If(varIbInternal, "Add internal note", "Post comment")'
+    post = button("btnIbPost", send_label, POST, width=lay.HIT, height=lay.HIT, icon="Send",
+                  accessible=send_label, tooltip=send_label,
+                  display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
+                                "DisplayMode.Disabled, DisplayMode.Edit)"),
+                  visible=f"!({POSTING_HERE})")
+    for k in ("AlignInContainer", "LayoutMinWidth", "BorderColor", "BorderThickness"):
+        post.props.pop(k, None)
+    post.props.update({
+        "Layout": "ButtonLayout.IconOnly",
+        "Appearance": "ButtonAppearance.Transparent",
+        "BasePaletteColor": C_PRIMARY,
+        "Color": C_PRIMARY,
+        "X": f"Parent.Width - Self.Width - {SEND_INSET}",
+        "Y": f"Parent.Height - Self.Height - {SEND_INSET}",
+    })
+    post_spin = spinner("spnIbPosting", POSTING_HERE, POST_STAGE_TEXT,
+                        width=lay.HIT, height=lay.HIT)
+    post_spin.props.update({
+        "X": f"Parent.Width - Self.Width - {SEND_INSET}",
+        "Y": f"Parent.Height - Self.Height - {SEND_INSET}",
+    })
+    box = Ctrl("conIbCommentBox", "GroupContainer", variant="ManualLayout", props={
+        "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+        "FillPortions": "0", "Height": str(COMMENT_H), "LayoutMinWidth": "0",
+        "Width": "Parent.Width",
+    }, children=[comment, post, post_spin], h=COMMENT_H)
     internal = Ctrl("chkIbInternal", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Internal note - only administrators can see it"',
         "Default": "varIbInternal",
+        "DisplayMode": f"If({POSTING_HERE}, DisplayMode.Disabled, DisplayMode.Edit)",
         "Height": "24",
         "Label": '"Internal note - only administrators can see it"',
         "OnCheck": "Set(varIbInternal, true)",
@@ -2370,32 +2422,19 @@ def build_detail():
         "Visible": IS_ADMIN,
         "Width": "Parent.Width",
     }), h=24, vis=IS_ADMIN)
-    closed_hint = text_ctrl(
-        "txtIbCommentHint",
-        f'If(varIbInternal, "Internal notes are never shown to the reporter.", '
-        f'{SEL}.Status = "{cfg.STATUS_CLOSED}", '
-        '"This issue is closed. If the problem is back, select Reopen - or add a comment.", '
-        '"Comments are visible to the reporter and the administrators only.")',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    post = button("btnIbPost", 'If(varIbInternal, "Add internal note", "Post comment")', POST,
-                  primary=True, width=fit_button_width('"Add internal note"') + ICON_W, height=36,
-                  icon="Send",
-                  display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
-                                "DisplayMode.Disabled, DisplayMode.Edit)"))
-    post.props["AlignInContainer"] = "AlignInContainer.End"
-    composer = group("conIbComposer", [comment, internal, closed_hint, post], direction="Vertical",
-                     gap=8, visible=f"IbCanComment && !({POSTING_HERE})")
-    # Mens kommentaren sendes (issue #370): feltet er skiftet ud med et lille
-    # hjul og en tekst, der viser, hvor langt den er. Kun her - intet sloer.
-    post_spin = spinner("spnIbPosting", "true", POST_STAGE_TEXT, width="Parent.Width", height=32,
-                        label=POST_STAGE_TEXT, size=lay.SIZE_BODY, weight="Semibold")
-    post_spin.props["LayoutMinWidth"] = "0"
-    post_note = text_ctrl("txtIbPostingNote",
-                          '"You can keep using the app meanwhile."',
-                          size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    posting = group("conIbPosting", [post_spin, post_note], direction="Vertical", gap=4,
-                    fill=C_MUTED_BG, radius=10, pad=(12, 12, 12, 12),
-                    visible=f"IbCanComment && ({POSTING_HERE})")
+    # Hjaelpeteksten er kun saa hoej, som teksten kraever (een linje paa en
+    # bred skaerm) - ikke en fast to-linjers flade. Mens der sendes, siger
+    # den, hvor langt kommentaren er (som hjulets tekst foer #411).
+    hint_fx = (f'If({POSTING_HERE}, {POST_STAGE_TEXT} & " You can keep using the app meanwhile.", '
+               f'varIbInternal, "Internal notes are never shown to the reporter.", '
+               f'{SEL}.Status = "{cfg.STATUS_CLOSED}", '
+               '"This issue is closed. If the problem is back, select Reopen - or add a comment.", '
+               '"Comments are visible to the reporter and the administrators only.")')
+    hint_h = f"Max(18, {_lines_h(hint_fx, DET_IN, px=6.6, line_h=17)})"
+    closed_hint = text_ctrl("txtIbCommentHint", hint_fx, size=lay.SIZE_SMALL, color=C_MUTED,
+                            height=hint_h, wrap="true")
+    composer = group("conIbComposer", [box, internal, closed_hint], direction="Vertical",
+                     gap=4, visible="IbCanComment")
     # Sendt: en kort bekraeftelse over det tomme felt - timeren (tmrIbPost)
     # fjerner den efter et par sekunder, og den gaar ogsaa, naar man skriver.
     posted = text_ctrl("txtIbPosted",
@@ -2426,9 +2465,9 @@ def build_detail():
                               'closed."',
                               size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                               visible=f"{SEL}.Archived")
-    activity = group("conIbDetActivity", [act_state, gal, posted, failed, posting, composer,
+    activity = group("conIbDetActivity", [act_state, gal, posted, failed, composer,
                                           archived_hint],
-                     direction="Vertical", gap=12, visible='IbSeeActivity && varIbTab = "activity"')
+                     direction="Vertical", gap=8, visible='IbSeeActivity && varIbTab = "activity"')
 
     # STABIL HOEJDE (issue #212). Toppen - status, fakta, handlingerne og
     # fanerne - staar fast; under den EEN indholdsflade med samme hoejde for
