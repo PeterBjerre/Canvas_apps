@@ -179,6 +179,8 @@ OBJ_HAS_DATA = (f"!IsBlank({SEL_FL}) && "
 # ikke, saa planen bliver ikke "aendret" af at blive vist. Hver manglende
 # kode faar en raekke (tom, hvis flowet ikke kender den), saa samme item
 # ikke kalder flowet igen. Fejler kaldet, staar koderne alene som foer.
+# IfError kraever, at vaerdien og fallback'en har samme type: Notify giver
+# Boolean, saa kaeden ender med true og ikke med Collect's tabel (issue #400).
 FETCH_OBJ_DESC = (
     "With(\n"
     f"    {{ fl: Upper(Trim({SEL_FL})),\n"
@@ -198,7 +200,8 @@ FETCH_OBJ_DESC = (
     "                    ForAll(miss As O,\n"
     "                        { Code: O.Code, Description: Coalesce(LookUp(found, Code = O.Code).Description, \"\") })\n"
     "                )\n"
-    "            ),\n"
+    "            );\n"
+    "            true,\n"
     "            Notify(\"Could not load the object descriptions.\", NotificationType.Warning)\n"
     "        )\n"
     "    )\n"
