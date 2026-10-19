@@ -68,7 +68,7 @@ import admin_log as alog
 import permissions as perm
 import layout_tokens as lay
 from fl_picker import fl_picker
-from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT, C_REQUIRED
+from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT
 import doc_upload as du
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
                            section_header, tap_backdrop, text_min_height,
@@ -323,18 +323,15 @@ EDITOR_HINT = ("Start with the four key fields and choose Save. Documents and "
                "functional locations are added on the saved row in the list below.")
 
 
-def _editor_head():
+def _editor_head(panel=False):
     """Sektionens overskrift - samme som Item Editor i VH-planen
     (build_helpers.section_header), med "* Required" efter titlen og en
-    linje, der siger, hvordan formularen bruges."""
-    star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
-                     weight="Semibold", height=18, width=8, wrap="false",
-                     accessible='"Required"')
-    legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
-                       height=18, width=text_px("Required", 12, semibold=False),
-                       wrap="false")
+    linje, der siger, hvordan formularen bruges.
+
+    I sidepanelet staar "* Required" i panelets overskrift i stedet
+    (domain_parts.required_legend, issue #431) - som i Equipment og MP."""
     head = section_header("conDomEditorHead", "Row details", None,
-                          extra_left=[star, legend])
+                          extra_left=[] if panel else list(dp.required_parts()))
     # Een linje paa en bred skaerm, to eller tre paa en smal - hoejden
     # foelger kortets bredde, saa intet klippes.
     need = text_px(EDITOR_HINT, 12, semibold=False)
@@ -388,7 +385,7 @@ def build_form(panel=False):
     # Trinstriben lige under hovedet - foer felterne, saa den er det
     # foerste, man ser (kun naar godkendelsen er med).
     top = [build_steps()] if APPROVAL_ON else []
-    return card("conDomFormCard", _editor_head() + top + rows + dp.form_footer(buttons))
+    return card("conDomFormCard", _editor_head(panel) + top + rows + dp.form_footer(buttons))
 
 
 def editor_reset():

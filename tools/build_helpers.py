@@ -2097,8 +2097,13 @@ def editor_footer(prefix, delete, reset, cancel, save):
 
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=None, previous_mode=None,
-                     next_mode=None, side_by_side=False, multiple=None):
+                     next_mode=None, side_by_side=False, multiple=None,
+                     heading_extra=()):
     """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
+
+    heading_extra: kontroller i overskriften til hoejre for titlen og foran
+    pileknapperne - fx "* Required" (issue #431), der foer stod paa sin egen
+    raekke oeverst i formularen og skubbede den foerste sektion ned.
 
     side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
     (PanelInset), og saa maa baggrunden ikke daekke listen."""
@@ -2134,6 +2139,13 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     # Knapperne staar direkte i overskriften (som Issue Boards panel): i en
     # egen indlejret container blev de klippet til en tynd stribe.
     heading = icon_heading(f"con{prefix}EditorHeading", title, [prev, next_, close])
+    if heading_extra:
+        # Efter titlen (der vokser) og foer knapperne - de har allerede
+        # LayoutMinWidth = Width fra icon_heading, saa ekstraerne faar det
+        # samme, og titlen er den, der giver sig paa en smal skaerm.
+        for c in heading_extra:
+            c.props["LayoutMinWidth"] = c.props["Width"]
+        heading.children[1:1] = list(heading_extra)
     # Panelets pad (2 x 16), overskriften, to mellemrum og bundbjaelken
     # traekkes fra - formularen fylder resten, og bundbjaelken staar ved
     # panelets bund (her stod 88 px ekstra, som blev tom plads under den).

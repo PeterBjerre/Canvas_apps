@@ -216,7 +216,10 @@ def _row_editor(form, panel_content=None, reset=None):
         f'" of " & Text(CountRows({order})))', content, footer,
         previous, next_, dp.clear_form_fx(), "varDomEditorOpen",
         previous_mode=previous_mode, next_mode=next_mode, side_by_side=True,
-        multiple=f"CountRows({order}) > 1")
+        multiple=f"CountRows({order}) > 1",
+        # "* Required" oeverst til hoejre i panelets overskrift (issue #431)
+        # - ikke paa en egen raekke over formularens foerste sektion.
+        heading_extra=[dp.required_legend()])
 
 
 def _panel_extras(parts):
