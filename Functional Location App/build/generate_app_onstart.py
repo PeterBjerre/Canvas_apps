@@ -269,6 +269,8 @@ Set(varFlPanelResetAsk, false);
 Set(varFlStale, false);
 // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
 Set(varFlSubmitAsk, false);
+// Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+Set(varFlAct, "");
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
 Set(varFlInfo, "");
 Set(varFlPayload, "");

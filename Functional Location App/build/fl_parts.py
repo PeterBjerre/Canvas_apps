@@ -30,12 +30,12 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
 import layout_tokens as lay
-from progress_overlay import progress_overlay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
-                           with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           act_fx, act_button, act_status, act_layers, panel_save_text,
+                           confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
                            panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
                            panel_save_block)
@@ -164,6 +164,13 @@ def _bar_btn(btn):
     return btn
 
 
+# Knappernes ventetilstand (issue #420, build_helpers.act_fx): "save" eller
+# "submit", mens der gemmes, og "<noegle>:ok"/":failed" bagefter.
+ACT = "varFlAct"
+SAVE_DRAFT_FX = act_fx(ACT, "save", S.save_fx(), ok="CountRows(colFlSaveErrors) = 0")
+# Indsend: lykkedes, naar anmodningen staar som Indsendt bagefter.
+SUBMIT_FX = act_fx(ACT, "submit", S.submit_fx(), ok='varFlStatus = "Indsendt"')
+
 # Save draft - og panelets Save, som er det samme gem (issue #308).
 SAVE_DM = (f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
            f'DisplayMode.Disabled, DisplayMode.Edit)')
@@ -173,7 +180,7 @@ def build_bar():
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
-    save = _fit(button("btnFlSaveDraft", '"Save draft"', with_busy("varFlSaving", S.save_fx()),
+    save = _fit(button("btnFlSaveDraft", '"Save draft"', SAVE_DRAFT_FX,
                        icon=ICON_SAVE, display_mode=SAVE_DM), icon=True)
     save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
                              'it can still be edited."')
@@ -192,7 +199,9 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
-    actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
+    # Hjulet og "Saved"/"Save failed" lige foran Save draft (issue #420).
+    status = act_status("FlAct", ACT, ("save", "submit"))
+    actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit, *status])
     # Ingen bundbjaelke paa FL (issue #392): Save draft og Submit staar i
     # headeren paa alle skaermbredder.
     # Synlig kant rundt om alle sekundaere knapper (feedback).
@@ -206,6 +215,9 @@ def build_bar():
     # med hele sin tekst (issue #243).
     if ICON_SUBMIT:
         _bar_btn(submit)
+    # "Saving..." / "Submitting..." paa knapperne, mens der gemmes (#420).
+    act_button(save, ACT, "save")
+    act_button(submit, ACT, "submit")
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
                   actions + [delete_button("Fl", "varFlViewOnly", "varFlRequestGuid")],
@@ -898,6 +910,7 @@ def _panel_footer():
                   display_mode=panel_save_mode(PANEL_SAVE, SAVE_DM), icon='"Save"',
                   tooltip='"Save the request with this row and close the panel"')
     save.props["AccessibleLabel"] = "Self.Text"
+    panel_save_text(save, PANEL_SAVE)
     return editor_footer("Fl", delete, reset, cancel, save)
 
 
@@ -1328,6 +1341,7 @@ Clear(colFlPanelSnap);
 Clear(colFlPanelSnapVals)"""
 
 NEW_FX = RESET_FX + """;
+Set(varFlAct, "");
 Set(varFlRequestGuid, "");
 Set(varFlRequestNo, "");
 Set(varFlStatus, "");
@@ -1351,9 +1365,11 @@ def build_submit_confirm():
     return confirm_modal(
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
-        "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
+        "Submit", SUBMIT_FX, "btnFlSubmitConfirm") + delete_modal(
         "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
-        *progress_overlay("imgFlSaving", "varFlSaving", "Saving, please wait")]
+        # Mens der gemmes: Save draft/Submit viser det selv (issue #420) -
+        # et gennemsigtigt lag, intet sloer og ingen bjaelke.
+        *act_layers("Fl", ACT)]
 
 
 # ---------------------------------------------------------------------------
