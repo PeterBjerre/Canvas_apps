@@ -86,7 +86,7 @@ kilden afklares foerst - ikke gaettes her.
 import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_helpers import button, with_busy, ICON_SAVE, ICON_SUBMIT
+from build_helpers import button, act_fx, act_button, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
 import admin_log as alog
@@ -172,6 +172,9 @@ OK = "CountRows(colVhpSaveErrors) = 0"
 
 # Knappen, begge veje ind i gemningen gaar igennem (se save_buttons).
 SAVE_BUTTON = "btnVhpSaveDraft"
+# Knappernes ventetilstand (issue #420): "save"/"submit" mens der gemmes,
+# "<noegle>:ok"/":failed" bagefter - build_helpers.act_fx.
+ACT = "varVhpAct"
 
 # Indeksraekken, som den staar i SharePoint, naar gemningen starter
 # (_step_keys). Den er grundraekken i trin 8 og afgoer rettigheden.
@@ -881,8 +884,12 @@ def save_action():
         _when_ok(_step_status()),
         report,
     ])
-    # Spinneren taendes og slukkes eet sted (A12, tools/build_helpers.with_busy).
-    body = with_busy("varVhpSaving", steps)
+    # Knappens tilstand (issue #420, build_helpers.act_fx): "save" eller
+    # "submit", mens der gemmes - afgjort af flaget, foer det nulstilles -
+    # og bagefter ":ok" eller ":failed" efter colVhpSaveErrors. varVhpSaving
+    # taendes og slukkes stadig eet sted (A12); andre knapper laeser den.
+    body = act_fx(ACT, None, steps, busy_var="varVhpSaving", ok=OK,
+                  key_fx='If(varVhpSubmitting, "submit", "save")')
     return (
         "If(\n"
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
@@ -940,6 +947,15 @@ def save_buttons(can_submit):
                        primary=True, icon=ICON_SUBMIT,
                        display_mode=f"If(!varVhpViewOnly && {can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
     return btnDraft, btnSubmit, notes_popup()
+
+
+def busy_buttons(btnDraft, btnSubmit):
+    """"Saving..." / "Submitting..." paa knapperne, mens der gemmes (issue
+    #420). Kaldes, naar headeren har sat knappernes endelige tekst og
+    bredde. Save draft beholder sin bredde ("Saving..." er kortere);
+    Submit vokser kun, hvor "Submitting..." er bredere end teksten."""
+    act_button(btnDraft, ACT, "save", grow=False)
+    act_button(btnSubmit, ACT, "submit")
 
 
 # NOTERNE VED SUBMIT (issue #115)

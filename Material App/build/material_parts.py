@@ -39,11 +39,13 @@ det er No. Min <= max tjekkes ved BAADE kladde og faerdig raekke.
 
 PURCHASE ORDER TEXT
 -------------------
-Kolonnen Remarks. Feltet er kun en knap (Add/Edit/View text), der aabner
-en popup med teksten - Close er den eneste vej ud, og teksten bliver
-staaende i formularen, til raekken gemmes (issue #279). Popuppen ligger
-OVER sidepanelet: domain_app.build_screen laegger appens egne popupper
-efter panelet.
+Kolonnen Remarks. Feltet er kun en knap (Add/Edit/View text) under sin
+egen sektionsoverskrift, der aabner en popup med teksten (issue #279,
+#429). Popuppens bund har Cancel og Save, som sidepanelets: Save laegger
+teksten paa formularens raekke og lukker, Cancel og X lukker og
+kasserer aendringerne siden popuppen blev aabnet. Teksten bliver staaende
+i formularen, til hele raekken gemmes. Popuppen ligger OVER sidepanelet:
+domain_app.build_screen laegger appens egne popupper efter panelet.
 
 DOKUMENTER OG FUNKTIONSPLADSER HOERER TIL DEN GEMTE RAEKKE
 ---------------------------------------------------------
@@ -72,7 +74,7 @@ from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT, C_REQU
 import doc_upload as du
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
                            section_header, tap_backdrop, text_min_height,
-                           fit_button_width, text_px, label_px, popup_head)
+                           fit_button_width, text_px, label_px, popup_head, ICON_W)
 from layout_tokens import if_below, fits
 
 CELL_W = dp.CELL_W
@@ -90,6 +92,10 @@ IS_REPL = f"Coalesce({REPLACES}, false)"
 # Purchase order text er kolonnen Remarks (issue #228).
 PO = dp._var("Remarks")
 PO_OPEN = "varDomPoOpen"
+# Teksten, som den stod, da popuppen blev aabnet - Cancel og X saetter den
+# tilbage (issue #429). Og Save's lokale "Saving..."-tilstand.
+PO_BEFORE = "varDomPoBefore"
+PO_SAVING = "varDomPoSaving"
 # Kan formularens raekke rettes? Samme regel som domain_parts.DM_ROW.
 READ_ONLY = '(varDomViewOnly || varDomRowStatus = "submitted")'
 
@@ -152,7 +158,8 @@ STRAT_POP = is_strategic(f"{OBJ_REC}.StrategicPart")
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
 EXTRA_STATE = (f"Set({OBJ_ROW}, Blank());\n"
                f'Set({PICK}, "");\n'
-               f"Set({PO_OPEN}, false)")
+               f"Set({PO_OPEN}, false);\n"
+               f"Set({PO_SAVING}, false)")
 
 
 def _indent(text, n):
@@ -217,7 +224,9 @@ FORM_ROWS = [
     # Producent og model
     ("conDomGridMfr", ["Manufacturer", "ModelNumber", "ManufacturerPartNo"], None),
     # Leverandoer og indkoeb
-    ("conDomGridSupplier", ["Supplier", "SupplierPartNo", "DeliveringTime", "PO"], None),
+    ("conDomGridSupplier", ["Supplier", "SupplierPartNo", "DeliveringTime"], None),
+    # Purchase order text - sin egen sektion med overskrift (issue #429)
+    ("conDomGridPo", ["PO"], None),
     # Pris og enhed
     ("conDomGridPrice", ["Price", "PriceUnit", "StockUnit"], None),
     # Klassifikation og vedligeholdelsesordre
@@ -229,6 +238,7 @@ FORM_ORDER = [k for _n, keys, _v in FORM_ROWS for k in keys]
 SECTION_STARTS = {
     "conDomGridMain": ("Ident", "Identification"),
     "conDomGridMfr": ("Mfr", "Manufacturer and supplier"),
+    "conDomGridPo": ("Po", "Purchase order text"),
     "conDomGridPrice": ("Price", "Price and classification"),
 }
 # Felter, der ikke er en almindelig celle: de to valg er SEG_*, og
@@ -275,22 +285,23 @@ def _seg_cell(col, width=CELL_W):
 
 PO_TEXTS = ("Add text", "Edit text", "View text")
 HAS_PO = f'!IsBlank(Trim(Coalesce({PO}, "")))'
-# Knappen er saa hoej som et input, og cellen som et felt med etiket
-# (etiketten 20 + mellemrum 6 + input 36), saa raekken flugter.
+# Knappen er saa hoej som et input. Overskriften staar over cellen
+# (sektionen "Purchase order text", issue #429), saa cellen er kun knappen.
 PO_BTN_H = 36
-PO_CELL_H = 20 + 6 + PO_BTN_H
+PO_CELL_H = PO_BTN_H
 
 
 def _po_cell(width=CELL_W):
     """Purchase order text: kun knappen til popuppen (issue #279). Feltet
     med "No text yet" og den separate etiket er fjernet. Knappen er
-    udfyldt, naar der ER en tekst.
+    udfyldt, naar der ER en tekst. Overskriften er sektionens (#429).
 
-    Cellen er lige saa hoej som et felt med etiket over, og knappen staar
-    nederst, saa den flugter med inputtet i cellen ved siden af."""
+    Aabningen gemmer teksten, som den staar, saa Cancel og X kan saette
+    den tilbage."""
     w = max(fit_button_width(f'"{t}"', size=13) for t in PO_TEXTS)
     btn = button("btnDomPoText",
                  f'If({READ_ONLY}, "View text", If({HAS_PO}, "Edit text", "Add text"))',
+                 f"Set({PO_BEFORE}, {PO});\nSet({PO_SAVING}, false);\n"
                  f"Set({PO_OPEN}, true)", width=w, height=PO_BTN_H,
                  accessible=('If(' + READ_ONLY + ', "View the purchase order text", '
                              'If(' + HAS_PO + ', "Edit the purchase order text", '
@@ -301,7 +312,7 @@ def _po_cell(width=CELL_W):
     btn.props["AlignInContainer"] = "AlignInContainer.Start"
     dp.pill(btn, HAS_PO)
     return group("conDomPo", [btn], direction="Vertical", gap=0, height=PO_CELL_H,
-                 width=width, align_items="Start", justify="End",
+                 width=width, align_items="Start", justify="Start",
                  fill_portions="0", align_in_container="Start")
 
 
@@ -417,36 +428,82 @@ def editor_panel_content(form, extras=()):
 PO_W = "Min(640, App.Width - 32)"
 
 
+# Bundens knapper: Cancel og Save til hoejre, i sidepanelets raekkefoelge,
+# hoejde og mellemrum (build_helpers.editor_footer). Save er saa bred som
+# den laengste tekst, "Saving...", plus ikonet - saa den ikke hopper.
+PO_FOOT_GAP = 8
+PO_CANCEL_W = fit_button_width('"Cancel"')
+PO_SAVE_W = max(fit_button_width(f'"{t}"') for t in ("Save", "Saving...")) + ICON_W + 8
+PO_BUSY_DM = f"If({PO_SAVING}, DisplayMode.Disabled, DisplayMode.Edit)"
+
+
+def po_cancel_fx():
+    """Cancel og X: teksten tilbage til den, popuppen blev aabnet med, og
+    feltet nulstilles (ogsaa det, der var skrevet uden at OnChange naaede
+    at koere). Saa lukkes popuppen."""
+    return (f"Set({PO}, {PO_BEFORE});\n"
+            "Reset(inpDomPoText);\n"
+            f"Set({PO_OPEN}, false)")
+
+
+def po_save_fx():
+    """Save: teksten paa formularens raekke og luk. Intet netvaerkskald -
+    teksten gemmes med hele raekken (Save i sidepanelet). Knappen er slukket
+    og siger "Saving...", mens det sker. Feltets tekst laeses direkte, saa
+    intet gaar tabt, hvis OnChange ikke naaede at koere."""
+    return (f"Set({PO_SAVING}, true);\n"
+            f"If(!{READ_ONLY}, Set({PO}, inpDomPoText.Text));\n"
+            f"Set({PO_BEFORE}, {PO});\n"
+            f"Set({PO_OPEN}, false);\n"
+            f"Set({PO_SAVING}, false)")
+
+
+def _po_footer():
+    cancel = button("btnDomPoCancel", '"Cancel"', po_cancel_fx(),
+                    width=PO_CANCEL_W, height=lay.HIT_TOUCH, display_mode=PO_BUSY_DM,
+                    accessible='"Cancel - close without applying the changes"',
+                    tooltip='"Close without applying the changes"')
+    save = button("btnDomPoSave", f'If({PO_SAVING}, "Saving...", "Save")', po_save_fx(),
+                  primary=True, width=PO_SAVE_W, height=lay.HIT_TOUCH,
+                  display_mode=(f"If({PO_SAVING} || {READ_ONLY}, DisplayMode.Disabled, "
+                                "DisplayMode.Edit)"),
+                  icon='"Save"', tooltip='"Apply the text to this row and close"')
+    save.props["AccessibleLabel"] = "Self.Text"
+    for b in (cancel, save):
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    return group("conDomPoFooter", [cancel, save], direction="Horizontal",
+                 gap=PO_FOOT_GAP, height=lay.HIT_TOUCH, align_items="Start",
+                 justify="End")
+
+
 def _po_popup():
-    """Teksten skrives direkte i formularens variabel, saa den bliver
-    staaende, naar popuppen lukkes, og gemmes med raekken. Close er den
-    eneste vej ud - et tryk ved siden af lukker den ikke."""
+    """Teksten skrives i formularens variabel og gemmes med raekken.
+    Bunden er fast under feltet: Cancel og Save (issue #429). X oeverst til
+    hoejre goer det samme som Cancel. Et tryk ved siden af lukker ikke."""
     vis = f"IfError({PO_OPEN}, false)"
     back = tap_backdrop("conDomPoBackdrop", vis, "false")
     title = grow(text_ctrl("txtDomPoH", '"Purchase order text"',
                            size=lay.SIZE_CARD_TITLE, weight="Semibold",
                            height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    # Close tager teksten med, ogsaa hvis OnChange ikke naaede at koere
-    # (feltet havde stadig fokus), saa intet skrevet gaar tabt.
-    # X oeverst til hoejre (issue #343).
-    head = popup_head("conDomPoHead", title, "btnDomPoClose",
-                      f"If(!{READ_ONLY}, Set({PO}, inpDomPoText.Text));\n"
-                      f"Set({PO_OPEN}, false)",
-                      accessible='"Close the purchase order text"')
+    # X oeverst til hoejre (issue #343) - en anden vej til Cancel (#429).
+    head = popup_head("conDomPoHead", title, "btnDomPoClose", po_cancel_fx(),
+                      accessible='"Close without applying the changes"', mode=PO_BUSY_DM)
     hint = text_ctrl(
         "txtDomPoHint",
         f'If({READ_ONLY}, "Read only - this row cannot be changed.", '
-        '"The text is saved with the row when you choose Save.")',
+        '"Save applies the text to this row. It is stored when you save the row.")',
         size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
-    box = text_input("inpDomPoText", PO, height="Min(220, App.Height - 220)",
+    # Feltet giver plads til hoved, linje og den faste bund paa en lille skaerm.
+    box = text_input("inpDomPoText", PO, height="Min(220, App.Height - 280)",
                      display_mode=dp.DM_ROW, ttype="Multiline",
                      placeholder='"Text for the purchase order"',
                      label='"Purchase order text"',
                      onchange=f"Set({PO}, Self.Text)")
-    modal = group("conDomPoModal", [head, hint, box], direction="Vertical", gap=12,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=PO_W, drop_shadow="ExtraBold",
-                  visible=vis)
+    modal = group("conDomPoModal", [head, hint, box, _po_footer()], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                  radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18), width=PO_W,
+                  drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = dp.MODAL_X
     modal.props["Y"] = dp.MODAL_Y
     return [back, modal]

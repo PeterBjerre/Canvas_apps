@@ -101,8 +101,10 @@ def test_editing_does_not_rebuild_or_close_the_panel():
 
 
 def test_submit_always_answers():
+    # Spaerret ogsaa, mens Save draft eller Submit koerer (issue #420).
     assert T._prop("btnFlSubmit", "DisplayMode") == (
-        'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)')
+        'If(IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false), DisplayMode.Disabled, '
+        'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit))')
     on = T._prop("btnFlSubmit", "OnSelect")
     assert "Set(varFlConfirmSubmit, true)" in on
     # Validering ikke faerdig: koer den, og svar bagefter.

@@ -19,7 +19,8 @@ import domain_parts as dp
 import permissions as perm
 import display_text as dt
 from build_helpers import (click_outside_overlay, app_frame, sticky_actions, request_shell, row_editor_panel,
-                           button, fit_button_width, group, ICON_W, editor_footer)
+                           button, fit_button_width, group, ICON_W, editor_footer, panel_save_status,
+                           panel_save_mode, panel_save_block, panel_save_text)
 from gen_screen import C_APP_BG
 from side_nav import side_nav
 
@@ -133,8 +134,11 @@ def onstart(cfg, extra_collections=(), extra_state=""):
                               "Set(varDomDocsId, Blank());\n", "")
     body = (_collection_block(cfg, extra_collections) + "\n\n"
             + tok.onstart_block() + "\n\n" + state)
+    # Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+    body += f';\n\nSet({dp.ACT_VAR}, "")'
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         body += ";\n\nSet(varDomEditorOpen, false)"
+        body += f';\nSet({dp.PANEL_SAVE_VAR}, "")'
         if any(action.name == "btnDomRowMore" for action in (dp.HOOKS["row_actions"] or ())):
             body += ";\nSet(varDomMoreRowId, Blank())"
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
@@ -194,11 +198,16 @@ def _row_editor(form, panel_content=None, reset=None):
     # Gem-knappen hedder "Save" - baade for en ny og en hentet raekke. Den
     # har et ikon foran teksten, saa bredden skal have plads til ikonet
     # ogsaa (uden det blev "Save" klippet i hoejre side).
+    # Gemmets tilstand vises i panelet over bundbjaelken - ikke som sloer og
+    # bjaelke paa siden bag det (issue #402). Retry er det samme gem.
+    save_fx = dp.PANEL_SAVE_FX[0] or "false"
     save = button("btnDomSave", '"Save"',
-                  dp.ADD_ROW_FX[0] or "false", primary=True,
+                  save_fx, primary=True,
                   width=SAVE_W, height=lay.HIT_TOUCH,
-                  display_mode=dp.DM_ROW, icon='"Save"')
+                  display_mode=panel_save_mode(dp.PANEL_SAVE_VAR, dp.DM_ROW), icon='"Save"')
     save.props["AccessibleLabel"] = "Self.Text"
+    panel_save_text(save, dp.PANEL_SAVE_VAR)
+    status = panel_save_status("Dom", dp.PANEL_SAVE_VAR, save_fx, dp.DM_ROW)
     if reset is None:
         # Reset kasserer kun de ugemte aendringer og lader panelet staa
         # aabent (issue #403, #405) - Cancel er den, der lukker.
@@ -216,7 +225,7 @@ def _row_editor(form, panel_content=None, reset=None):
         f'" of " & Text(CountRows({order})))', content, footer,
         previous, next_, dp.clear_form_fx(), "varDomEditorOpen",
         previous_mode=previous_mode, next_mode=next_mode, side_by_side=True,
-        multiple=f"CountRows({order}) > 1")
+        multiple=f"CountRows({order}) > 1", status=status)
 
 
 def _panel_extras(parts):
@@ -241,7 +250,7 @@ def build_screen(cfg, parts, render):
     panel_enabled = bool(getattr(cfg, "ROW_PANEL_ENABLED", False))
     form = parts.build_form(panel=True) if panel_enabled else parts.build_form()
     rows = parts.build_rows()
-    footer = sticky_actions("Dom", dp.BAR_ACTIONS)
+    footer = sticky_actions("Dom", dp.BAR_ACTIONS, status=dp.ACT_FOOT)
     # Dokumentpopuppen - kun i apper med dokumenter (issue #300), og ikke
     # dér, hvor sidepanelet selv har en Documents-fane.
     docs_popup = ([dp.build_attachments()]
@@ -266,6 +275,8 @@ def build_screen(cfg, parts, render):
                                                  getattr(parts, "editor_reset", lambda: None)()),
                               footer=footer)
         root, editor = shell[0], shell[1:]
+        # Det gennemsigtige lag, mens panelet gemmer (issue #402).
+        editor = [*editor, panel_save_block("Dom", dp.PANEL_SAVE_VAR)]
     else:
         root = app_frame("Dom", bar, [form, rows], footer=footer)
         editor = []

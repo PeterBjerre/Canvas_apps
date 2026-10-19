@@ -8,7 +8,10 @@ popup har en Close- eller Cancel-knap med tekst, og ingen bund er tom.
 
 Bekraeftelserne (navne med "Confirm") har ogsaa X'et oeverst; bunden har
 kun handlingen. Fjern-bekraeftelsen inde i dokumentpopuppen (doc_upload,
-"...RemoveCancel") er et ja/nej-valg - den lukker ikke popuppen."""
+"...RemoveCancel") er et ja/nej-valg - den lukker ikke popuppen.
+
+Undtagelse (issue #429): Materials' Purchase order text er en lille
+editor og har Cancel og Save i bunden som sidepanelet. X'et er der stadig."""
 import glob
 import os
 
@@ -18,6 +21,8 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCREENS = sorted(glob.glob(os.path.join(ROOT, "BIO SAP App", "Screen*.pa.yaml")))
 BUTTONS = ("ModernButton", "Classic/Button")
+# Popupper, der bevidst har en Cancel-knap ved siden af Save (issue #429).
+CANCEL_SAVE_POPUPS = {"conMatPoModal"}
 
 
 def _icon_close(v):
@@ -103,7 +108,8 @@ SIDEBAR_X = _sidebar_x()
 def test_one_x_no_close_button(screen, name, node):
     # Issue #343: ingen Close- eller Cancel-knap med tekst; EET X.
     btns = _buttons(node)
-    texts = [n for n, v, _ in btns if _prop(v, "Text") in ('"Close"', '"Cancel"')
+    banned = ('"Close"',) if name in CANCEL_SAVE_POPUPS else ('"Close"', '"Cancel"')
+    texts = [n for n, v, _ in btns if _prop(v, "Text") in banned
              and not n.endswith("RemoveCancel")]
     assert not texts, f"{name}: Close/Cancel-knapper med tekst: {texts}"
     xs = [n for n, _ in _closes(node)]
