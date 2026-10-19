@@ -953,13 +953,8 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     }, h="App.Height", vis=vis)
 
 
-def with_busy(busy_var, fx):
-    """fx med ventespinneren taendt, mens den koerer."""
-    return f"Set({busy_var}, true);\n{fx};\nSet({busy_var}, false)"
-
-
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
-                  confirm_name, icon=ICON_SUBMIT, danger=None):
+                  confirm_name, icon=ICON_SUBMIT, danger=None, act=None):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
@@ -969,23 +964,42 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
 
     danger: knappen sletter eller kasserer noget - roed kant og tekst i
     stedet for den blaa primaerknap (UX-review, screenshots 2026-10-13).
-    Uden angivelse er en Delete-knap (icon="Delete") altid danger."""
+    Uden angivelse er en Delete-knap (icon="Delete") altid danger.
+
+    act: (act_var, key) - handlingen koerer I popuppen (issue #420): den
+    lukker ikke foerst, knappen siger fx "Deleting..." med hjulet ved
+    siden af, og popuppen lukker, naar handlingen er faerdig. Fejler den,
+    bliver popuppen staaende med "Delete failed" ved knappen. confirm_fx
+    skriver selv sit udfald (act_mark)."""
     if danger is None:
         danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
-    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
+    close_fx = f"Set({open_var}, false)"
+    run_fx = f"Set({open_var}, false);\n{confirm_fx}"
+    if act:
+        av, key = act
+        # Lukket uden at lykkes: beskeden hoerer til denne popup.
+        close_fx += f';\nIf(IfError({av} = "{key}:failed", false), Set({av}, ""))'
+        # Lukker, medmindre handlingen fejlede - ogsaa naar den blev stoppet
+        # med sin egen besked (fx "Select a row first"), som foer.
+        run_fx = (act_fx(av, key, confirm_fx) + ";\n"
+                  f'If(!IfError({av} = "{key}:failed", false), Set({open_var}, false))')
+    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, close_fx)
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
     # Nej'et er X oeverst til hoejre (issue #343), som i appens andre
     # popupper - det lukker uden at goere noget. Navnet er det gamle.
-    head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel",
-                      f"Set({open_var}, false)")
+    head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel", close_fx)
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
                     height=40, wrap="true")
     ok = button(confirm_name, f'"{confirm_text}"',
-                f"Set({open_var}, false);\n{confirm_fx}", primary=not danger, danger=danger,
+                run_fx, primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
-    footer = group(f"con{prefix}ConfirmFooter", [ok], direction="Horizontal", gap=8,
+    status = []
+    if act:
+        act_button(ok, av, key)
+        status = act_status(f"{prefix}ConfirmAct", av, (key,))
+    footer = group(f"con{prefix}ConfirmFooter", [*status, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     modal = group(f"con{prefix}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
@@ -1882,9 +1896,12 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
 FOOT_H = lay.HIT_TOUCH + 16
 
 
-def sticky_actions(prefix, buttons):
+def sticky_actions(prefix, buttons, status=()):
     """Bundbjaelken con<X>Foot med kopier af buttons (header-knapperne).
-    Originalerne skjules under Desktop. Returnerer bjaelken til app_frame."""
+    Originalerne skjules under Desktop. Returnerer bjaelken til app_frame.
+
+    status: knappernes hjul og besked (act_status, issue #420) - staar
+    foran kopierne, som i headeren, og tager kun plads, mens de ses."""
     on = below("Desktop")
     copies = []
     for b in buttons:
@@ -1906,7 +1923,8 @@ def sticky_actions(prefix, buttons):
         b.vis = b.props["Visible"]
     # SHELL_W: rammens indholdsbredde (aldrig Parent.Width, regel 24).
     inner_w = f"({SHELL_W})"
-    row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH)
+    row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH,
+                     lead=status)
     return group(f"con{prefix}Foot", [row], direction="Vertical", gap=0, height=FOOT_H,
                  fill=C_CARD_BG, pad=(8, lay.PAGE_PAD_R, 8, lay.PAGE_PAD_L), visible=on)
 
@@ -2095,11 +2113,316 @@ def editor_footer(prefix, delete, reset, cancel, save):
     return footer
 
 
+# ---------------------------------------------------------------------------
+# Sidepanelets gem-tilstand (issue #402)
+#
+# Foer taendte panelets Save det samme sloer og den samme bjaelke midt paa
+# SIDEN som Save draft og Submit (progress_overlay) - langt fra knappen og
+# bag panelet. Nu vises tilstanden I panelet, lige over bundbjaelken:
+#
+#   "saving"  hjulet (ModernSpinner) med "Saving..." - Save er spaerret
+#   "failed"  "Save failed. Your changes are kept." og Retry
+#   ""        intet (panelet lukker, naar gemmet lykkes, og appens
+#             "Saved ..."-besked siger det - som foer)
+#
+# Tilstanden er EEN tekstvariabel, sat foer og efter selve gemmet - ingen
+# timer, ingen fast varighed. Imens ligger et GENNEMSIGTIGT lag over hele
+# skaermen, saa intet kan trykkes to gange eller rettes midt i et gem (det
+# graa sloer gjorde det foer), men der tegnes intet paa siden.
+# ---------------------------------------------------------------------------
+PANEL_SAVE_H = 32
+PANEL_SAVING = '"saving"'
+PANEL_FAILED = '"failed"'
+
+
+def panel_save_fx(state_var, save_fx, after_fx=None):
+    """Panelets gem: tilstanden "saving", gemmet, og saa tilstanden.
+
+    after_fx: det, der afgoer udfaldet bagefter (FL: fejl i colFlSaveErrors).
+    Uden after_fx saetter gemmet selv "failed" i sin fejlgren, og alt andet
+    (lykkedes, eller stoppet af et manglende felt) bliver tomt igen."""
+    end = after_fx or f'If({state_var} = {PANEL_SAVING}, Set({state_var}, ""))'
+    return f"Set({state_var}, {PANEL_SAVING});\n{save_fx};\n{end}"
+
+
+def panel_save_mode(state_var, display_mode):
+    """Save og Retry er spaerret, mens der gemmes."""
+    return (f"If(IfError({state_var} = {PANEL_SAVING}, false), DisplayMode.Disabled, "
+            f"{display_mode or 'DisplayMode.Edit'})")
+
+
+def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
+    """Linjen over panelets bundbjaelke: hjulet eller fejlen med Retry.
+    Hoejre-justeret, saa den staar ved Save. Skjult, naar der intet er."""
+    saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    failed = f"IfError({state_var} = {PANEL_FAILED}, false)"
+    spin = spinner(f"spn{prefix}EditorSaving", saving, '"Saving"', width=120,
+                   height=PANEL_SAVE_H, label='"Saving..."', size=13)
+    text = text_ctrl(f"txt{prefix}EditorSaveFailed", '"Save failed. Your changes are kept."',
+                     size=13, color=C_INVALID_FG, weight="Semibold", height=20, wrap="false",
+                     align="Right", visible=failed)
+    grow(text)
+    retry = button(f"btn{prefix}EditorRetry", '"Retry"', retry_fx,
+                   width=fit_button_width('"Retry"'), height=PANEL_SAVE_H,
+                   display_mode=panel_save_mode(state_var, display_mode), visible=failed,
+                   tooltip='"Try to save again"')
+    vis = f"{saving} || {failed}"
+    return group(f"con{prefix}EditorSaveStatus", [spin, text, retry], direction="Horizontal",
+                 gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)
+
+
+def panel_save_text(btn, state_var, text="Saving...", text_fx=None):
+    """Panelets Save siger selv "Saving...", mens der gemmes - samme
+    moenster som sidernes knapper (issue #420). Hjulet staar lige over
+    knappen (panel_save_status), saa ikonet viger for teksten imens: saa
+    kan "Saving..." staa i knappens egen bredde, og bundbjaelkens bredder
+    (editor_footer regner med tal) staar fast.
+
+    text_fx: teksten som udtryk (fx Submit eller Save) - text er da den
+    laengste af dem, som bredden tjekkes mod."""
+    saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    width = int(btn.props["Width"])
+    assert fit_button_width(f'"{text}"') <= width, (btn.name, text)
+    shown = text_fx or f'"{text}"'
+    btn.props["Text"] = f'If({saving}, {shown}, {btn.props["Text"]})'
+    acc = btn.props.get("AccessibleLabel")
+    if acc and acc != "Self.Text":
+        btn.props["AccessibleLabel"] = f'If({saving}, {shown}, {acc})'
+    if btn.props.get("Icon"):
+        btn.props["Layout"] = f'If({saving}, ButtonLayout.TextOnly, {btn.props["Layout"]})'
+    return btn
+
+
+def panel_save_space(status):
+    """Det, scrollen skal give af, naar statuslinjen staar der (+ panelets gap)."""
+    return f"If({status.props['Visible']}, {PANEL_SAVE_H + 12}, 0)"
+
+
+def panel_save_block(prefix, state_var):
+    """Det gennemsigtige lag, mens panelet gemmer - fanger tryk, viser intet."""
+    vis = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    return Ctrl(f"img{prefix}EditorSaveBlock", "Image", props={
+        "AccessibleLabel": '"Saving, please wait"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
+# ---------------------------------------------------------------------------
+# Knappens egen ventetilstand (issue #420)
+#
+# Foer taendte Save draft, Submit, Duplicate, Delete, Add rows, Reopen,
+# Archive og Save documents et graat sloer med en bjaelke midt paa SKAERMEN
+# (progress_overlay) - langt fra knappen, der startede handlingen. Nu er
+# tilstanden ved knappen selv, i det samme moenster som sidepanelernes gem
+# (#402) og kommentarfeltet (#370):
+#
+#   koerer     knappen siger "Saving..." / "Submitting..." / "Deleting..."
+#              og er spaerret; hjulet (ModernSpinner) staar lige ved siden af
+#   lykkedes   "Saved" / "Submitted" ... i groent ved knappen i 4 sekunder
+#   fejlede    "Save failed" ... i roedt ved knappen, til naeste handling.
+#              Intet indtastet ryddes - handlingerne rydder kun ved succes.
+#
+# Tilstanden er EEN tekstvariabel pr. skaerm (var<X>Act): handlingens
+# noegle ("save", "submit", ...) mens den koerer, og "<noegle>:ok" eller
+# "<noegle>:failed" bagefter. Den saettes lige foer og lige efter selve
+# handlingen - ingen timer afgoer, hvornaar den er faerdig. Kun den groenne
+# besked forsvinder af sig selv (tmr<X>ActDone).
+#
+# Imens ligger et GENNEMSIGTIGT lag over hele skaermen (act_block), saa
+# intet kan trykkes to gange eller rettes midt i en handling - det graa
+# sloer gjorde det foer - men der tegnes intet paa siden.
+# ---------------------------------------------------------------------------
+# noegle -> (mens den koerer, lykkedes, fejlede)
+ACT_TEXTS = {
+    "save": ("Saving...", "Saved", "Save failed"),
+    "submit": ("Submitting...", "Submitted", "Submit failed"),
+    "delete": ("Deleting...", "Deleted", "Delete failed"),
+    "duplicate": ("Duplicating...", "Duplicated", "Duplicate failed"),
+    "add": ("Adding...", "Rows added", "Add failed"),
+    "upload": ("Saving...", "Files saved", "Save failed"),
+    "reopen": ("Reopening...", "Reopened", "Reopen failed"),
+    "archive": ("Updating...", "Updated", "Update failed"),
+}
+ACT_SPIN = 24
+ACT_NOTE_SIZE = 13
+ACT_OK_MS = 4000
+
+
+def act_running(act_var):
+    """Sand, mens en handling paa skaermen koerer (ingen ":" endnu)."""
+    return f'IfError(!IsBlank({act_var}) && !(":" in {act_var}), false)'
+
+
+def act_is(act_var, key):
+    return f'IfError({act_var} = "{key}", false)'
+
+
+def act_mark(act_var, key, ok=True):
+    """Handlingens eget udfald - skrives i dens succes- eller fejlgren."""
+    return f'Set({act_var}, "{key}:{"ok" if ok else "failed"}")'
+
+
+def act_fx(act_var, key, fx, busy_var=None, ok=None, key_fx=None, left=""):
+    """Handlingen med knappens tilstand: noeglen, handlingen, udfaldet.
+
+    ok:     et udtryk, der efter handlingen siger, om den lykkedes. Uden ok
+            skriver handlingen selv sit udfald (act_mark); har den ikke
+            gjort det, blev den stoppet foer noget blev skrevet (fx et
+            manglende felt med sin egen besked) - saa er tilstanden tom
+            igen, eller left ("failed"), naar intet stop er muligt.
+    key_fx: noeglen som udtryk, naar den afgoeres, mens der trykkes
+            (VH-planens Save draft er ogsaa Submit).
+    busy_var: appens gamle boolean, som andre knappers DisplayMode laeser."""
+    lines = [f"Set({act_var}, {key_fx or chr(34) + key + chr(34)})"]
+    if busy_var:
+        lines.append(f"Set({busy_var}, true)")
+    lines.append(fx)
+    if busy_var:
+        lines.append(f"Set({busy_var}, false)")
+    if ok is not None:
+        lines.append(f'Set({act_var}, {act_var} & If({ok}, ":ok", ":failed"))')
+    elif left:
+        lines.append(f'If({act_running(act_var)}, Set({act_var}, {act_var} & ":{left}"))')
+    else:
+        lines.append(f'If({act_running(act_var)}, Set({act_var}, ""))')
+    return ";\n".join(lines)
+
+
+def act_button(btn, act_var, key, text=None, grow=True):
+    """Knappen viser handlingens ventetekst og er spaerret, mens noget paa
+    skaermen koerer. Den bliver bredere, mens teksten er laengere - men
+    ikke der, hvor den kun er sit ikon. grow=False: bredden roeres ikke
+    (kalderen ved, at ventteksten er kortere end knappens egen)."""
+    busy = act_is(act_var, key)
+    t = text or ACT_TEXTS[key][0]
+    old = btn.props["Text"]
+    btn.props["Text"] = f'If({busy}, "{t}", {old})'
+    acc = btn.props.get("AccessibleLabel")
+    if acc and acc != "Self.Text":
+        btn.props["AccessibleLabel"] = f'If({busy}, "{t}", {acc})'
+    dm = btn.props.get("DisplayMode") or "DisplayMode.Edit"
+    btn.props["DisplayMode"] = f"If({act_running(act_var)}, DisplayMode.Disabled, {dm})"
+    wide = act_width(key, bool(btn.props.get("Icon")), text)
+    if not grow:
+        return btn
+    layout = btn.props.get("Layout", "")
+    if layout == "ButtonLayout.IconOnly":
+        return btn
+    when = busy
+    if layout.startswith("If(") and "IconOnly" in layout:
+        # If(<smal>, ButtonLayout.IconOnly, ...): kun bredere, naar teksten ses.
+        cond = layout[3:layout.index(", ButtonLayout.IconOnly")]
+        when = f"{busy} && !({cond})"
+    fit_ = getattr(btn, "_fit", None)
+    if fit_ is not None:
+        nat, reserve = fit_
+        btn._fit = (f"If({when}, Max({wide}, {nat}), {nat})", reserve)
+    w = btn.props["Width"]
+    new_w = f"If({when}, Max({wide}, {w}), {w})"
+    if btn.props.get("LayoutMinWidth") == w:
+        btn.props["LayoutMinWidth"] = new_w
+    btn.props["Width"] = new_w
+    return btn
+
+
+def act_width(key, icon=True, text=None):
+    """Knappens bredde med ventteksten (og ikonet)."""
+    return fit_button_width(f'"{text or ACT_TEXTS[key][0]}"') + (ICON_W if icon else 0)
+
+
+def act_status(name, act_var, keys, visible=None, size=ACT_NOTE_SIZE):
+    """[hjul, besked] - staar lige ved knapperne for keys.
+
+    Hjulet ses, mens en af handlingerne koerer; beskeden bagefter. Begge
+    har en fast bredde (beskedens efter teksten), saa en raekke kan regne
+    resten ud (grow). visible: en ekstra betingelse (fx kun fra Desktop)."""
+    def _w(text):
+        return label_px(text, size) + 4
+    ok = [(f"{k}:ok", ACT_TEXTS[k][1]) for k in keys]
+    bad = [(f"{k}:failed", ACT_TEXTS[k][2]) for k in keys]
+    running = "(" + " || ".join(act_is(act_var, k) for k in keys) + ")"
+    lst = lambda pairs: "[" + ", ".join(f'"{s}"' for s, _t in pairs) + "]"
+    shown = f"IfError({act_var} in {lst(ok + bad)}, false)"
+    failed = f"IfError({act_var} in {lst(bad)}, false)"
+    text = (f"Switch({act_var}, "
+            + ", ".join(f'"{s}", "{t}"' for s, t in ok + bad) + ', "")')
+    width = (f"Switch({act_var}, "
+             + ", ".join(f'"{s}", {_w(t)}' for s, t in ok + bad) + ", 0)")
+    spin_vis = running if visible is None else f"({visible}) && {running}"
+    note_vis = shown if visible is None else f"({visible}) && {shown}"
+    labels = ", ".join(f'"{k}", "{ACT_TEXTS[k][0][:-3]}, please wait"' for k in keys)
+    spin = spinner(f"spn{name}", spin_vis, f'Switch({act_var}, {labels}, "Please wait")',
+                   width=ACT_SPIN, height=ACT_SPIN)
+    spin.props["LayoutMinWidth"] = str(ACT_SPIN)
+    spin.props["AlignInContainer"] = "AlignInContainer.Center"
+    note = text_ctrl(f"txt{name}Note", text, size=size, weight="Semibold", wrap="false",
+                     color=f"If({failed}, {C_INVALID_FG}, {C_VALID_FG})", height=20,
+                     width=width, visible=note_vis)
+    note.props["LayoutMinWidth"] = width
+    note.props["AlignInContainer"] = "AlignInContainer.Center"
+    return [spin, note]
+
+
+def act_block(prefix, act_var):
+    """Det gennemsigtige lag, mens en handling koerer - fanger tryk, viser
+    intet. Staar SIDST i skaermens boern, oven paa popupperne."""
+    vis = act_running(act_var)
+    return Ctrl(f"img{prefix}ActBlock", "Image", props={
+        "AccessibleLabel": '"Please wait"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
+def act_timer(prefix, act_var):
+    """Den groenne besked staar ACT_OK_MS og forsvinder saa. Den roede
+    bliver staaende til naeste handling. Timeren afgoer ALDRIG, hvornaar en
+    handling er faerdig - kun hvor laenge "Saved" ses."""
+    done = f'IfError(EndsWith({act_var}, ":ok"), false)'
+    return Ctrl(f"tmr{prefix}ActDone", "Timer", props={
+        "AutoPause": "false",
+        "AutoStart": "false",
+        "Duration": str(ACT_OK_MS),
+        "Height": "1",
+        "OnTimerEnd": f'If({done}, Set({act_var}, ""))',
+        "Repeat": "false",
+        "Reset": f"!{done}",
+        "Start": done,
+        "Visible": "false",
+        "Width": "1",
+    }, h=1, vis="false")
+
+
+def act_layers(prefix, act_var):
+    """[timer, lag] - staar SIDST i skaermens boern."""
+    return [act_timer(prefix, act_var), act_block(prefix, act_var)]
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=None, previous_mode=None,
-                     next_mode=None, side_by_side=False, multiple=None,
+                     next_mode=None, side_by_side=False, multiple=None, status=None,
                      heading_extra=()):
     """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
+
+    status: panelets gem-linje (panel_save_status, issue #402) - staar lige
+    over bundbjaelken, og scrollen giver plads, kun mens den vises.
 
     heading_extra: kontroller i overskriften til hoejre for titlen og foran
     pileknapperne - fx "* Required" (issue #431), der foer stod paa sin egen
@@ -2150,10 +2473,13 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     # traekkes fra - formularen fylder resten, og bundbjaelken staar ved
     # panelets bund (her stod 88 px ekstra, som blev tom plads under den).
     scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+    if status is not None:
+        scroll_h += f" - {panel_save_space(status)}"
     scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, 20, 16, 20))
-    panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
+    panel = group(f"con{prefix}EditorPanel",
+                  [heading, scroll, *([status] if status is not None else []), footer],
                   direction="Vertical", gap=12, height="App.Height",
                   width=lay.PANEL_W_AT,
                   fill=C_CARD_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
@@ -2180,20 +2506,25 @@ def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer
     return [root, *(editor or [])]
 
 
-def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):
+def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center", lead=()):
     """Knapraekke der ALDRIG ombryder.
 
     Den oprindelige raekke havde faste knapbredder (104 + 104 + 112 + gaps =
     336 px) i et kort med 324 px indhold. Den ombroed derfor til to linjer,
     mens raekkens hoejde stod fast paa 36 - og den sidste knap blev klippet.
     Her deler knapperne bredden ligeligt, saa de altid passer.
+
+    lead: kontroller med fast bredde foran knapperne (fx act_status). De
+    tager kun plads, mens de ses - knapperne deler resten.
     """
     n = len(buttons)
-    w = f"({container_w} - {gap * (n - 1)}) / {n}"
+    taken = "".join(f" - If({k.vis}, ({k.props['Width']}) + {gap}, 0)" if k.vis
+                    else f" - ({k.props['Width']}) - {gap}" for k in lead)
+    w = f"({container_w} - {gap * (n - 1)}{taken}) / {n}"
     for b in buttons:
         b.props["Width"] = w
         b.props["LayoutMinWidth"] = "0"
-    return group(name, buttons, direction="Horizontal", gap=gap, height=height,
+    return group(name, [*lead, *buttons], direction="Horizontal", gap=gap, height=height,
                  align_items=align_items)
 
 

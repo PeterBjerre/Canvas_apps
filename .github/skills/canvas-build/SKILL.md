@@ -512,7 +512,7 @@ layoutfejl bor:
 | 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
 | 16t | Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303) |
 | 16c | Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302) |
-| 16f | Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305) |
+| 16f | Ingen bjaelke midt paa skaermen - tilstanden staar i knappen (issue #420) |
 | 16k | Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 16i | Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306) |

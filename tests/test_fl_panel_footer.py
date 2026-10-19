@@ -37,7 +37,8 @@ def _mat_children(ctrl):
 
 def test_footer_like_materials_outside_the_scroll():
     assert T._children("conFlEditorPanel") == [
-        "conFlEditorHeading", "conFlEditorSections", "conFlEditorFooter"]
+        "conFlEditorHeading", "conFlEditorSections", "conFlEditorSaveStatus",
+        "conFlEditorFooter"]
     assert T._children("conFlEditorFooter") == ["conFlEditorDeleteAction", "conFlEditorSaveActions"]
     assert T._children("conFlEditorDeleteAction") == ["btnFlEditorDelete", "btnFlEditorReset"]
     assert T._children("conFlEditorSaveActions") == ["btnFlEditorCancel", "btnFlEditorSave"]
@@ -56,7 +57,8 @@ def test_footer_like_materials_outside_the_scroll():
         for prop in ("Text", "Width", "Height", "Appearance"):
             mine = T._ctrl(a)["Properties"].get(prop)
             theirs = _mat(b)["Properties"].get(prop)
-            assert str(mine) == str(theirs), (a, prop)
+            # Panelets tilstand hedder hver sin variabel ("Saving...", #420).
+            assert str(mine) == str(theirs).replace("varMatPanelSave", "varFlPanelSave"), (a, prop)
 
 
 def test_footer_actions():
@@ -71,11 +73,21 @@ def test_footer_actions():
     assert "Collect(colFlVals, colFlPanelSnapVals)" in cancel
     assert cancel.rstrip().endswith("Clear(colFlPanelSnapVals)")
     # Save er det samme gem som Save draft og lukker kun, naar det lykkedes.
+    # Tilstanden vises i panelet - ikke sidens sloer (issue #402).
     save = T._prop("btnFlEditorSave", "OnSelect")
-    assert save.startswith("Set(varFlSaving, true);\nClear(colFlSaveErrors);")
-    assert save.rstrip().endswith("Clear(colFlPanelSnapVals))")
-    assert "If(CountRows(colFlSaveErrors) = 0, Set(varFlPanelOpen, false);" in save
-    assert T._prop("btnFlEditorSave", "DisplayMode") == T._prop("btnFlSaveDraft", "DisplayMode")
+    assert save.startswith('Set(varFlPanelSave, "saving");\nClear(colFlSaveErrors);')
+    assert save.rstrip().endswith('Clear(colFlPanelSnapVals), Set(varFlPanelSave, "failed"))')
+    assert ('If(CountRows(colFlSaveErrors) = 0, Set(varFlPanelSave, ""); '
+            'Set(varFlPanelOpen, false);') in save
+    assert "varFlSaving" not in save
+    # Save draft har sin egen ventetilstand udenom (issue #420); indeni er
+    # det de samme regler som panelets Save.
+    act = 'If(IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false), DisplayMode.Disabled, '
+    draft = T._prop("btnFlSaveDraft", "DisplayMode")
+    assert draft.startswith(act) and draft.endswith(")")
+    assert T._prop("btnFlEditorSave", "DisplayMode") == (
+        'If(IfError(varFlPanelSave = "saving", false), DisplayMode.Disabled, '
+        + draft[len(act):-1] + ")")
     # Panelet tager aftrykket, naar det aabnes paa en raekke.
     on = T._prop("btnFlRowClassData", "OnSelect")
     assert "ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));" in on

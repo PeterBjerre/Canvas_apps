@@ -259,6 +259,8 @@ Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
 Set(varFlPanelJump, "");
+// Panelets gem-tilstand: saving, failed eller tom (issue #402).
+Set(varFlPanelSave, "");
 Set(varFlDetCls, "");
 // Bundbjaelkens bekraeftelse: Delete row (issue #308). Reset spoerger
 // ikke laengere og har intet sloer (issue #405).
@@ -267,6 +269,8 @@ Set(varFlPanelDelAsk, false);
 Set(varFlStale, false);
 // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
 Set(varFlSubmitAsk, false);
+// Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+Set(varFlAct, "");
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
 Set(varFlInfo, "");
 Set(varFlPayload, "");

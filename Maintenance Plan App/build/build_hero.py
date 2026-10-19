@@ -9,7 +9,7 @@ from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text
                            ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
                            new_request_label, new_request_widths, ghost, with_fix_count,
-                           SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H)
+                           SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H, act_status, act_width)
 from build_status import MISSING_NAMES, join_lines
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
@@ -668,6 +668,8 @@ def _header_actions(notes_vis, notes_fx):
 
 
 BAR_ACTIONS = []
+# Hjulet og beskeden i bundbjaelken under Desktop (issue #420).
+ACT_FOOT = []
 
 def build_top_bar():
     """VH-planens topbjaelke - to raekker, saa intet kan klippes:
@@ -738,6 +740,22 @@ def build_top_bar():
     btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
     btnSubmit.props["Tooltip"] = _submit_tooltip()
     btnSubmit.props["Visible"] = btnSubmit.vis = SUBMIT_VIS
+    # "Saving..." / "Submitting..." paa knapperne (issue #420). "Saving..."
+    # er kortere end "Save draft"; "Submitting..." er bredere end den
+    # kompakte "Submit (99)", saa Submit vokser dér, mens der indsendes - og
+    # knapblokken med den (sub_extra herunder).
+    from build_save import busy_buttons, ACT
+    assert act_width("save") <= SAVE_W and act_width("submit") <= SUB_W
+    busy_buttons(btnDraft, btnSubmit)
+    sub_extra = max(0, act_width("submit") - SUB_C_W)
+    # Hjulet og "Saved"/"Save failed" lige foran Save draft - fra Desktop;
+    # under Desktop staar de i bundbjaelken ved kopierne (ACT_FOOT).
+    status = act_status("VhpAct", ACT, ("save", "submit"), visible=at_least("Desktop"))
+    ACT_FOOT[:] = act_status("VhpFootAct", ACT, ("save", "submit"))
+    status_w = "".join(f" + If({k.vis}, ({k.props['Width']}) + {BTN_GAP}, 0)" for k in status)
+    if sub_extra:
+        status_w += (f' + If(IfError({ACT} = "submit", false) && {COMPACT} && '
+                     f"!{below('Tablet')}, {sub_extra}, 0)")
     # Stregen mellem New request og planens handlinger.
     sep = group("conVhpHeadSep", [], direction="Horizontal", height=24, width=str(SEP_W),
                 fill=C_DIVIDER, layout_min_width=SEP_W,
@@ -780,11 +798,11 @@ def build_top_bar():
     # (FULL_W eller COMPACT_W), og titlen resten. Trinene staar midt paa
     # linjen, naar der er plads til det: saa er knapblokken lige saa bred
     # som titlen. Ingen af bredderne kan tilsammen blive bredere end linjen.
-    btn_w = f"If({below('Tablet')}, {PHONE_W}, {COMPACT}, {COMPACT_W}, {FULL_W})"
+    btn_w = f"If({below('Tablet')}, {PHONE_W}, {COMPACT}, {COMPACT_W}, {FULL_W}){status_w}"
     side_w = if_below("Desktop", btn_w, f"Max({btn_w}, {LINE_REST} / 2)")
     title_bar.props["Width"] = if_below("Tablet", "56", f"{LINE_REST} - {side_w}")
     title_bar.props["LayoutMinWidth"] = "0"
-    btns = group("conVhpHeadBtns", [btnNew, sep, btnEdit, btnDraft, btnSubmit,
+    btns = group("conVhpHeadBtns", [btnNew, sep, btnEdit, *status, btnDraft, btnSubmit,
                                        btnNotes, btnDelete],
                  direction="Horizontal", gap=BTN_GAP, height=44, width=side_w,
                  justify="End", align_items="Center")

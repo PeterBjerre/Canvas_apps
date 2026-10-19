@@ -155,6 +155,8 @@ Set(varVhpPlanModified, Blank());
 Set(varVhpSubmitting, false);
 Set(varVhpRequestGuid, "");
 Set(varVhpSaving, false);
+// Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+Set(varVhpAct, "");
 
 // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
 // har brug for den, ikke for at fylde skaermen for alle andre.

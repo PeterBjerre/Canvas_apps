@@ -18,9 +18,8 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame, sticky_actions
+from build_helpers import app_frame, sticky_actions, act_layers
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
-from progress_overlay import progress_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header
@@ -54,7 +53,8 @@ def build_screen(render=render_screen):
     # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
     import build_hero
     root = app_frame("Vhp", bar, sections, body_gap=20,
-                     footer=sticky_actions("Vhp", build_hero.BAR_ACTIONS))
+                     footer=sticky_actions("Vhp", build_hero.BAR_ACTIONS,
+                                           status=build_hero.ACT_FOOT))
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
@@ -65,9 +65,9 @@ def build_screen(render=render_screen):
                           build_longtext_modal(), build_object_list_modal(),
                           *CONFIRM,
                           *overlay,
-                          # Gem-bjaelken (issue #305), mens der gemmes - oeverst af alt.
-                          *progress_overlay("imgVhpSaving", "varVhpSaving",
-                                            "Saving, please wait")])
+                          # Mens der gemmes: knapperne viser det selv (issue #420);
+                          # et gennemsigtigt lag oeverst af alt, ingen sloer.
+                          *act_layers("Vhp", "varVhpAct")])
 
 
 def main():
