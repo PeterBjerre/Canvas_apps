@@ -590,6 +590,8 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
     assert grow["ACTV"] == 0 and base["ACTV"] >= 52
     # Kolonnerne kan staa paa den smalleste Desktop-skaerm.
     assert P._fixed(False) <= 806
+    # Application-navnet har mindst 74 px ved siden af app-ikonet (#415/#422).
+    assert base["APP"] - P.app_icons.TILE - P.APP_ICON_GAP >= 74
     # Titlen paa een linje (ellipse); rapportoeren som kort bruger-id.
     assert ctrls["txtIbRowTitle"].props["Wrap"] == "false"
     req = ctrls["txtIbRowReq"].props["Text"]
@@ -879,12 +881,14 @@ def test_comment_posting_is_shown_in_the_comment_area():
     # Sloeret over hele skaermen gaelder ikke laengere kommentaren.
     assert "varIbPosting" not in loading["imgIbBusy"].props["Visible"]
     assert loading["tmrIbPost"].props["Start"] == 'varIbPostStage = "posting" || varIbPostStage = "done"'
-    # Hjulet og teksten staar i kommentarfeltets sted.
-    assert P.POSTING_HERE in ctrls["conIbPosting"].props["Visible"]
-    assert f"!({P.POSTING_HERE})" in ctrls["conIbComposer"].props["Visible"]
+    # Hjulet staar i send-ikonets sted, og teksten under feltet viser
+    # trinnet (issue #411 - foer #411 erstattede hjulet hele feltet).
+    assert ctrls["spnIbPosting"].props["Visible"] == P.POSTING_HERE
+    assert f"!({P.POSTING_HERE})" in ctrls["btnIbPost"].props["Visible"]
     assert ctrls["spnIbPosting"].control.startswith("ModernSpinner")
     for stage in ("Posting comment...", "Updating activity..."):
-        assert stage in ctrls["spnIbPosting"].props["Label"]
+        assert stage in ctrls["spnIbPosting"].props["AccessibleLabel"]
+        assert stage in ctrls["txtIbCommentHint"].props["Text"]
     assert '"Comment posted."' in ctrls["txtIbPosted"].props["Text"]
     # Raekkefoelgen i formlen: posting -> kald -> updating -> done / failed.
     post = P.POST

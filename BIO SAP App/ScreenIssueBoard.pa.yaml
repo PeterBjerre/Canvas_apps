@@ -1380,7 +1380,7 @@ Screens:
                                     Text: |-
                                         ="TITLE"
                                     Width: |-
-                                        =(116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH3:
@@ -1415,7 +1415,7 @@ Screens:
                                     Text: |-
                                         ="APPLICATION"
                                     Width: |-
-                                        =(90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH4:
@@ -2533,13 +2533,42 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
+                              - imgIbRowApp:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Application icon: " & ThisItem.Application
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Height: |-
+                                        =20
+                                    Image: |-
+                                        =Coalesce(LookUp(IbAppIcons, Application = ThisItem.Application).Uri, LookUp(IbAppIcons, Application = "Other").Uri)
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    Visible: |-
+                                        =(LayoutRank >= 3) && (!IsBlank(ThisItem.Application))
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowApp:
                                   Control: ModernText
                                   Properties:
@@ -2572,13 +2601,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowSection:
                                   Control: ModernText
                                   Properties:
@@ -2615,7 +2644,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - imgIbRowPriority:
@@ -2649,7 +2678,7 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - imgIbRowStatus:
@@ -2686,7 +2715,7 @@ Screens:
                                     Width: |-
                                         =116
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - txtIbRowAssigned:
@@ -2725,7 +2754,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - txtIbRowReported:
@@ -2764,7 +2793,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - txtIbRowUpdated:
@@ -2803,7 +2832,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - icoIbRowAct:
@@ -2824,7 +2853,7 @@ Screens:
                                     Width: |-
                                         =16
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (16)) / 2
                               - txtIbRowAct:
@@ -2865,7 +2894,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false), (16) + 4, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false), (16) + 4, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - bdgIbRowNoC:
@@ -3456,7 +3485,7 @@ Screens:
                                     Width: |-
                                         =44
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((116 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((90 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + (52) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + (52) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2
                         - conIbEmpty:
@@ -6965,7 +6994,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (44) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))
+                      =Max(60, Min(94 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 36 - 12 - ((44) + 12 + (1) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6978,6 +7007,14 @@ Screens:
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
+                  PaddingBottom: |-
+                      =8
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
                   Width: |-
                       =Parent.Width
                 Children:
@@ -9577,6 +9614,34 @@ Screens:
                             =!(varIbFormMode = "edit")
                         Wrap: |-
                             =true
+            - conIbFormFootRule:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'border-subtle'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =1
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
             - conIbFormFoot:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -12577,7 +12642,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (71 + 8 + (18 + 4 + (17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)))) + 8 + (18 + 4 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12))) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (16 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (16 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "done") && IsBlank(inpIbComment.Text), 12 + (36), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "failed"), 12 + ((Max(36, With({ t: If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200)) }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 20 - 97 - 8) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + 16), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating")), 12 + (62 + If(true, 0 + (32), 0)), 0) + If(IbCanComment && !(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating")), 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
+                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (71 + 8 + (18 + 4 + (17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)))) + 8 + (18 + 4 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12))) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (16 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (16 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "done") && IsBlank(inpIbComment.Text), 12 + (36), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "failed"), 12 + ((Max(36, With({ t: If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200)) }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 20 - 97 - 8) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + 16), 0) + If(IbCanComment, 12 + (72 + If(IsAdmin, 4 + (24), 0) + 4 + (Max(18, With({ t: If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment...")) & " You can keep using the app meanwhile.", varIbInternal, "Internal notes are never shown to the reporter.", varIbSel.Status = "Closed", "This issue is closed. If the problem is back, select Reopen - or add a comment.", "Comments are visible to the reporter and the administrators only.") }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 17 + 2)))), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -13650,7 +13715,7 @@ Screens:
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =12
+                            =8
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -14159,7 +14224,7 @@ Screens:
                                         =VerticalAlign.Middle
                                     Width: |-
                                         =97
-                        - conIbPosting:
+                        - conIbComposer:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -14167,12 +14232,10 @@ Screens:
                                   =BorderStyle.None
                               DropShadow: |-
                                   =DropShadow.None
-                              Fill: |-
-                                  =C.'bg-muted'
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =62 + If(true, 0 + (32), 0)
+                                  =72 + If(IsAdmin, 4 + (24), 0) + 4 + (Max(18, With({ t: If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment...")) & " You can keep using the app meanwhile.", varIbInternal, "Internal notes are never shown to the reporter.", varIbSel.Status = "Closed", "This issue is closed. If the problem is back, select Reopen - or add a comment.", "Comments are visible to the reporter and the administrators only.") }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 17 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -14185,161 +14248,197 @@ Screens:
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =12
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =12
-                              PaddingTop: |-
-                                  =12
-                              RadiusBottomLeft: |-
-                                  =R.input
-                              RadiusBottomRight: |-
-                                  =R.input
-                              RadiusTopLeft: |-
-                                  =R.input
-                              RadiusTopRight: |-
-                                  =R.input
                               Visible: |-
-                                  =IbCanComment && (varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"))
+                                  =IbCanComment
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - spnIbPosting:
-                                  Control: ModernSpinner@1.1.0
+                              - conIbCommentBox:
+                                  Control: GroupContainer
+                                  Variant: ManualLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment..."))
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Label: |-
-                                        =If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment..."))
-                                    LayoutMinWidth: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Visible: |-
-                                        =true
-                                    Width: |-
-                                        =Parent.Width
-                              - txtIbPostingNote:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="You can keep using the app meanwhile."
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =34
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        ="You can keep using the app meanwhile."
-                                    Wrap: |-
-                                        =true
-                        - conIbComposer:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =158 + If(IsAdmin, 8 + (24), 0)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Visible: |-
-                                  =IbCanComment && !(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"))
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - inpIbComment:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Comment"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-input'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =If(varIbPostFor = varIbSelId && varIbPostStage = "failed", varIbPostText, "")
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
                                     Height: |-
                                         =72
                                     LayoutMinWidth: |-
                                         =0
-                                    MaxLength: |-
-                                        =2000
-                                    Placeholder: |-
-                                        =If(varIbInternal, "Write an internal note for the administrators", IsAdmin && !IbSelMine, "Write a reply to the reporter", "Write a comment for the administrators")
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    TriggerOutput: |-
-                                        =TriggerOutput.Keypress
-                                    Type: |-
-                                        =TextInputType.Multiline
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =Parent.Width
+                                  Children:
+                                    - inpIbComment:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Comment"
+                                          Appearance: |-
+                                              =If((If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =If((If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =If(varIbPostFor = varIbSelId && varIbPostStage = "failed", varIbPostText, "")
+                                          DisplayMode: |-
+                                              =If((If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =72
+                                          MaxLength: |-
+                                              =2000
+                                          PaddingBottom: |-
+                                              =8
+                                          PaddingLeft: |-
+                                              =12
+                                          PaddingRight: |-
+                                              =H.hit + 8
+                                          PaddingTop: |-
+                                              =8
+                                          Placeholder: |-
+                                              =If(varIbInternal, "Write an internal note for the administrators", IsAdmin && !IbSelMine, "Write a reply to the reporter", "Write a comment for the administrators")
+                                          RadiusBottomLeft: |-
+                                              =R.input
+                                          RadiusBottomRight: |-
+                                              =R.input
+                                          RadiusTopLeft: |-
+                                              =R.input
+                                          RadiusTopRight: |-
+                                              =R.input
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          TriggerOutput: |-
+                                              =TriggerOutput.Keypress
+                                          Type: |-
+                                              =TextInputType.Multiline
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =0
+                                    - btnIbPost:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(varIbInternal, "Add internal note", "Post comment")
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Transparent
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          Color: |-
+                                              =C.'color-brand-primary'
+                                          DisplayMode: |-
+                                              =If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =H.hit
+                                          Icon: |-
+                                              ="Send"
+                                          Layout: |-
+                                              =ButtonLayout.IconOnly
+                                          OnSelect: |-
+                                              =If(
+                                                  !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),
+                                                  Set(varIbPostText, Trim(inpIbComment.Text));
+                                                  Set(varIbPostInternal, varIbInternal && IsAdmin);
+                                                  Set(varIbPostFor, varIbSelId);
+                                                  Set(varIbPostAt, Now());
+                                                  Set(varIbPostTick, Now());
+                                                  Set(varIbPostErr, "");
+                                                  Set(varIbPostStage, "posting");
+                                                  Set(varIbPosting, true);
+                                                  Set(varIbPostRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                                      "comment",
+                                                      JSON({ ticketId: varIbPostFor, content: varIbPostText, internal: varIbPostInternal })
+                                                  ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                                  If(
+                                                      varIbPostRes.ok = "yes",
+                                                      Set(varIbPostStage, "updating");
+                                                      If(
+                                                          varIbSelId = varIbPostFor,
+                                                          Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: varIbPostText, At: Now(), Internal: varIbPostInternal, IsSystem: false, File: "", SizeKb: 0, Initial: false });
+                                                          Reset(inpIbComment);
+                                                          Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
+                                                          Set(varIbInternal, false);
+                                                          Reset(chkIbInternal)
+                                                      );
+                                                      UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
+                                                      With({ cnt: Coalesce(LookUp(colIbActN, TicketId = varIbPostFor).N, 0) + 1 }, If(IsBlank(LookUp(colIbActN, TicketId = varIbPostFor)), Collect(colIbActN, { TicketId: varIbPostFor, N: cnt }), UpdateIf(colIbActN, TicketId = varIbPostFor, { N: cnt })));
+                                                      Set(varIbPostAt, Now());
+                                                      Set(varIbPostTick, Now());
+                                                      Set(varIbPostStage, "done"),
+                                                      Set(varIbPostErr, varIbPostRes.message);
+                                                      Set(varIbPostStage, "failed")
+                                                  );
+                                                  Set(varIbPosting, false)
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =R.input
+                                          RadiusBottomRight: |-
+                                              =R.input
+                                          RadiusTopLeft: |-
+                                              =R.input
+                                          RadiusTopRight: |-
+                                              =R.input
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =If(varIbInternal, "Add internal note", "Post comment")
+                                          Tooltip: |-
+                                              =If(varIbInternal, "Add internal note", "Post comment")
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =!(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"))
+                                          Width: |-
+                                              =H.hit
+                                          X: |-
+                                              =Parent.Width - Self.Width - 4
+                                          Y: |-
+                                              =Parent.Height - Self.Height - 4
+                                    - spnIbPosting:
+                                        Control: ModernSpinner@1.1.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment..."))
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =H.hit
+                                          Label: |-
+                                              =""
+                                          Visible: |-
+                                              =varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating")
+                                          Width: |-
+                                              =H.hit
+                                          X: |-
+                                              =Parent.Width - Self.Width - 4
+                                          Y: |-
+                                              =Parent.Height - Self.Height - 4
                               - chkIbInternal:
                                   Control: ModernCheckbox
                                   Properties:
@@ -14351,6 +14450,8 @@ Screens:
                                         =C.'text-primary'
                                     Default: |-
                                         =varIbInternal
+                                    DisplayMode: |-
+                                        =If((If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -14383,7 +14484,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =34
+                                        =Max(18, With({ t: If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment...")) & " You can keep using the app meanwhile.", varIbInternal, "Internal notes are never shown to the reporter.", varIbSel.Status = "Closed", "This issue is closed. If the problem is back, select Reopen - or add a comment.", "Comments are visible to the reporter and the administrators only.") }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 17 + 2))
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -14395,86 +14496,9 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =If(varIbInternal, "Internal notes are never shown to the reporter.", varIbSel.Status = "Closed", "This issue is closed. If the problem is back, select Reopen - or add a comment.", "Comments are visible to the reporter and the administrators only.")
+                                        =If(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"), If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment...")) & " You can keep using the app meanwhile.", varIbInternal, "Internal notes are never shown to the reporter.", varIbSel.Status = "Closed", "This issue is closed. If the problem is back, select Reopen - or add a comment.", "Comments are visible to the reporter and the administrators only.")
                                     Wrap: |-
                                         =true
-                              - btnIbPost:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(varIbInternal, "Add internal note", "Post comment")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.End
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    Color: |-
-                                        =C.'text-on-primary'
-                                    DisplayMode: |-
-                                        =If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, DisplayMode.Disabled, DisplayMode.Edit)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Icon: |-
-                                        ="Send"
-                                    Layout: |-
-                                        =ButtonLayout.IconBefore
-                                    OnSelect: |-
-                                        =If(
-                                            !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),
-                                            Set(varIbPostText, Trim(inpIbComment.Text));
-                                            Set(varIbPostInternal, varIbInternal && IsAdmin);
-                                            Set(varIbPostFor, varIbSelId);
-                                            Set(varIbPostAt, Now());
-                                            Set(varIbPostTick, Now());
-                                            Set(varIbPostErr, "");
-                                            Set(varIbPostStage, "posting");
-                                            Set(varIbPosting, true);
-                                            Set(varIbPostRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                                "comment",
-                                                JSON({ ticketId: varIbPostFor, content: varIbPostText, internal: varIbPostInternal })
-                                            ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                            If(
-                                                varIbPostRes.ok = "yes",
-                                                Set(varIbPostStage, "updating");
-                                                If(
-                                                    varIbSelId = varIbPostFor,
-                                                    Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: varIbPostText, At: Now(), Internal: varIbPostInternal, IsSystem: false, File: "", SizeKb: 0, Initial: false });
-                                                    Reset(inpIbComment);
-                                                    Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
-                                                    Set(varIbInternal, false);
-                                                    Reset(chkIbInternal)
-                                                );
-                                                UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
-                                                With({ cnt: Coalesce(LookUp(colIbActN, TicketId = varIbPostFor).N, 0) + 1 }, If(IsBlank(LookUp(colIbActN, TicketId = varIbPostFor)), Collect(colIbActN, { TicketId: varIbPostFor, N: cnt }), UpdateIf(colIbActN, TicketId = varIbPostFor, { N: cnt })));
-                                                Set(varIbPostAt, Now());
-                                                Set(varIbPostTick, Now());
-                                                Set(varIbPostStage, "done"),
-                                                Set(varIbPostErr, varIbPostRes.message);
-                                                Set(varIbPostStage, "failed")
-                                            );
-                                            Set(varIbPosting, false)
-                                        )
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =T.input
-                                    Text: |-
-                                        =If(varIbInternal, "Add internal note", "Post comment")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =187
                         - txtIbArchivedHint:
                             Control: ModernText
                             Properties:
@@ -14809,7 +14833,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =128 + 12 + (Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - (44) + 12 + (36))))
+                      =128 + 12 + (Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - ((44) + 12 + (36)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -14963,7 +14987,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - (44) + 12 + (36)))
+                            =Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - ((44) + 12 + (36))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-

@@ -8,7 +8,8 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varVhpOpened) || If(gblNavTo = "Vhp", "new:0", Coalesce(gblVhpWant, varVhpOpened)) <> varVhpOpened,
-              Set(varVhpLoading, true)
+              Set(varVhpLoading, true);
+              Set(varVhpLoadCard, !StartsWith(If(gblNavTo = "Vhp", "new:0", Coalesce(gblVhpWant, varVhpOpened)), "new"))
           );
           Select(btnVhpOpen)
     Children:
@@ -5421,37 +5422,38 @@ Screens:
                                           Text: |-
                                               ="Plan header"
                                           Width: |-
-                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - ((24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)) + 10) - 2)
+                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - (If(IfError(Sum(colVhpOperations, Cost) > 0, false), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + 10, 0)) - 2)
                                           Wrap: |-
                                               =false
-                                    - conVhpPlanFoldCost:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
+                                    - bdgVhpPlanFoldCost:
+                                        Control: ModernBadge@1.0.0
                                         Properties:
-                                          BorderColor: |-
-                                              =C.'border-subtle'
+                                          AccessibleLabel: |-
+                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
+                                          BorderStyle: |-
+                                              =BorderStyle.None
                                           BorderThickness: |-
-                                              =1
-                                          DropShadow: |-
-                                              =DropShadow.None
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Content: |-
+                                              ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                           Fill: |-
                                               =C.'state-neutral-bg'
-                                          FillPortions: |-
-                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
                                           Height: |-
                                               =24
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =4
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -5468,81 +5470,16 @@ Screens:
                                               =12
                                           RadiusTopRight: |-
                                               =12
+                                          Shape: |-
+                                              =BadgeShape.Circular
+                                          Size: |-
+                                              =T.small
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IfError(Sum(colVhpOperations, Cost) > 0, false)
                                           Width: |-
-                                              =24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)
-                                        Children:
-                                          - txtVhpPlanFoldCostLabel:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Total cost"
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =24
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    ="Total cost"
-                                                Width: |-
-                                                    =66
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpPlanFoldCostValue:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =24
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
-                                                Width: |-
-                                                    =Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2
-                                                Wrap: |-
-                                                    =false
+                                              =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
                               - conVhpPlanFoldBody:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -9681,10 +9618,10 @@ Screens:
                                                                         BorderThickness: |-
                                                                             =0
                                                                         DisplayMode: |-
-                                                                            =If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            =If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), DisplayMode.Disabled, DisplayMode.Edit)
                                                                         Fill: |-
                                                                             =RGBA(0, 0, 0, 0)
                                                                         FocusedBorderColor: |-
@@ -9696,16 +9633,16 @@ Screens:
                                                                         HoverFill: |-
                                                                             =C.'bg-muted'
                                                                         Image: |-
-                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
                                                                         ImagePosition: |-
                                                                             =ImagePosition.Fit
                                                                         LayoutMinWidth: |-
@@ -10504,7 +10441,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =124 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =36 + (0 + (Max((26), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), (22))) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -10559,7 +10496,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =88
+                                  =0 + (Max((26), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), (22))) * 1 + 0
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -10637,14 +10574,16 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((228) + 12) - (If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), (250) + 12, 0)) - (If((VhpOpsValid), (72) + 12, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((228) + 12) - (If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), (230) + 12, 0)) - (If((VhpOpsValid), (72) + 12, 0)) - 2)
                               - crdVhpOpsTotals:
                                   Control: ModernCard@1.0.0
                                   Properties:
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
                                     Description: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "For the selected item")
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", Blank())
                                     DescriptionColor: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-muted')
+                                        =C.'state-warn-fg'
                                     DescriptionSize: |-
                                         =11
                                     Fill: |-
@@ -10652,25 +10591,25 @@ Screens:
                                     HeaderImage: |-
                                         =Blank()
                                     Height: |-
-                                        =88
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)
                                     Image: |-
                                         =Blank()
                                     Subtitle: |-
                                         ="Duration: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), DurationHours) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " h"
                                     SubtitleColor: |-
-                                        =C.'text-primary'
+                                        =C.'text-muted'
                                     SubtitleSize: |-
-                                        =13
+                                        =12
                                     Title: |-
                                         ="Total cost: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                     TitleColor: |-
                                         =C.'text-primary'
                                     TitleSize: |-
-                                        =14
+                                        =13
                                     Visible: |-
                                         =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                     Width: |-
-                                        =250
+                                        =230
                               - bdgVhpOpsHeadBadge:
                                   Control: ModernBadge@1.0.0
                                   Properties:
@@ -12366,7 +12305,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode
+                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -12408,7 +12347,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -12461,6 +12400,8 @@ Screens:
                                                           ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                                      Visible: |-
+                                                          =!varVhpViewOnly
                                                       Width: |-
                                                           =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                                       X: |-
@@ -13782,7 +13723,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode
+                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -13821,7 +13762,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -13874,6 +13815,8 @@ Screens:
                                                           ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                                      Visible: |-
+                                                          =!varVhpViewOnly
                                                       Width: |-
                                                           =40
                                                       X: |-
@@ -17302,7 +17245,7 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        =ThisItem.ShortCode
+                                        =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -17344,7 +17287,7 @@ Screens:
                                     DisabledFill: |-
                                         =C.'row-pressed'
                                     DisplayMode: |-
-                                        =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                        =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -17397,6 +17340,8 @@ Screens:
                                         ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                     Tooltip: |-
                                         =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                    Visible: |-
+                                        =!varVhpViewOnly
                                     Width: |-
                                         =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                     X: |-
@@ -21238,10 +21183,10 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =476 + If(IfError(CountRows(Filter(
+                =476 + If(IfError((varVhpViewOnly || CountRows(Filter(
                     colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
+                )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -21418,7 +21363,7 @@ Screens:
                   Size: |-
                       =T.small
                   Text: |-
-                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
+                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", varVhpViewOnly, "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       ))) & " found.")
@@ -21446,10 +21391,10 @@ Screens:
                       =Min(306, Max(96, App.Height - 260))
                   Items: |-
                       =With(
-                          { c: ForAll(Filter(
+                          { c: ForAll(Filter(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ) As F, { Code: F.Code, Description: F.Description }) },
+                      ), !varVhpViewOnly) As F, { Code: F.Code, Description: F.Description }) },
                           With(
                               { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
                                           { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "") }) },
@@ -21569,15 +21514,17 @@ Screens:
                       =T.small
                   Text: |-
                       =If(
+                          varVhpViewOnly,
+                          "No objects are linked to this item.",
                           IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
                           "Choose a functional location first.",
                           "No results found. Search more broadly in the functional location field."
                       )
                   Visible: |-
-                      =IfError(CountRows(Filter(
+                      =IfError((varVhpViewOnly || CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
+                      )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
                   Wrap: |-
                       =true
             - conVhpObjListFooter:
@@ -21641,7 +21588,7 @@ Screens:
                         Text: |-
                             =Text(CountRows(colVhpObjDraft)) & " selected"
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - ((133) + 8) - 2)
+                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - (If(!varVhpViewOnly, (133) + 8, 0)) - 2)
                         Wrap: |-
                             =false
                   - btnVhpObjListUse:
@@ -21690,6 +21637,8 @@ Screens:
                             ="Use selected"
                         VerticalAlign: |-
                             =VerticalAlign.Middle
+                        Visible: |-
+                            =!varVhpViewOnly
                         Width: |-
                             =133
       - conVhpNotesBackdrop:
@@ -26213,6 +26162,8 @@ Screens:
                             Set(varVhpLoadFailed, false);
                             Set(varVhpLoadSlow, false);
                             Set(varVhpLoadStep, If(IsBlank(gblVhpReqId), "Setting up a new plan", "Finding the request"));
+                            // Issue #407: kun en gemt anmodning viser kortet - en ny ikke.
+                            Set(varVhpLoadCard, !IsBlank(gblVhpReqId));
                             // A new or another request starts from a clean plan.
                             Clear(colVhpItems);
                             Clear(colVhpOperations);
@@ -26699,7 +26650,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
+                =(IfError(varVhpLoading, false) && IfError(varVhpLoadCard, false)) || IfError(varVhpLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -26751,7 +26702,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
+                =(IfError(varVhpLoading, false) && IfError(varVhpLoadCard, false)) || IfError(varVhpLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
@@ -26835,7 +26786,7 @@ Screens:
                   Size: |-
                       =T.cardTitle
                   Text: |-
-                      =If(IfError(varVhpLoadFailed, false), "Could not open the request", IsBlank(gblVhpReqId), "Preparing a new request", "Opening request")
+                      =If(IfError(varVhpLoadFailed, false), "Could not open the request", "Opening request")
                   Wrap: |-
                       =false
             - txtVhpLoadStep:
