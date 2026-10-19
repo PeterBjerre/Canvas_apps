@@ -61,7 +61,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (36), (36), (36))) * 1 + 0)
+                      =25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (24), (20), (36), (36), (36))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -96,7 +96,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (36), (36), (36))) * 1 + 0
+                            =0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (24), (20), (36), (36), (36))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -164,7 +164,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 3, 40, 96)) + 10, 0)) - ((If(LayoutRank < 3, 40, 135)) + 10) - ((If(LayoutRank < 3, 40, 186)) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 3, 40, 96)) + 10, 0)) - (If((IfError(varFlAct = "save", false) || IfError(varFlAct = "submit", false)), (24) + 10, 0)) - (If(IfError(varFlAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varFlAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 10, 0)) - ((If(IfError(varFlAct = "save", false) && !(LayoutRank < 3), Max(126, If(LayoutRank < 3, 40, 135)), If(LayoutRank < 3, 40, 135))) + 10) - ((If(IfError(varFlAct = "submit", false) && !(LayoutRank < 3), Max(152, If(LayoutRank < 3, 40, 186)), If(LayoutRank < 3, 40, 186))) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
                             Children:
                               - conFlCrumb:
                                   Control: GroupContainer
@@ -266,7 +266,7 @@ Screens:
                                           Text: |-
                                               ="  /  Functional Location"
                                           Width: |-
-                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 3, 40, 96)) + 10, 0)) - ((If(LayoutRank < 3, 40, 135)) + 10) - ((If(LayoutRank < 3, 40, 186)) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
+                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 3, 40, 96)) + 10, 0)) - (If((IfError(varFlAct = "save", false) || IfError(varFlAct = "submit", false)), (24) + 10, 0)) - (If(IfError(varFlAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varFlAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 10, 0)) - ((If(IfError(varFlAct = "save", false) && !(LayoutRank < 3), Max(126, If(LayoutRank < 3, 40, 135)), If(LayoutRank < 3, 40, 135))) + 10) - ((If(IfError(varFlAct = "submit", false) && !(LayoutRank < 3), Max(152, If(LayoutRank < 3, 40, 186)), If(LayoutRank < 3, 40, 186))) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
                                           Wrap: |-
                                               =false
                               - txtFlTitle:
@@ -401,6 +401,7 @@ Screens:
                                   Clear(colFlDet);
                                   Clear(colFlPanelSnap);
                                   Clear(colFlPanelSnapVals);
+                                  Set(varFlAct, "");
                                   Set(varFlRequestGuid, "");
                                   Set(varFlRequestNo, "");
                                   Set(varFlStatus, "");
@@ -516,11 +517,75 @@ Screens:
                                   =varFlViewOnly && varFlCanEdit
                               Width: |-
                                   =If(LayoutRank < 3, 40, 96)
+                        - spnFlAct:
+                            Control: ModernSpinner@1.1.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Switch(varFlAct, "save", "Saving, please wait", "submit", "Submitting, please wait", "Please wait")
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =24
+                              Label: |-
+                                  =""
+                              LayoutMinWidth: |-
+                                  =24
+                              Visible: |-
+                                  =(IfError(varFlAct = "save", false) || IfError(varFlAct = "submit", false))
+                              Width: |-
+                                  =24
+                        - txtFlActNote:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(IfError(varFlAct in ["save:failed", "submit:failed"], false), C.'state-error-fg', C.'state-ok-fg')
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =Switch(varFlAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  =Switch(varFlAct, "save:ok", "Saved", "submit:ok", "Submitted", "save:failed", "Save failed", "submit:failed", "Submit failed", "")
+                              Visible: |-
+                                  =IfError(varFlAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false)
+                              Width: |-
+                                  =Switch(varFlAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)
+                              Wrap: |-
+                                  =false
                         - btnFlSaveDraft:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Save draft"
+                                  =If(IfError(varFlAct = "save", false), "Saving...", "Save draft")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -534,7 +599,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows(Filter(colFlRows, Status <> "draft")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false), DisplayMode.Disabled, If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows(Filter(colFlRows, Status <> "draft")) = 0, DisplayMode.Disabled, DisplayMode.Edit))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -546,9 +611,9 @@ Screens:
                               Layout: |-
                                   =If(LayoutRank < 3, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =If(LayoutRank < 3, 40, 135)
+                                  =If(IfError(varFlAct = "save", false) && !(LayoutRank < 3), Max(126, If(LayoutRank < 3, 40, 135)), If(LayoutRank < 3, 40, 135))
                               OnSelect: |-
-                                  =Set(varFlSaving, true);
+                                  =Set(varFlAct, "save");
                                   Clear(colFlSaveErrors);
                                   // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
                                   //    rettigheden i selve handlingen (tools/permissions.py).
@@ -800,7 +865,7 @@ Screens:
                                       Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
                                       Set(gblToast, { Text: With({ _c: CountRows(colFlSaveErrors) }, Text(_c) & If(_c = 1, " step", " steps")) & " failed. What was saved is kept - try again.", Kind: "Error", At: Now() }); true
                                   );
-                                  Set(varFlSaving, false)
+                                  Set(varFlAct, varFlAct & If(CountRows(colFlSaveErrors) = 0, ":ok", ":failed"))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -812,13 +877,13 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Save draft"
+                                  =If(IfError(varFlAct = "save", false), "Saving...", "Save draft")
                               Tooltip: |-
                                   ="Puts the request on the landing page as Draft - it can still be edited."
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(LayoutRank < 3, 40, 135)
+                                  =If(IfError(varFlAct = "save", false) && !(LayoutRank < 3), Max(126, If(LayoutRank < 3, 40, 135)), If(LayoutRank < 3, 40, 135))
                         - btnFlSubmit:
                             Control: ModernButton
                             Properties:
@@ -833,7 +898,7 @@ Screens:
                               Color: |-
                                   =C.'text-on-primary'
                               DisplayMode: |-
-                                  =If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false), DisplayMode.Disabled, If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -845,7 +910,7 @@ Screens:
                               Layout: |-
                                   =If(LayoutRank < 3, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =If(LayoutRank < 3, 40, 186)
+                                  =If(IfError(varFlAct = "submit", false) && !(LayoutRank < 3), Max(152, If(LayoutRank < 3, 40, 186)), If(LayoutRank < 3, 40, 186))
                               OnSelect: |-
                                   =If(
                                       !varFlStale && CountRows(Filter(colFlRows, Status = "invalid")) = 0 && CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) > 0 && varFlStatus <> "Indsendt" && !varFlViewOnly,
@@ -872,7 +937,7 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  =With({ _f: CountRows(Filter(colFlRows, Status = "invalid")) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))
+                                  =If(IfError(varFlAct = "submit", false), "Submitting...", With({ _f: CountRows(Filter(colFlRows, Status = "invalid")) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", "")))
                               Tooltip: |-
                                   =If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",
                                      varFlStale, "The rows are being checked - try again in a moment.",
@@ -882,7 +947,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(LayoutRank < 3, 40, 186)
+                                  =If(IfError(varFlAct = "submit", false) && !(LayoutRank < 3), Max(152, If(LayoutRank < 3, 40, 186)), If(LayoutRank < 3, 40, 186))
                         - btnFlDeleteRequest:
                             Control: ModernButton
                             Properties:
@@ -975,7 +1040,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (36), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (24), (20), (36), (36), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -11789,7 +11854,7 @@ Screens:
                               Icon: |-
                                   ="Save"
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(IfError(varFlPanelSave = "saving", false), ButtonLayout.TextOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
                                   =104
                               OnSelect: |-
@@ -12057,7 +12122,7 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Save"
+                                  =If(IfError(varFlPanelSave = "saving", false), "Saving...", "Save")
                               Tooltip: |-
                                   ="Save the request with this row and close the panel"
                               VerticalAlign: |-
@@ -13402,7 +13467,7 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varFlConfirmSubmit, false);
-                            Set(varFlSaving, true);
+                            Set(varFlAct, "submit");
                             If(
                                 !(!varFlStale && CountRows(Filter(colFlRows, Status = "invalid")) = 0 && CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) > 0 && varFlStatus <> "Indsendt" && !varFlViewOnly),
                                 Set(varFlInfo, If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",
@@ -13750,7 +13815,7 @@ Screens:
                                     )
                                 )
                             );
-                            Set(varFlSaving, false)
+                            Set(varFlAct, varFlAct & If(varFlStatus = "Indsendt", ":ok", ":failed"))
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -14119,17 +14184,40 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
-      - imgFlSaving:
+      - tmrFlActDone:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =4000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(IfError(EndsWith(varFlAct, ":ok"), false), Set(varFlAct, ""))
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(EndsWith(varFlAct, ":ok"), false)
+            Start: |-
+                =IfError(EndsWith(varFlAct, ":ok"), false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
+      - imgFlActBlock:
           Control: Image
           Properties:
             AccessibleLabel: |-
-                ="Saving, please wait"
+                ="Please wait"
             BorderStyle: |-
                 =BorderStyle.None
             BorderThickness: |-
                 =0
             Fill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             FocusedBorderColor: |-
                 =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
@@ -14137,44 +14225,21 @@ Screens:
             Height: |-
                 =App.Height
             HoverFill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             Image: |-
                 =""
             PressedFill: |-
-                =C.'overlay'
+                =RGBA(0, 0, 0, 0)
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varFlSaving, false)
+                =IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
-      - prgFlSaving:
-          Control: ModernProgressBar@1.0.0
-          Properties:
-            AccessibleLabel: |-
-                ="Saving, please wait"
-            Height: |-
-                =8
-            Indeterminate: |-
-                =true
-            ProgressColor: |-
-                =ProgressColor.Brand
-            Shape: |-
-                =ProgressShape.Rounded
-            Thickness: |-
-                =ProgressThickness.Large
-            Visible: |-
-                =IfError(varFlSaving, false)
-            Width: |-
-                =Min(320, App.Width - 32)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =(App.Height - Self.Height) / 2
       - btnFlOpen:
           Control: ModernButton
           Properties:
@@ -14317,6 +14382,8 @@ Screens:
                             Set(varFlStale, false);
                             // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
                             Set(varFlSubmitAsk, false);
+                            // Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+                            Set(varFlAct, "");
                             // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
                             Set(varFlInfo, "");
                             Set(varFlPayload, "");
