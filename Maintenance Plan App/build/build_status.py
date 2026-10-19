@@ -22,8 +22,8 @@ TRINENE
 -------
 Et trin er GROENT, naar dets paakraevede felter er udfyldt OG gemt:
 
-    Plan         faerdigt og laast (Done i Plan header). Edit laaser op, og
-                 saa er trinnet ikke faerdigt, foer der trykkes Done igen.
+    Plan         faerdigt og laast (Save i Plan header). Edit laaser op, og
+                 saa er trinnet ikke faerdigt, foer der trykkes Save igen.
     Item         mindst eet item, og alle gemte items er valid. Usavede
                  aendringer i Item Editoren tjekkes paa skaermen
                  (build_hero.ITEM_DIRTY) - de kan ikke ses herfra.
@@ -238,12 +238,12 @@ VALIDATION = join_lines(["VhpPlanRuleErrors", "VhpItemRuleErrors", "VhpOpsRuleEr
 # skaermen (build_hero.ITEM_DIRTY).
 IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 STEP_MISSING = {
-    "Plan": [("!VhpStepPlanDone", '"Press Done in the plan header."')],
+    "Plan": [("!VhpStepPlanDone", '"Press Save in the plan header."')],
     # Samme betingelse som foer (trin 2) - kun beskeden siger nu, hvilken
     # halvdel der mangler.
     "Item": [("!VhpStepItemDone",
               'If(IsEmpty(VhpSaveableItems), "Add at least one item.", '
-              '"Press Done on every item in the item editor.")')],
+              '"Press Save on every item in the item editor.")')],
     "Ops": [("!VhpStepTasklistDone", '"Choose a task list for every item."'),
             ("!VhpStepOpsDone",
              f'If({IS_STRAT}, "Give every item operations, each with a package.", '

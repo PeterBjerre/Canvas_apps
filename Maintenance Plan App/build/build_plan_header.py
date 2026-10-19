@@ -13,6 +13,7 @@ from build_helpers import (child_name, text_ctrl, group, button, text_input, num
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header  # noqa: F401
 from build_helpers import fluent, fluent_icon
+from build_helpers import act_fx, act_mark, act_button
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -53,7 +54,10 @@ def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None)
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
 # Save/Edit-knappens bredde.
-PLAN_SAVE_W = fit_button_width("\"Done\"", min_w=96) + ICON_W
+# Bredt nok til "Saving..." (issue #433), saa foden staar stille, mens der gemmes.
+PLAN_SAVE_W = fit_button_width("\"Saving...\"", min_w=96) + ICON_W
+# Skaermens handlingstilstand (build_hero.ACT) - Saving... i knappen.
+ACT = "varVhpAct"
 
 # En strategiplan henter sin cyklus fra strategiens pakker. Cycle/Unit paa
 # planhovedet gaelder derfor kun single cycle-planer.
@@ -434,16 +438,13 @@ def build_plan_header():
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=24, wrap="false")
 
-    btnSave = button(
-        "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Done\")",
-        (
-            "If(\n"
-            "    varVhpPlanLocked,\n"
-            "    Set(varVhpViewOnly, false);\n"
-            "    Set(varVhpPlanLocked, false);\n"
-            "    Notify(\"Plan unlocked for editing.\", NotificationType.Success),\n"
-            "\n"
-            "    Set(varVhpPlanValidated, true);\n"
+    # SAVE/EDIT (issue #433): knappen hedder Save (foer Done), siger
+    # "Saving..." mens den gemmer, og bliver til Edit, naar planhovedet er
+    # gemt og laast. Samme moenster i Item og Task list and operations.
+    # Gemningen er stadig lokal (beslutning 1a): kun Save draft skriver til
+    # SharePoint, og trin 5 siger selv, naar der er noget at gemme.
+    save_fx = (
+            "Set(varVhpPlanValidated, true);\n"
             "    With(\n"
             "        { isStrat: drpVhpPlanType.Selected.Key = \"Strategy\" },\n"
             "        If(\n"
@@ -481,6 +482,7 @@ def build_plan_header():
             "            );\n"
             "            Set(varVhpPlanCommitted, true);\n"
             "            Set(varVhpPlanLocked, true);\n"
+            f"            {act_mark(ACT, 'plan')};\n"
             "            Set(varVhpPlanShow, false);\n"
             "            Set(varVhpPlanCreatedAt, Now());\n"
             # PLANT ER FAELLES KONTEKST (issue #54). Arbejdscentre, tasklister
@@ -498,14 +500,20 @@ def build_plan_header():
             "                        \". Check work centre, task list and functional location on existing items.\",\n"
             "                    NotificationType.Warning\n"
             "                )\n"
-            "            );\n"
-            "            Notify(\n"
-            "                \"Plan header done: \" & drpVhpPlant.Selected.Value & \" \" & Trim(inpVhpPlanText.Text) &\n"
-            "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \")\", \"\") & \". Save draft to keep it.\",\n"
-            "                NotificationType.Success\n"
             "            )\n"
             "        )\n"
-            "    )\n"
+            ")"
+    )
+    btnSave = button(
+        "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",
+        (
+            "If(\n"
+            "    varVhpPlanLocked,\n"
+            "    Set(varVhpViewOnly, false);\n"
+            "    Set(varVhpPlanLocked, false);\n"
+            "    Notify(\"Plan unlocked for editing.\", NotificationType.Success),\n"
+            "\n"
+            + act_fx(ACT, "plan", save_fx) + "\n"
             ")"
         ),
         primary=True, width=140, height=36,
@@ -528,6 +536,7 @@ def build_plan_header():
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)",
         visible="!varVhpViewOnly")
     btnSave.props["Width"] = str(PLAN_SAVE_W)
+    act_button(btnSave, ACT, "plan", text="Saving...", grow=False)
 
     fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
     planMeta.props["Visible"] = f"!({fold})"

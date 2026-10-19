@@ -8,6 +8,8 @@ import layout_tokens as lay
 from layout_tokens import at_least, if_below
 from build_helpers import popup_head, tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button
 from design_tokens import ref_hex
+from gen_screen import lock_section
+import sp_config as cfg
 
 MUT_HEX = ref_hex("text-muted")
 
@@ -398,6 +400,11 @@ def build_longtext_modal():
         visible="varVhpLongTextOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    # Teksten paa et gemt item eller en gemt task list (issue #433) kan
+    # laeses, men ikke rettes, til sektionen er laast op med Edit.
+    lock_section([modal], "varVhpViewOnly",
+                 f'If(varVhpLongTextTarget = "item", {cfg.section_locked("Item")}, '
+                 f'{cfg.section_locked("Ops")})')
     return modal
 
 

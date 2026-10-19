@@ -14,6 +14,8 @@ from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, 
                            fit_button_width, ICON_W, flow_ok, mark_done,
                            tab_list, tabs_w, modern_card)
 from build_plan_header import section_header, help_panel, section_footer
+from build_helpers import act_fx, act_mark, act_button
+from gen_screen import lock_section
 
 # Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
 NV = num_value()
@@ -43,6 +45,10 @@ DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disable
 # slaaet fra; afkrydsninger staar i View, saa deres flueben stadig ses.
 VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
 VIEW_READONLY = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
+# Task list and operations er gemt med Save og laast, til der trykkes Edit (#433).
+OPS_LOCKED = cfg.section_locked("Ops")
+# Skaermens handlingstilstand (build_hero.ACT) - Saving... i knappen.
+ACT = "varVhpAct"
 OPS_CW = f"({SHELL_W} - 36)"
 
 # ---------------------------------------------------------------------------
@@ -887,8 +893,12 @@ def build_ops_modals():
     """Popupperne fra operationsraekkens Materials- og Docs-knapper."""
     # Leverandoerpopup'en SIDST: den kan aabnes fra operationspopup'en
     # (smalle skaerme) og skal ligge oven paa den. Det samme for varegruppens.
-    return [_op_detail_modal(), _materials_modal(), _attachments_modal(), _vendor_modal(),
-            _matgrp_modal()]
+    # Gemt sektion (issue #433): popupperne fra en laast sektion er
+    # skrivebeskyttede, som i View. Dokumenterne gemmes for sig selv i
+    # SharePoint (issue #300) og foelger ikke laasen.
+    locked = lock_section([_op_detail_modal(), _materials_modal(), _vendor_modal(),
+                           _matgrp_modal()], "varVhpViewOnly", OPS_LOCKED)
+    return locked[:2] + [_attachments_modal()] + locked[2:]
 
 
 # Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
@@ -1056,14 +1066,15 @@ def build_tasklist_section():
     toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
 
     # Reset (kun dropdownen tilbage) er fjernet (UX-review): task listen
-    # vaelges bare om. Sektionen afsluttes med Done (beslutning 1a,
+    # vaelges bare om. Sektionen afsluttes med Save (beslutning 1a,
     # 2026-10-13): kun Save draft skriver til SharePoint.
-    btnTlSave = button(
-        "btnVhpTasklistSave", "\"Done\"",
-        (
+    #
+    # SAVE/EDIT (issue #433), som Plan header: Save (foer Done) siger
+    # "Saving..." mens den gemmer, og laaser sektionen for det aktive
+    # item, naar den er gemt - knappen hedder saa Edit, og Edit laaser op
+    # igen. Mangler der noget, er sektionen stadig aaben.
+    save_fx = (
             "If(\n"
-            "    IsBlank(varVhpActiveItemId),\n"
-            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    IsBlank(drpVhpItemTasklist.Selected.Key),\n"
             "    Notify(\"Select a task list first.\", NotificationType.Warning),\n"
             # Ufuldstaendig sektion: gem ikke (issue #103).
@@ -1076,15 +1087,32 @@ def build_tasklist_section():
             "                colVhpItems, ItemId = varVhpActiveItemId,\n"
             "                { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
             "            );\n"
-            "            Notify(\"Task list done. Save draft to keep it.\", NotificationType.Success)\n"
+            # Gemt: sektionen laases. Ingen besked om Save draft (#433).
+            "            Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: \"Ops\" });\n"
+            f"            {act_mark(ACT, 'ops')}\n"
             "        )\n"
             "    )\n"
             ")"
-        ), primary=True, icon='"Checkmark"',
-        width=fit_button_width("\"Done\"", min_w=96) + ICON_W, height=36,
+    )
+    btnTlSave = button(
+        "btnVhpTasklistSave", f'If({OPS_LOCKED}, "Edit", "Save")',
+        (
+            "If(\n"
+            "    IsBlank(varVhpActiveItemId),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
+            f"    {OPS_LOCKED},\n"
+            "    RemoveIf(colVhpSectionLocks, ItemId = varVhpActiveItemId && Section = \"Ops\"),\n"
+            "\n"
+            + act_fx(ACT, "ops", save_fx) + "\n"
+            ")"
+        ), primary=True, icon=f'If({OPS_LOCKED}, "Edit", "Checkmark")',
+        # Bredt nok til "Saving..." (issue #433), saa foden staar stille.
+        width=fit_button_width("\"Saving...\"", min_w=96) + ICON_W, height=36,
         display_mode=("If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
                       "btnVhpSaveDraft.DisplayMode)"))
-    btnTlSave.props["AccessibleLabel"] = '"Done with the task list and operations"'
+    btnTlSave.props["AccessibleLabel"] = (f'If({OPS_LOCKED}, "Edit the task list and operations", '
+                                          '"Save the task list and operations")')
+    act_button(btnTlSave, ACT, "ops", text="Saving...", grow=False)
 
     # ALTID FOLDET UD (issue #192): fanerne og ruderne staar der altid.
     # Foden siger, hvad der mangler, foer sektionen kan gemmes.
@@ -1342,6 +1370,10 @@ def build_tasklist_section():
     # man fanen, saa ser man dens indhold. Den laa foer under baade
     # tasklist-vaelgeren og knapraekken, og saa stod selve skiftet nederst i
     # den halvdel af kortet, der ikke aendrede sig.
+    # GEMT = SKRIVEBESKYTTET (issue #433): task listen, operationerne,
+    # pakkerne og materialerne laases, som i View mode, til der trykkes Edit.
+    lock_section([opsPane, pkgPane, opsFooter], "varVhpViewOnly", OPS_LOCKED,
+                 keep={"btnVhpTasklistSave"})
     return card("conVhpOpsCard",
                 [header, helpPanel, tabBar,
                  opsPane, pkgPane, opsFooter])

@@ -619,6 +619,8 @@ def build_vhplan():
     init = ("// A new or another request starts from a clean plan.\n"
             "Clear(colVhpItems);\nClear(colVhpOperations);\nClear(colVhpItemObjects);\n"
             "Clear(colVhpObjDraft);\nClear(colVhpMaterials);\nClear(colVhpAttachments);\n"
+            # Gemte (laaste) sektioner hoerer til den forrige plan (#433).
+            "Clear(colVhpSectionLocks);\n"
             + vhplan_steps(cb.with_reqid(cb.domain_onstart(d), d), d["tag"]) + ";\n"
             "// Editoren skal vise den plan, der lige er klargjort.\n"
             + build_items.SEED_FL_PICKER + ";\n"
