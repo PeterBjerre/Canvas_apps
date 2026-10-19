@@ -1876,9 +1876,12 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
 FOOT_H = lay.HIT_TOUCH + 16
 
 
-def sticky_actions(prefix, buttons):
+def sticky_actions(prefix, buttons, status=()):
     """Bundbjaelken con<X>Foot med kopier af buttons (header-knapperne).
-    Originalerne skjules under Desktop. Returnerer bjaelken til app_frame."""
+    Originalerne skjules under Desktop. Returnerer bjaelken til app_frame.
+
+    status: knappernes hjul og besked (act_status, issue #420) - staar
+    foran kopierne, som i headeren, og tager kun plads, mens de ses."""
     on = below("Desktop")
     copies = []
     for b in buttons:
@@ -1900,7 +1903,8 @@ def sticky_actions(prefix, buttons):
         b.vis = b.props["Visible"]
     # SHELL_W: rammens indholdsbredde (aldrig Parent.Width, regel 24).
     inner_w = f"({SHELL_W})"
-    row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH)
+    row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH,
+                     lead=status)
     return group(f"con{prefix}Foot", [row], direction="Vertical", gap=0, height=FOOT_H,
                  fill=C_CARD_BG, pad=(8, lay.PAGE_PAD_R, 8, lay.PAGE_PAD_L), visible=on)
 
@@ -2170,6 +2174,203 @@ def panel_save_block(prefix, state_var):
     }, h="App.Height", vis=vis)
 
 
+# ---------------------------------------------------------------------------
+# Knappens egen ventetilstand (issue #420)
+#
+# Foer taendte Save draft, Submit, Duplicate, Delete, Add rows, Reopen,
+# Archive og Save documents et graat sloer med en bjaelke midt paa SKAERMEN
+# (progress_overlay) - langt fra knappen, der startede handlingen. Nu er
+# tilstanden ved knappen selv, i det samme moenster som sidepanelernes gem
+# (#402) og kommentarfeltet (#370):
+#
+#   koerer     knappen siger "Saving..." / "Submitting..." / "Deleting..."
+#              og er spaerret; hjulet (ModernSpinner) staar lige ved siden af
+#   lykkedes   "Saved" / "Submitted" ... i groent ved knappen i 4 sekunder
+#   fejlede    "Save failed" ... i roedt ved knappen, til naeste handling.
+#              Intet indtastet ryddes - handlingerne rydder kun ved succes.
+#
+# Tilstanden er EEN tekstvariabel pr. skaerm (var<X>Act): handlingens
+# noegle ("save", "submit", ...) mens den koerer, og "<noegle>:ok" eller
+# "<noegle>:failed" bagefter. Den saettes lige foer og lige efter selve
+# handlingen - ingen timer afgoer, hvornaar den er faerdig. Kun den groenne
+# besked forsvinder af sig selv (tmr<X>ActDone).
+#
+# Imens ligger et GENNEMSIGTIGT lag over hele skaermen (act_block), saa
+# intet kan trykkes to gange eller rettes midt i en handling - det graa
+# sloer gjorde det foer - men der tegnes intet paa siden.
+# ---------------------------------------------------------------------------
+# noegle -> (mens den koerer, lykkedes, fejlede)
+ACT_TEXTS = {
+    "save": ("Saving...", "Saved", "Save failed"),
+    "submit": ("Submitting...", "Submitted", "Submit failed"),
+    "delete": ("Deleting...", "Deleted", "Delete failed"),
+    "duplicate": ("Duplicating...", "Duplicated", "Duplicate failed"),
+    "add": ("Adding...", "Rows added", "Add failed"),
+    "upload": ("Saving...", "Files saved", "Save failed"),
+    "reopen": ("Reopening...", "Reopened", "Reopen failed"),
+    "archive": ("Updating...", "Updated", "Update failed"),
+}
+ACT_SPIN = 24
+ACT_NOTE_SIZE = 13
+ACT_OK_MS = 4000
+
+
+def act_running(act_var):
+    """Sand, mens en handling paa skaermen koerer (ingen ":" endnu)."""
+    return f'IfError(!IsBlank({act_var}) && !(":" in {act_var}), false)'
+
+
+def act_is(act_var, key):
+    return f'IfError({act_var} = "{key}", false)'
+
+
+def act_mark(act_var, key, ok=True):
+    """Handlingens eget udfald - skrives i dens succes- eller fejlgren."""
+    return f'Set({act_var}, "{key}:{"ok" if ok else "failed"}")'
+
+
+def act_fx(act_var, key, fx, busy_var=None, ok=None, key_fx=None, left=""):
+    """Handlingen med knappens tilstand: noeglen, handlingen, udfaldet.
+
+    ok:     et udtryk, der efter handlingen siger, om den lykkedes. Uden ok
+            skriver handlingen selv sit udfald (act_mark); har den ikke
+            gjort det, blev den stoppet foer noget blev skrevet (fx et
+            manglende felt med sin egen besked) - saa er tilstanden tom
+            igen, eller left ("failed"), naar intet stop er muligt.
+    key_fx: noeglen som udtryk, naar den afgoeres, mens der trykkes
+            (VH-planens Save draft er ogsaa Submit).
+    busy_var: appens gamle boolean, som andre knappers DisplayMode laeser."""
+    lines = [f"Set({act_var}, {key_fx or chr(34) + key + chr(34)})"]
+    if busy_var:
+        lines.append(f"Set({busy_var}, true)")
+    lines.append(fx)
+    if busy_var:
+        lines.append(f"Set({busy_var}, false)")
+    if ok is not None:
+        lines.append(f'Set({act_var}, {act_var} & If({ok}, ":ok", ":failed"))')
+    elif left:
+        lines.append(f'If({act_running(act_var)}, Set({act_var}, {act_var} & ":{left}"))')
+    else:
+        lines.append(f'If({act_running(act_var)}, Set({act_var}, ""))')
+    return ";\n".join(lines)
+
+
+def act_button(btn, act_var, key, text=None, grow=True):
+    """Knappen viser handlingens ventetekst og er spaerret, mens noget paa
+    skaermen koerer. Den bliver bredere, mens teksten er laengere - men
+    ikke der, hvor den kun er sit ikon. grow=False: bredden roeres ikke
+    (kalderen ved, at ventteksten er kortere end knappens egen)."""
+    busy = act_is(act_var, key)
+    t = text or ACT_TEXTS[key][0]
+    old = btn.props["Text"]
+    btn.props["Text"] = f'If({busy}, "{t}", {old})'
+    acc = btn.props.get("AccessibleLabel")
+    if acc and acc != "Self.Text":
+        btn.props["AccessibleLabel"] = f'If({busy}, "{t}", {acc})'
+    dm = btn.props.get("DisplayMode") or "DisplayMode.Edit"
+    btn.props["DisplayMode"] = f"If({act_running(act_var)}, DisplayMode.Disabled, {dm})"
+    wide = act_width(key, bool(btn.props.get("Icon")), text)
+    if not grow:
+        return btn
+    layout = btn.props.get("Layout", "")
+    when = busy
+    if layout.startswith("If(") and "IconOnly" in layout:
+        # If(<smal>, ButtonLayout.IconOnly, ...): kun bredere, naar teksten ses.
+        cond = layout[3:layout.index(", ButtonLayout.IconOnly")]
+        when = f"{busy} && !({cond})"
+    fit_ = getattr(btn, "_fit", None)
+    if fit_ is not None:
+        nat, reserve = fit_
+        btn._fit = (f"If({when}, Max({wide}, {nat}), {nat})", reserve)
+    w = btn.props["Width"]
+    new_w = f"If({when}, Max({wide}, {w}), {w})"
+    if btn.props.get("LayoutMinWidth") == w:
+        btn.props["LayoutMinWidth"] = new_w
+    btn.props["Width"] = new_w
+    return btn
+
+
+def act_width(key, icon=True, text=None):
+    """Knappens bredde med ventteksten (og ikonet)."""
+    return fit_button_width(f'"{text or ACT_TEXTS[key][0]}"') + (ICON_W if icon else 0)
+
+
+def act_status(name, act_var, keys, visible=None, size=ACT_NOTE_SIZE):
+    """[hjul, besked] - staar lige ved knapperne for keys.
+
+    Hjulet ses, mens en af handlingerne koerer; beskeden bagefter. Begge
+    har en fast bredde (beskedens efter teksten), saa en raekke kan regne
+    resten ud (grow). visible: en ekstra betingelse (fx kun fra Desktop)."""
+    def _w(text):
+        return label_px(text, size) + 4
+    ok = [(f"{k}:ok", ACT_TEXTS[k][1]) for k in keys]
+    bad = [(f"{k}:failed", ACT_TEXTS[k][2]) for k in keys]
+    running = "(" + " || ".join(act_is(act_var, k) for k in keys) + ")"
+    lst = lambda pairs: "[" + ", ".join(f'"{s}"' for s, _t in pairs) + "]"
+    shown = f"IfError({act_var} in {lst(ok + bad)}, false)"
+    failed = f"IfError({act_var} in {lst(bad)}, false)"
+    text = (f"Switch({act_var}, "
+            + ", ".join(f'"{s}", "{t}"' for s, t in ok + bad) + ', "")')
+    width = (f"Switch({act_var}, "
+             + ", ".join(f'"{s}", {_w(t)}' for s, t in ok + bad) + ", 0)")
+    spin_vis = running if visible is None else f"({visible}) && {running}"
+    note_vis = shown if visible is None else f"({visible}) && {shown}"
+    labels = ", ".join(f'"{k}", "{ACT_TEXTS[k][0][:-3]}, please wait"' for k in keys)
+    spin = spinner(f"spn{name}", spin_vis, f'Switch({act_var}, {labels}, "Please wait")',
+                   width=ACT_SPIN, height=ACT_SPIN)
+    spin.props["LayoutMinWidth"] = str(ACT_SPIN)
+    spin.props["AlignInContainer"] = "AlignInContainer.Center"
+    note = text_ctrl(f"txt{name}Note", text, size=size, weight="Semibold", wrap="false",
+                     color=f"If({failed}, {C_INVALID_FG}, {C_VALID_FG})", height=20,
+                     width=width, visible=note_vis)
+    note.props["LayoutMinWidth"] = width
+    note.props["AlignInContainer"] = "AlignInContainer.Center"
+    return [spin, note]
+
+
+def act_block(prefix, act_var):
+    """Det gennemsigtige lag, mens en handling koerer - fanger tryk, viser
+    intet. Staar SIDST i skaermens boern, oven paa popupperne."""
+    vis = act_running(act_var)
+    return Ctrl(f"img{prefix}ActBlock", "Image", props={
+        "AccessibleLabel": '"Please wait"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
+def act_timer(prefix, act_var):
+    """Den groenne besked staar ACT_OK_MS og forsvinder saa. Den roede
+    bliver staaende til naeste handling. Timeren afgoer ALDRIG, hvornaar en
+    handling er faerdig - kun hvor laenge "Saved" ses."""
+    done = f'IfError(EndsWith({act_var}, ":ok"), false)'
+    return Ctrl(f"tmr{prefix}ActDone", "Timer", props={
+        "AutoPause": "false",
+        "AutoStart": "false",
+        "Duration": str(ACT_OK_MS),
+        "Height": "1",
+        "OnTimerEnd": f'If({done}, Set({act_var}, ""))',
+        "Repeat": "false",
+        "Reset": f"!{done}",
+        "Start": done,
+        "Visible": "false",
+        "Width": "1",
+    }, h=1, vis="false")
+
+
+def act_layers(prefix, act_var):
+    """[timer, lag] - staar SIDST i skaermens boern."""
+    return [act_timer(prefix, act_var), act_block(prefix, act_var)]
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=None, previous_mode=None,
                      next_mode=None, side_by_side=False, multiple=None, status=None):
@@ -2249,20 +2450,25 @@ def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer
     return [root, *(editor or [])]
 
 
-def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):
+def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center", lead=()):
     """Knapraekke der ALDRIG ombryder.
 
     Den oprindelige raekke havde faste knapbredder (104 + 104 + 112 + gaps =
     336 px) i et kort med 324 px indhold. Den ombroed derfor til to linjer,
     mens raekkens hoejde stod fast paa 36 - og den sidste knap blev klippet.
     Her deler knapperne bredden ligeligt, saa de altid passer.
+
+    lead: kontroller med fast bredde foran knapperne (fx act_status). De
+    tager kun plads, mens de ses - knapperne deler resten.
     """
     n = len(buttons)
-    w = f"({container_w} - {gap * (n - 1)}) / {n}"
+    taken = "".join(f" - If({k.vis}, ({k.props['Width']}) + {gap}, 0)" if k.vis
+                    else f" - ({k.props['Width']}) - {gap}" for k in lead)
+    w = f"({container_w} - {gap * (n - 1)}{taken}) / {n}"
     for b in buttons:
         b.props["Width"] = w
         b.props["LayoutMinWidth"] = "0"
-    return group(name, buttons, direction="Horizontal", gap=gap, height=height,
+    return group(name, [*lead, *buttons], direction="Horizontal", gap=gap, height=height,
                  align_items=align_items)
 
 
