@@ -6,12 +6,14 @@ Screens:
       OnHidden: |-
           =Set(varIbDetailOn, false); Set(varIbFormOn, false)
       OnVisible: |-
-          =If(false, ClearCollect(colIbAll, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
+          =If(false, ClearCollect(colIbAll, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0, HasFiles: false }));
           If(false, ClearCollect(colIbSections, { Application: "", Section: "", AppOrder: 0, SectionOrder: 0, ScreenKey: "" }));
           If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           If(false, ClearCollect(colIbAdmins, { Email: "", Name: "" }));
-          If(false, ClearCollect(colIbFresh, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
+          If(false, ClearCollect(colIbFresh, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0, HasFiles: false }));
           If(false, ClearCollect(colIbActFresh, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
+          If(false, ClearCollect(colIbActN, { TicketId: 0, N: 0 }));
+          If(false, ClearCollect(colIbActRaw, { TicketId: 0 }));
           
           If(
               !IfError(varIbInit, false),
@@ -52,7 +54,11 @@ Screens:
           If(
               varIbLoaded && !varIbSyncing && DateDiff(varIbSyncedAt, Now(), TimeUnit.Minutes) >= 2,
               Set(varIbSyncing, true);
-              Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+              Concurrent(
+                  Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived, 'Has attachments') As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(r.'Has attachments', false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)),
+                  Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, ShowColumns(Sort(IB_TicketComments, ID, SortOrder.Descending), TicketId)); false, true))
+              );
+              If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, { TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); Set(varIbActNOk, true));
               If(
                   varIbSyncFailed,
                   Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
@@ -67,8 +73,10 @@ Screens:
               Set(varIbLoading, true);
               Concurrent(
                   Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                  Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                  Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived, 'Has attachments') As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(r.'Has attachments', false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)),
+                  Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, ShowColumns(Sort(IB_TicketComments, ID, SortOrder.Descending), TicketId)); false, true))
               );
+              If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, { TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); Set(varIbActNOk, true));
               Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
               Set(varIbSyncedAt, Now());
               Set(varIbLoading, false)
@@ -329,7 +337,11 @@ Screens:
                                   =If(
                                       varIbLoaded,
                                       Set(varIbSyncing, true);
-                                      Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                      Concurrent(
+                                          Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived, 'Has attachments') As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(r.'Has attachments', false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)),
+                                          Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, ShowColumns(Sort(IB_TicketComments, ID, SortOrder.Descending), TicketId)); false, true))
+                                      );
+                                      If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, { TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); Set(varIbActNOk, true));
                                       If(
                                           varIbSyncFailed,
                                           Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
@@ -344,8 +356,10 @@ Screens:
                                           Set(varIbLoading, true);
                                           Concurrent(
                                               Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                              Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                              Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived, 'Has attachments') As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(r.'Has attachments', false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)),
+                                              Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, ShowColumns(Sort(IB_TicketComments, ID, SortOrder.Descending), TicketId)); false, true))
                                           );
+                                          If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, { TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); Set(varIbActNOk, true));
                                           Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
                                           Set(varIbSyncedAt, Now());
                                           Set(varIbLoading, false)
@@ -1333,7 +1347,7 @@ Screens:
                                     Text: |-
                                         ="REQUESTER"
                                     Width: |-
-                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH2:
@@ -1368,7 +1382,7 @@ Screens:
                                     Text: |-
                                         ="TITLE"
                                     Width: |-
-                                        =(140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH3:
@@ -1403,7 +1417,7 @@ Screens:
                                     Text: |-
                                         ="APPLICATION"
                                     Width: |-
-                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH4:
@@ -1440,7 +1454,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH5:
@@ -1547,7 +1561,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH8:
@@ -1584,7 +1598,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH9:
@@ -1619,14 +1633,14 @@ Screens:
                                     Text: |-
                                         ="UPDATED"
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH10:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Actions column"
+                                        ="Activity column"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1652,9 +1666,44 @@ Screens:
                                     Size: |-
                                         =T.micro
                                     Text: |-
-                                        ="ACTIONS"
+                                        ="ACTIVITY"
                                     Width: |-
                                         =52
+                                    Wrap: |-
+                                        =false
+                              - txtIbListH11:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Files column"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.micro
+                                    Text: |-
+                                        ="FILES"
+                                    Width: |-
+                                        =44
                                     Wrap: |-
                                         =false
                         - conIbListRule:
@@ -2445,7 +2494,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2486,11 +2535,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - imgIbRowApp:
@@ -2519,7 +2568,7 @@ Screens:
                                     Width: |-
                                         =20
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowApp:
@@ -2554,11 +2603,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
+                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowSection:
@@ -2593,11 +2642,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - imgIbRowPriority:
@@ -2631,7 +2680,7 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - imgIbRowStatus:
@@ -2668,7 +2717,7 @@ Screens:
                                     Width: |-
                                         =116
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - imgIbRowClaude:
@@ -2695,7 +2744,7 @@ Screens:
                                     Width: |-
                                         =14
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (14)) / 2
                               - txtIbRowAssigned:
@@ -2730,11 +2779,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7))) - If(ThisItem.AssignedEmail = "claude", 18, 0))
+                                        =((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(ThisItem.AssignedEmail = "claude", 18, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0 + If(ThisItem.AssignedEmail = "claude", (14) + 4, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0 + If(ThisItem.AssignedEmail = "claude", (14) + 4, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowReported:
@@ -2769,11 +2818,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - txtIbRowUpdated:
@@ -2808,13 +2857,75 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
+                              - icoIbRowAct:
+                                  Control: ModernIcon@1.1.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Activity"
+                                    Height: |-
+                                        =16
+                                    Icon: |-
+                                        ="Comment"
+                                    IconColor: |-
+                                        =C.'text-muted'
+                                    IconStyle: |-
+                                        =IconStyle.Outline
+                                    Visible: |-
+                                        =(LayoutRank >= 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
+                                    Width: |-
+                                        =16
+                                    X: |-
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (16)) / 2
+                              - txtIbRowAct:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries")
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(Self.Text = "0", C.'text-muted', C.'text-primary')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        =Text(Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0))
+                                    Visible: |-
+                                        =(LayoutRank >= 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
+                                    Width: |-
+                                        =(52) - 20
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false), (16) + 4, 0)
+                                    Y: |-
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - bdgIbRowNoC:
                                   Control: ModernBadge@1.0.0
                                   Properties:
@@ -2906,6 +3017,68 @@ Screens:
                                         =0 + 12 + 0 + 0 + (96) + 8
                                     Y: |-
                                         =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
+                              - icoIbRowActC:
+                                  Control: ModernIcon@1.1.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Activity"
+                                    Height: |-
+                                        =16
+                                    Icon: |-
+                                        ="Comment"
+                                    IconColor: |-
+                                        =C.'text-muted'
+                                    IconStyle: |-
+                                        =IconStyle.Outline
+                                    Visible: |-
+                                        =(LayoutRank < 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
+                                    Width: |-
+                                        =16
+                                    X: |-
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((44) + 8) - ((119) + 8) - 2)) + 8 + 0 + 0
+                                    Y: |-
+                                        =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (16)) / 2
+                              - txtIbRowActC:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries")
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(Self.Text = "0", C.'text-muted', C.'text-primary')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        =Text(Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0))
+                                    Visible: |-
+                                        =(LayoutRank < 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
+                                    Width: |-
+                                        =(44) - 20
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((44) + 8) - ((119) + 8) - 2)) + 8 + 0 + 0 + If((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false), (16) + 4, 0)
+                                    Y: |-
+                                        =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - imgIbRowStatusC:
                                   Control: Image
                                   Properties:
@@ -2940,7 +3113,7 @@ Screens:
                                     Width: |-
                                         =119
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((119) + 8) - 2)) + 8
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((44) + 8) - ((119) + 8) - 2)) + 8 + (44) + 8
                                     Y: |-
                                         =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtIbRowTitleC:
@@ -3110,13 +3283,13 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
-                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                         Set(varIbActBusy, false)
                                         )
                                         );
                                         If(
                                             !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
@@ -3148,7 +3321,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Add screenshots or files to " & ThisItem.TicketNo
+                                        ="Show the attachments on " & ThisItem.TicketNo
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3184,6 +3357,9 @@ Screens:
                                         Set(varIbFilesBusy, true);
                                         Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                         Set(varIbFilesFor, varIbSelId);
+                                        If(!varIbFilesFailed,
+                                            Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                            UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                         Set(varIbFilesBusy, false);
                                         Set(varIbSelRow, Blank());
                                         Concurrent(
@@ -3208,13 +3384,13 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
-                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                         Set(varIbActBusy, false)
                                         )
                                         );
                                         If(
                                             !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
@@ -3229,13 +3405,13 @@ Screens:
                                     Size: |-
                                         =T.input
                                     Text: |-
-                                        ="Attach files"
+                                        ="Attachments"
                                     Tooltip: |-
-                                        ="Add screenshots or files"
+                                        ="Show attachments"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =LayoutRank < 3 && !ThisItem.Archived && (ThisItem.Reporter = varIbMe || IsAdmin)
+                                        =LayoutRank < 3 && ThisItem.HasFiles
                                     Width: |-
                                         =Max(40, H.hit)
                                     X: |-
@@ -3246,7 +3422,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Add screenshots or files to " & ThisItem.TicketNo
+                                        ="Show the attachments on " & ThisItem.TicketNo
                                     Align: |-
                                         =Align.Center
                                     Appearance: |-
@@ -3280,6 +3456,9 @@ Screens:
                                         Set(varIbFilesBusy, true);
                                         Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                         Set(varIbFilesFor, varIbSelId);
+                                        If(!varIbFilesFailed,
+                                            Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                            UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                         Set(varIbFilesBusy, false);
                                         Set(varIbSelRow, Blank());
                                         Concurrent(
@@ -3304,13 +3483,13 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
-                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                         Set(varIbActBusy, false)
                                         )
                                         );
                                         If(
                                             !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
@@ -3325,17 +3504,17 @@ Screens:
                                     Size: |-
                                         =T.input
                                     Text: |-
-                                        ="Attach files"
+                                        ="Attachments"
                                     Tooltip: |-
-                                        ="Add screenshots or files"
+                                        ="Show attachments"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =(LayoutRank >= 3) && (LayoutRank >= 3 && !ThisItem.Archived && (ThisItem.Reporter = varIbMe || IsAdmin))
+                                        =(LayoutRank >= 3) && (LayoutRank >= 3 && ThisItem.HasFiles)
                                     Width: |-
-                                        =52
+                                        =44
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + (52) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2
                         - conIbEmpty:
@@ -3520,8 +3699,10 @@ Screens:
                                       Set(varIbLoading, true);
                                       Concurrent(
                                           Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                          Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived, 'Has attachments') As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(r.'Has attachments', false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)),
+                                          Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, ShowColumns(Sort(IB_TicketComments, ID, SortOrder.Descending), TicketId)); false, true))
                                       );
+                                      If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, { TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); Set(varIbActNOk, true));
                                       Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
                                       Set(varIbSyncedAt, Now());
                                       Set(varIbLoading, false)
@@ -8010,13 +8191,13 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
-                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                         Set(varIbActBusy, false)
                                         )
                                         );
                                         If(
                                             !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
@@ -9641,7 +9822,7 @@ Screens:
                                                       }
                                                   })
                                               ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                              Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbEdited.ID).HasFiles, false), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               Set(varIbSelFullFor, varIbSelId);
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel);
                                               Set(varIbActBusy, true);
@@ -9663,7 +9844,7 @@ Screens:
                                                             SizeKb: Coalesce(r.FileSizeKb, 0),
                                                             Initial: atSub })))
                                               ; false, true));
-                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                               Set(varIbActBusy, false);
                                               Set(varIbFormOn, false);
                                               Set(varIbDetailOn, true);
@@ -9707,7 +9888,7 @@ Screens:
                                           If(
                                               varIbSaved,
                                               Set(varIbSelId, varIbNewRow.ID);
-                                              Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), HasFiles: false, PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Collect(colIbAll, varIbNew);
                                               Set(varIbScope, "mine");
@@ -9756,7 +9937,7 @@ Screens:
                                                             SizeKb: Coalesce(r.FileSizeKb, 0),
                                                             Initial: atSub })))
                                               ; false, true));
-                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                               Set(varIbActBusy, false);
                                               Set(varIbDetailOn, true);
                                               Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
@@ -9970,7 +10151,7 @@ Screens:
                                                       }
                                                   })
                                               ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                              Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbEdited.ID).HasFiles, false), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               Set(varIbSelFullFor, varIbSelId);
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel);
                                               Set(varIbActBusy, true);
@@ -9992,7 +10173,7 @@ Screens:
                                                             SizeKb: Coalesce(r.FileSizeKb, 0),
                                                             Initial: atSub })))
                                               ; false, true));
-                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                               Set(varIbActBusy, false);
                                               Set(varIbFormOn, false);
                                               Set(varIbDetailOn, true);
@@ -10036,7 +10217,7 @@ Screens:
                                           If(
                                               varIbSaved,
                                               Set(varIbSelId, varIbNewRow.ID);
-                                              Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), HasFiles: false, PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Collect(colIbAll, varIbNew);
                                               Set(varIbScope, "mine");
@@ -10085,7 +10266,7 @@ Screens:
                                                             SizeKb: Coalesce(r.FileSizeKb, 0),
                                                             Initial: atSub })))
                                               ; false, true));
-                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                               Set(varIbActBusy, false);
                                               Set(varIbDetailOn, true);
                                               Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
@@ -10718,13 +10899,13 @@ Screens:
                                           SizeKb: Coalesce(r.FileSizeKb, 0),
                                           Initial: atSub })))
                             ; false, true));
-                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                             Set(varIbActBusy, false)
                             )
                             );
                             If(
                                 !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                 Set(varIbSelFullFor, varIbSelId);
                                 UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                             ))
@@ -10804,13 +10985,13 @@ Screens:
                                           SizeKb: Coalesce(r.FileSizeKb, 0),
                                           Initial: atSub })))
                             ; false, true));
-                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                             Set(varIbActBusy, false)
                             )
                             );
                             If(
                                 !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = varIbSelRow.ID).HasFiles, false), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                 Set(varIbSelFullFor, varIbSelId);
                                 UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                             ))
@@ -12191,12 +12372,15 @@ Screens:
                                               IsBlank(r),
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
-                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               Set(varIbSelFullFor, varIbSelId);
                                               If(varIbTab = "files",
                                                   Set(varIbFilesBusy, true);
                                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                                   Set(varIbFilesFor, varIbSelId);
+                                                  If(!varIbFilesFailed,
+                                                      Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                      UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                                   Set(varIbFilesBusy, false)
                                               , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
@@ -12222,7 +12406,7 @@ Screens:
                                                     SizeKb: Coalesce(r.FileSizeKb, 0),
                                                     Initial: atSub })))
                                       ; false, true));
-                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: "The issue has been reopened. An administrator will look at it again.", Kind: "Success", At: Now() }); true,
@@ -12370,12 +12554,15 @@ Screens:
                                               IsBlank(r),
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
-                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               Set(varIbSelFullFor, varIbSelId);
                                               If(varIbTab = "files",
                                                   Set(varIbFilesBusy, true);
                                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                                   Set(varIbFilesFor, varIbSelId);
+                                                  If(!varIbFilesFailed,
+                                                      Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                      UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                                   Set(varIbFilesBusy, false)
                                               , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
@@ -12401,7 +12588,7 @@ Screens:
                                                     SizeKb: Coalesce(r.FileSizeKb, 0),
                                                     Initial: atSub })))
                                       ; false, true));
-                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
@@ -12477,12 +12664,15 @@ Screens:
                                               IsBlank(r),
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
-                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                               Set(varIbSelFullFor, varIbSelId);
                                               If(varIbTab = "files",
                                                   Set(varIbFilesBusy, true);
                                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                                   Set(varIbFilesFor, varIbSelId);
+                                                  If(!varIbFilesFailed,
+                                                      Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                      UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                                   Set(varIbFilesBusy, false)
                                               , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
@@ -12508,7 +12698,7 @@ Screens:
                                                     SizeKb: Coalesce(r.FileSizeKb, 0),
                                                     Initial: atSub })))
                                       ; false, true));
-                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                      If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                       Set(varIbActBusy, false)
                                       );
                                       Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
@@ -12862,6 +13052,9 @@ Screens:
                                   If(varIbFilesFor <> varIbSelId, Set(varIbFilesBusy, true);
                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                   Set(varIbFilesFor, varIbSelId);
+                                  If(!varIbFilesFailed,
+                                      Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                      UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                   Set(varIbFilesBusy, false))
                               RadiusBottomLeft: |-
                                   =R.input
@@ -14447,6 +14640,7 @@ Screens:
                                                     Reset(chkIbInternal)
                                                 );
                                                 UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
+                                                With({ cnt: Coalesce(LookUp(colIbActN, TicketId = varIbPostFor).N, 0) + 1 }, If(IsBlank(LookUp(colIbActN, TicketId = varIbPostFor)), Collect(colIbActN, { TicketId: varIbPostFor, N: cnt }), UpdateIf(colIbActN, TicketId = varIbPostFor, { N: cnt })));
                                                 Set(varIbPostAt, Now());
                                                 Set(varIbPostTick, Now());
                                                 Set(varIbPostStage, "done"),
@@ -14630,6 +14824,7 @@ Screens:
                                                           Reset(chkIbInternal)
                                                       );
                                                       UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
+                                                      With({ cnt: Coalesce(LookUp(colIbActN, TicketId = varIbPostFor).N, 0) + 1 }, If(IsBlank(LookUp(colIbActN, TicketId = varIbPostFor)), Collect(colIbActN, { TicketId: varIbPostFor, N: cnt }), UpdateIf(colIbActN, TicketId = varIbPostFor, { N: cnt })));
                                                       Set(varIbPostAt, Now());
                                                       Set(varIbPostTick, Now());
                                                       Set(varIbPostStage, "done"),
@@ -15054,12 +15249,15 @@ Screens:
                                                           IsBlank(r),
                                                           RemoveIf(colIbAll, Id = varIbSelId);
                                                           Set(varIbDetailOn, false),
-                                                          Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                          Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), HasFiles: Coalesce(LookUp(colIbAll, Id = r.ID).HasFiles, false), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                                           Set(varIbSelFullFor, varIbSelId);
                                                           If(varIbTab = "files",
                                                               Set(varIbFilesBusy, true);
                                                               Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
                                                               Set(varIbFilesFor, varIbSelId);
+                                                              If(!varIbFilesFailed,
+                                                                  Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));
+                                                                  UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));
                                                               Set(varIbFilesBusy, false)
                                                           , Set(varIbFilesFor, -1));
                                                           UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
@@ -15085,7 +15283,7 @@ Screens:
                                                                 SizeKb: Coalesce(r.FileSizeKb, 0),
                                                                 Initial: atSub })))
                                                   ; false, true));
-                                                  If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
+                                                  If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); With({ cnt: CountRows(Filter(colIbActivity, Kind <> "Reported")) }, If(IsBlank(LookUp(colIbActN, TicketId = varIbSelId)), Collect(colIbActN, { TicketId: varIbSelId, N: cnt }), UpdateIf(colIbActN, TicketId = varIbSelId, { N: cnt }))));
                                                   Set(varIbActBusy, false)
                                                   );
                                                   Set(varIbAct, "upload:ok");

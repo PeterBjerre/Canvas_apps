@@ -141,7 +141,9 @@ def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
     cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
-    head = dp.form_head(None if panel else "Row details")
+    # Med sidepanel staar "* Required" i panelets overskrift (issue #431),
+    # saa formularen starter direkte med den foerste sektion.
+    head = [] if panel else [dp.form_head("Row details")]
     secs = []
     for key, title, keys in (_detail_sections() if panel and TABBED else SECTIONS):
         rows = dp.grid_rows(f"conDomGrid{key}",
@@ -154,7 +156,7 @@ def build_form(panel=False):
         secs.append((key, title, None, rows))
     rows = dp.sectioned(secs)
     buttons = dp.form_buttons(save_fx, "Save row", "New row")
-    return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
+    return card("conDomFormCard", head + rows + dp.form_footer(buttons))
 
 
 def _panel_rows(key, keys):

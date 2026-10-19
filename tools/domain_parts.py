@@ -2285,18 +2285,39 @@ def sectioned(sections):
     return out
 
 
-def form_head(title_txt, right=()):
-    """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
-    title = None if title_txt is None else text_ctrl(
-        "txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-        height=text_min_height(lay.SIZE_CARD_TITLE),
-        width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
+def required_parts():
+    """Stjernen og ordet "Required" - forklaringen paa felternes stjerner.
+    Sekundaer: 12 px, ordet i den daempede farve; kun stjernen har
+    feltstjernernes roede farve, saa de to kan kobles sammen."""
     star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
                      weight="Semibold", height=18, width=8, wrap="false",
                      accessible='"Required"')
     legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
                        height=18, width=text_px("Required", 12, semibold=False),
                        wrap="false")
+    return star, legend
+
+
+def required_legend():
+    """"* Required" til sidepanelets overskrift (issue #431): oeverst til
+    hoejre, foran pileknapperne, i stedet for en egen raekke oeverst i
+    formularen, der skubbede den foerste sektion (fx IDENTIFICATION) ned.
+    Bredden er fast (tekstens), saa det er titlen, der giver sig."""
+    star, legend = required_parts()
+    w = int(star.props["Width"]) + 4 + int(legend.props["Width"])
+    return group("conDomFormReqLegend", [star, legend], direction="Horizontal", gap=4,
+                 height=18, width=w, align_items="Center")
+
+
+def form_head(title_txt, right=()):
+    """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item).
+    Kun uden sidepanel - med panelet staar "* Required" i panelets
+    overskrift (required_legend)."""
+    title = None if title_txt is None else text_ctrl(
+        "txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+        height=text_min_height(lay.SIZE_CARD_TITLE),
+        width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
+    star, legend = required_parts()
     parts = [c for c in (title, star, legend) if c is not None]
     left = group("conDomFormTitle", parts, direction="Horizontal",
                  gap=4, height=26, align_items="Center")

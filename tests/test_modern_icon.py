@@ -29,6 +29,9 @@ ITEM_OK = ('(ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1,
 ICONS = {
     "ScreenIssueBoard.pa.yaml": {
         "icoIbSearchIcon": ('"Search"', "C.'text-muted'", "20", None),
+        # Issue #422: Activity-taelleren i tabellen og i den kompakte raekke.
+        "icoIbRowAct": ('"Comment"', "C.'text-muted'", "16", None),
+        "icoIbRowActC": ('"Comment"', "C.'text-muted'", "16", None),
     },
     "ScreenKks.pa.yaml": {
         "icoKksFindIcon": ('"Search"', "C.'text-muted'", "20", None),
@@ -94,7 +97,7 @@ def test_every_icon_is_modern_icon_in_the_token_color():
             # Det gamle billede er vaek.
             assert f"- img{name[3:]}:" not in text, name
             total += 1
-    assert total == 13
+    assert total == 15
 
 
 def test_item_card_status_follows_the_same_rule_as_its_text():

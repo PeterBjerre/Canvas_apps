@@ -7952,7 +7952,7 @@ Screens:
                                  Plant = drpMatPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(Sort(Filter(
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((67) + 4) - (If(CountRows(Sort(Filter(
                                 colMatRows,
                                 (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
                                 (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
@@ -7969,6 +7969,101 @@ Screens:
                             ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
+                  - conMatFormReqLegend:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =18
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =67
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =67
+                      Children:
+                        - txtMatFormReqStar:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Required"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-error-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.small
+                              Text: |-
+                                  ="*"
+                              Width: |-
+                                  =8
+                              Wrap: |-
+                                  =false
+                        - txtMatFormReq:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Required"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.small
+                              Text: |-
+                                  ="Required"
+                              Width: |-
+                                  =55
+                              Wrap: |-
+                                  =false
                   - btnMatEditorPrevious:
                       Control: Image
                       Properties:
@@ -8711,74 +8806,6 @@ Screens:
                                         =107
                                     Wrap: |-
                                         =false
-                              - txtMatFormReqStar:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Required"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'state-error-fg'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        ="*"
-                                    Width: |-
-                                        =8
-                                    Wrap: |-
-                                        =false
-                              - txtMatFormReq:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Required"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        ="Required"
-                                    Width: |-
-                                        =55
-                                    Wrap: |-
-                                        =false
                               - conMatEditorHeadGap:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -8804,7 +8831,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, (((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18))) - ((107) + 12) - ((8) + 12) - ((55) + 12) - 2)
+                                        =Max(0, (((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18))) - ((107) + 12) - 2)
                         - txtMatEditorHint:
                             Control: ModernText
                             Properties:
