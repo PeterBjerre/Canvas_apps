@@ -115,8 +115,9 @@ def test_transparent_block_while_saving(screen):
     assert top.index(f"con{p}EditorPanel") < top.index(block)
     assert _prop(screen, block, "Visible") == f'IfError(var{p}PanelSave = "saving", false)'
     assert "Image" not in _prop(screen, block, "Image").replace('""', "")
-    # Sidens gem-sloer findes stadig til Save draft/Submit - men ikke til panelet.
-    assert f"img{p}Saving" in top
+    # Save draft/Submit har ogsaa et gennemsigtigt lag nu (issue #420) -
+    # sidens graa gem-sloer er vaek.
+    assert f"img{p}ActBlock" in top and f"img{p}Saving" not in top
 
 
 def test_state_is_cleared_when_the_panel_opens_or_closes():
@@ -149,6 +150,6 @@ def test_issue_board_form_shows_the_save_state_in_the_panel():
     assert _prop(IB, "btnIbEditorRetry", "DisplayMode") == _prop(IB, "btnIbFormSubmit", "DisplayMode")
     top = _top(IB)
     assert _prop(IB, "imgIbEditorSaveBlock", "Visible") == 'IfError(varIbPanelSave = "saving", false)'
-    # Sidens sloer er der stadig til de andre handlinger.
-    assert "imgIbBusy" in top
+    # De andre handlinger har deres eget gennemsigtige lag (issue #420).
+    assert "imgIbActBlock" in top and "imgIbBusy" not in top
     assert _prop(IB, "btnIbFormClose", "OnSelect").count('Set(varIbPanelSave, "")') >= 1

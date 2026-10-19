@@ -57,7 +57,8 @@ def test_footer_like_materials_outside_the_scroll():
         for prop in ("Text", "Width", "Height", "Appearance"):
             mine = T._ctrl(a)["Properties"].get(prop)
             theirs = _mat(b)["Properties"].get(prop)
-            assert str(mine) == str(theirs), (a, prop)
+            # Panelets tilstand hedder hver sin variabel ("Saving...", #420).
+            assert str(mine) == str(theirs).replace("varMatPanelSave", "varFlPanelSave"), (a, prop)
 
 
 def test_footer_actions():
@@ -78,9 +79,14 @@ def test_footer_actions():
     assert ('If(CountRows(colFlSaveErrors) = 0, Set(varFlPanelSave, ""); '
             'Set(varFlPanelOpen, false);') in save
     assert "varFlSaving" not in save
+    # Save draft har sin egen ventetilstand udenom (issue #420); indeni er
+    # det de samme regler som panelets Save.
+    act = 'If(IfError(!IsBlank(varFlAct) && !(":" in varFlAct), false), DisplayMode.Disabled, '
+    draft = T._prop("btnFlSaveDraft", "DisplayMode")
+    assert draft.startswith(act) and draft.endswith(")")
     assert T._prop("btnFlEditorSave", "DisplayMode") == (
         'If(IfError(varFlPanelSave = "saving", false), DisplayMode.Disabled, '
-        + T._prop("btnFlSaveDraft", "DisplayMode") + ")")
+        + draft[len(act):-1] + ")")
     # Panelet tager aftrykket, naar det aabnes paa en raekke.
     on = T._prop("btnFlRowClassData", "OnSelect")
     assert "ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));" in on

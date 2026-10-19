@@ -21,7 +21,8 @@ VERSION = "ModernSpinner@1.1.0"
 
 # Skaerm -> {spinner: (Visible, Label)}. Visible og Label er de samme som
 # det gamle billedes (synlighed og billedtekst). Gem/upload-sloerene
-# (*Saving, IbBusy, IbUploading) er ikke hjul, men ModernProgressBar (#305).
+# (*Saving, IbBusy, IbUploading) er vaek: knappen viser selv sin tilstand,
+# med et hjul ved siden af (issue #420, ACT_SPINNERS nederst).
 SPINNERS = {
     "ScreenEquipment.pa.yaml": {
         "spnEqLoadIcon": ("!IfError(varEqLoadFailed, false)", '""'),
@@ -50,7 +51,7 @@ SPINNERS = {
         "spnVhpFlBusy": ("varVhpFlBusy", '"Searching..."'),
         "spnVhpVenBusy": ("varVhpVenBusy", '"Searching..."'),
     },
-    # Gem/upload er ModernProgressBar (issue #305, tests/test_modern_progress_bar.py).
+    # Gem/upload viser tilstanden i knappen (issue #420, ACT_SPINNERS).
     # Hjulet er kommentarens egen ventetilstand i kommentarfeltet (issue #370);
     # det staar i en container, der kun vises, mens der sendes. Teksten skifter
     # (tests/test_issue_board.py) - her tjekkes kun, at den ikke er tom.
@@ -68,6 +69,34 @@ SPINNERS = {
         "spnMdAprSpinner": ("IfError(varMdAprBusy, false)", '""'),
     },
 }
+
+
+def _act(var, keys, desktop=False):
+    """Hjulet ved knapperne (build_helpers.act_status, issue #420)."""
+    run = "(" + " || ".join(f'IfError({var} = "{k}", false)' for k in keys) + ")"
+    return (f"(LayoutRank >= 3) && {run}" if desktop else run), '""'
+
+
+# Skaerm -> hjulene ved knapperne (issue #420): (navn, variabel, noegler,
+# kun fra Desktop). Headerens hjul ses fra Desktop; bundbjaelkens under.
+ACT_SPINNERS = {
+    "ScreenVhPlan.pa.yaml": [("spnVhpAct", "varVhpAct", ("save", "submit"), True),
+                             ("spnVhpFootAct", "varVhpAct", ("save", "submit"), False)],
+    "ScreenFunctionalLocation.pa.yaml": [("spnFlAct", "varFlAct", ("save", "submit"), False)],
+    "ScreenIssueBoard.pa.yaml": [("spnIbDetAct", "varIbAct", ("reopen", "archive"), False),
+                                 ("spnIbFilesAct", "varIbAct", ("upload",), False),
+                                 ("spnIbDelAct", "varIbAct", ("delete",), False)],
+}
+for _p, _t in (("Eq", "Equipment"), ("Mat", "Material"), ("Mp", "MeasuringPoint")):
+    ACT_SPINNERS[f"Screen{_t}.pa.yaml"] = [
+        (f"spn{_p}Act", f"var{_p}Act", ("save", "submit", "duplicate"), True),
+        (f"spn{_p}FootAct", f"var{_p}Act", ("save", "submit", "duplicate"), False),
+        (f"spn{_p}PasteAct", f"var{_p}Act", ("add",), False),
+        (f"spn{_p}DelConfirmAct", f"var{_p}Act", ("delete",), False)]
+for _screen, _rows in ACT_SPINNERS.items():
+    for _name, _var, _keys, _desk in _rows:
+        SPINNERS[_screen][_name] = _act(_var, _keys, _desk)
+
 SPIN_RE = re.compile(r"rotate\(\s*360|animateTransform")
 
 
@@ -115,7 +144,8 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 20
+    # 20 foer #420 + 18 hjul ved knapperne (ACT_SPINNERS).
+    assert total == 38
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
