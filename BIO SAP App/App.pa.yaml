@@ -2340,10 +2340,13 @@ App:
       // admins (Design) rette den.
       IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 
-      // Antallet af filer paa sagen: de hentede vedhaeftninger, naar fanen er
-      // hentet. Ellers af Activity (Attachment-haendelserne fra foer #300), saa
-      // fanen kan vise et tal uden at hente filerne.
-      IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), Blank());
+      // Antallet af filer paa sagen (issue #442): de hentede vedhaeftninger,
+      // naar fanen er hentet; ellers raekkens FileCount, som kom med
+      // oversigten - kendt, saa snart sagen aabnes, uden at hente filerne.
+      // Blank = ukendt: fanen viser "Attachments" uden tal, aldrig et gaet 0.
+      // (Foer talte den Activity's Attachment-haendelser, som ingen har skrevet
+      // siden #300 - derfor "Attachments (0)".)
+      IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), varIbSel.FileCount);
 
       // Application -> ikon (tools/app_icons.py, issue #415) - ret ikke her.
       IbAppIcons = Table(
