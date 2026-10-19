@@ -177,7 +177,10 @@ def _pill_parts(prefix, pill_w, img, tpl_h, x="0"):
     pill = Ctrl(
         f"img{prefix}Pill", "Image",
         props={
-            "AccessibleLabel": 'ThisItem.ShortCode',
+            # I View er kliklaget vaek, saa billedet siger selv, om pakken
+            # er valgt (skaermlaeseren).
+            "AccessibleLabel": ('ThisItem.ShortCode & If(varVhpViewOnly, '
+                                'If(ThisItem.Sel, ", selected", ", not selected"), "")'),
             "BorderStyle": "BorderStyle.None",
             "BorderThickness": "0",
             "Fill": C_TRANSPARENT,
@@ -197,7 +200,16 @@ def _pill_parts(prefix, pill_w, img, tpl_h, x="0"):
     hit.props["X"] = x
     hit.props["Y"] = y
     # View: pillerne viser valget, men et klik aendrer intet (issue #390).
-    hit.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
+    #
+    # Issue #408: det var ikke nok. Med DisplayMode.View stod kliklaget
+    # stadig oven paa pillen - en klassisk knap tegner sin tryk-tilstand og
+    # sit fokus, og et klik paa en valgt pakke lod noget dukke op ved
+    # siden af den. Nu er laget slet ikke der i View: pillen (billedet)
+    # tegnes som foer i sine gemte farver, men der er intet at klikke,
+    # holde over, tabbe til eller trykke paa - og intet tooltip. OnSelect
+    # er stadig vagtet af varVhpViewOnly, hvis laget skulle blive synligt.
+    hit.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
+    hit.props["Visible"] = "!varVhpViewOnly"
     hit.props["Tooltip"] = ('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & '
                             'ThisItem.CycleUnit')
     return pill, hit

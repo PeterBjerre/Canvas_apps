@@ -10,8 +10,7 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varFlOpened) || If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)) <> varFlOpened,
-              Set(varFlLoading, true);
-              Set(varFlLoadCard, StartsWith(If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)), "new"))
+              Set(varFlLoading, true)
           );
           Select(btnFlOpen)
     Children:
@@ -11644,7 +11643,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(varFlViewOnly || varFlStatus = "Indsendt" || !(With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, !IsBlank(s.RowGuid) && (Coalesce(r.FL, "") <> Coalesce(s.FL, "") || Coalesce(r.Description, "") <> Coalesce(s.Description, "") || CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || CountRows(Filter(colFlPanelSnapVals As o, Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, "") <> o.Value)) > 0))), DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -11656,7 +11655,20 @@ Screens:
                               LayoutMinWidth: |-
                                   =77
                               OnSelect: |-
-                                  =If(With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, !IsBlank(s.RowGuid) && (Coalesce(r.FL, "") <> Coalesce(s.FL, "") || Coalesce(r.Description, "") <> Coalesce(s.Description, "") || CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || CountRows(Filter(colFlPanelSnapVals As o, Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, "") <> o.Value)) > 0)), Set(varFlPanelResetAsk, true))
+                                  =If(
+                                      With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, !IsBlank(s.RowGuid) && (Coalesce(r.FL, "") <> Coalesce(s.FL, "") || Coalesce(r.Description, "") <> Coalesce(s.Description, "") || CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || CountRows(Filter(colFlPanelSnapVals As o, Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, "") <> o.Value)) > 0)),
+                                      With(
+                                          { s: First(colFlPanelSnap) },
+                                          If(
+                                              !IsBlank(s.RowGuid) && !IsBlank(LookUp(colFlRows, RowGuid = s.RowGuid)),
+                                              Patch(colFlRows, LookUp(colFlRows, RowGuid = s.RowGuid), s);
+                                              RemoveIf(colFlVals, RowGuid = s.RowGuid);
+                                              Collect(colFlVals, colFlPanelSnapVals)
+                                          )
+                                      );
+                                      Set(varFlStale, true);
+                                      Select(btnFlVerify)
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -12410,319 +12422,6 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
-      - conFlRowResetConfirmBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varFlPanelResetAsk, false))
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =If(LayoutRank < 2, 0, -1)
-            Visible: |-
-                =IfError(varFlPanelResetAsk, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conFlRowResetConfirmModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =180
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =R.modal
-            RadiusBottomRight: |-
-                =R.modal
-            RadiusTopLeft: |-
-                =R.modal
-            RadiusTopRight: |-
-                =R.modal
-            Visible: |-
-                =IfError(varFlPanelResetAsk, false)
-            Width: |-
-                =Min(460, App.Width - 40)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - conFlRowResetConfirmHead:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =44
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =12
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - txtFlRowResetConfirmTitle:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Discard unsaved changes?"
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-primary'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        FillPortions: |-
-                            =0
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =26
-                        LayoutMinWidth: |-
-                            =0
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.cardTitle
-                        Text: |-
-                            ="Discard unsaved changes?"
-                        Width: |-
-                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
-                        Wrap: |-
-                            =false
-                  - btnFlRowResetConfirmCancel:
-                      Control: Image
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        AlignInContainer: |-
-                            =AlignInContainer.Start
-                        BorderColor: |-
-                            =RGBA(0, 0, 0, 0)
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        DisabledFill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Height: |-
-                            =44
-                        HoverFill: |-
-                            =C.'row-hover'
-                        Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
-                        ImagePosition: |-
-                            =ImagePosition.Center
-                        LayoutMinWidth: |-
-                            =44
-                        OnSelect: |-
-                            =Set(varFlPanelResetAsk, false)
-                        PressedFill: |-
-                            =C.'row-pressed'
-                        RadiusBottomLeft: |-
-                            =6
-                        RadiusBottomRight: |-
-                            =6
-                        RadiusTopLeft: |-
-                            =6
-                        RadiusTopRight: |-
-                            =6
-                        TabIndex: |-
-                            =0
-                        Tooltip: |-
-                            ="Close"
-                        Width: |-
-                            =44
-            - txtFlRowResetConfirmText:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="The row returns to how it was when you opened it. Other rows and the request are not changed."
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =40
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.body
-                  Text: |-
-                      ="The row returns to how it was when you opened it. Other rows and the request are not changed."
-                  Wrap: |-
-                      =true
-            - conFlRowResetConfirmFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnFlRowResetConfirm:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Reset"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-error'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'state-error-fg'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varFlPanelResetAsk, false);
-                            With(
-                                { s: First(colFlPanelSnap) },
-                                If(
-                                    !IsBlank(s.RowGuid) && !IsBlank(LookUp(colFlRows, RowGuid = s.RowGuid)),
-                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = s.RowGuid), s);
-                                    RemoveIf(colFlVals, RowGuid = s.RowGuid);
-                                    Collect(colFlVals, colFlPanelSnapVals)
-                                )
-                            );
-                            Set(varFlStale, true);
-                            Select(btnFlVerify)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Reset"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
       - conFlPasteBackdrop:
           Control: Image
           Properties:
@@ -14242,8 +13941,6 @@ Screens:
                             Set(varFlLoadFailed, false);
                             Set(varFlLoadSlow, false);
                             Set(varFlLoadStep, If(IsBlank(gblFlReqId), "Setting up a new request", "Finding the request"));
-                            // Issue #391: en gemt anmodning aabnes uden kort.
-                            Set(varFlLoadCard, IsBlank(gblFlReqId));
                             Clear(colFlRows);
                             Clear(colFlDeleted);
                             Clear(colFlVals);
@@ -14310,9 +14007,9 @@ Screens:
                             // Panelets gem-tilstand: saving, failed eller tom (issue #402).
                             Set(varFlPanelSave, "");
                             Set(varFlDetCls, "");
-                            // Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
+                            // Bundbjaelkens bekraeftelse: Delete row (issue #308). Reset spoerger
+                            // ikke laengere og har intet sloer (issue #405).
                             Set(varFlPanelDelAsk, false);
-                            Set(varFlPanelResetAsk, false);
                             // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
                             Set(varFlStale, false);
                             // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
@@ -14459,7 +14156,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
+                =IfError(varFlLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -14511,7 +14208,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
+                =IfError(varFlLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
@@ -14595,7 +14292,7 @@ Screens:
                   Size: |-
                       =T.cardTitle
                   Text: |-
-                      =If(IfError(varFlLoadFailed, false), "Could not open the request", IsBlank(gblFlReqId), "Preparing a new request", "Opening request")
+                      =If(IfError(varFlLoadFailed, false), "Could not open the request", "Opening request")
                   Wrap: |-
                       =false
             - txtFlLoadStep:

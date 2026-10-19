@@ -855,10 +855,16 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
 
     show_fx (issue #391): en betingelse, der ogsaa skal vaere sand, for at
     sloer og kort vises, mens der indlaeses. Uden den vises de hele tiden.
+    show_fx="false" (issue #407): kortet vises kun ved en fejl.
     En fejl viser altid kortet (Retry/Close)."""
     busy = f"IfError({busy_var}, false)"
     failed = f"IfError({failed_var}, false)"
-    vis = f"{busy} || {failed}" if show_fx is None else f"({busy} && {show_fx}) || {failed}"
+    if show_fx is None:
+        vis = f"{busy} || {failed}"
+    elif show_fx == "false":
+        vis = failed
+    else:
+        vis = f"({busy} && {show_fx}) || {failed}"
     scrim = Ctrl(f"img{prefix}Loading", "Image", props={
         "AccessibleLabel": f'"{label}"',
         "BorderStyle": "BorderStyle.None",

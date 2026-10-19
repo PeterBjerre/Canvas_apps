@@ -71,7 +71,7 @@ from fl_picker import fl_picker
 from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT, C_REQUIRED
 import doc_upload as du
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
-                           section_header, tap_backdrop, confirm_modal, text_min_height,
+                           section_header, tap_backdrop, text_min_height,
                            fit_button_width, text_px, label_px, popup_head)
 from layout_tokens import if_below, fits
 
@@ -149,13 +149,10 @@ OBJ_EDIT = (f'(!IsBlank({OBJ_ROW}) && !IfError(varDomViewOnly, false) && '
 DM_OBJ = f"If({OBJ_EDIT}, DisplayMode.Edit, DisplayMode.Disabled)"
 STRAT_POP = is_strategic(f"{OBJ_REC}.StrategicPart")
 
-# Reset spoerger foerst, naar der er noget at miste.
-RESET_ASK = "varDomResetAsk"
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
 EXTRA_STATE = (f"Set({OBJ_ROW}, Blank());\n"
                f'Set({PICK}, "");\n'
-               f"Set({PO_OPEN}, false);\n"
-               f"Set({RESET_ASK}, false)")
+               f"Set({PO_OPEN}, false)")
 
 
 def _indent(text, n):
@@ -353,37 +350,16 @@ def _editor_head():
 
 
 def reset_fx():
-    """Reset: ryd KUN formularen. Rows og anmodningen roeres ikke.
-    Er der noget at miste, spoerges der foerst."""
-    return (f"If(\n{_indent(_dirty(), 4)},\n    Set({RESET_ASK}, true),\n"
-            + _indent(dp.clear_form_fx(), 4) + "\n)")
+    """Reset: KUN de ugemte aendringer kasseres - en gemt raekke faar sine
+    gemte vaerdier igen, en ny raekke ryddes (domain_parts.reset_form_fx,
+    issue #403). Rows og anmodningen roeres ikke, og panelet bliver
+    aabent. Ingen bekraeftelse: knappen er slaaet fra, naar der intet er
+    at kassere, og der er intet sloer, der kan blive haengende (#405)."""
+    return dp.reset_form_fx()
 
 
-def _dirty():
-    """Er der ugemte aendringer i formularen?
-
-    En NY raekke: noget er udfyldt ud over standardvaerdierne (eller en
-    kopi har taget objekter med). En HENTET raekke: formularen er ikke den
-    samme som raekken i listen - samme sammenligning, som admin-loggen
-    bruger (admin_log.diff)."""
-    new = ['!IsBlank(Trim(Coalesce(varDomFText, "")))',
-           '!IsBlank(Trim(Coalesce(varDomFPlant, "")))',
-           f"CountRows({OBJECTS}) > 0"]
-    defaults = dp.HOOKS["field_defaults"]
-    for col, _l, kind, _ch in dp.FIELDS:
-        v = dp._var(col)
-        if col in defaults:
-            new.append(f'Coalesce({v}, "") <> {defaults[col]}')
-        elif kind == "bool":
-            new.append(f"Coalesce({v}, false)")
-        elif kind == "num":
-            new.append(f"!IsBlank({v})")
-        else:
-            new.append(f'!IsBlank(Trim(Coalesce({v}, "")))')
-    changed = (f"!IsBlank(With({{ o: {dp.ACTIVE} }},\n"
-               + _indent(alog.diff(dp._diff_pairs()), 4) + "\n))")
-    return ("If(\n    IsBlank(varDomActiveRowId),\n    "
-            + " ||\n    ".join(new) + ",\n    " + changed + "\n)")
+# En kopi kan have taget objekter med - det er ogsaa noget at kassere.
+DIRTY_NEW = (f"CountRows({OBJECTS}) > 0",)
 
 
 def build_form(panel=False):
@@ -408,7 +384,7 @@ def build_form(panel=False):
                                   visible=MIN_MAX_BAD))
     buttons = dp.form_buttons(
         save_fx, "Save row", "Reset", new_fx=reset_fx(), new_icon="ArrowReset",
-        new_tooltip='"Clear the form and start a new row - saved rows are not changed"')
+        new_tooltip='"Undo the unsaved changes to this row - saved rows are not changed"')
     # Trinstriben lige under hovedet - foer felterne, saa den er det
     # foerste, man ser (kun naar godkendelsen er med).
     top = [build_steps()] if APPROVAL_ON else []
@@ -418,9 +394,7 @@ def build_form(panel=False):
 def editor_reset():
     """Reset staar i panelets bundbjaelke (tools/domain_app._row_editor),
     ikke i den scrollende formular."""
-    return button("btnDomNew", '"Reset"', reset_fx(),
-                  width=fit_button_width('"Reset"'), height=36,
-                  tooltip='"Clear the form and start a new row"')
+    return dp.reset_button(DIRTY_NEW)
 
 
 def editor_panel_content(form, extras=()):
@@ -626,15 +600,11 @@ def _objects_popup():
 
 
 def build_popups():
-    """Materials' egne popupper (domain_app.build_screen): objektlisten,
-    indkoebsteksten og Reset's spoergsmaal - [sloer, popup] hver."""
-    ask = confirm_modal(
-        "DomReset", RESET_ASK, "Discard unsaved changes?",
-        '"The form is cleared and starts a new row. Saved rows and the request '
-        'are not changed."',
-        "Reset", dp.clear_form_fx(), "btnDomResetConfirm", icon=None, danger=True)
+    """Materials' egne popupper (domain_app.build_screen): objektlisten og
+    indkoebsteksten - [sloer, popup] hver. Reset spoerger ikke laengere
+    (issue #405) - den har intet sloer."""
     objects = [] if getattr(cfg, "ROW_PANEL_ENABLED", False) else _objects_popup()
-    return objects + _po_popup() + ask
+    return objects + _po_popup()
 
 
 # ---------------------------------------------------------------------------

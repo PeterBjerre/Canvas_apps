@@ -262,9 +262,9 @@ Set(varFlPanelJump, "");
 // Panelets gem-tilstand: saving, failed eller tom (issue #402).
 Set(varFlPanelSave, "");
 Set(varFlDetCls, "");
-// Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
+// Bundbjaelkens bekraeftelse: Delete row (issue #308). Reset spoerger
+// ikke laengere og har intet sloer (issue #405).
 Set(varFlPanelDelAsk, false);
-Set(varFlPanelResetAsk, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
 // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).

@@ -64,9 +64,10 @@ def test_footer_actions():
     locked = 'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)'
     assert T._prop("btnFlEditorDelete", "OnSelect") == "Set(varFlPanelDelAsk, true)"
     assert T._prop("btnFlEditorDelete", "DisplayMode") == locked
+    # Reset gaar direkte tilbage til aftrykket - ingen bekraeftelse (#405).
     reset = T._prop("btnFlEditorReset", "OnSelect")
-    assert reset.startswith("If(With({ s: First(colFlPanelSnap)") and \
-        reset.endswith("Set(varFlPanelResetAsk, true))")
+    assert reset.startswith("If(\n    With({ s: First(colFlPanelSnap)")
+    assert "Collect(colFlVals, colFlPanelSnapVals)" in reset
     cancel = T._prop("btnFlEditorCancel", "OnSelect")
     assert "Collect(colFlVals, colFlPanelSnapVals)" in cancel
     assert cancel.rstrip().endswith("Clear(colFlPanelSnapVals)")
@@ -87,14 +88,12 @@ def test_footer_actions():
     # Bekraeftelserne ligger over panelet.
     top = T._screen_children()
     assert top.index("conFlEditorPanel") < top.index("conFlRowDelConfirmModal")
-    assert top.index("conFlEditorPanel") < top.index("conFlRowResetConfirmModal")
     confirm = T._prop("btnFlRowDelConfirm", "OnSelect")
     assert "Collect(colFlDeleted, { RowGuid: varFlDetailRow });" in confirm
     assert "Set(varFlPanelOpen, false)" in confirm
-    assert "Collect(colFlVals, colFlPanelSnapVals)" in T._prop("btnFlRowResetConfirm", "OnSelect")
     # Den samlede app koerer FL's opstart i skaermen.
     app = T._text()
-    assert "Set(varFlPanelDelAsk, false);" in app and "Set(varFlPanelResetAsk, false);" in app
+    assert "Set(varFlPanelDelAsk, false);" in app
     assert "If(false, ClearCollect(colFlPanelSnap, {" in app
 
 
