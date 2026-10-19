@@ -62,3 +62,11 @@ def test_saved_object_list_stays_codes_only():
     src = inspect.getsource(bi)
     assert 'ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \\"; \\")' in src
     assert '{ ItemId: I.ItemId, Code: Trim(S.Value), Description: \\"\\" }' in inspect.getsource(bl)
+
+
+def test_iferror_value_and_fallback_have_same_type():
+    # Issue #400: IfError kraever samme type i vaerdi og fallback. Notify
+    # giver Boolean, saa kaeden maa ikke ende med Collect (en tabel).
+    f = bi.FETCH_OBJ_DESC
+    value, fallback = f.split("IfError(", 1)[1].rsplit("Notify(", 1)
+    assert value.rstrip().endswith("true,")
