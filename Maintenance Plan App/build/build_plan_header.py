@@ -8,7 +8,7 @@ import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
                            themed_dropdown, field_cell, col_width, card, grow,
-                           row_n, text_px, fit_button_width, ICON_W, date_picker)
+                           row_n, text_px, fit_button_width, ICON_W, date_picker, modern_badge)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header  # noqa: F401
@@ -272,8 +272,13 @@ def plan_fold_row(fold, toggle_set, show):
     # Planens samlede omkostning (Peter 2026-10-19): omkostningsgodkendelsen
     # gaelder hele planen, saa summen af alle items' operationer staar
     # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
-    cost = value_chip("conVhpPlanFoldCost", '"Total cost"',
-                      lay.num_text("Sum(colVhpOperations, Cost)") + ' & " DKK"')
+    # Et ModernBadge (som Valid-maerkerne): en gruppe med to tekster blev
+    # tegnet som en tom pille i Studio (Peter 2026-10-19).
+    cost_text = ('"Total cost: " & ' + lay.num_text("Sum(colVhpOperations, Cost)") + ' & " DKK"')
+    cost = modern_badge("bdgVhpPlanFoldCost", cost_text, color=C_TITLE, fill=C_NEUTRAL_BG,
+                        width=f"Len({cost_text}) * 7 + 24", height=24, size=12,
+                        pad=(10, 10), accessible='"Plan " & ' + cost_text,
+                        extra={"AlignInContainer": "AlignInContainer.Center"})
     top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
     # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og

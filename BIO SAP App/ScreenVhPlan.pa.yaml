@@ -5422,37 +5422,38 @@ Screens:
                                           Text: |-
                                               ="Plan header"
                                           Width: |-
-                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - ((24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)) + 10) - 2)
+                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18))) - ((20) + 10) - ((Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + 10) - 2)
                                           Wrap: |-
                                               =false
-                                    - conVhpPlanFoldCost:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
+                                    - bdgVhpPlanFoldCost:
+                                        Control: ModernBadge@1.0.0
                                         Properties:
-                                          BorderColor: |-
-                                              =C.'border-subtle'
+                                          AccessibleLabel: |-
+                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
+                                          BorderStyle: |-
+                                              =BorderStyle.None
                                           BorderThickness: |-
-                                              =1
-                                          DropShadow: |-
-                                              =DropShadow.None
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Content: |-
+                                              ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                           Fill: |-
                                               =C.'state-neutral-bg'
-                                          FillPortions: |-
-                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
                                           Height: |-
                                               =24
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =4
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -5469,81 +5470,14 @@ Screens:
                                               =12
                                           RadiusTopRight: |-
                                               =12
+                                          Shape: |-
+                                              =BadgeShape.Circular
+                                          Size: |-
+                                              =T.small
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
                                           Width: |-
-                                              =24 + (66) + (Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2)
-                                        Children:
-                                          - txtVhpPlanFoldCostLabel:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Total cost"
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =24
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    ="Total cost"
-                                                Width: |-
-                                                    =66
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpPlanFoldCostValue:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =24
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
-                                                Width: |-
-                                                    =Len(With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 2
-                                                Wrap: |-
-                                                    =false
+                                              =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
                               - conVhpPlanFoldBody:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -10505,7 +10439,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =124 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =36 + (0 + (Max((26), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), (22))) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -10560,7 +10494,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =88
+                                  =0 + (Max((26), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), (22))) * 1 + 0
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -10638,14 +10572,16 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((228) + 12) - (If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), (250) + 12, 0)) - (If((VhpOpsValid), (72) + 12, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((228) + 12) - (If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), (230) + 12, 0)) - (If((VhpOpsValid), (72) + 12, 0)) - 2)
                               - crdVhpOpsTotals:
                                   Control: ModernCard@1.0.0
                                   Properties:
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
                                     Description: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "For the selected item")
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", Blank())
                                     DescriptionColor: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-muted')
+                                        =C.'state-warn-fg'
                                     DescriptionSize: |-
                                         =11
                                     Fill: |-
@@ -10653,25 +10589,25 @@ Screens:
                                     HeaderImage: |-
                                         =Blank()
                                     Height: |-
-                                        =88
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)
                                     Image: |-
                                         =Blank()
                                     Subtitle: |-
                                         ="Duration: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), DurationHours) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " h"
                                     SubtitleColor: |-
-                                        =C.'text-primary'
+                                        =C.'text-muted'
                                     SubtitleSize: |-
-                                        =13
+                                        =12
                                     Title: |-
                                         ="Total cost: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                     TitleColor: |-
                                         =C.'text-primary'
                                     TitleSize: |-
-                                        =14
+                                        =13
                                     Visible: |-
                                         =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                     Width: |-
-                                        =250
+                                        =230
                               - bdgVhpOpsHeadBadge:
                                   Control: ModernBadge@1.0.0
                                   Properties:

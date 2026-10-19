@@ -40,6 +40,8 @@ BADGES = {
         "bdgVhpPlanHeadBadge": ('If(VhpPlanValid, "Valid", "")', None, None),
         "bdgVhpItemsHeadBadge": (None, None, None),
         "bdgVhpEditorHeadBadge": (None, None, None),
+        # Planens samlede pris i det foldede planhoved (Peter 2026-10-19).
+        "bdgVhpPlanFoldCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
         "bdgVhpOpsHeadBadge": ('If(VhpOpsValid, "Valid", "")', None, None),
     },
     "ScreenIssueBoard.pa.yaml": {
@@ -101,7 +103,7 @@ def test_every_badge_is_modern_badge_with_our_colors():
             for bad in ("Text", "TabIndex", "FontColor", "FontSize", "ThemeColor", "Image"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 16
+    assert total == 17
 
 
 def test_old_controls_are_gone():

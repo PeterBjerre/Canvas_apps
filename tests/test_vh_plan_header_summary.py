@@ -69,7 +69,7 @@ def test_show_sits_right_of_the_summary_not_in_the_title_row():
     samlede omkostning (Peter 2026-10-19)."""
     y, _ = _summary()
     top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "conVhpPlanFoldCost"]
+    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "bdgVhpPlanFoldCost"]
     body = _block(y, "conVhpPlanFoldBody", 40000)
     assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
     head = body[:body.index("Children:")]
