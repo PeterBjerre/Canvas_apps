@@ -20,7 +20,7 @@ import permissions as perm
 import display_text as dt
 from build_helpers import (click_outside_overlay, app_frame, sticky_actions, request_shell, row_editor_panel,
                            button, fit_button_width, group, ICON_W, editor_footer, panel_save_status,
-                           panel_save_mode, panel_save_block)
+                           panel_save_mode, panel_save_block, panel_save_text)
 from gen_screen import C_APP_BG
 from side_nav import side_nav
 
@@ -134,6 +134,8 @@ def onstart(cfg, extra_collections=(), extra_state=""):
                               "Set(varDomDocsId, Blank());\n", "")
     body = (_collection_block(cfg, extra_collections) + "\n\n"
             + tok.onstart_block() + "\n\n" + state)
+    # Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.
+    body += f';\n\nSet({dp.ACT_VAR}, "")'
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         body += ";\n\nSet(varDomEditorOpen, false)"
         body += f';\nSet({dp.PANEL_SAVE_VAR}, "")'
@@ -204,6 +206,7 @@ def _row_editor(form, panel_content=None, reset=None):
                   width=SAVE_W, height=lay.HIT_TOUCH,
                   display_mode=panel_save_mode(dp.PANEL_SAVE_VAR, dp.DM_ROW), icon='"Save"')
     save.props["AccessibleLabel"] = "Self.Text"
+    panel_save_text(save, dp.PANEL_SAVE_VAR)
     status = panel_save_status("Dom", dp.PANEL_SAVE_VAR, save_fx, dp.DM_ROW)
     if reset is None:
         reset = button("btnDomNew", '"Reset"', dp.clear_form_fx(),
@@ -246,7 +249,7 @@ def build_screen(cfg, parts, render):
     panel_enabled = bool(getattr(cfg, "ROW_PANEL_ENABLED", False))
     form = parts.build_form(panel=True) if panel_enabled else parts.build_form()
     rows = parts.build_rows()
-    footer = sticky_actions("Dom", dp.BAR_ACTIONS)
+    footer = sticky_actions("Dom", dp.BAR_ACTIONS, status=dp.ACT_FOOT)
     # Dokumentpopuppen - kun i apper med dokumenter (issue #300), og ikke
     # dér, hvor sidepanelet selv har en Documents-fane.
     docs_popup = ([dp.build_attachments()]
