@@ -36,7 +36,9 @@ import icons
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
                            with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
+                           panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
+                           panel_save_block)
 
 # Under Desktop er headerens Edit, Save draft og Submit kun deres ikon
 # (_bar_btn). FL har ingen bundbjaelke (issue #392), saa knapperne SKAL
@@ -726,6 +728,7 @@ def open_row_panel_fx(guid, jump='""'):
             f"Set(varFlPanelJump, {jump});\n"
             f"{PANEL_FILL};\n"
             f"{PANEL_SNAP};\n"
+            f'Set({PANEL_SAVE}, "");\n'
             "Set(varFlPanelOpen, true)")
 
 
@@ -772,7 +775,12 @@ PANEL_COLS = (f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
 # KKS type + Assigned class: side om side, og under hinanden (KKS type
 # foerst), naar to kolonner ikke kan faa PANEL_COL_MIN hver.
 PANEL_SUB_COLS = f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1)"
-CLOSE_PANEL_FX = ('Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); '
+# Panelets gem-tilstand: "saving", "failed" eller tom (issue #402,
+# build_helpers.panel_save_status). Hoerer til den raekke, der er aaben -
+# den nulstilles, naar panelet aabnes paa en raekke og naar det lukkes.
+PANEL_SAVE = "varFlPanelSave"
+CLOSE_PANEL_FX = (f'Set({PANEL_SAVE}, ""); '
+                  'Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); '
                   'Set(varFlDetailRow, ""); Clear(colFlDet); '
                   'Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)')
 
@@ -842,23 +850,34 @@ def build_row_panel():
     sections = ([show_all] + [_panel_section(k, t) for k, t in cfg.PANEL_SECTIONS]
                 + [no_cls])
     footer = _panel_footer()
+    # Gemmets tilstand lige over bundbjaelken (issue #402).
+    status = panel_save_status("Fl", PANEL_SAVE, PANEL_SAVE_FX, SAVE_DM)
     # Pad (2 x 16), overskrift, bundbjaelken og to mellemrum: bunden
     # klippes aldrig, og bundbjaelken staar fast under det, der scroller.
-    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+    # Statuslinjen tager kun plads, mens den vises.
+    scroll_h = (f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+                f" - {panel_save_space(status)}")
     scroll = group("conFlEditorSections", sections, direction="Vertical", gap=PANEL_SECTION_GAP,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, PANEL_PAD, 16, PANEL_PAD))
-    panel = group("conFlEditorPanel", [heading, scroll, footer], direction="Vertical", gap=12,
+    panel = group("conFlEditorPanel", [heading, scroll, status, footer], direction="Vertical", gap=12,
                   height="App.Height", width=lay.PANEL_W_AT, fill=C_CARD_BG,
                   border_color=C_CARD_BORDER, pad=(16, PANEL_PAD, 16, PANEL_PAD),
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
-    # Bekraeftelserne ligger OVER panelet.
-    return [backdrop, panel] + _panel_confirms()
+    # Mens panelet gemmer: et gennemsigtigt lag over alt. Bekraeftelserne
+    # ligger OVER panelet.
+    return [backdrop, panel, panel_save_block("Fl", PANEL_SAVE)] + _panel_confirms()
 
 
 PANEL_SAVE_W = fit_button_width('"Save"') + ICON_W + 8
+# Panelets Save - og Retry: det samme gem som Save draft, men uden sidens
+# sloer og bjaelke (issue #402). Lykkes det, lukker panelet; ellers staar
+# raekken, som brugeren efterlod den, med "Save failed" og Retry.
+PANEL_SAVE_FX = panel_save_fx(
+    PANEL_SAVE, S.save_fx(),
+    f'If(CountRows(colFlSaveErrors) = 0, {CLOSE_PANEL_FX}, Set({PANEL_SAVE}, "failed"))')
 
 
 def _panel_footer():
@@ -874,11 +893,9 @@ def _panel_footer():
                     f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n);\n"
                     f"{CLOSE_PANEL_FX}",
                     width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
-    save = button("btnFlEditorSave", '"Save"',
-                  with_busy("varFlSaving", S.save_fx()) + ";\n"
-                  f"If(CountRows(colFlSaveErrors) = 0, {CLOSE_PANEL_FX})",
+    save = button("btnFlEditorSave", '"Save"', PANEL_SAVE_FX,
                   primary=True, width=PANEL_SAVE_W, height=lay.HIT_TOUCH,
-                  display_mode=SAVE_DM, icon='"Save"',
+                  display_mode=panel_save_mode(PANEL_SAVE, SAVE_DM), icon='"Save"',
                   tooltip='"Save the request with this row and close the panel"')
     save.props["AccessibleLabel"] = "Self.Text"
     return editor_footer("Fl", delete, reset, cancel, save)

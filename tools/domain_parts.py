@@ -53,7 +53,7 @@ from gen_screen import (Ctrl, SHELL_W, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTE
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker,
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, top_bar, grow, flow_ok,
@@ -64,6 +64,10 @@ from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
+# Sidepanelets gem-tilstand: "saving", "failed" eller tom (issue #402,
+# build_helpers.panel_save_status). Panelets Save bruger IKKE SAVING_VAR -
+# dens sloer og bjaelke stod midt paa siden bag panelet.
+PANEL_SAVE_VAR = "varDomPanelSave"
 
 # Appens "Data row limit" (Studio -> Settings). Standard er 500. Rammer
 # raekkespejlet det, mangler de aeldste raekker - txtDomRowsCap under
@@ -876,6 +880,8 @@ def clear_form_fx():
              f'Set(varDomFPlant, {tok.pref_get("prefDomNewPlant")});']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, false);')
+        # Panelets gem-tilstand hoerer til den raekke, der var aaben (#402).
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     if docs_cleanup_fx():
@@ -915,6 +921,7 @@ def copy_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, true);')
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
@@ -983,6 +990,7 @@ def load_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, true);')
+        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     # En anden raekke: den forrige raekkes dokumenter lukkes (issue #393).
@@ -1193,6 +1201,8 @@ def save_row_fx(status="valid", required=(), always=()):
           + ",\n"
         "\n"
         '    Set(varDomInfo, "Save failed: " & FirstError.Message);\n'
+        + (f'    Set({PANEL_SAVE_VAR}, "failed");\n'
+           if getattr(cfg, "ROW_PANEL_ENABLED", False) else "") +
         '    Notify("Save failed: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
@@ -2186,6 +2196,8 @@ def form_footer(buttons):
 # Add row-formlen - saettes af form_buttons, saa listens tomme tilstand kan
 # bruge den samme (build_list kaldes efter build_form).
 ADD_ROW_FX = [None]
+# Det samme gem uden SAVING_VAR's sloer - sidepanelets Save (issue #402).
+PANEL_SAVE_FX = [None]
 
 
 def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
@@ -2207,6 +2219,7 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
     # kravene (save_row_fx("auto")). "Save row draft" er vaek. save_text
     # bruges ikke laengere - teksten er den samme i alle domaener.
     ADD_ROW_FX[0] = with_busy(SAVING_VAR, save_fx("auto"))
+    PANEL_SAVE_FX[0] = panel_save_fx(PANEL_SAVE_VAR, save_fx("auto"))
     add = icon_on_mobile(fit(button(
         "btnDomSave", '"Update row"', ADD_ROW_FX[0],
         primary=True, display_mode=DM_ROW, icon=ICON_SAVE,

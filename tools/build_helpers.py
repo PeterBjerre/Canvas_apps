@@ -2089,10 +2089,94 @@ def editor_footer(prefix, delete, reset, cancel, save):
     return footer
 
 
+# ---------------------------------------------------------------------------
+# Sidepanelets gem-tilstand (issue #402)
+#
+# Foer taendte panelets Save det samme sloer og den samme bjaelke midt paa
+# SIDEN som Save draft og Submit (progress_overlay) - langt fra knappen og
+# bag panelet. Nu vises tilstanden I panelet, lige over bundbjaelken:
+#
+#   "saving"  hjulet (ModernSpinner) med "Saving..." - Save er spaerret
+#   "failed"  "Save failed. Your changes are kept." og Retry
+#   ""        intet (panelet lukker, naar gemmet lykkes, og appens
+#             "Saved ..."-besked siger det - som foer)
+#
+# Tilstanden er EEN tekstvariabel, sat foer og efter selve gemmet - ingen
+# timer, ingen fast varighed. Imens ligger et GENNEMSIGTIGT lag over hele
+# skaermen, saa intet kan trykkes to gange eller rettes midt i et gem (det
+# graa sloer gjorde det foer), men der tegnes intet paa siden.
+# ---------------------------------------------------------------------------
+PANEL_SAVE_H = 32
+PANEL_SAVING = '"saving"'
+PANEL_FAILED = '"failed"'
+
+
+def panel_save_fx(state_var, save_fx, after_fx=None):
+    """Panelets gem: tilstanden "saving", gemmet, og saa tilstanden.
+
+    after_fx: det, der afgoer udfaldet bagefter (FL: fejl i colFlSaveErrors).
+    Uden after_fx saetter gemmet selv "failed" i sin fejlgren, og alt andet
+    (lykkedes, eller stoppet af et manglende felt) bliver tomt igen."""
+    end = after_fx or f'If({state_var} = {PANEL_SAVING}, Set({state_var}, ""))'
+    return f"Set({state_var}, {PANEL_SAVING});\n{save_fx};\n{end}"
+
+
+def panel_save_mode(state_var, display_mode):
+    """Save og Retry er spaerret, mens der gemmes."""
+    return (f"If(IfError({state_var} = {PANEL_SAVING}, false), DisplayMode.Disabled, "
+            f"{display_mode or 'DisplayMode.Edit'})")
+
+
+def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
+    """Linjen over panelets bundbjaelke: hjulet eller fejlen med Retry.
+    Hoejre-justeret, saa den staar ved Save. Skjult, naar der intet er."""
+    saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    failed = f"IfError({state_var} = {PANEL_FAILED}, false)"
+    spin = spinner(f"spn{prefix}EditorSaving", saving, '"Saving"', width=120,
+                   height=PANEL_SAVE_H, label='"Saving..."', size=13)
+    text = text_ctrl(f"txt{prefix}EditorSaveFailed", '"Save failed. Your changes are kept."',
+                     size=13, color=C_INVALID_FG, weight="Semibold", height=20, wrap="false",
+                     align="Right", visible=failed)
+    grow(text)
+    retry = button(f"btn{prefix}EditorRetry", '"Retry"', retry_fx,
+                   width=fit_button_width('"Retry"'), height=PANEL_SAVE_H,
+                   display_mode=panel_save_mode(state_var, display_mode), visible=failed,
+                   tooltip='"Try to save the row again"')
+    vis = f"{saving} || {failed}"
+    return group(f"con{prefix}EditorSaveStatus", [spin, text, retry], direction="Horizontal",
+                 gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)
+
+
+def panel_save_space(status):
+    """Det, scrollen skal give af, naar statuslinjen staar der (+ panelets gap)."""
+    return f"If({status.props['Visible']}, {PANEL_SAVE_H + 12}, 0)"
+
+
+def panel_save_block(prefix, state_var):
+    """Det gennemsigtige lag, mens panelet gemmer - fanger tryk, viser intet."""
+    vis = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    return Ctrl(f"img{prefix}EditorSaveBlock", "Image", props={
+        "AccessibleLabel": '"Saving, please wait"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=None, previous_mode=None,
-                     next_mode=None, side_by_side=False, multiple=None):
+                     next_mode=None, side_by_side=False, multiple=None, status=None):
     """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
+
+    status: panelets gem-linje (panel_save_status, issue #402) - staar lige
+    over bundbjaelken, og scrollen giver plads, kun mens den vises.
 
     side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
     (PanelInset), og saa maa baggrunden ikke daekke listen."""
@@ -2132,10 +2216,13 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     # traekkes fra - formularen fylder resten, og bundbjaelken staar ved
     # panelets bund (her stod 88 px ekstra, som blev tom plads under den).
     scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
+    if status is not None:
+        scroll_h += f" - {panel_save_space(status)}"
     scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, 20, 16, 20))
-    panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
+    panel = group(f"con{prefix}EditorPanel",
+                  [heading, scroll, *([status] if status is not None else []), footer],
                   direction="Vertical", gap=12, height="App.Height",
                   width=lay.PANEL_W_AT,
                   fill=C_CARD_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),

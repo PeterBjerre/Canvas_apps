@@ -259,6 +259,8 @@ Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
 Set(varFlPanelJump, "");
+// Panelets gem-tilstand: saving, failed eller tom (issue #402).
+Set(varFlPanelSave, "");
 Set(varFlDetCls, "");
 // Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
 Set(varFlPanelDelAsk, false);
