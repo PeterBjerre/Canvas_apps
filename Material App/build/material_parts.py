@@ -479,6 +479,8 @@ def _po_footer():
                                 "DisplayMode.Edit)"),
                   icon='"Save"', tooltip='"Apply the text to this row and close"')
     save.props["AccessibleLabel"] = "Self.Text"
+    # Ikonet viger for "Saving...", som paa sidepanelets Save (#420).
+    save.props["Layout"] = f"If({PO_SAVING}, ButtonLayout.TextOnly, {save.props['Layout']})"
     for b in (cancel, save):
         b.props["AlignInContainer"] = "AlignInContainer.Start"
         b.props["LayoutMinWidth"] = b.props["Width"]
