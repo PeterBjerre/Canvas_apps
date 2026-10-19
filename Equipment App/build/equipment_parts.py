@@ -34,6 +34,17 @@ funktionsplads paa, og udstyrsnummeret er SAP's - det vises stadig i
 listen og i detaljerne (domain_config.READ_FIELDS). En gemt raekke
 slettes med ikonet i listens Actions-kolonne, ikke fra formularen.
 
+SIDEPANELETS FANER (issue #430)
+-------------------------------
+I sidepanelet staar formularen under tre faner - samme moenster som
+Materials (domain_parts.editor_tabs):
+    Details    Identification, Location (uden FL), Manufacturer
+    Objects    Functional location med soegningen (FL-vaelgeren)
+    Documents  Warranty from/to, antallet af dokumenter og
+               ModernAttachments-kontrollen (Save documents)
+Felterne, variablerne og Patch er de samme - de staar bare paa en anden
+fane. Gem-tjekkene er Notify-beskeder, saa de ses paa alle faner.
+
 Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
 Provision-EqMatLists.ps1. Cellen Documentation aabner popuppen.
@@ -55,6 +66,24 @@ SECTIONS = [
 FORM_ORDER = [k for _k, _t, keys in SECTIONS for k in keys]
 NOT_IN_GRID = {cfg.FL_FIELD}
 
+# Sidepanelets faner (issue #430): det, der flyttes fra Details.
+TABBED = bool(getattr(cfg, "ROW_PANEL_ENABLED", False)
+              and getattr(cfg, "ROW_EDITOR_TAB_VAR", None))
+OBJECT_KEYS = ["FL"]
+DOC_KEYS = ["WarrantyStart", "WarrantyEnd", "DOCS"]
+
+
+def _detail_sections():
+    """Details-fanens sektioner: SECTIONS uden det, Objects og Documents
+    har. En sektion, der bliver tom, udelades."""
+    moved = set(OBJECT_KEYS) | set(DOC_KEYS)
+    out = []
+    for key, title, keys in SECTIONS:
+        rest = [k for k in keys if k not in moved]
+        if rest:
+            out.append((key, title, rest))
+    return out
+
 
 def _cell(key, width=dp.CELL_W):
     if key == "FL":
@@ -63,7 +92,8 @@ def _cell(key, width=dp.CELL_W):
     if key == "TEXT":
         return dp.text_cell(width)
     if key == "DOCS":
-        return dp.docs_cell(width)
+        # I fanerne: kun antallet - Documents-fanen ER dokumenterne.
+        return dp.docs_count_cell(width) if TABBED else dp.docs_cell(width)
     if key == "PLANT":
         return dp.plant_cell(width)
     if key == "EQNO":
@@ -113,7 +143,7 @@ def build_form(panel=False):
     cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
     head = dp.form_head(None if panel else "Row details")
     secs = []
-    for key, title, keys in SECTIONS:
+    for key, title, keys in (_detail_sections() if panel and TABBED else SECTIONS):
         rows = dp.grid_rows(f"conDomGrid{key}",
                             [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
                             container_w=form_width, columns=2 if panel else None,
@@ -125,6 +155,27 @@ def build_form(panel=False):
     rows = dp.sectioned(secs)
     buttons = dp.form_buttons(save_fx, "Save row", "New row")
     return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
+
+
+def _panel_rows(key, keys):
+    return dp.grid_rows(f"conDomGrid{key}",
+                        [_cell(k, dp.panel_cell_w(k, dp.PANEL_CELL_W)) for k in keys],
+                        container_w=dp.PANEL_FORM_W, columns=2,
+                        cell_width=dp.PANEL_CELL_W)
+
+
+def editor_panel_content(form, extras=()):
+    """Fanerne Details, Objects og Documents (issue #430) - Materials'
+    moenster (domain_parts.editor_tabs). Objects: funktionspladsen og dens
+    soegning. Documents: garantien, antallet af dokumenter og
+    ModernAttachments-kontrollen."""
+    objects = [_cell("FL", dp.PANEL_FORM_W), dp.build_fl_msg()]
+    warranty = dp.sectioned([("Warranty", "Warranty and documents", None,
+                              _panel_rows("Warranty", DOC_KEYS))])
+    # Dokumentkontrollen under garantien - samme krop og hoejde som
+    # Materials' Documents-fane; panelet scroller, hvis der mangler plads.
+    documents = warranty + [dp.docs_tab_body()]
+    return dp.editor_tabs(form, extras, objects=objects, documents=documents)
 
 
 # ---------------------------------------------------------------------------
@@ -157,9 +208,13 @@ def build_rows():
 
 
 dp.configure(row_actions=[
+    # Documents aabner raekken paa Documents-fanen (issue #430) - som
+    # Materials' Docs. Uden faner: dokumentpopuppen.
     dp.RowAction("btnDomRowDocs",
                  'If(Coalesce(ThisItem.FileCount, 0) > 0, "Documents (" & ThisItem.FileCount & ")", "Documents")',
-                 dp.open_docs_fx(), 126, icon="Document",
+                 (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
+                  + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx(),
+                 126, icon="Document",
                  label='"Documents for " & ThisItem.ItemKey'),
     dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), 64,
                  mode=dp.DM_ROW_EDIT),

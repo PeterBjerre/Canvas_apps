@@ -32,6 +32,9 @@ SCREEN = "ScreenEquipment"
 TITLE = "Equipments"
 SUBTITLE = "Create, change and delete equipment"
 ROW_PANEL_ENABLED = True
+# Sidepanelets faner Details, Objects og Documents - samme moenster som
+# Materials (domain_parts.editor_tabs, issue #430).
+ROW_EDITOR_TAB_VAR = "varDomEditorTab"
 
 # Praefikset i noeglerne: anmodning EQ-000912, nye raekker EQR-000912
 # (request_index.row_key, R2-073).

@@ -278,7 +278,7 @@ def build_screen(cfg, parts, render):
     # sloer/klik-udenfor-lag - ellers tegnes de bagved (issue #279).
     own = parts.build_popups() if hasattr(parts, "build_popups") else []
     below, above = ([], own) if panel_enabled else (own, [])
-    # Dokumentpopuppen aabnes fra sidepanelets Documents-knap (Equipment),
+    # Dokumentpopuppen aabnes fra et sidepanel UDEN Documents-fane,
     # saa den skal ligge OVER panelet og klik-udenfor-laget - ellers laa
     # den graat bagved, og et klik paa den lukkede panelet (issue #393).
     docs_above = [*backdrop, *docs_popup] if panel_enabled else []
