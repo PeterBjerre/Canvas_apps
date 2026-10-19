@@ -54,6 +54,9 @@ HENTNING (issue #177)
   * Konfigurationen og EEN liste hentes samtidig, foerste gang skaermen
     vises: alle sager (issue #193 - "My issues" er et filter paa dem).
     Oversigten henter ikke de lange tekster (ShowColumns).
+  * Samtidig hentes IB_TicketComments' TicketId een gang og taelles i
+    hukommelsen - kolonnen ACTIVITY (issue #422). Papirclipsen laeser
+    'Has attachments' fra sagernes egen hentning.
   * Naar en sag aabnes, hentes dens hele raekke og - for rapportoeren og
     admins - dens Activity samtidig.
     Antallet af vedhaeftninger regnes af Activity; selve filerne hentes
@@ -154,7 +157,13 @@ STATUS_RANK = [(s, r) for s, _c, r in cfg.STATUS]
 DETAIL_ONLY = ("Steps", "Expected", "Actual", "Other", "RelatedNo", "Resolution")
 
 
-def _row(r, *, full=True):
+# Connectorens felt for "har raekken vedhaeftninger" - visningsnavnet paa
+# {HasAttachments} (References/DataSources.json). Ikke en kolonne i
+# SharePoint-udtraekket: SharePoint-connectoren regner den selv.
+HAS_FILES_COL = "'Has attachments'"
+
+
+def _row(r, *, full=True, has_files=None):
     """Een raekke i colIbAll. full=False: oversigtens raekke - popup-
     felterne er tomme, til sagen aabnes. Nummeret saettes af flowet
     BioSap-IssueBoard-OnCreated op til et minut efter oprettelsen; indtil
@@ -177,6 +186,16 @@ def _row(r, *, full=True):
         "ReporterName": f'Coalesce({r}.ReporterName, "")',
         "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
     }
+    # Har sagen filer (issue #422)? Oversigten laeser connectorens
+    # {HasAttachments} ('Has attachments') - et felt pr. raekke i den
+    # samme hentning, ingen opslag pr. sag. Sagens eget opslag (LookUp)
+    # beholder listens vaerdi: laest fra With/LookUp er connectorens
+    # vedhaeftningsfelter ikke til at stole paa (issue #133). LOAD_FILES
+    # retter den, naar filerne er hentet.
+    # has_files: en kendt vaerdi (en ny sag har ingen filer endnu).
+    f["HasFiles"] = (has_files if has_files is not None
+                     else f"Coalesce({r}.{HAS_FILES_COL}, false)" if not full
+                     else f"Coalesce(LookUp(colIbAll, Id = {r}.ID).HasFiles, false)")
     if not full:
         for k in DETAIL_ONLY:
             f[k] = '""'
@@ -192,7 +211,7 @@ def _row(r, *, full=True):
 OVERVIEW_COLS = ["ID", "Title", "TicketNo", "Description", "Application", "Section", "Severity",
                  "Priority", "Status", "AssignedToName", "ReporterEmail", "ReporterName",
                  "AssignedToEmail", "Created", "LastActivityOn", "IsArchived"]
-_SHOW = ", ".join(OVERVIEW_COLS)
+_SHOW = ", ".join(OVERVIEW_COLS + [HAS_FILES_COL])
 
 # Hentningerne. Hver sammenligner med en global variabel eller en konstant,
 # saa SharePoint udfoerer filteret og sorteringen (check_layout regel 30).
@@ -206,6 +225,35 @@ FETCH_ALL = (f"ForAll(ShowColumns(Sort({cfg.L_TICKETS}, LastActivityOn, SortOrde
              f"{_SHOW}) As r, {_row('r', full=False)})")
 
 RELOAD_ALL = f"Set(varIbAllFailed, IfError(ClearCollect(colIbAll, {FETCH_ALL}); false, true))"
+
+# ANTAL HAENDELSER PR. SAG (issue #422): EEN hentning af IB_TicketComments
+# - kun kolonnen TicketId ($select) - samtidig med sagerne, og saa en
+# optaelling i hukommelsen (GroupBy). Ingen CountRows mod SharePoint pr.
+# raekke. SharePoint giver kun de raekker, brugeren har ret til: en
+# bruger faar sine egne sagers haendelser, en admin alle. Nyeste foerst,
+# saa det er de aeldste haendelser, der falder ud over ROW_LIMIT; aabnes
+# sagen, rettes dens tal af dens Activity (SET_ACT_N).
+FETCH_ACT_N = (f"Set(varIbActNFailed, IfError(ClearCollect(colIbActRaw, "
+               f"ShowColumns(Sort({cfg.L_COMMENTS}, ID, SortOrder.Descending), TicketId)); "
+               "false, true))")
+COUNT_ACT_N = ("If(!varIbActNFailed, ClearCollect(colIbActN, ForAll(GroupBy(colIbActRaw, TicketId, Grp) As g, "
+               "{ TicketId: g.TicketId, N: CountRows(g.Grp) })); Clear(colIbActRaw); "
+               "Set(varIbActNOk, true))")
+# varIbActNOk: tallene er hentet mindst een gang. En fejlet genhentning
+# (stille opdatering) beholder de gamle tal i stedet for at skjule dem.
+
+
+def set_act_n(id_fx, n_fx):
+    """Saet antallet for een sag i colIbActN (indsaet, hvis den mangler).
+    Tallet regnes FOER UpdateIf (With) - n_fx maa laese colIbActN selv."""
+    return (f"With({{ cnt: {n_fx} }}, If(IsBlank(LookUp(colIbActN, TicketId = {id_fx})), "
+            f"Collect(colIbActN, {{ TicketId: {id_fx}, N: cnt }}), "
+            f"UpdateIf(colIbActN, TicketId = {id_fx}, {{ N: cnt }})))")
+
+
+# Den aabne sags Activity er facit for dens tal (samme optaelling som
+# fanen "Activity (n)").
+SET_ACT_N = set_act_n("varIbSelId", 'CountRows(Filter(colIbActivity, Kind <> "Reported"))')
 RELOAD_MAIN = RELOAD_ALL
 
 # FLASKEHALSEN (issue #177): een runde - konfigurationen og den ene liste
@@ -216,7 +264,8 @@ LOAD = (
     "    Set(varIbLoading, true);\n"
     "    " + concurrent(
         f"Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, {FETCH_SECTIONS}); false, true))",
-        RELOAD_MAIN, indent=4) + ";\n"
+        RELOAD_MAIN, FETCH_ACT_N, indent=4) + ";\n"
+    "    " + COUNT_ACT_N + ";\n"
     "    Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);\n"
     "    Set(varIbSyncedAt, Now());\n"
     "    Set(varIbLoading, false)\n"
@@ -236,7 +285,9 @@ RETRY = "Set(varIbLoaded, false);\n" + LOAD + ";\n" + SET_SCOPE
 SYNC_AFTER_MIN = 2
 SYNC = (
     "Set(varIbSyncing, true);\n"
-    f"Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, {FETCH_ALL}); false, true));\n"
+    + concurrent(f"Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, {FETCH_ALL}); false, true))",
+                 FETCH_ACT_N) + ";\n"
+    + COUNT_ACT_N + ";\n"
     "If(\n"
     "    varIbSyncFailed,\n"
     '    Notify("The issues could not be refreshed. The list shows what was loaded last.", '
@@ -307,7 +358,8 @@ LOAD_ACTIVITY = (
     # Hentes i en midlertidig samling og skrives foerst over, naar den kom
     # hjem (issue #212): fejler en genhentning, staar den gamle feed der
     # stadig - og ingen dobbelte raekker.
-    "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));\n"
+    "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh); "
+    + SET_ACT_N + ");\n"
     "Set(varIbActBusy, false)"
 )
 
@@ -319,6 +371,11 @@ LOAD_FILES = (
     f"Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp({cfg.L_TICKETS}, ID = varIbSelId).Attachments); "
     "false, true));\n"
     "Set(varIbFilesFor, varIbSelId);\n"
+    # Issue #422: papirclipsen i oversigten foelger de hentede filer -
+    # ogsaa lige efter Save paa fanen (AFTER_CHANGE henter dem igen).
+    "If(!varIbFilesFailed,\n"
+    "    Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));\n"
+    "    UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));\n"
     "Set(varIbFilesBusy, false)"
 )
 
@@ -396,17 +453,20 @@ ROW = {"Id": "0", "TicketNo": '""', "Title": '""', "Description": '""', "Steps":
        "Resolution": '""', "Assigned": '""', "CreatedOn": "Now()", "UpdatedOn": "Now()",
        "Archived": "false", "Reporter": '""', "ReporterName": '""', "AssignedEmail": '""',
        "PriRank": "0",
-       "StatusRank": "0"}
+       "StatusRank": "0", "HasFiles": "false"}
 SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0",
        "ScreenKey": '""'}
 ACT = {"Kind": '""', "Actor": '""', "Role": '""', "Body": '""', "At": "Now()", "Internal": "false",
        "IsSystem": "false", "File": '""', "SizeKb": "0", "Initial": "false"}
 ADMINS = {"Email": '""', "Name": '""'}
+ACT_N = {"TicketId": "0", "N": "0"}
+ACT_RAW = {"TicketId": "0"}
 
 
 def collections():
     return [("colIbAll", ROW), ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
-            ("colIbFresh", ROW), ("colIbActFresh", ACT)]
+            ("colIbFresh", ROW), ("colIbActFresh", ACT), ("colIbActN", ACT_N),
+            ("colIbActRaw", ACT_RAW)]
 
 
 # ---------------------------------------------------------------------------
@@ -845,12 +905,20 @@ TBL_ROW_H = 48       # tabelraekken (Desktop og op)
 CMP_ROW_H = 92       # den kompakte raekke (under Desktop)
 ROW_PAD = 10         # raekkens luft til venstre og hoejre
 COL_GAP = 8
-ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS (raekken under Desktop)
-ACT_W = 52           # kolonnen ACTIONS i tabellen - plads til ikonet og overskriften
+ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen FILES og raekken under Desktop
+ACTV_W = 52          # kolonnen ACTIVITY (issue #422): ikonet, tallet og overskriften
+ACTV_ICON = 16
+FILES_W = 44         # kolonnen FILES: papirclipsen med sin klikflade (hit_size, regel 40)
 
 # (noegle, overskrift, mindstebredde, vaegt, kun Wide). Raekkefoelgen er
 # issue #244's: Ticket ID | Requester | Title | Application | Section |
-# Priority | Status | Assigned to | Reported | Updated | Actions.
+# Priority | Status | Assigned to | Reported | Updated | Activity | Files.
+# Issue #422: ACTIVITY (antal haendelser) kom til, og ACTIONS hedder nu
+# FILES - papirclipsen staar kun, naar sagen har filer. Pladsen paa den
+# smalleste Desktop-skaerm (806 px) kom fra titlen (140 -> 106) og
+# Updated (84 -> 80): de vokser stadig med den frie bredde paa en bredere
+# skaerm. Application beholder 100 px: med app-ikonet foran (issue #415)
+# faar navnet 100 - 26 = 74 px, nok til fx "Equipments" og "Issue Board".
 #
 # Den frie bredde deles efter vaegtene, saa tabellen fylder hele kortet.
 # Issue #244: titlen fik 4 af 6 dele og blev ~950 px bred paa en bred
@@ -863,15 +931,16 @@ ACT_W = 52           # kolonnen ACTIONS i tabellen - plads til ikonet og overskr
 LIST_COLS = [
     ("ID", "TICKET ID", 88, 0, False),
     ("REQ", "REQUESTER", 64, 1, False),
-    ("TITLE", "TITLE", 140, 3, False),
+    ("TITLE", "TITLE", 106, 3, False),
     ("APP", "APPLICATION", 100, 2, False),
     ("SECTION", "SECTION", 104, 2, True),
     ("PRI", "PRIORITY", 72, 0, False),
     ("STATUS", "STATUS", 116, 0, False),
     ("ASG", "ASSIGNED TO", 92, 2, True),
     ("REP", "REPORTED", 84, 1, True),
-    ("UPD", "UPDATED", 84, 1, False),
-    ("ACT", "ACTIONS", ACT_W, 0, False),
+    ("UPD", "UPDATED", 80, 1, False),
+    ("ACTV", "ACTIVITY", ACTV_W, 0, False),
+    ("ACT", "FILES", FILES_W, 0, False),
 ]
 WIDE = at_least("Wide")
 TABLE_ON = at_least("Desktop")
@@ -899,10 +968,18 @@ if _fixed(False) > 1024 - lay.NAV_W - lay.SHELL_INSET - 2 * lay.CARD_PAD - 4 - l
 
 OPEN_ROW = open_ticket("ThisItem", "false")
 # Papirclipsen (issue #193): sagen aabnes direkte paa fanen Attachments,
-# hvor filerne vises og nye laegges paa.
+# hvor filerne vises (og nye laegges paa af rapportoeren og admins).
 OPEN_ROW_FILES = open_ticket("ThisItem", "false", tab="files")
-# Kun rapportoeren og admins kan laegge filer paa - flowet tjekker det igen.
-ROW_CAN_ATTACH = f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})"
+# Issue #422: papirclipsen er et tegn paa, at sagen HAR filer - ikke en
+# upload-knap paa hver raekke. Uden filer er cellen tom. Fanen
+# Attachments kan alle se, saa tegnet staar for alle.
+ROW_HAS_FILES = "ThisItem.HasFiles"
+# Activity-taelleren (issue #422): antallet af haendelser fra colIbActN -
+# opslag i hukommelsen, intet kald pr. raekke. Kun for rapportoeren og
+# admins (som fanen Activity); andre har ingen rettighed til
+# kommentarerne og faar en tom celle - ikke et misvisende 0.
+ROW_ACT_N = "Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0)"
+ROW_SEE_ACT = f"(ThisItem.Reporter = varIbMe || {IS_ADMIN}) && Coalesce(varIbActNOk, false)"
 
 LIST_ITEMS = (
     "With(\n"
@@ -994,15 +1071,33 @@ REPORTER_FX = requester("{r}")
 
 
 def _attach_btn(name, visible, width=ACT_BTN):
-    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=width, height=32, icon="Attach",
-               visible=visible, accessible='"Add screenshots or files to " & ThisItem.TicketNo',
-               tooltip='"Add screenshots or files"')
+    b = button(name, '"Attachments"', OPEN_ROW_FILES, width=width, height=32, icon="Attach",
+               visible=visible, accessible='"Show the attachments on " & ThisItem.TicketNo',
+               tooltip='"Show attachments"')
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["BorderColor"] = C_TRANSPARENT
     # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
     b.props["_OnTop"] = "true"
     ensure_hit(b)                      # H.hit (UX-review F6, regel 40)
     return b
+
+
+def _act_count(suffix, width):
+    """Activity-taelleren (issue #422): et lille kommentarikon og tallet.
+    Containeren staar altid (cellen flytter aldrig kolonnerne); ikonet og
+    tallet kun, naar brugeren maa se sagens Activity. 0 er dempet."""
+    n = ROW_ACT_N
+    ico = fluent_icon(f"icoIbRowAct{suffix}", fluent("comment"), C_MUTED, '"Activity"',
+                      size=ACTV_ICON, visible=ROW_SEE_ACT)
+    # Opslaget staar een gang (Text); farve, vaegt og etiket laeser Self.Text.
+    txt = text_ctrl(f"txtIbRowAct{suffix}", f"Text({n})", size=lay.SIZE_SMALL, height=20, wrap="false",
+                    width=f"({width}) - {ACTV_ICON + 4}",
+                    color=f'If(Self.Text = "0", {C_MUTED}, {C_TITLE})',
+                    visible=ROW_SEE_ACT,
+                    accessible='"Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries")',
+                    extra={"FontWeight": 'If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)'})
+    return group(f"conIbRowAct{suffix}", [ico, txt], direction="Horizontal", gap=4, height=20,
+                 width=width, align_items="Center")
 
 
 # CLAUDE-ikonet i kolonnen Assigned to (issue #423): en lille gnist foran
@@ -1109,7 +1204,8 @@ def _table_row():
         "UPD": txt("txtIbRowUpdated", "UPD",
                    f'If({ROW_UPDATED}, Text(ThisItem.UpdatedOn, {DATE_FMT}), "-")',
                    size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Updated: " & Self.Text'),
-        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}", width=COL_W["ACT"]),
+        "ACTV": _act_count("", COL_W["ACTV"]),
+        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_HAS_FILES}", width=COL_W["ACT"]),
     }
     kids = []
     for key, _h, _b, _g, wide_only in LIST_COLS:
@@ -1143,7 +1239,8 @@ def _compact_row():
     pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
     gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
     chip = _chip("txtIbRowStatusC", "ThisItem.Status", "ThisItem.Archived")
-    line1 = group("conIbRowLineC1", [no, pri, gap, chip], direction="Horizontal", gap=8,
+    act = _act_count("C", 44)
+    line1 = group("conIbRowLineC1", [no, pri, gap, act, chip], direction="Horizontal", gap=8,
                   height=CHIP_H, align_items="Center")
     title = text_ctrl("txtIbRowTitleC", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
                       height=21, wrap="false", accessible='"Title: " & ThisItem.Title')
@@ -1180,7 +1277,7 @@ def build_list():
                   '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & '
                   'If(ThisItem.Archived, "Archived", ThisItem.Status)',
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
-    att_c = _attach_btn("btnIbRowAttachC", f"{below('Desktop')} && {ROW_CAN_ATTACH}")
+    att_c = _attach_btn("btnIbRowAttachC", f"{below('Desktop')} && {ROW_HAS_FILES}")
     att_c.props["X"] = "Parent.TemplateWidth - 12 - Self.Width"
     att_c.props["Y"] = f"{CMP_ROW_H - 1 - 10 + 7} - Self.Height"
     att_c.props.pop("_OnTop")
@@ -1397,7 +1494,7 @@ CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore
 # opslag og ingen ny hentning af listen (issue #177, #193).
 ADD_NEW = (
     "Set(varIbSelId, varIbNewRow.ID);\n"
-    f"Set(varIbNew, {_row('varIbNewRow')});\n"
+    f"Set(varIbNew, {_row('varIbNewRow', has_files='false')});\n"
     "RemoveIf(colIbAll, Id = varIbSelId);\n"
     "Collect(colIbAll, varIbNew)"
 )
@@ -1969,6 +2066,7 @@ POST_ROW = (
     "Internal: varIbPostInternal, IsSystem: false, "
     'File: "", SizeKb: 0, Initial: false }'
 )
+POST_ACT_N = set_act_n("varIbPostFor", "Coalesce(LookUp(colIbActN, TicketId = varIbPostFor).N, 0) + 1")
 POST = (
     "If(\n"
     "    !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),\n"
@@ -1996,6 +2094,9 @@ POST = (
     "            Reset(chkIbInternal)\n"
     "        );\n"
     "        UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });\n"
+    # Issue #422: taelleren i oversigten - een mere paa den sag,
+    # kommentaren hoerer til.
+    f"        {POST_ACT_N};\n"
     "        Set(varIbPostAt, Now());\n"
     "        Set(varIbPostTick, Now());\n"
     '        Set(varIbPostStage, "done"),\n'

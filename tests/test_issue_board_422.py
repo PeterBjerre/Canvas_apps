@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+"""Issue #422: vedhaeftninger og Activity i Issue Boards oversigt.
+
+Papirclipsen staar kun, naar sagen HAR filer (connectorens 'Has
+attachments', hentet med oversigten). En ny kolonne ACTIVITY viser
+antallet af haendelser pr. sag - fra EEN hentning af IB_TicketComments
+(kun TicketId) og en optaelling i hukommelsen, ikke et kald pr. raekke.
+Tallet foelger med, naar en kommentar sendes, og naar sagen aabnes."""
+import os
+import sys
+
+from conftest import ROOT
+
+sys.path.insert(0, os.path.join(ROOT, "Issue Board", "build"))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+
+import ib_config as cfg  # noqa: E402
+import ib_parts as P  # noqa: E402
+
+SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml")
+
+
+def _walk(ctrls):
+    for c in ctrls:
+        yield c
+        yield from _walk(getattr(c, "children", []) or [])
+
+
+def _list():
+    return {c.name: c for c in _walk([P.build_list()])}
+
+
+def test_paperclip_only_when_the_issue_has_files():
+    ctrls = _list()
+    for name in ("btnIbRowAttach", "btnIbRowAttachC"):
+        b = ctrls[name]
+        assert b.props["Visible"].endswith("&& ThisItem.HasFiles")
+        # Et tegn paa filer, der aabner fanen Attachments - ikke en upload-knap.
+        assert "Add screenshots" not in b.props["AccessibleLabel"]
+        assert 'Set(varIbTab, "files")' in b.props["OnSelect"]
+    # Feltet hentes med oversigten (samme $select) - intet opslag pr. sag.
+    assert "'Has attachments'" in P.FETCH_ALL
+    assert "HasFiles: Coalesce(r.'Has attachments', false)" in P.FETCH_ALL
+    assert "HasFiles" in P.ROW
+    # De hentede filer retter tegnet - ogsaa efter Save paa fanen.
+    assert "UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) })" in P.LOAD_FILES
+    assert "Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) })" in P.LOAD_FILES
+
+
+def test_activity_counts_are_one_query_not_one_per_row():
+    # Een hentning af kommentarlisten, kun TicketId, samtidig med sagerne.
+    fetch = f"ShowColumns(Sort({cfg.L_COMMENTS}, ID, SortOrder.Descending), TicketId)"
+    assert fetch in P.FETCH_ACT_N
+    concurrent = P.LOAD.split("Concurrent(")[1].split("\n    );")[0]
+    assert P.FETCH_ACT_N in concurrent and "colIbAll" in concurrent
+    assert P.LOAD.index(P.COUNT_ACT_N) > P.LOAD.index(P.FETCH_ACT_N)
+    assert P.FETCH_ACT_N in P.SYNC and P.COUNT_ACT_N in P.SYNC
+    assert "GroupBy(colIbActRaw, TicketId, Grp)" in P.COUNT_ACT_N
+    # Raekken slaar op i hukommelsen - aldrig i SharePoint-listen.
+    ctrls = _list()
+    for suffix in ("", "C"):
+        txt = ctrls[f"txtIbRowAct{suffix}"]
+        ico = ctrls[f"icoIbRowAct{suffix}"]
+        assert "colIbActN" in txt.props["Text"] and cfg.L_COMMENTS not in txt.props["Text"]
+        assert ico.props["Icon"] == '"Comment"'
+        # Kun for rapportoeren og admins (som fanen Activity).
+        assert txt.props["Visible"] == ico.props["Visible"] == P.ROW_SEE_ACT
+        assert "ThisItem.Reporter = varIbMe" in P.ROW_SEE_ACT
+        # 0 er dempet.
+        assert 'If(Self.Text = "0"' in txt.props["Color"]
+    # Cellen selv skjules aldrig - ellers flytter kolonnerne sig.
+    assert "Visible" not in ctrls["conIbRowAct"].props
+    text = open(SCREEN, encoding="utf-8").read()
+    assert f"CountRows(Filter({cfg.L_COMMENTS}" not in text
+    assert "ACTIVITY" in text and '"FILES"' in text
+
+
+def test_counts_follow_a_posted_comment_and_an_opened_issue():
+    # Efter Post comment: een mere paa den sag, kommentaren hoerer til.
+    assert P.POST_ACT_N in P.POST
+    assert "TicketId = varIbPostFor" in P.POST_ACT_N and "+ 1" in P.POST_ACT_N
+    ok = P.POST.index('varIbPostRes.ok = "yes"')
+    failed = P.POST.index('Set(varIbPostStage, "failed")')
+    assert ok < P.POST.index(P.POST_ACT_N) < failed
+    # Naar sagens Activity hentes, er den facit (samme tal som fanen).
+    assert P.SET_ACT_N in P.LOAD_ACTIVITY
+    assert 'CountRows(Filter(colIbActivity, Kind <> "Reported"))' in P.SET_ACT_N
+    names = [n for n, _s in P.collections()]
+    assert "colIbActN" in names and "colIbActRaw" in names
+
+
+def test_columns_still_fit_the_smallest_desktop():
+    assert P._fixed(False) <= 806
+    keys = [c[0] for c in P.LIST_COLS]
+    assert keys[-2:] == ["ACTV", "ACT"]

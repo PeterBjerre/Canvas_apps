@@ -206,6 +206,7 @@ FLUENT = {
     "awaiting": "ErrorCircle",   # STATUS_AWAITING: ring med udraabstegn
     "rejected": "DismissCircle", # STATUS_REJECTED: ring med kryds
     "person": "Person",          # PERSON
+    "comment": "Comment",        # Activity-taelleren i Issue Board (issue #422)
     # "info" (ring med "i") og "search" (lup) staar ovenfor.
     # Domaeneikonerne (DOMAIN) har INTET Fluent-sidestykke - de er vores
     # egne, ens med sidebaren, og bliver Image-kontroller (docs/38).
