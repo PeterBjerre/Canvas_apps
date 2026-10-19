@@ -58,7 +58,7 @@ def test_named_controls_follow_view_mode():
     # Materialepopup'en: Add/Remove slaaet fra, raekkevalg skrivebeskyttet.
     for name in ("btnVhpAddMaterial", "btnVhpRemoveMaterial"):
         assert VIEW in c[name][1]["DisplayMode"] and "DisplayMode.Disabled" in c[name][1]["DisplayMode"], name
-    for name in ("chkVhpMatSel", "btnVhpPkgPillHit", "btnVhpOpPillHit", "btnVhpOpMPillHit", "btnVhpMgHit"):
+    for name in ("chkVhpMatSel", "btnVhpMgHit"):
         assert c[name][1]["DisplayMode"].strip() == f"=If({VIEW}, DisplayMode.View, DisplayMode.Edit)", name
     # Felterne i materialepopup'en laases af gen_screen.
     for name in ("inpVhpMatNo", "inpVhpMatQty"):
@@ -78,3 +78,24 @@ def test_view_and_read_actions_stay_open():
     c = _controls()
     for name in ("btnVhpOpMaterials", "btnVhpOpDocs", "btnVhpOpMMat", "btnVhpOpMDocs"):
         assert VIEW not in str(c[name][1].get("DisplayMode", "")), name
+
+
+PILLS = ("VhpPkg", "VhpOp", "VhpOpM")   # matricen, operationsraekken, popup'en
+
+
+def test_package_pills_are_inert_in_view():
+    """Issue #408: i View er pakke-pillerne kun et billede af det gemte
+    valg. Kliklaget er skjult og slaaet fra, saa et klik hverken skifter
+    pakken, koerer en formel eller tegner noget ekstra ved pillen."""
+    c = _controls()
+    for p in PILLS:
+        hit = c[f"btn{p}PillHit"][1]
+        assert hit["Visible"].strip() == f"=!{VIEW}", p
+        assert hit["DisplayMode"].strip() == f"=If({VIEW}, DisplayMode.Disabled, DisplayMode.Edit)", p
+        assert hit["OnSelect"].strip().startswith(f"=If(!{VIEW},"), p
+        # Pillen selv bliver staaende og viser det gemte valg - ogsaa for
+        # skaermlaeseren, nu hvor laget med teksten er vaek.
+        img = c[f"img{p}Pill"][1]
+        assert "Visible" not in img, p
+        assert "ThisItem.Sel" in img["Image"] and VIEW in img["AccessibleLabel"], p
+        assert not any(k in img for k in HANDLERS), p
