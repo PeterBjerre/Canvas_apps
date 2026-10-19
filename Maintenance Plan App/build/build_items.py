@@ -19,6 +19,7 @@ from build_plan_header import section_header, help_panel, section_footer, status
 from build_helpers import ensure_hit, popup_head
 import build_help as bh
 from fl_picker import fl_picker
+import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
 
@@ -94,6 +95,31 @@ OBJ_CANDIDATES = (
 # konkurrerende liste.
 OBJ_CHOSEN = "Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)"
 
+# KKS-BESKRIVELSEN TIL ET VALGT OBJEKT (issue #389).
+#
+# En gemt plan gemmer kun KKS-numrene (MaintenanceItems.ObjectList: "A; B"),
+# og hentningen (build_load.py) giver derfor objekterne en tom Description.
+# Beskrivelsen gemmes IKKE dobbelt - den slaas op i den samme kilde, som
+# Object list viste den fra ved oprettelsen: FL-flowets svar. Foerst det
+# aktuelle soegeresultat (colVhpFl), saa OBJ_DESC_CACHE, som Object list-
+# knappen fylder fra flowet for en genaabnet plans objekter
+# (FETCH_OBJ_DESC). Er beskrivelsen gemt i samlingen (oprettelse), vinder
+# den. Alt er lokale samlinger - intet delegeringsspoergsmaal.
+OBJ_DESC_CACHE = "colVhpObjDesc"
+OBJ_DESC_RAW = "varVhpObjDescRaw"
+
+
+def obj_desc_fx(code, stored):
+    """Beskrivelsen til objektet code: den gemte, ellers KKS-kildens."""
+    return (f"Coalesce({stored}, LookUp(colVhpFl, Code = {code}).Description, "
+            f"LookUp({OBJ_DESC_CACHE}, Code = {code}).Description, \"\")")
+
+
+def obj_label_fx(code, desc):
+    """Samme visning som ved oprettelsen: "KKS - beskrivelse"."""
+    return f'{code} & If(IsBlank({desc}), "", " - " & {desc})'
+
+
 # Object List-knappens tooltip (issue #63): de valgte objekter, een pr.
 # linje. Teksten under knappen er vaek - hover viser det samme, og
 # knappens tal siger, hvor mange der er valgt.
@@ -104,7 +130,8 @@ OBJ_TOOLTIP = (
     "    If(\n"
     "        n = 0, \"No sub-objects selected.\",\n"
     "        \"Selected:\" & Char(10) &\n"
-    f"            Concat(Sort({OBJ_CHOSEN}, Code), Code & \" - \" & Description, Char(10)) &\n"
+    f"            Concat(ForAll(Sort({OBJ_CHOSEN}, Code) As O,\n"
+    f"                {{ t: {obj_label_fx('O.Code', obj_desc_fx('O.Code', 'O.Description'))} }}), t, Char(10)) &\n"
     "            If(\n"
     "                fremmede > 0,\n"
     "                Char(10) & \"WARNING: \" & Text(fremmede) &\n"
@@ -125,7 +152,7 @@ OBJ_ROWS_FX = (
     f"    {{ c: ForAll({OBJ_CANDIDATES} As F, {{ Code: F.Code, Description: F.Description }}) }},\n"
     "    With(\n"
     f"        {{ x: ForAll(Filter({OBJ_CHOSEN}, !(Code in c.Code)) As O,\n"
-    "                    { Code: O.Code, Description: O.Description }) },\n"
+    f"                    {{ Code: O.Code, Description: {obj_desc_fx('O.Code', 'O.Description')} }}) }},\n"
     "        Sort(\n"
     "            ForAll(\n"
     "                Sequence(CountRows(c) + CountRows(x)),\n"
@@ -140,6 +167,43 @@ OBJ_ROWS_FX = (
 # saa kandidater under den, eller et valg, der skal kunne fjernes igen.
 OBJ_HAS_DATA = (f"!IsBlank({SEL_FL}) && "
                 f"(CountRows({OBJ_CANDIDATES}) > 0 || CountRows({OBJ_CHOSEN}) > 0)")
+
+# HENT DE MANGLENDE BESKRIVELSER (issue #389) - naar Object list aabnes paa
+# et item, hvis valgte objekter ingen beskrivelse har (en genaabnet plan).
+# Den laeser kladden, som knappen lige har fyldt med itemets valgte objekter
+# (colVhpObjDraft) - det er dem, popup'en viser som valgt.
+# EET kald til FL-flowet med itemets Functional Location - det samme kald,
+# som Search laver ved oprettelsen, og som returnerer FL'en og alt under
+# den. Svaret laegges i OBJ_DESC_CACHE, ikke i colVhpFl: comboboksen,
+# kandidaterne og valget er uaendrede. colVhpItemObjects roeres heller
+# ikke, saa planen bliver ikke "aendret" af at blive vist. Hver manglende
+# kode faar en raekke (tom, hvis flowet ikke kender den), saa samme item
+# ikke kalder flowet igen. Fejler kaldet, staar koderne alene som foer.
+FETCH_OBJ_DESC = (
+    "With(\n"
+    f"    {{ fl: Upper(Trim({SEL_FL})),\n"
+    f"      miss: Filter(colVhpObjDraft, IsBlank(Description) && !(Code in {OBJ_DESC_CACHE}.Code) &&\n"
+    "                 !(Code in colVhpFl.Code)) },\n"
+    "    If(\n"
+    "        !IsBlank(fl) && CountRows(miss) > 0,\n"
+    "        IfError(\n"
+    f"            Set({OBJ_DESC_RAW}, {flsearch.FLOW_NAME}.Run(fl));\n"
+    "            With(\n"
+    "                { found: ForAll(\n"
+    f"                    Table(ParseJSON(Coalesce({OBJ_DESC_RAW}.{flsearch.FLOW_OUTPUT}, \"[]\"))) As R,\n"
+    f"                    {{ Code: Text(R.Value.{flsearch.JSON_CODE_FIELD}), "
+    f"Description: Text(R.Value.{flsearch.JSON_DESC_FIELD}) }}) }},\n"
+    "                Collect(\n"
+    f"                    {OBJ_DESC_CACHE},\n"
+    "                    ForAll(miss As O,\n"
+    "                        { Code: O.Code, Description: Coalesce(LookUp(found, Code = O.Code).Description, \"\") })\n"
+    "                )\n"
+    "            ),\n"
+    "            Notify(\"Could not load the object descriptions.\", NotificationType.Warning)\n"
+    "        )\n"
+    "    )\n"
+    ")"
+)
 
 # FL-vaelgerens tilstand - samme konstruktion som Equipments og Materials
 # (tools/fl_picker.py). search_action saetter FL_BUSY_VAR false igen ad
@@ -589,7 +653,10 @@ def _obj_list_button(n_obj):
             "    colVhpObjDraft,\n"
             f"    ForAll({OBJ_CHOSEN} As O, {{ Code: O.Code, Description: O.Description }})\n"
             ");\n"
-            "Set(varVhpObjListOpen, true)"
+            "Set(varVhpObjListOpen, true);\n"
+            # Popup'en aabner med det samme; beskrivelserne kommer, naar
+            # flowet svarer (issue #389).
+            + FETCH_OBJ_DESC
         ),
         "PressedFill": C_MUTED_BG,
         "TabIndex": "0",
