@@ -336,6 +336,17 @@ DOCS_EDIT = ('(!IsBlank(varDomDocsId) && !IfError(varDomViewOnly, false) && '
              'LookUp(colDomRows, RowId = varDomDocsId).Status <> "submitted")')
 # Luk dokumentpopuppen: glem de valgte filer og omgangens svar.
 DOCS_CLOSE = "Set(varDomDocsId, Blank());\n" + att.close_fx()
+
+
+def docs_cleanup_fx():
+    """Glem dokumentrudens raekke, naar sidepanelet lukkes, eller der
+    skiftes raekke (issue #393). Uden den blev varDomDocsId staaende efter
+    Materials Documents-fane, og alt, der hang paa den (sloeret), blev
+    staaende med. Ikke midt i en gemning - den skal have sin raekke.
+    Tom uden sidepanel eller dokumenter: dér lukker popuppen sig selv."""
+    if not (DOCS and getattr(cfg, "ROW_PANEL_ENABLED", False)):
+        return ""
+    return f"If(!{att.busy}, {DOCS_CLOSE.replace(chr(10), ' ')})"
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 # Ordet for anmodningen i Edit/Delete: "equipment request" / "material request".
 WHAT = f"{cfg.DOMAIN.lower()} request"
@@ -867,6 +878,8 @@ def clear_form_fx():
         lines.append('Set(varDomEditorOpen, false);')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
+    if docs_cleanup_fx():
+        lines.append(docs_cleanup_fx() + ";")
     for col, _lab, kind, _ch in FIELDS:
         # Appens standardvaerdi, hvor der er en (HOOKS["field_defaults"]).
         lines.append(f"Set({_var(col)}, {HOOKS['field_defaults'].get(col, _blank(kind))});")
@@ -972,6 +985,9 @@ def load_row_fx():
         lines.append('Set(varDomEditorOpen, true);')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
         lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
+    # En anden raekke: den forrige raekkes dokumenter lukkes (issue #393).
+    if docs_cleanup_fx():
+        lines.append(docs_cleanup_fx() + ";")
     for col, _lab, _kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     if getattr(cfg, "FL_FIELD", None):

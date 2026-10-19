@@ -4,7 +4,8 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnHidden: |-
-          =Set(varMatEditorOpen, false)
+          =Set(varMatEditorOpen, false);
+          If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()))
       OnVisible: |-
           =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
@@ -628,6 +629,7 @@ Screens:
                                   Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                   Set(varMatEditorOpen, false);
                                   Set(varMatEditorTab, "Details");
+                                  If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                   Set(varMatFManufacturer, "");
                                   Set(varMatFModelNumber, "");
                                   Set(varMatFManufacturerPartNo, "");
@@ -844,6 +846,7 @@ Screens:
                                           Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                           Set(varMatEditorOpen, false);
                                           Set(varMatEditorTab, "Details");
+                                          If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                           Set(varMatFManufacturer, "");
                                           Set(varMatFModelNumber, "");
                                           Set(varMatFManufacturerPartNo, "");
@@ -1918,6 +1921,7 @@ Screens:
                                         Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                         Set(varMatEditorOpen, false);
                                         Set(varMatEditorTab, "Details");
+                                        If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                         Set(varMatFManufacturer, "");
                                         Set(varMatFModelNumber, "");
                                         Set(varMatFManufacturerPartNo, "");
@@ -2287,6 +2291,7 @@ Screens:
                                         Set(varMatFPlant, ThisItem.Plant);
                                         Set(varMatEditorOpen, true);
                                         Set(varMatEditorTab, "Details");
+                                        If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                         Set(varMatFManufacturer, ThisItem.Manufacturer);
                                         Set(varMatFModelNumber, ThisItem.ModelNumber);
                                         Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -2546,6 +2551,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -2625,6 +2631,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -2702,6 +2709,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -2785,6 +2793,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -3147,6 +3156,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -3226,6 +3236,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -3303,6 +3314,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -3386,6 +3398,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -3795,6 +3808,7 @@ Screens:
                                         Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                         Set(varMatEditorOpen, false);
                                         Set(varMatEditorTab, "Details");
+                                        If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                         Set(varMatFManufacturer, "");
                                         Set(varMatFModelNumber, "");
                                         Set(varMatFManufacturerPartNo, "");
@@ -4056,6 +4070,7 @@ Screens:
                                               Set(varMatFPlant, ThisItem.Plant);
                                               Set(varMatEditorOpen, true);
                                               Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                               Set(varMatFManufacturer, ThisItem.Manufacturer);
                                               Set(varMatFModelNumber, ThisItem.ModelNumber);
                                               Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
@@ -5420,43 +5435,6 @@ Screens:
                       =Max(0, ((App.Width + 2) - 16) - ((56) + 6) - ((32) + 6) - 2)
                   Wrap: |-
                       =false
-      - conMatBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank());
-                Reset(attMatPicker);
-                Set(varMatAttRow, Blank())))
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =If(LayoutRank < 2, 0, -1)
-            Visible: |-
-                =!IsBlank(varMatDocsId)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
       - imgMatNavScrim:
           Control: Image
           Properties:
@@ -7594,6 +7572,7 @@ Screens:
                 Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                 Set(varMatEditorOpen, false);
                 Set(varMatEditorTab, "Details");
+                If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                 Set(varMatFManufacturer, "");
                 Set(varMatFModelNumber, "");
                 Set(varMatFManufacturerPartNo, "");
@@ -7659,6 +7638,7 @@ Screens:
                 Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                 Set(varMatEditorOpen, false);
                 Set(varMatEditorTab, "Details");
+                If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                 Set(varMatFManufacturer, "");
                 Set(varMatFModelNumber, "");
                 Set(varMatFManufacturerPartNo, "");
@@ -7907,6 +7887,7 @@ Screens:
                             Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
                             Set(varMatEditorOpen, true);
                             Set(varMatEditorTab, "Details");
+                            If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                             Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
                             Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
                             Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
@@ -8069,6 +8050,7 @@ Screens:
                             Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
                             Set(varMatEditorOpen, true);
                             Set(varMatEditorTab, "Details");
+                            If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                             Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
                             Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
                             Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
@@ -8179,6 +8161,7 @@ Screens:
                             Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                             Set(varMatEditorOpen, false);
                             Set(varMatEditorTab, "Details");
+                            If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                             Set(varMatFManufacturer, "");
                             Set(varMatFModelNumber, "");
                             Set(varMatFManufacturerPartNo, "");
@@ -14487,6 +14470,7 @@ Screens:
                                       Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                       Set(varMatEditorOpen, false);
                                       Set(varMatEditorTab, "Details");
+                                      If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                       Set(varMatFManufacturer, "");
                                       Set(varMatFModelNumber, "");
                                       Set(varMatFManufacturerPartNo, "");
@@ -14596,6 +14580,7 @@ Screens:
                                   Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                   Set(varMatEditorOpen, false);
                                   Set(varMatEditorTab, "Details");
+                                  If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                   Set(varMatFManufacturer, "");
                                   Set(varMatFModelNumber, "");
                                   Set(varMatFManufacturerPartNo, "");
@@ -15842,6 +15827,7 @@ Screens:
                             Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                             Set(varMatEditorOpen, false);
                             Set(varMatEditorTab, "Details");
+                            If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                             Set(varMatFManufacturer, "");
                             Set(varMatFModelNumber, "");
                             Set(varMatFManufacturerPartNo, "");
@@ -16923,6 +16909,7 @@ Screens:
                                         Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                                         Set(varMatEditorOpen, false);
                                         Set(varMatEditorTab, "Details");
+                                        If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                         Set(varMatFManufacturer, "");
                                         Set(varMatFModelNumber, "");
                                         Set(varMatFManufacturerPartNo, "");
@@ -18154,6 +18141,7 @@ Screens:
                             Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
                             Set(varMatEditorOpen, false);
                             Set(varMatEditorTab, "Details");
+                            If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                             Set(varMatFManufacturer, "");
                             Set(varMatFModelNumber, "");
                             Set(varMatFManufacturerPartNo, "");
