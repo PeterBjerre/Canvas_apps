@@ -138,27 +138,31 @@ def limits_text(name, max_files, max_mb, extra="", visible=None):
 
 
 SAVE_TEXT = '"Save documents"'
+# Mens der gemmes, siger knappen det selv (issue #441) - samme moenster
+# som appens andre knapper (build_helpers.act_button). Foer stod en linje
+# "Saving documents... please wait." under knappen OGSAA.
+SAVING_TEXT = '"Saving..."'
 
 
 def save_button(name, pane, onselect=None, base_mode="DisplayMode.Edit", visible=None):
     """Den ene gem-handling: Patch af raekkens Attachments
     (attflows.save_fx). Spaerret, mens kontrollen laeser filerne ind
     (IsUploading), og mens der gemmes - saa et dobbelt-tryk ikke gemmer
-    to gange. Er raekken ikke gemt, siger knappen det (not_saved)."""
-    b = button(name, SAVE_TEXT, onselect or pane.save_fx(), primary=True,
+    to gange. Er raekken ikke gemt, siger knappen det (not_saved).
+
+    Mens der gemmes, siger knappen "Saving..." - gemmets ENESTE
+    ventetegn (issue #441). "Save documents" er den laengste tekst, saa
+    bredden staar fast."""
+    assert fit_button_width(SAVING_TEXT) <= fit_button_width(SAVE_TEXT)
+    b = button(name, f"If({pane.busy}, {SAVING_TEXT}, {SAVE_TEXT})",
+               onselect or pane.save_fx(), primary=True,
                width=fit_button_width(SAVE_TEXT) + ICON_W, height=36, icon="Save",
-               accessible='"Save the documents on this row"', visible=visible,
+               accessible=f'If({pane.busy}, {SAVING_TEXT}, "Save the documents on this row")',
+               visible=visible,
                display_mode=(f"If({pane.busy} || {pane.picker}.IsUploading, "
                              f"DisplayMode.Disabled, {base_mode})"))
     b.props["LayoutMinWidth"] = b.props["Width"]
     return b
-
-
-def status_text(name, pane, visible=None):
-    """Mens der gemmes - i ord."""
-    vis = pane.status_visible() if visible is None else f"({visible}) && {pane.status_visible()}"
-    return text_ctrl(name, pane.status_fx(), size=lay.SIZE_SMALL, color=C_MUTED,
-                     height=18, wrap="true", visible=vis, accessible=pane.status_fx())
 
 
 def not_saved_text(name, pane, visible=None):

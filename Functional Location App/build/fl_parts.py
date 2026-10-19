@@ -198,8 +198,11 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
-    # Hjulet og "Saved"/"Save failed" lige foran Save draft (issue #420).
-    status = act_status("FlAct", ACT, ("save", "submit"))
+    # "Saved"/"Save failed" lige foran Save draft (issue #420). Mens der
+    # gemmes, siger knappen det selv (#441) - kun under Desktop, hvor
+    # knapperne er deres ikon alene (_bar_btn), staar hjulet ved dem.
+    status = act_status("FlAct", ACT, ("save", "submit"),
+                        spin={"save": NARROW, "submit": NARROW if ICON_SUBMIT else None})
     actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit, *status])
     # Ingen bundbjaelke paa FL (issue #392): Save draft og Submit staar i
     # headeren paa alle skaermbredder.

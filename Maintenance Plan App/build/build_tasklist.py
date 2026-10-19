@@ -615,13 +615,12 @@ def _attachments_modal():
     actions = group("conVhpAttActions", [btnSave],
                     direction="Horizontal", gap=8, height=36, justify="End",
                     align_items="Center", visible=edit)
-    status = du.status_text("txtVhpAttStatus", att)
     ro = du.readonly_note("txtVhpAttReadOnly", f"!{edit}")
 
     # Popuppen: 20 + 20 luft til skaermkanten, 18 + 18 polstring, hovedet
     # (HEAD_H) og afstanden (12) - resten er indholdet.
     body = du.capped_body("conVhpAttBody",
-                          [pick, limits, not_saved, actions, status, ro],
+                          [pick, limits, not_saved, actions, ro],
                           f"App.Height - 40 - 36 - {HEAD_H} - 12")
     # Kontrollen fylder den plads, popuppen har tilbage (issue #344).
     du.fit_picker(pick, body.children, 12)

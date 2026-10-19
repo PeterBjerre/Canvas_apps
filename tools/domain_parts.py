@@ -57,7 +57,7 @@ from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_h
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, top_bar, grow, flow_ok,
                            flow_row, label_px, text_px,
-                           act_fx, act_mark, act_button, act_status, act_layers,
+                           act_fx, act_mark, act_button, act_status, act_layers, icon_only_when,
                            confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
                            request_actions, row_list)
@@ -540,11 +540,15 @@ def build_bar():
     sized(dup, True)
     dup.props["Width"] = f"If({below('Tablet')}, 40, {dup.props['Width']})"
     dup.props["Layout"] = f"If({below('Tablet')}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
-    # Hjulet og "Saved"/"Save failed" lige foran Save draft (issue #420) -
-    # fra Desktop; under Desktop staar de i bundbjaelken (ACT_FOOT).
+    # "Saved"/"Save failed" lige foran Save draft (issue #420) - fra
+    # Desktop; under Desktop staar de i bundbjaelken (ACT_FOOT). Mens der
+    # gemmes, siger knappen det selv - intet hjul ved siden af (#441).
+    # Kun Duplicate er sit ikon alene paa en telefon: dér staar hjulet i
+    # bundbjaelken, mens den koerer.
     status = act_status("DomAct", ACT_VAR, ("save", "submit", "duplicate"),
                         visible=at_least("Desktop"))
-    ACT_FOOT[:] = act_status("DomFootAct", ACT_VAR, ("save", "submit", "duplicate"))
+    ACT_FOOT[:] = act_status("DomFootAct", ACT_VAR, ("save", "submit", "duplicate"),
+                             spin={"duplicate": icon_only_when(dup)})
     actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
                               extra=[edit, dup, *status])
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
@@ -1420,7 +1424,6 @@ def build_attachments():
     save = du.save_button("btnDomAttUpload", att, visible=edit)
     actions = group("conDomAttActions", [save], direction="Horizontal", gap=8,
                     height=36, justify="End", align_items="Center", visible=edit)
-    status = du.status_text("txtDomAttStatus", att)
     ro = du.readonly_note("txtDomAttReadOnly", f"!IsBlank(varDomDocsId) && !{edit}")
 
     title = grow(text_ctrl(
@@ -1432,7 +1435,7 @@ def build_attachments():
                       mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
     # Popuppen: 18 + 18 luft, hovedet og afstanden - resten er indholdet.
     body = du.capped_body("conDomAttBody",
-                          [pick, limits, actions, status, ro],
+                          [pick, limits, actions, ro],
                           f"App.Height - 40 - 36 - {head.h} - 14")
     # Kontrollen fylder den plads, popuppen har tilbage (issue #344).
     du.fit_picker(pick, body.children, 12)
@@ -3043,8 +3046,8 @@ def build_paste():
     add = button("btnDomPasteAdd", add_txt, act_fx(ACT_VAR, "add", _paste_add_fx()), primary=True,
                  icon="Add", width=fit_button_width('"Add 00 rows"') + ICON_W, height=36,
                  display_mode=f"If({ok_n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
-    # "Adding..." i knappen og hjulet ved den; popuppen lukker, naar
-    # raekkerne er tilfoejet - ellers staar "Add failed" her (issue #420).
+    # "Adding..." i knappen (eet ventetegn, issue #441); popuppen lukker,
+    # naar raekkerne er tilfoejet - ellers staar "Add failed" her (#420).
     act_button(add, ACT_VAR, "add")
     status = act_status("DomPasteAct", ACT_VAR, ("add",))
     footer = group("conDomPasteFooter", [preview, *status, add], direction="Horizontal", gap=8,

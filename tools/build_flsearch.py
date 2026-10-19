@@ -180,8 +180,13 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         + (f"        Set({last_var}, q);\n" if last_var else "")
         + f"        Clear({target_collection});\n"
         + (f"        {on_start};\n" if on_start else "")
-        + f"        Set({msg_var}, \"Searching for \" & Upper(q) & \" ...\");\n"
-        f"        IfError(\n"
+        # Med busy_var staar hjulet med "Searching..." i Search-knappens
+        # plads (fl_picker.busy_box) - det er soegningens ENESTE ventetegn
+        # (issue #441). Beskeden under feltet toemmes saa bare; uden
+        # busy_var er den stadig det, der siger, at der soeges.
+        + (f"        Set({msg_var}, \"\");\n" if busy_var else
+           f"        Set({msg_var}, \"Searching for \" & Upper(q) & \" ...\");\n")
+        + f"        IfError(\n"
         f"            Set({raw_var}, {flow_name}.Run({run_arg}));\n"
         f"            If(\n"
         f"                IsBlank({raw_var}) || IsBlank({raw_var}.{flow_output}),\n"

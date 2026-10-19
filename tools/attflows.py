@@ -170,12 +170,6 @@ class Pane(object):
         """Luk: glem de valgte, ikke gemte aendringer og raekken."""
         return f"Reset({self.picker});\nSet({self.row_var}, Blank())"
 
-    def status_fx(self):
-        return f'If({self.busy}, "Saving documents... please wait.", "")'
-
-    def status_visible(self):
-        return self.busy
-
 
 class DomainPane(Pane):
     """Equipment og Material. Ruden haenger paa den raekke, POPUPPEN er

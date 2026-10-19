@@ -369,6 +369,8 @@ AFTER_LINE = (
 )
 # Det foerste krav staar paa linjen - specifikt og uden hover. Info-ikonet
 # ved siden af aabner hele listen, grupperet (missing_modal).
+# Mens der gemmes, siger Save draft/Submit selv "Saving..."/"Submitting..."
+# - linjen sagde "Saving ..." OGSAA, og det er nu vaek (issue #441).
 READINESS = with_dirty(
     "If(\n"
     "    VhpSubmitted,\n"
@@ -380,8 +382,6 @@ READINESS = with_dirty(
     '    "View only - this plan has not been submitted.",\n'
     f"    {CAN_SUBMIT},\n"
     '    "Ready to submit.",\n'
-    '    varVhpSaving,\n'
-    '    "Saving ...",\n'
     f'    Mid(First({ALL_MISSING}).Value, {len(BULLET) + 1})\n'
     ")")
 # Planen er ikke indsendt og staar i Edit mode: kravene giver mening, og

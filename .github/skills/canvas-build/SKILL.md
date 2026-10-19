@@ -513,6 +513,7 @@ layoutfejl bor:
 | 16t | Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303) |
 | 16c | Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302) |
 | 16f | Ingen bjaelke midt paa skaermen - tilstanden staar i knappen (issue #420) |
+| 16g | Eet ventetegn pr. handling - i knappen, der startede den (issue #441) |
 | 16k | Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 16i | Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306) |
