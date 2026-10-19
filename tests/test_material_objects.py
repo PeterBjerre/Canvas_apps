@@ -235,18 +235,18 @@ def test_purchase_order_text_is_remarks_in_a_popup_with_close_only():
     assert "varMatPoOpen" not in _prop("conMatPoBackdrop", "OnSelect")
 
 
-def test_reset_clears_only_the_form_and_asks_when_something_would_be_lost():
+def test_reset_restores_only_the_form_and_does_not_ask():
+    """Reset kasserer kun formularens ugemte aendringer og spoerger ikke
+    (issue #403, #405)."""
     reset = _prop("btnMatNew", "OnSelect")
     assert _prop("btnMatNew", "Text") == '"Reset"'
-    assert "Set(varMatResetAsk, true)" in reset
-    assert "Set(varMatActiveRowId, Blank());" in reset
+    assert "ResetAsk" not in reset
+    assert "Set(varMatEditorOpen, true)" in reset
     # Saved Rows og anmodningen roeres ikke.
     for untouched in ("MaterialItems", "Remove(", "ClearCollect(colMatRows",
                       "RemoveIf(colMatRows", "varMatRequestGuid", "varMatRequestNo",
                       "MD_RequestIndex"):
         assert untouched not in reset, untouched
-    confirm = _prop("btnMatResetConfirm", "OnSelect")
-    assert "MaterialItems" not in confirm and "varMatRequestGuid" not in confirm
 
 
 def test_created_material_no_is_filled_in_details_not_in_the_form():
