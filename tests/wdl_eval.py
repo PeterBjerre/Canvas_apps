@@ -78,6 +78,8 @@ FUNCS = {
     "or": lambda *a: any(a),
     "contains": lambda c, x: x in (c or ()),
     "string": lambda x: _str(x),
+    # FL-kvitteringsflowet (docs/36): SapMessage hoejst 255 tegn.
+    "take": lambda x, n: x[:n],
 }
 
 
@@ -204,7 +206,7 @@ class _Parser:
             flat = {"body/" + k: v for k, v in (body or {}).items()} \
                 if isinstance(body, dict) else {}
             return dict(flat, headers=self.ctx.headers, body=body)
-        if name in ("outputs", "body"):
+        if name in ("outputs", "body", "items"):
             return self.ctx.outputs[args[0]]
         if name == "item":
             return self.ctx.item

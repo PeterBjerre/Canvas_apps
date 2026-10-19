@@ -45,10 +45,20 @@ def _index_patches():
             if not isinstance(inputs, dict):
                 continue
             p = inputs.get("parameters", {})
-            if (inputs.get("host", {}).get("operationId") == "PatchItem"
-                    and "MD_RequestIndex" in str(p.get("table"))):
+            op = inputs.get("host", {}).get("operationId")
+            if op == "PatchItem" and "MD_RequestIndex" in str(p.get("table")):
                 out.append((flow, name, p))
+            elif (op == "HttpRequest"
+                    and "GetByTitle('MD_RequestIndex')" in str(p.get("parameters/uri"))):
+                # FL-kvitteringsflowet (docs/36) skriver med REST MERGE.
+                body = json.loads(p["parameters/body"])
+                out.append((flow, name, {"item/" + k: v for k, v in body.items()}))
     return out
+
+
+def test_fl_receipt_flow_index_merges_are_checked():
+    names = {n for f, n, _p in _index_patches() if f.startswith("BioSap-FL-SapReceipt-")}
+    assert names == {"Set_index_row", "Set_index_row_partial"}
 
 
 def _status(p):

@@ -1,0 +1,645 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-List-FunctionalLocationRequests (orsted_BioSapListFunctionalLocationRequests)": {
+          "defaultValue": "3df6f8b1-1fab-4ddc-99fd-295f87ca88d6",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListFunctionalLocationRequests"
+          }
+        },
+        "BioSap-List-FunctionalLocationItems (orsted_BioSapListFunctionalLocationItems)": {
+          "defaultValue": "3157be92-5364-43a0-8dcf-38c377bad6fc",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListFunctionalLocationItems"
+          }
+        },
+        "BioSap-SapSystem (orsted_BioSapSapSystem)": {
+          "defaultValue": "GQ1",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSapSystem"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "pkbje@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        },
+        "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)": {
+          "defaultValue": "sapvedligehold@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapMasterDataEmail"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 10
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "actions": {
+            "Get_files_(properties_only)": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileItems",
+                  "connectionName": "shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "f73be489-5b0f-4b2b-a4c7-20c56c446a42",
+                  "folderPath": "/SAP-oprettelse/Kvitteringer/FL",
+                  "viewScopeOption": "Default",
+                  "$top": 5000
+                }
+              }
+            },
+            "Receipt_files": {
+              "runAfter": {
+                "Get_files_(properties_only)": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('Get_files_(properties_only)')?['value']",
+                "where": "@and(equals(item()?['{IsFolder}'], false), contains(toLower(item()?['{FilenameWithExtension}']), '.kvittering'), endsWith(toLower(item()?['{FilenameWithExtension}']), '.json'))"
+              }
+            },
+            "Each_receipt": {
+              "foreach": "@body('Receipt_files')",
+              "actions": {
+                "Handle_receipt": {
+                  "actions": {
+                    "Get_receipt_content": {
+                      "runAfter": {},
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetFileContent",
+                          "connectionName": "shared_sharepointonline"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "id": "@items('Each_receipt')?['{Identifier}']"
+                        }
+                      }
+                    },
+                    "Receipt": {
+                      "runAfter": {
+                        "Get_receipt_content": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": "@json(if(empty(body('Get_receipt_content')?['$content']), string(body('Get_receipt_content')), base64ToString(body('Get_receipt_content')?['$content'])))"
+                    },
+                    "Get_request": {
+                      "runAfter": {
+                        "Receipt": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetItem",
+                          "connectionName": "shared_sharepointonline"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "@parameters('BioSap-List-FunctionalLocationRequests (orsted_BioSapListFunctionalLocationRequests)')",
+                          "id": "@outputs('Receipt')?['requestSpId']"
+                        }
+                      }
+                    },
+                    "Valid_receipt": {
+                      "actions": {
+                        "Each_row": {
+                          "foreach": "@outputs('Receipt')?['rows']",
+                          "actions": {
+                            "Set_row_result": {
+                              "runAfter": {},
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "HttpRequest",
+                                  "connectionName": "shared_sharepointonline"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "parameters/method": "POST",
+                                  "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-FunctionalLocationItems (orsted_BioSapListFunctionalLocationItems)')}')/items(@{items('Each_row')?['spId']})",
+                                  "parameters/headers": {
+                                    "Accept": "application/json;odata=nometadata",
+                                    "Content-Type": "application/json;odata=nometadata",
+                                    "IF-MATCH": "*",
+                                    "X-HTTP-Method": "MERGE"
+                                  },
+                                  "parameters/body": "{\"SapResult\":\"@{if(equals(items('Each_row')?['done'], true), items('Each_row')?['result'], 'Failed')}\",\"SapMessage\":\"@{replace(replace(replace(replace(replace(take(trim(string(coalesce(if(equals(items('Each_row')?['done'], true), items('Each_row')?['sapMessage'], items('Each_row')?['lastError']), ''))), 255), '\\', '\\\\'), '\"', '\\\"'), decodeUriComponent('%0D'), ''), decodeUriComponent('%0A'), ' '), decodeUriComponent('%09'), ' ')}\"}"
+                                }
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "type": "Foreach"
+                        },
+                        "Is_created": {
+                          "actions": {
+                            "Has_index_row": {
+                              "actions": {
+                                "Set_index_row": {
+                                  "runAfter": {},
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "operationId": "HttpRequest",
+                                      "connectionName": "shared_sharepointonline"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "parameters/method": "POST",
+                                      "parameters/uri": "_api/web/lists/GetByTitle('MD_RequestIndex')/items(@{body('Get_request')?['IndexItemId']})",
+                                      "parameters/headers": {
+                                        "Accept": "application/json;odata=nometadata",
+                                        "Content-Type": "application/json;odata=nometadata",
+                                        "IF-MATCH": "*",
+                                        "X-HTTP-Method": "MERGE"
+                                      },
+                                      "parameters/body": "{\"Status\":\"OprettetISAP\",\"StatusStep\":5,\"IsOpen\":false,\"SapObjectNo\":\"@{length(outputs('Receipt')?['rows'])} FL\",\"LastActionOn\":\"@{utcNow()}\",\"LastActionBy\":\"@{outputs('Receipt')?['lockedBy']}\"}"
+                                    }
+                                  }
+                                }
+                              },
+                              "runAfter": {},
+                              "expression": {
+                                "equals": [
+                                  "@not(empty(body('Get_request')?['IndexItemId']))",
+                                  true
+                                ]
+                              },
+                              "type": "If"
+                            },
+                            "Set_request_created": {
+                              "runAfter": {
+                                "Has_index_row": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "HttpRequest",
+                                  "connectionName": "shared_sharepointonline"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "parameters/method": "POST",
+                                  "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-FunctionalLocationRequests (orsted_BioSapListFunctionalLocationRequests)')}')/items(@{outputs('Receipt')?['requestSpId']})",
+                                  "parameters/headers": {
+                                    "Accept": "application/json;odata=nometadata",
+                                    "Content-Type": "application/json;odata=nometadata",
+                                    "IF-MATCH": "*",
+                                    "X-HTTP-Method": "MERGE"
+                                  },
+                                  "parameters/body": "{\"Status\":\"OprettetISAP\",\"SapCreatedOn\":\"@{utcNow()}\",\"SapCreatedBy\":\"@{outputs('Receipt')?['lockedBy']}\"}"
+                                }
+                              }
+                            },
+                            "Move_file_to_Behandlet": {
+                              "runAfter": {
+                                "Set_request_created": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "MoveFileAsync",
+                                  "connectionName": "shared_sharepointonline"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                                  "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/FL/Behandlet",
+                                  "parameters/nameConflictBehavior": 2
+                                }
+                              }
+                            },
+                            "Mail_rows": {
+                              "runAfter": {
+                                "Move_file_to_Behandlet": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "Select",
+                              "inputs": {
+                                "from": "@outputs('Receipt')?['rows']",
+                                "select": "@concat('<tr><td style=\"padding:4px 8px;font-family:Consolas,monospace;white-space:nowrap;\">', item()?['functionalLocation'], '</td><td style=\"padding:4px 8px;\">', if(equals(item()?['result'], 'Updated'), 'changed', 'created'), '</td></tr>')"
+                              }
+                            },
+                            "Send_requester_email": {
+                              "runAfter": {
+                                "Mail_rows": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                  "operationId": "SendEmailV2",
+                                  "connectionName": "shared_office365"
+                                },
+                                "parameters": {
+                                  "emailMessage/To": "@body('Get_request')?['RequesterEmail']",
+                                  "emailMessage/Subject": "Functional location request @{outputs('Receipt')?['requestNo']} created in SAP",
+                                  "emailMessage/Body": "<p style=\"font-family:Segoe UI,Arial,sans-serif;\">Your functional location request @{outputs('Receipt')?['requestNo']} has been processed in SAP. These functional locations were created or changed:</p><table>@{join(body('Mail_rows'), '')}</table>",
+                                  "emailMessage/Importance": "Normal"
+                                }
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "Each_row": [
+                              "Succeeded"
+                            ]
+                          },
+                          "else": {
+                            "actions": {
+                              "Has_index_row_partial": {
+                                "actions": {
+                                  "Set_index_row_partial": {
+                                    "runAfter": {},
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "operationId": "HttpRequest",
+                                        "connectionName": "shared_sharepointonline"
+                                      },
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "parameters/method": "POST",
+                                        "parameters/uri": "_api/web/lists/GetByTitle('MD_RequestIndex')/items(@{body('Get_request')?['IndexItemId']})",
+                                        "parameters/headers": {
+                                          "Accept": "application/json;odata=nometadata",
+                                          "Content-Type": "application/json;odata=nometadata",
+                                          "IF-MATCH": "*",
+                                          "X-HTTP-Method": "MERGE"
+                                        },
+                                        "parameters/body": "{\"Status\":\"UnderBehandling\",\"StatusStep\":3,\"IsOpen\":true,\"LastActionOn\":\"@{utcNow()}\",\"LastActionBy\":\"@{outputs('Receipt')?['lockedBy']}\"}"
+                                      }
+                                    }
+                                  }
+                                },
+                                "runAfter": {},
+                                "expression": {
+                                  "equals": [
+                                    "@not(empty(body('Get_request')?['IndexItemId']))",
+                                    true
+                                  ]
+                                },
+                                "type": "If"
+                              },
+                              "Set_request_in_progress": {
+                                "runAfter": {
+                                  "Has_index_row_partial": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "operationId": "HttpRequest",
+                                    "connectionName": "shared_sharepointonline"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "parameters/method": "POST",
+                                    "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-FunctionalLocationRequests (orsted_BioSapListFunctionalLocationRequests)')}')/items(@{outputs('Receipt')?['requestSpId']})",
+                                    "parameters/headers": {
+                                      "Accept": "application/json;odata=nometadata",
+                                      "Content-Type": "application/json;odata=nometadata",
+                                      "IF-MATCH": "*",
+                                      "X-HTTP-Method": "MERGE"
+                                    },
+                                    "parameters/body": "{\"Status\":\"UnderBehandling\"}"
+                                  }
+                                }
+                              },
+                              "Move_partial_file_to_Behandlet": {
+                                "runAfter": {
+                                  "Set_request_in_progress": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "operationId": "MoveFileAsync",
+                                    "connectionName": "shared_sharepointonline"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                                    "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/FL/Behandlet",
+                                    "parameters/nameConflictBehavior": 2
+                                  }
+                                }
+                              },
+                              "Failed_rows": {
+                                "runAfter": {
+                                  "Move_partial_file_to_Behandlet": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "type": "Query",
+                                "inputs": {
+                                  "from": "@outputs('Receipt')?['rows']",
+                                  "where": "@not(equals(item()?['done'], true))"
+                                }
+                              },
+                              "Failed_mail_rows": {
+                                "runAfter": {
+                                  "Failed_rows": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "type": "Select",
+                                "inputs": {
+                                  "from": "@body('Failed_rows')",
+                                  "select": "@concat('<tr><td style=\"padding:4px 8px;font-family:Consolas,monospace;white-space:nowrap;\">', replace(replace(replace(string(coalesce(item()?['functionalLocation'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '</td><td style=\"padding:4px 8px;\">', replace(replace(replace(string(coalesce(item()?['lastError'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '</td></tr>')"
+                                }
+                              },
+                              "Send_partial_notification": {
+                                "runAfter": {
+                                  "Failed_mail_rows": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                    "operationId": "SendEmailV2",
+                                    "connectionName": "shared_office365"
+                                  },
+                                  "parameters": {
+                                    "emailMessage/To": "@parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')",
+                                    "emailMessage/Subject": "FL request @{outputs('Receipt')?['requestNo']} partly created in SAP",
+                                    "emailMessage/Body": "<p style=\"font-family:Segoe UI,Arial,sans-serif;\">The SAP creator saved some of the functional locations in FL request @{outputs('Receipt')?['requestNo']}, but the rows below failed. The saved rows have their result in SharePoint, the failed rows have SapResult = Failed and the error in SapMessage. The request stays in progress. Fix the cause and run the request again in the SAP creator workbook; the requester gets a mail when all rows are created.</p><table style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;border-collapse:collapse;\"><tr><th style=\"padding:4px 8px;text-align:left;\">Functional location</th><th style=\"padding:4px 8px;text-align:left;\">Error</th></tr>@{join(body('Failed_mail_rows'), '')}</table><p style=\"font-family:Segoe UI,Arial,sans-serif;\">Run history: @{variables('FlowRunHistoryLink')}</p>",
+                                    "emailMessage/Importance": "Normal"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "expression": {
+                            "equals": [
+                              "@equals(outputs('Receipt')?['state'], 'Created')",
+                              true
+                            ]
+                          },
+                          "type": "If",
+                          "description": "R2-057: Created closes the request; Partial keeps it open and mails Master Data."
+                        }
+                      },
+                      "runAfter": {
+                        "Get_request": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Move_file_to_Afvist": {
+                            "runAfter": {},
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                "operationId": "MoveFileAsync",
+                                "connectionName": "shared_sharepointonline"
+                              },
+                              "parameters": {
+                                "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                                "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/FL/Afvist",
+                                "parameters/nameConflictBehavior": 2
+                              }
+                            }
+                          },
+                          "Send_rejected_notification": {
+                            "runAfter": {
+                              "Move_file_to_Afvist": [
+                                "Succeeded"
+                              ]
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                "operationId": "SendEmailV2",
+                                "connectionName": "shared_office365"
+                              },
+                              "parameters": {
+                                "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                                "emailMessage/Subject": "FL request creator: receipt rejected (@{coalesce(outputs('Receipt')?['state'], '-')}) - @{items('Each_receipt')?['{FilenameWithExtension}']}",
+                                "emailMessage/Body": "<p style=\"font-family:Segoe UI,Arial,sans-serif;\">The FL receipt was rejected and moved to Kvitteringer/FL/Afvist. The request was not changed. Compare the values below to find the check that failed: the receipt must be state Created or Partial, carry the request's order GUID and SAP system, and the request must still be open (submitted, in progress or ready for SAP). A file name with a PC name after the receipt suffix is a OneDrive conflict copy (two PCs wrote the same receipt): check in SAP that nothing was created twice, then delete the copy.</p><table style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;border-collapse:collapse;\"><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">File</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(items('Each_receipt')?['{FilenameWithExtension}'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Kind</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['kind'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">State</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['state'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Request no.</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['requestNo'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['sapSystem'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (expected)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'), '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['orderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (request)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(body('Get_request')?['SapOrderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Request status</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(body('Get_request')?['Status']?['Value'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Last error</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['lastError'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr></table><p style=\"font-family:Segoe UI,Arial,sans-serif;\">Run history: @{variables('FlowRunHistoryLink')}</p>",
+                                "emailMessage/Importance": "Normal"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "equals": [
+                          "@and(\n  endsWith(toLower(items('Each_receipt')?['{FilenameWithExtension}']), '.kvittering.json'),\n  equals(outputs('Receipt')?['kind'], 'fl-sap-receipt'),\n  or(equals(outputs('Receipt')?['state'], 'Created'), equals(outputs('Receipt')?['state'], 'Partial')),\n  equals(outputs('Receipt')?['orderGuid'], body('Get_request')?['SapOrderGuid']),\n  contains(createArray('Indsendt', 'UnderBehandling', 'KlarTilSAP'), body('Get_request')?['Status']?['Value']),\n  equals(outputs('Receipt')?['sapSystem'], parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'))\n)",
+                          true
+                        ]
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {},
+                  "type": "Scope"
+                },
+                "Move_file_to_Afvist_on_error": {
+                  "runAfter": {
+                    "Handle_receipt": [
+                      "TimedOut",
+                      "Failed",
+                      "Skipped"
+                    ]
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "MoveFileAsync",
+                      "connectionName": "shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                      "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/FL/Afvist",
+                      "parameters/nameConflictBehavior": 2
+                    }
+                  }
+                },
+                "Send_error_notification_on_receipt_failure": {
+                  "runAfter": {
+                    "Handle_receipt": [
+                      "TimedOut",
+                      "Failed",
+                      "Skipped"
+                    ]
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                      "operationId": "SendEmailV2",
+                      "connectionName": "shared_office365"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                      "emailMessage/Subject": "FL request creator: receipt error - @{items('Each_receipt')?['{FilenameWithExtension}']}",
+                      "emailMessage/Body": "<p style=\"font-family:Segoe UI,Arial,sans-serif;\">Error while processing the FL receipt. The file was moved to Kvitteringer/FL/Afvist. Empty values below mean the flow stopped before it could read them (e.g. the file could not be read or the request was not found).</p><table style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;border-collapse:collapse;\"><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">File</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(items('Each_receipt')?['{FilenameWithExtension}'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">State</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Receipt')?['outputs']?['state'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Request no.</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Receipt')?['outputs']?['requestNo'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Receipt')?['outputs']?['sapSystem'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (expected)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'), '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Receipt')?['outputs']?['orderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (request)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Get_request')?['outputs']?['body']?['SapOrderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Request status</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Get_request')?['outputs']?['body']?['Status']?['Value'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Last error</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(actions('Receipt')?['outputs']?['lastError'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr></table><p style=\"font-family:Segoe UI,Arial,sans-serif;\">Run history: @{variables('FlowRunHistoryLink')}</p>",
+                      "emailMessage/Importance": "Normal"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Receipt_files": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "type": "Scope"
+        },
+        "Catch": {
+          "actions": {
+            "Send_error_notification": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "operationId": "SendEmailV2",
+                  "connectionName": "shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "FL request creator: error in flow @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p>The flow failed. See the run.</p><p>@{variables('FlowRunHistoryLink')}</p>",
+                  "emailMessage/Importance": "Normal"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "type": "Scope"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
