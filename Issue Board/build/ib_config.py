@@ -88,7 +88,9 @@ COLS = {
                 "ActualResult", "Application", "Section", "OtherContext", "RelatedRequestNo",
                 "Severity", "Priority", "Status", "Resolution", "AssignedToName",
                 "ReporterEmail", "ReporterName", "AssignedToEmail", "Created", "LastActivityOn",
-                "IsArchived", "Attachments"],
+                "IsArchived", "Attachments",
+                # Antallet af vedhaeftninger (issue #442, #443).
+                "FileCount"],
     L_COMMENTS: ["TicketId", "AuthorEmail", "AuthorRole", "EventType", "Visibility",
                  "Content", "PreviousStatus", "NewStatus", "EventOn", "FileName", "FileSizeKb",
                  "AtSubmission"],
