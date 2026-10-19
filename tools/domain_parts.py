@@ -2162,6 +2162,67 @@ def docs_cell(width=CELL_W):
     return grid_cell("conDomDocs", "Documentation", row, width=width)
 
 
+def docs_count_cell(width=CELL_W):
+    """Documentation i sidepanelets Documents-fane (issue #430): kun
+    antallet. Fanen ER dokumenterne - knappen til popuppen hoerer til
+    formularen uden faner (docs_cell)."""
+    info = text_input(
+        "inpDomDocsInfo",
+        ('If(IsBlank(varDomActiveRowId), "Add the row first", '
+         + dt.plural(f"Coalesce({ACTIVE}.FileCount, 0)", "document") + ")"),
+        display_mode="DisplayMode.View", label='"Documents on this row"')
+    info.props["Width"] = str(width)
+    return grid_cell("conDomDocs", "Documentation", info, width=width)
+
+
+# ---------------------------------------------------------------------------
+# Sidepanelets faner: Details, Objects, Documents (Materials, issue #430)
+# ---------------------------------------------------------------------------
+# Hoejden paa en fanes fyldte krop (objektlisten, dokumentkontrollen):
+# vinduet minus panelets hoved, fanerne og bundbjaelken.
+EDITOR_TAB_BODY_H = "App.Height - 250"
+
+
+def docs_tab_body(height=EDITOR_TAB_BODY_H):
+    """Dokumentpopuppens krop (build_attachments) til Documents-fanen -
+    samme ModernAttachments-kontrol, Save documents og read-only-note."""
+    body = build_attachments().children[1]
+    body.props["Height"] = height
+    return body
+
+
+def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
+    """Sidepanelets indhold med faner - det faelles moenster for Materials
+    og Equipment (issue #430). Fanen huskes i cfg.ROW_EDITOR_TAB_VAR, som
+    load_row_fx/clear_form_fx/copy_row_fx saetter til "Details".
+
+    form: appens formular (build_form(panel=True)); dens knapraekke
+    (naestsidste barn) udelades - knapperne staar i panelets faste bund.
+    extras: appens linjer under felterne. objects/documents: fanernes
+    kontroller. open_objects: det, Objects-fanen goer ud over at vise sig
+    (Materials fylder objektlisten fra raekken). Documents-fanen peger
+    dokumentkontrollen paa den aabne raekke (open_active_docs_fx).
+
+    Fanerne er altid til at trykke paa - ogsaa i visning. Felterne paa
+    dem foelger selv DM_ROW og DOCS_EDIT, saa de er skrivebeskyttede dér."""
+    tab = cfg.ROW_EDITOR_TAB_VAR
+    objects_fx = f'Set({tab}, "Objects")' + (f";\n{open_objects}" if open_objects else "")
+    selector = segmented("conDomEditorTabs", [
+        ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
+        ("Objects", "Objects", f'{tab} = "Objects"', objects_fx, None),
+        ("Documents", "Documents", f'{tab} = "Documents"',
+         f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None),
+    ], label="Row details", fit=True)
+    details = group("conDomEditorDetails",
+                    list(form.children[:-2]) + list(extras) + [form.children[-1]],
+                    direction="Vertical", gap=12, visible=f'{tab} = "Details"')
+    objects = group("conDomEditorObjects", list(objects), direction="Vertical", gap=12,
+                    visible=f'{tab} = "Objects"')
+    documents = group("conDomEditorDocuments", list(documents), direction="Vertical", gap=12,
+                      visible=f'{tab} = "Documents"')
+    return [selector, details, objects, documents]
+
+
 # ---------------------------------------------------------------------------
 # Formularens hoved og fod
 # ---------------------------------------------------------------------------

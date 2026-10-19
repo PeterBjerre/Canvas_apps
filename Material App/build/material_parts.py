@@ -398,30 +398,17 @@ def editor_reset():
 
 
 def editor_panel_content(form, extras=()):
-    tab = cfg.ROW_EDITOR_TAB_VAR
+    """Fanerne Details, Objects og Documents - det faelles moenster i
+    domain_parts.editor_tabs (Equipment bruger det samme, issue #430)."""
     open_objects = (f"Set({OBJ_ROW}, varDomActiveRowId);\nSet({PICK}, \"\");\n"
                     f"{dp.fl_reset_fx_dom()};\n"
                     + ol.restore_fx(POP, json_src=f"{dp.ACTIVE}.ObjectListJson",
                                     list_src=f"{dp.ACTIVE}.ObjectList",
                                     fl_src=f"{dp.ACTIVE}.FunctionalLocation"))
-    selector = segmented("conDomEditorTabs", [
-        ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
-        ("Objects", "Objects", f'{tab} = "Objects"',
-         f'Set({tab}, "Objects");\n{open_objects}', None),
-        ("Documents", "Documents", f'{tab} = "Documents"',
-         f'Set({tab}, "Documents");\n{dp.open_active_docs_fx()}', None),
-    ], label="Row details", fit=True)
-    details = group("conDomEditorDetails", list(form.children[:-2]) + list(extras) + [form.children[-1]],
-                    direction="Vertical", gap=12, visible=f'{tab} = "Details"')
     objects_body = _objects_popup()[1].children[1]
-    objects_body.props["Height"] = "App.Height - 250"
-    objects = group("conDomEditorObjects", [objects_body], direction="Vertical", gap=12,
-                    visible=f'{tab} = "Objects"')
-    documents_body = dp.build_attachments().children[1]
-    documents_body.props["Height"] = "App.Height - 250"
-    documents = group("conDomEditorDocuments", [documents_body], direction="Vertical", gap=12,
-                      visible=f'{tab} = "Documents"')
-    return [selector, details, objects, documents]
+    objects_body.props["Height"] = dp.EDITOR_TAB_BODY_H
+    return dp.editor_tabs(form, extras, objects=[objects_body],
+                          documents=[dp.docs_tab_body()], open_objects=open_objects)
 
 
 # ---------------------------------------------------------------------------
