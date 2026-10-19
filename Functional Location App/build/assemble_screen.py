@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import request_shell, sticky_actions
+from build_helpers import request_shell
 from side_nav import side_nav
 import fl_config as cfg
 import fl_parts as P
@@ -82,10 +82,15 @@ def build_screen(render=render_screen):
     # Edit aabner sidepanelet (build_row_panel, issue #278, #346). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
     bar = P.build_bar()
-    # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
+    # HEADEREN OEVERST PAA ALLE SKAERMBREDDER (issue #392). Rammen er
+    # [con<X>Header, con<X>Body] - lodret, i den raekkefoelge. FL har IKKE
+    # bundbjaelken fra UX-review M8 (sticky_actions): den skjulte Save draft
+    # og Submit i headeren under Desktop og viste dem i en bjaelke nederst,
+    # saa sidens handlinger stod i bunden paa tablet og mobil. Knapperne
+    # bliver i headeren; under Tablet er de kun ikoner (P._bar_btn), saa
+    # New request, Save draft og Submit kan staa paa een linje.
     root, = request_shell("Fl", bar, None, None,
-                          [P.build_rows(), P.build_classes(), P.build_structure()],
-                          footer=sticky_actions("Fl", P.BAR_ACTIONS))
+                          [P.build_rows(), P.build_classes(), P.build_structure()])
     # Sidebaren: skinnen efter rammen, det aabne panel efter den (tools/
     # side_nav.py). LAGENE ER RAEKKEFOELGEN - senere ligger oeverst:
     # raekkens sidepanel, Paste rows og til sidst Submit-bekraeftelsen og
