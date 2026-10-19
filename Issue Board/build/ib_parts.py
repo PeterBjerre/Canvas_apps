@@ -55,12 +55,13 @@ HENTNING (issue #177)
     vises: alle sager (issue #193 - "My issues" er et filter paa dem).
     Oversigten henter ikke de lange tekster (ShowColumns).
   * Samtidig hentes IB_TicketComments' TicketId een gang og taelles i
-    hukommelsen - kolonnen ACTIVITY (issue #422). Papirclipsen laeser
-    'Has attachments' fra sagernes egen hentning.
+    hukommelsen - kolonnen ACTIVITY (issue #422). Papirclipsen og
+    "Attachments (n)" laeser kolonnen FileCount fra sagernes egen
+    hentning (issue #442, #443).
   * Naar en sag aabnes, hentes dens hele raekke og - for rapportoeren og
-    admins - dens Activity samtidig.
-    Antallet af vedhaeftninger regnes af Activity; selve filerne hentes
-    foerst, naar fanen Attachments vaelges.
+    admins - dens Activity samtidig. Antallet af vedhaeftninger staar
+    allerede paa raekken (FileCount); selve filerne hentes foerst, naar
+    fanen Attachments vaelges.
   * Efter en aendring hentes kun den ene sag igen (LookUp paa ID) og
     dens Activity - ikke hele listen.
   * Soegning, filtre og sortering regnes i hukommelsen paa de hentede
@@ -157,13 +158,23 @@ STATUS_RANK = [(s, r) for s, _c, r in cfg.STATUS]
 DETAIL_ONLY = ("Steps", "Expected", "Actual", "Other", "RelatedNo", "Resolution")
 
 
-# Connectorens felt for "har raekken vedhaeftninger" - visningsnavnet paa
-# {HasAttachments} (References/DataSources.json). Ikke en kolonne i
-# SharePoint-udtraekket: SharePoint-connectoren regner den selv.
-HAS_FILES_COL = "'Has attachments'"
+# ANTALLET AF VEDHAEFTNINGER (issue #442, #443): kolonnen FileCount paa
+# IB_Tickets - et almindeligt tal, som Equipment og Materials' FileCount.
+# Appen skriver den i SAMME Patch, som gemmer filerne (UPLOAD_FILES), og
+# retter den, naar fanen Attachments har hentet de rigtige filer
+# (LOAD_FILES). Oversigten henter den med de andre kolonner ($select) -
+# ingen opslag pr. sag. Blank = ukendt (en sag, ingen har talt endnu).
+#
+# Foer (#422) laeste papirclipsen connectorens {HasAttachments} ('Has
+# attachments'). Det er et felt, connectoren selv regner - ikke en
+# kolonne i listen (det staar ikke i udtraekket) - og i oversigten var det
+# sandt for alle sager (issue #443). Listens egne vedhaeftninger
+# (Attachments) kan ikke laeses i en ForAll over listen (issue #133,
+# #336), saa antallet maa staa i en kolonne, appen selv holder.
+FILE_COUNT = "FileCount"
 
 
-def _row(r, *, full=True, has_files=None):
+def _row(r, *, full=True, file_count=None, files_known=True):
     """Een raekke i colIbAll. full=False: oversigtens raekke - popup-
     felterne er tomme, til sagen aabnes. Nummeret saettes af flowet
     BioSap-IssueBoard-OnCreated op til et minut efter oprettelsen; indtil
@@ -186,16 +197,15 @@ def _row(r, *, full=True, has_files=None):
         "ReporterName": f'Coalesce({r}.ReporterName, "")',
         "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
     }
-    # Har sagen filer (issue #422)? Oversigten laeser connectorens
-    # {HasAttachments} ('Has attachments') - et felt pr. raekke i den
-    # samme hentning, ingen opslag pr. sag. Sagens eget opslag (LookUp)
-    # beholder listens vaerdi: laest fra With/LookUp er connectorens
-    # vedhaeftningsfelter ikke til at stole paa (issue #133). LOAD_FILES
-    # retter den, naar filerne er hentet.
-    # has_files: en kendt vaerdi (en ny sag har ingen filer endnu).
-    f["HasFiles"] = (has_files if has_files is not None
-                     else f"Coalesce({r}.{HAS_FILES_COL}, false)" if not full
-                     else f"Coalesce(LookUp(colIbAll, Id = {r}.ID).HasFiles, false)")
+    # Antallet af filer (issue #442, #443) - kolonnen FileCount, blank =
+    # ukendt. Er sagens filer allerede hentet (fanen Attachments, LOAD_FILES
+    # koerer foer LOAD_OPEN fra papirclipsen), er deres antal facit.
+    # file_count: en kendt vaerdi (en ny sag har ingen filer endnu).
+    # files_known=False: kun listens tal (RELOAD_SEL - LOAD_FILES koerer
+    # bagefter og sammenligner med det, der staar i SharePoint).
+    f[FILE_COUNT] = (file_count if file_count is not None
+                     else f"{r}.{FILE_COUNT}" if not full or not files_known
+                     else f"If(varIbFilesFor = {r}.ID, CountRows(varIbFiles), {r}.{FILE_COUNT})")
     if not full:
         for k in DETAIL_ONLY:
             f[k] = '""'
@@ -210,8 +220,8 @@ def _row(r, *, full=True, has_files=None):
 # loesning) ikke hentes for hver sag (issue #177).
 OVERVIEW_COLS = ["ID", "Title", "TicketNo", "Description", "Application", "Section", "Severity",
                  "Priority", "Status", "AssignedToName", "ReporterEmail", "ReporterName",
-                 "AssignedToEmail", "Created", "LastActivityOn", "IsArchived"]
-_SHOW = ", ".join(OVERVIEW_COLS + [HAS_FILES_COL])
+                 "AssignedToEmail", "Created", "LastActivityOn", "IsArchived", FILE_COUNT]
+_SHOW = ", ".join(OVERVIEW_COLS)
 
 # Hentningerne. Hver sammenligner med en global variabel eller en konstant,
 # saa SharePoint udfoerer filteret og sorteringen (check_layout regel 30).
@@ -371,11 +381,21 @@ LOAD_FILES = (
     f"Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp({cfg.L_TICKETS}, ID = varIbSelId).Attachments); "
     "false, true));\n"
     "Set(varIbFilesFor, varIbSelId);\n"
-    # Issue #422: papirclipsen i oversigten foelger de hentede filer -
-    # ogsaa lige efter Save paa fanen (AFTER_CHANGE henter dem igen).
+    # Issue #442/#443: de hentede filer er facit for antallet - i popuppen
+    # og i oversigten (papirclipsen), ogsaa lige efter Save paa fanen
+    # (AFTER_CHANGE henter dem igen). Staar der et andet tal i SharePoint
+    # (en sag fra foer FileCount, eller filer lagt paa uden om appen), og
+    # maa brugeren rette sagen (rapportoeren og admins), rettes kolonnen
+    # med det samme - kun naar tallet er forkert, saa en almindelig
+    # aabning skriver intet. En anden bruger kan ikke rette sagen; saa
+    # rettes kun hans egen visning.
     "If(!varIbFilesFailed,\n"
-    "    Set(varIbSel, Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) }));\n"
-    "    UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) }));\n"
+    "    With({ fileN: CountRows(varIbFiles) },\n"
+    f"        If(fileN <> Coalesce(varIbSel.{FILE_COUNT}, -1) && IbSeeActivity,\n"
+    f"            IfError(Patch({cfg.L_TICKETS}, LookUp({cfg.L_TICKETS}, ID = varIbSelId), "
+    f"{{ {FILE_COUNT}: fileN }}); true, false));\n"
+    f"        Set(varIbSel, Patch(varIbSel, {{ {FILE_COUNT}: fileN }}));\n"
+    f"        UpdateIf(colIbAll, Id = varIbSelId, {{ {FILE_COUNT}: fileN }})));\n"
     "Set(varIbFilesBusy, false)"
 )
 
@@ -389,7 +409,7 @@ RELOAD_SEL = (
     "        IsBlank(r),\n"
     "        RemoveIf(colIbAll, Id = varIbSelId);\n"
     "        Set(varIbDetailOn, false),\n"
-    f"        Set(varIbSel, {_row('r', )});\n"
+    f"        Set(varIbSel, {_row('r', files_known=False)});\n"
     "        Set(varIbSelFullFor, varIbSelId);\n"
     # r.Attachments kan ikke laeses fra With's LookUp - compile: "The
     # specified column is not accessible in this context" (issue #133).
@@ -453,7 +473,7 @@ ROW = {"Id": "0", "TicketNo": '""', "Title": '""', "Description": '""', "Steps":
        "Resolution": '""', "Assigned": '""', "CreatedOn": "Now()", "UpdatedOn": "Now()",
        "Archived": "false", "Reporter": '""', "ReporterName": '""', "AssignedEmail": '""',
        "PriRank": "0",
-       "StatusRank": "0", "HasFiles": "false"}
+       "StatusRank": "0", FILE_COUNT: "0"}
 SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0",
        "ScreenKey": '""'}
 ACT = {"Kind": '""', "Actor": '""', "Role": '""', "Body": '""', "At": "Now()", "Internal": "false",
@@ -527,10 +547,13 @@ IbCanComment = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 // (issue #300); SharePoint lader kun rapportoeren (Created By) og
 // admins (Design) rette den.
 IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
-// Antallet af filer paa sagen: de hentede vedhaeftninger, naar fanen er
-// hentet. Ellers af Activity (Attachment-haendelserne fra foer #300), saa
-// fanen kan vise et tal uden at hente filerne.
-IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), Blank());'''
+// Antallet af filer paa sagen (issue #442): de hentede vedhaeftninger,
+// naar fanen er hentet; ellers raekkens FileCount, som kom med
+// oversigten - kendt, saa snart sagen aabnes, uden at hente filerne.
+// Blank = ukendt: fanen viser "Attachments" uden tal, aldrig et gaet 0.
+// (Foer talte den Activity's Attachment-haendelser, som ingen har skrevet
+// siden #300 - derfor "Attachments (0)".)
+IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), varIbSel.{FILE_COUNT});'''
 
 # Application-kolonnens ikoner (issue #415): den FAELLES tabel
 # (tools/app_icons.py) - samme ikon og farve som sidebaren og hubben.
@@ -972,8 +995,9 @@ OPEN_ROW = open_ticket("ThisItem", "false")
 OPEN_ROW_FILES = open_ticket("ThisItem", "false", tab="files")
 # Issue #422: papirclipsen er et tegn paa, at sagen HAR filer - ikke en
 # upload-knap paa hver raekke. Uden filer er cellen tom. Fanen
-# Attachments kan alle se, saa tegnet staar for alle.
-ROW_HAS_FILES = "ThisItem.HasFiles"
+# Attachments kan alle se, saa tegnet staar for alle. Issue #443: raekkens
+# eget tal (FileCount) - blank (ukendt) er ingen papirclips.
+ROW_HAS_FILES = f"Coalesce(ThisItem.{FILE_COUNT}, 0) > 0"
 # Activity-taelleren (issue #422): antallet af haendelser fra colIbActN -
 # opslag i hukommelsen, intet kald pr. raekke. Kun for rapportoeren og
 # admins (som fanen Activity); andre har ingen rettighed til
@@ -1494,7 +1518,7 @@ CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore
 # opslag og ingen ny hentning af listen (issue #177, #193).
 ADD_NEW = (
     "Set(varIbSelId, varIbNewRow.ID);\n"
-    f"Set(varIbNew, {_row('varIbNewRow', has_files='false')});\n"
+    f"Set(varIbNew, {_row('varIbNewRow', file_count='0')});\n"
     "RemoveIf(colIbAll, Id = varIbSelId);\n"
     "Collect(colIbAll, varIbNew)"
 )
@@ -1545,6 +1569,8 @@ SUBMIT = (
     "            ReporterEmail: varIbMe,\n"
     "            ReporterName: Left(User().FullName, 255),\n"
     "            LastActivityOn: Now(),\n"
+    # Ingen filer endnu (issue #442): "Attachments (0)" er sandt fra start.
+    f"            {FILE_COUNT}: 0,\n"
     "            IsArchived: false\n"
     "        }\n"
     "    ));\n"
@@ -2146,7 +2172,9 @@ UPLOAD_FILES = act_fx(IB_ACT, "upload", attflows.save_fx(
     cfg.L_TICKETS, f"LookUp({cfg.L_TICKETS}, ID = varIbSelId)", "attIbFiles",
     "varIbUploading", None, AFTER_CHANGE + ";",
     on_ok=act_mark(IB_ACT, "upload") + ";",
-    extra_fields=", LastActivityOn: Now()"), left="failed")
+    # Issue #442/#443: antallet gemmes i SAMME Patch - kontrollens antal
+    # uden de filer, der er markeret til fjernelse (MS Learn).
+    extra_fields=f", LastActivityOn: Now(), {FILE_COUNT}: attIbFiles.AttachmentsCount"), left="failed")
 
 
 # Issue #369: indholdet i fanen Description staar hver i sin diskrete

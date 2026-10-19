@@ -387,6 +387,7 @@ Udtrukket 2026-10-18 17:01 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `IsArchived` | IsArchived | Boolean |  | x |  |
 | `Resolution` | Resolution | Note |  |  |  |
 | `SharedItemId` | SharedItemId | Number |  |  |  |
+| `FileCount` | FileCount | Number |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |

@@ -610,12 +610,13 @@ def test_row_has_an_attach_button_after_creation():
     """Issue #193: vedhaeftninger er en knap i raekken, oven paa raekkens
     klikflade, og den aabner sagen paa fanen Attachments. Siden issue #300
     gemmes filerne med Patch paa sagens raekke - ikke gennem flowets
-    attach. Siden issue #422 staar papirclipsen kun, naar sagen har filer."""
+    attach. Siden issue #422 staar papirclipsen kun, naar sagen har filer
+    (issue #443: raekkens FileCount)."""
     import ib_parts as P
     ctrls = _list_gallery()
     for name in ("btnIbRowAttach", "btnIbRowAttachC"):
         att = ctrls[name]
-        assert att.props["Visible"].endswith("&& ThisItem.HasFiles")
+        assert att.props["Visible"].endswith("&& Coalesce(ThisItem.FileCount, 0) > 0")
         assert 'Set(varIbTab, "files")' in att.props["OnSelect"]
         assert P.LOAD_FILES in att.props["OnSelect"]
         assert att.props["Layout"] == "ButtonLayout.IconOnly" and att.props["AccessibleLabel"]
