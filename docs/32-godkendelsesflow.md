@@ -38,7 +38,7 @@ hvem der svarede hvad og hvornår.
 | 4 | Godkendere kan kun **sende retur**, ikke afvise endeligt | Ingen `Rejected`-status. Alle trin ender i *Godkend* eller *Send retur* |
 | 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | Rækkerne `COST` og værkskoderne i `MD_Approver` (§6) |
 | 6 | Den, der udfylder appen, **er rekvirenten**. Er det ikke System Manageren, skal **System Manageren for systemet** godkende. Systemet bestemmes af Functional Location og slås op i en **Power BI semantisk model** | Nyt første trin: systemgodkendelse. Rekvirenten er planens opretter; der kommer ikke et ekstra felt |
-| 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
+| 7 | **Systemgodkendelse sker pr. item. Omkostningsgodkendelse sker for hele planen** (Peter 2026-10-19; før pr. item) | Systemtrinnet: én godkendelse pr. item. Omkostningstrinnet: én godkendelse for planen, og beløbet er summen af alle items' operationer |
 | 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@` + miljøvariablen `BioSap-EmailDomain`. Indholdet ligger i SharePoint-listen `MD_Approver` (ikke i git – repoet er offentligt): systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
 | 10 | Opslaget sker i **samme Power BI-datasæt som ObjectList-flowet**, i tabellen **`'Functional Locations'`**, og systemnummeret er **`Plant Section Key`** (fx `008`) | Workspace, datasæt, forbindelse, tabel og kolonne er kendt (§8) |
@@ -58,7 +58,7 @@ skrives items og operationer forfra, så beløbet ville ændre sig under en
 flowchart TD
   D["Draft<br/>rekvirenten udfylder og gemmer"]
   S["1. Systemgodkendelse – pr. item<br/>FL → systemnr. (Power BI)<br/>systemnr. → 1. godkender, 2. ved fravær (SharePoint)<br/>springes over, hvis itemets opretter er 1. eller 2. godkender"]
-  C["2. Omkostning – pr. item<br/>kun items, hvis operationer<br/>tilsammen er over 300.000 kr."]
+  C["2. Omkostning – hele planen<br/>kun når planens operationer<br/>tilsammen er over 300.000 kr."]
   Q["3. Kvalitetsgennemgang – hele planen<br/>lokal ASM-leder for værket"]
   RT["Returned<br/>med kommentarerne"]
   RS["Ready for creation in SAP<br/>Master Data får mail"]
@@ -66,11 +66,11 @@ flowchart TD
 
   D -- "Submit" --> S
   S -- "alle items godkendt<br/>eller sprunget over" --> C
-  C -- "alle items godkendt<br/>eller under grænsen" --> Q
+  C -- "godkendt<br/>eller under grænsen" --> Q
   Q -- "Godkend" --> RS
   RS --> PB
   S -- "mindst ét item returneret" --> RT
-  C -- "mindst ét item returneret" --> RT
+  C -- "Send retur" --> RT
   Q -- "Send retur" --> RT
   RT -- "rettet, Submit igen" --> S
 ```
@@ -481,33 +481,39 @@ godkendelse.
 Det samme gælder, når FL'ens `Plant Key` ikke er planens værk, eller når
 systemnummeret ikke findes i `MD_Approver` (§8).
 
-### 7.2 F2 `BioSap-VhPlan-CostApproval` – pr. item
+### 7.2 F2 `BioSap-VhPlan-CostApproval` – hele planen
 
-Samme trigger condition med `ApprovalStage = 'Cost'`.
+Samme trigger condition med `ApprovalStage = 'Cost'`. Omkostningen
+godkendes for **hele planen** (Peter 2026-10-19). Før var det én
+godkendelse pr. item.
 
 1. `Get items` på `MaintenanceItems` og på `TaskListMain` med
    `MaintenancePlanID/Id eq <ID>` – ét kald hver.
-2. For hvert item: total = `sum` af `Price` for de operationer, hvis
-   `MaintenanceItemNo/Id` er itemets `ID`.
-3. For hvert item, parallelt:
+2. Total = `sum` af `Price` for de operationer, hvis
+   `MaintenanceItemNo/Id` er et af planens items.
+3. Én afgørelse for planen (scopet `Plan_cost`, `ItemGuid = PLAN` i loggen):
    - Total ≤ `CostApprovalThresholdDkk` → log `Skipped` med beløbet.
-   - Findes der i loggen en `Approve` for `Stage = Cost` med **samme
-     `ItemGuid`** og et `Amount` **større end eller lig med** det nye →
+   - Findes der i loggen en `Approve` for `Stage = Cost` med
+     `ItemGuid = PLAN` og et `Amount` **større end eller lig med** det nye →
      log `Skipped` med "godkendt tidligere". Et godkendt beløb gælder for
-     det item, så længe det ikke bliver dyrere.
+     planen, så længe den ikke bliver dyrere.
    - Ellers: godkendelse til rækken `COST` i `MD_Approver` (1. godkender,
-     2. ved fravær) med itemets total, grænsen og de dyreste operationer.
-4. Alle godkendt eller sprunget over → `ApprovalStage = Quality`.
+     2. ved fravær) med planens total, grænsen, antal items og op til 30
+     operationer.
+4. Godkendt eller sprunget over → `ApprovalStage = Quality`.
 
 Beløbet regnes af flowet og ikke af appen, så det er det gemte, der
-godkendes, og ingen kan skrive et andet tal ind.
+godkendes, og ingen kan skrive et andet tal ind. Appen viser planens total
+i det foldede planhoved og en markering i tasklistens kort, når planen er
+over grænsen.
 
 ### 7.3 F3 `BioSap-VhPlan-QualityReview` – hele planen
 
 Samme trigger condition med `ApprovalStage = 'Quality'`.
 
 1. **Værn:** har hvert item efter `SubmittedOn` en `Approve`- eller
-   `Skipped`-række for både `System` og `Cost` i `MD_ApprovalLog`? (En
+   `Skipped`-række for `System`, og har planen en for `Cost`
+   (`ItemGuid = PLAN`) i `MD_ApprovalLog`? (En
    godkendelse fra en tidligere indsendelse, som blev genbrugt for samme
    `ItemGuid`, logges også som `Skipped` med "godkendt tidligere".)
    Hvis ikke → sæt `ApprovalStage = System` og stop. Så køres de to trin
@@ -671,7 +677,7 @@ i `sp_config.py`, som alle andre.
 | *Add item* / *Copy item* (`build_items.py`) og startitemet (`build_load.py`, `EMPTY_ITEM_FIELDS`) | `ItemGuid: Text(GUID())` på det nye item. *Copy item* kopierer **ikke** kildens `ItemGuid` |
 | Indlæsning (`build_load.py`, `ITEM_FIELDS`) | `ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))` |
 | `colVhpItems` (`sp_config.py`, `WORKING_COLLECTIONS`) | Feltet `ItemGuid` |
-| Totalen pr. item (`htmVhpOpsTotals` i `build_tasklist.py`) | Viser allerede summen for det aktive item. Nyt: en markering "Over 300.000 kr. – kræver omkostningsgodkendelse", når den er over grænsen fra `AppSettings`. Kun information; flowet regner selv |
+| Kortet `crdVhpOpsTotals` øverst i tasklisten (`build_tasklist.py`) | Viser Total cost og Duration for det aktive item. Er **planens** total over grænsen fra `AppSettings`, siger kortet det. Planens total står i det foldede planhoved. Kun information; flowet regner selv |
 | Items-skinnen | Pr. item et lille mærke med systemgodkendelse og omkostningsgodkendelse, læst fra `MD_ApprovalLog` på `RequestGuid` |
 | Statusbanner i toppen | Hvor sagen er (`ApprovalStage`), hvem den ligger hos, og `ReturnComment` ved `Returned` |
 | Skrivebeskyttelse | Alle felter låses, når `Status` ikke er `Draft` eller `Returned` |

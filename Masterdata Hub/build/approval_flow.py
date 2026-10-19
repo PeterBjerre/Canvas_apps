@@ -10,7 +10,9 @@ Approver1 decides, Approver2 when Approver1Absent. docs/32-godkendelsesflow.md.
 
 Stages, in order:
   System   one approver per item, items run in parallel
-  Cost     one approver (COST) per item, items run in parallel
+  Cost     one approver (COST) for the whole plan, compared with the plan
+           total (Peter 2026-10-19; per item before). Older plans have one
+           row per item; latest() still groups by ItemGuid, so they still show.
   Quality  one approver for the whole plan (the plant)
   SAP      Master Data creates the plan; no approval, read from the index status
 
@@ -102,7 +104,9 @@ def latest(log, stage):
 
 
 def expected(stage, req):
-    return "1" if stage == "Quality" else f"Max(1, {req}.ItemCount)"
+    # Cost er een beslutning for hele planen (Peter 2026-10-19). En aeldre
+    # plan med en raekke pr. item har >= 1 og taeller stadig som afgjort.
+    return "1" if stage in ("Quality", "Cost") else f"Max(1, {req}.ItemCount)"
 
 
 def stage_state(table, exp, prev):
@@ -484,7 +488,7 @@ INDEX_ROWS = [
 _RULES = {
     "System": '"One approver per item - " & Max(1, %s.ItemCount) & If(Max(1, %s.ItemCount) = 1, '
               '" item", " items in parallel") & ", all must pass"' % (R, R),
-    "Cost": '"One approver per item - items under the threshold are skipped, all must pass"',
+    "Cost": '"One approver for the whole plan - skipped when the plan total is under the threshold"',
     "Quality": '"One approver for the whole plan - the plant"',
 }
 
