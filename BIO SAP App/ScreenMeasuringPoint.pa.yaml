@@ -16220,7 +16220,7 @@ Screens:
                             );
                             Set(varMpDeleteId, Blank());
                             If(IfError(!IsBlank(varMpAct) && !(":" in varMpAct), false), Set(varMpAct, ""));
-                            If(IfError(varMpAct = "delete:ok", false), Set(varMpConfirmDelete, false))
+                            If(!IfError(varMpAct = "delete:failed", false), Set(varMpConfirmDelete, false))
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-

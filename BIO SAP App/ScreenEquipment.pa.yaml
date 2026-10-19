@@ -13784,7 +13784,7 @@ Screens:
                             );
                             Set(varEqDeleteId, Blank());
                             If(IfError(!IsBlank(varEqAct) && !(":" in varEqAct), false), Set(varEqAct, ""));
-                            If(IfError(varEqAct = "delete:ok", false), Set(varEqConfirmDelete, false))
+                            If(!IfError(varEqAct = "delete:failed", false), Set(varEqConfirmDelete, false))
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-

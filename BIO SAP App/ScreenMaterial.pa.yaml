@@ -18142,7 +18142,7 @@ Screens:
                             );
                             Set(varMatDeleteId, Blank());
                             If(IfError(!IsBlank(varMatAct) && !(":" in varMatAct), false), Set(varMatAct, ""));
-                            If(IfError(varMatAct = "delete:ok", false), Set(varMatConfirmDelete, false))
+                            If(!IfError(varMatAct = "delete:failed", false), Set(varMatConfirmDelete, false))
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
