@@ -269,7 +269,12 @@ def plan_fold_row(fold, toggle_set, show):
     title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
                       height=24, width=title_w, accessible='"Plan header"')
     grow(title, title_w)
-    top = group("conVhpPlanFoldTop", [ok, title], direction="Horizontal", gap=10,
+    # Planens samlede omkostning (Peter 2026-10-19): omkostningsgodkendelsen
+    # gaelder hele planen, saa summen af alle items' operationer staar
+    # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
+    cost = value_chip("conVhpPlanFoldCost", '"Total cost"',
+                      lay.num_text("Sum(colVhpOperations, Cost)") + ' & " DKK"')
+    top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
     # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og
     # med den hoejde, teksten skal bruge - paa desktop, tablet og telefon.
