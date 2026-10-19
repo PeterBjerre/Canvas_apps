@@ -12366,7 +12366,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode
+                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -12408,7 +12408,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -12461,6 +12461,8 @@ Screens:
                                                           ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                                      Visible: |-
+                                                          =!varVhpViewOnly
                                                       Width: |-
                                                           =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                                       X: |-
@@ -13782,7 +13784,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode
+                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -13821,7 +13823,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -13874,6 +13876,8 @@ Screens:
                                                           ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                                      Visible: |-
+                                                          =!varVhpViewOnly
                                                       Width: |-
                                                           =40
                                                       X: |-
@@ -17302,7 +17306,7 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        =ThisItem.ShortCode
+                                        =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -17344,7 +17348,7 @@ Screens:
                                     DisabledFill: |-
                                         =C.'row-pressed'
                                     DisplayMode: |-
-                                        =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                        =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -17397,6 +17401,8 @@ Screens:
                                         ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & If(ThisItem.Sel, ", selected", ", not selected")
                                     Tooltip: |-
                                         =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                    Visible: |-
+                                        =!varVhpViewOnly
                                     Width: |-
                                         =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                     X: |-
