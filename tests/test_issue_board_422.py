@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Issue #422: vedhaeftninger og Activity i Issue Boards oversigt.
 
-Papirclipsen staar kun, naar sagen HAR filer (connectorens 'Has
-attachments', hentet med oversigten). En ny kolonne ACTIVITY viser
+Papirclipsen staar kun, naar sagen HAR filer (kolonnen FileCount, hentet
+med oversigten - issue #443; foer connectorens 'Has attachments'). En ny kolonne ACTIVITY viser
 antallet af haendelser pr. sag - fra EEN hentning af IB_TicketComments
 (kun TicketId) og en optaelling i hukommelsen, ikke et kald pr. raekke.
 Tallet foelger med, naar en kommentar sendes, og naar sagen aabnes."""
@@ -34,17 +34,17 @@ def test_paperclip_only_when_the_issue_has_files():
     ctrls = _list()
     for name in ("btnIbRowAttach", "btnIbRowAttachC"):
         b = ctrls[name]
-        assert b.props["Visible"].endswith("&& ThisItem.HasFiles")
+        # Issue #443: raekkens eget tal - FileCount (tests/test_issue_board_442_443.py).
+        assert b.props["Visible"].endswith("&& Coalesce(ThisItem.FileCount, 0) > 0")
         # Et tegn paa filer, der aabner fanen Attachments - ikke en upload-knap.
         assert "Add screenshots" not in b.props["AccessibleLabel"]
         assert 'Set(varIbTab, "files")' in b.props["OnSelect"]
     # Feltet hentes med oversigten (samme $select) - intet opslag pr. sag.
-    assert "'Has attachments'" in P.FETCH_ALL
-    assert "HasFiles: Coalesce(r.'Has attachments', false)" in P.FETCH_ALL
-    assert "HasFiles" in P.ROW
+    assert "FileCount: r.FileCount" in P.FETCH_ALL
+    assert "FileCount" in P.ROW
     # De hentede filer retter tegnet - ogsaa efter Save paa fanen.
-    assert "UpdateIf(colIbAll, Id = varIbSelId, { HasFiles: !IsEmpty(varIbFiles) })" in P.LOAD_FILES
-    assert "Patch(varIbSel, { HasFiles: !IsEmpty(varIbFiles) })" in P.LOAD_FILES
+    assert "UpdateIf(colIbAll, Id = varIbSelId, { FileCount: fileN })" in P.LOAD_FILES
+    assert "Patch(varIbSel, { FileCount: fileN })" in P.LOAD_FILES
 
 
 def test_activity_counts_are_one_query_not_one_per_row():
