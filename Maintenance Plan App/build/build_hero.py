@@ -122,7 +122,7 @@ CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
 # tooltip, linjen under trinene og listen "Before you can submit" bygges
 # alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
 # them" - nu staar selve reglerne der.
-DIRTY_MSG = '"Press Done in the item editor to keep the changes."'
+DIRTY_MSG = '"Press Save in the item editor to keep the changes."'
 # (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
 GROUPS = [
     ("Plan header", MISSING_NAMES["Plan"], 1),
@@ -418,7 +418,9 @@ NEW_W, NEW_PHONE_W = new_request_widths()
 SUB_PHONE_W = 40
 EDIT_W = fit_button_width('"Edit"') + ICON_W
 
+# colVhpSectionLocks: en ny plan har ingen gemte (laaste) sektioner (#433).
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
+                     "colVhpSectionLocks",
                      "colVhpMaterials", "colVhpAttachments")
 
 NEW_PLAN_FX = (

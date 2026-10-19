@@ -16,7 +16,8 @@ from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, grou
                            fit_button_width, column_grid, ICON_W,
                            mark_done, segmented, border_rule, row_n)
 from build_plan_header import section_header, help_panel, section_footer, status_icon
-from build_helpers import ensure_hit, popup_head
+from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
+from gen_screen import lock_section
 import build_help as bh
 from fl_picker import fl_picker
 import build_flsearch as flsearch
@@ -42,6 +43,10 @@ EDITOR_W = if_below("Desktop", SHELL_W, f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP}")
 DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
+# Item-sektionen er gemt med Save og laast, til der trykkes Edit (#433).
+ITEM_LOCKED = cfg.section_locked("Item")
+# Skaermens handlingstilstand (build_hero.ACT) - Saving... i knappen.
+ACT = "varVhpAct"
 
 # Items-skinnens og editorens indholdsbredde (kortbredde minus 18+18 polstring).
 RAIL_CW = RAIL_W - 36
@@ -368,7 +373,7 @@ def build_items_rail():
         (
             "If(\n"
             "    !varVhpPlanCommitted,\n"
-            "    Notify(\"Press Done in the plan header before adding items.\", NotificationType.Warning),\n"
+            "    Notify(\"Press Save in the plan header before adding items.\", NotificationType.Warning),\n"
             "    Set(varVhpNextItemId, varVhpNextItemId + 1);\n"
             "    Collect(\n"
             "        colVhpItems,\n"
@@ -930,14 +935,15 @@ def build_item_editor():
     #
     # Den tredje besked er en faelde, der ellers ikke kunne ses: rammer
     # UpdateIf ingen raekke, goer den ingenting og siger heller ingenting.
-    btnSaveItem = button(
-        "btnVhpSaveItem", "\"Done\"",
-        (
-            "If(\n"
-            "    IsBlank(varVhpActiveItemId),\n"
-            "    Notify(\"Select or add an item first.\", NotificationType.Warning),\n"
-            "\n"
-            "    Set(varVhpItemValidated, true);\n"
+    #
+    # SAVE/EDIT (issue #433), som Plan header: Save (foer Done) siger
+    # "Saving..." mens den gemmer, og laaser sektionen, naar itemet er
+    # gemt som valid - knappen hedder saa Edit, og Edit laaser op igen.
+    # Fejler valideringen eller gemningen, er felterne stadig aabne.
+    # Laasen er colVhpSectionLocks (pr. item); trinene laeser stadig
+    # itemets Status, saa progressen er den samme som foer.
+    save_fx = (
+            "Set(varVhpItemValidated, true);\n"
             "    If(\n"
             "        IsBlank(Trim(inpVhpItemShortText.Text)) || Len(Trim(inpVhpItemShortText.Text)) > 40 ||\n"
             "        IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||\n"
@@ -973,6 +979,7 @@ def build_item_editor():
             "        );\n"
             "        If(\n"
             "            CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
+            f"            {act_mark(ACT, 'item', ok=False)};\n"
             "            Notify(\n"
             "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was changed.\",\n"
             "                NotificationType.Error\n"
@@ -980,13 +987,28 @@ def build_item_editor():
             # Issue #158: itemet har nu en Functional Location - vaelg den
             # foerste tasklist, hvis det ikke allerede har et gyldigt valg.
             f"            {AUTO_SELECT_TL};\n"
-            "            Notify(\"Item done: \" & Trim(inpVhpItemShortText.Text) & \". Save draft to keep it.\", NotificationType.Success)\n"
+            # Gemt: sektionen laases (issue #433). Ingen besked om Save
+            # draft - Edit-knappen og de graa felter er svaret.
+            "            Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: \"Item\" });\n"
+            f"            {act_mark(ACT, 'item')}\n"
             "        )\n"
-            "    )\n"
+            "    )"
+    )
+    btnSaveItem = button(
+        "btnVhpSaveItem", f'If({ITEM_LOCKED}, "Edit", "Save")',
+        (
+            "If(\n"
+            "    IsBlank(varVhpActiveItemId),\n"
+            "    Notify(\"Select or add an item first.\", NotificationType.Warning),\n"
+            f"    {ITEM_LOCKED},\n"
+            "    RemoveIf(colVhpSectionLocks, ItemId = varVhpActiveItemId && Section = \"Item\"),\n"
+            "\n"
+            + act_fx(ACT, "item", save_fx) + "\n"
             ")"
-        ), primary=True, width=110, icon='"Checkmark"',
+        ), primary=True, width=110, icon=f'If({ITEM_LOCKED}, "Edit", "Checkmark")',
         display_mode=DM_ITEM)
-    btnSaveItem.props["AccessibleLabel"] = '"Done with item " & Text(varVhpActiveItemId)'
+    btnSaveItem.props["AccessibleLabel"] = (f'If({ITEM_LOCKED}, "Edit item ", "Save item ") & '
+                                            'Text(varVhpActiveItemId)')
     # RESET (issue #54): Item Editorens usavede aendringer tilbage til det,
     # der sidst blev gemt paa itemet - eller tomt, hvis itemet aldrig er
     # gemt. Felterne har itemets gemte vaerdi som Default, saa Reset() er
@@ -1024,13 +1046,14 @@ def build_item_editor():
         ), width=fit_button_width("\"Reset\""), height=36,
         display_mode=DM_ITEM)
     btnSaveItem.props["Width"] = str(ITEM_SAVE_W)
+    act_button(btnSaveItem, ACT, "item", text="Saving...", grow=False)
 
     # ALTID FOLDET UD (issue #192): felterne, Functional Location og
     # hjaelpepanelet staar der altid. Foden siger, hvad der mangler, foer
     # itemet er gemt som gyldigt.
     attention = text_ctrl(
         "txtVhpItemAttention",
-        f'Switch({ST}, "invalid", "Fix the fields marked * and press Done.", '
+        f'Switch({ST}, "invalid", "Fix the fields marked * and press Save.", '
         '"valid", "Item is valid.", "Not done yet.")',
         size=12, height=36, wrap="true",
         visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
@@ -1039,6 +1062,10 @@ def build_item_editor():
     footerInfo = group("conVhpItemFooterInfo", [attention], direction="Vertical", gap=0,
                        justify="Center", visible=attention.vis)
     footer = section_footer("conVhpEditorFooter", footerInfo, [btnResetItem, btnSaveItem], EDITOR_CW)
+    # GEMT = SKRIVEBESKYTTET (issue #433): felterne, Functional Location,
+    # Object list og Reset laases, som i View mode, til der trykkes Edit.
+    lock_section([fieldsGrid, flRow, footer], "varVhpViewOnly", ITEM_LOCKED,
+                 keep={"btnVhpSaveItem"})
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
@@ -1050,7 +1077,8 @@ def build_item_editor():
 
 
 # Save-knappens bredde i Item Editoren.
-ITEM_SAVE_W = fit_button_width("\"Done\"", min_w=96) + ICON_W
+# Bredt nok til "Saving..." (issue #433), saa foden staar stille.
+ITEM_SAVE_W = fit_button_width("\"Saving...\"", min_w=96) + ICON_W
 
 
 # Object list-popuppens bredde (maks 640, aldrig bredere end skaermen minus
@@ -1194,6 +1222,8 @@ def build_object_list_modal():
         visible="varVhpObjListOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    # Et gemt item (issue #433) viser sine objekter skrivebeskyttet, som i View.
+    lock_section([modal], "varVhpViewOnly", ITEM_LOCKED)
     return modal
 
 
