@@ -61,9 +61,9 @@ def test_header_is_the_first_child_of_the_vertical_frame():
         assert "Y" not in (_find(scr["Children"], name).get("Properties") or {}), name
 
 
-def test_rows_classes_and_structure_are_in_the_body_below_the_header():
+def test_rows_and_classes_are_in_the_body_below_the_header():
     body = _find(_screen()["Children"], "conFlBody")
-    assert _kids(body) == ["conFlRowsCard", "conFlClassesCard", "conFlStructCard"]
+    assert _kids(body) == ["conFlRowsCard", "conFlClassesCard"]
 
 
 def test_breadcrumb_title_description_and_actions_are_in_the_header():
