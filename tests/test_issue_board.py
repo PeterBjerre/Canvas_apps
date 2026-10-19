@@ -408,7 +408,10 @@ def test_screen_opens_with_one_round_of_queries():
     import ib_parts as P
     from permissions import IS_ADMIN
     on_visible = P.on_visible()
-    assert on_visible.count("Concurrent(") == 1
+    # Een runde ved foerste hentning (LOAD) og een i den stille opdatering
+    # (SYNC) - sagerne og Activity-tallene samtidig (issue #422).
+    assert P.LOAD.count("Concurrent(") == 1 and P.SYNC.count("Concurrent(") == 1
+    assert on_visible.count("Concurrent(") == 2
     # Een hentning af listen (LOAD); den stille opdatering ved genbesoeg
     # (issue #212) kopierer kun fra sin midlertidige samling.
     assert on_visible.count(f"ClearCollect(colIbAll, {P.FETCH_ALL})") == 1
@@ -574,7 +577,7 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
     # Issue #244: den praecise raekkefoelge - Requester lige efter Ticket ID.
     heads = [c[1] for c in P.LIST_COLS]
     assert heads == ["TICKET ID", "REQUESTER", "TITLE", "APPLICATION", "SECTION", "PRIORITY",
-                     "STATUS", "ASSIGNED TO", "REPORTED", "UPDATED", "ACTIONS"]
+                     "STATUS", "ASSIGNED TO", "REPORTED", "UPDATED", "ACTIVITY", "FILES"]
     assert [c.name for c in row.children][:3] == ["bdgIbRowNo", "txtIbRowReq", "txtIbRowTitle"]
     # Titlen faar ikke hele den frie bredde (issue #244: hoejst en fjerdedel),
     # og maerkerne og handlingen vokser ikke - de har fast, tilstraekkelig plads.
@@ -584,6 +587,7 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
     assert sum(1 for g in grow.values() if g) >= 6
     base = {k: b for k, _h, b, _g, _w in P.LIST_COLS}
     assert base["STATUS"] >= 116 and base["ACT"] >= P.ACT_BTN and base["ID"] >= 88
+    assert grow["ACTV"] == 0 and base["ACTV"] >= 52
     # Kolonnerne kan staa paa den smalleste Desktop-skaerm.
     assert P._fixed(False) <= 806
     # Titlen paa een linje (ellipse); rapportoeren som kort bruger-id.
@@ -597,16 +601,15 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
 
 
 def test_row_has_an_attach_button_after_creation():
-    """Issue #193: vedhaeftninger er en knap i raekken - kun for
-    rapportoeren og admins, oven paa raekkens klikflade, og den aabner sagen
-    paa fanen Attachments. Siden issue #300 gemmes filerne med Patch paa
-    sagens raekke - ikke gennem flowets attach."""
+    """Issue #193: vedhaeftninger er en knap i raekken, oven paa raekkens
+    klikflade, og den aabner sagen paa fanen Attachments. Siden issue #300
+    gemmes filerne med Patch paa sagens raekke - ikke gennem flowets
+    attach. Siden issue #422 staar papirclipsen kun, naar sagen har filer."""
     import ib_parts as P
-    from permissions import IS_ADMIN
     ctrls = _list_gallery()
     for name in ("btnIbRowAttach", "btnIbRowAttachC"):
         att = ctrls[name]
-        assert f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})" in att.props["Visible"]
+        assert att.props["Visible"].endswith("&& ThisItem.HasFiles")
         assert 'Set(varIbTab, "files")' in att.props["OnSelect"]
         assert P.LOAD_FILES in att.props["OnSelect"]
         assert att.props["Layout"] == "ButtonLayout.IconOnly" and att.props["AccessibleLabel"]
