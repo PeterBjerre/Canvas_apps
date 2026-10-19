@@ -194,6 +194,8 @@ def pkg_pills(prefix, op_no, key, width=PILLS_W):
          f'If({sel}, ", selected", ", not selected")'),
         "Parent.TemplateWidth", PILL_H, radius=PILL_H // 2)
     hit.props["Y"] = y
+    # View: pillerne viser valget, men et klik aendrer intet (issue #390).
+    hit.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
     hit.props["Tooltip"] = ('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & '
                             'ThisItem.CycleUnit')
     items = (
@@ -431,6 +433,8 @@ def build_strategy_body():
             ),
             "Width": "30",
         }), h=24)
+    # View: fluebenene staar, men kan ikke slaas til/fra (issue #390).
+    chkCell.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
     cellWrap = group("conVhpPkgCell", [chkCell], direction="Horizontal", gap=0, height=ROW_H,
                      align_items="Center", justify="Center", width="Parent.TemplateWidth")
     cell_items = (

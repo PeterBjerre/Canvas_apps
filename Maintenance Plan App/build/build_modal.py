@@ -317,7 +317,9 @@ def build_tasklist_picker_modal():
             ")"
         ), primary=True, width=170, height=36,
         # Desktop: graa, til der er valgt mindst een linje (issue #109).
-        display_mode=f"If({DESK} && CountRows(colVhpPickerSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)")
+        # View: ingen nye linjer, heller ikke herfra (issue #390).
+        display_mode=(f"If(varVhpViewOnly || ({DESK} && CountRows(colVhpPickerSelected) = 0), "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"))
     footer = group("conVhpPickerFooter", [btnAddSelected], direction="Horizontal", gap=10, height=36,
                   justify="End", align_items="Center")
 

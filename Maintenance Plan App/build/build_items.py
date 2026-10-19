@@ -593,6 +593,8 @@ def build_items_rail():
         "conVhpItemsEmpty", '"No items yet - choose Add item to create the first one."',
         "Add item", btnAdd.props["OnSelect"], icon_key="vhplan",
         button_name="btnVhpItemsEmptyAdd", action_icon="Add",
+        # Som Add item over listen: ingen nye items i View (issue #390).
+        action_visible="!varVhpViewOnly",
         visible="IfError(CountRows(colVhpItems) = 0, true)")
 
     return card("conVhpItemsCard", [header, gallery, emptyState], gap=12)
