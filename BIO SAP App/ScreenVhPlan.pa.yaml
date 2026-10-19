@@ -9594,7 +9594,29 @@ Screens:
                                                                                 colVhpObjDraft,
                                                                                 ForAll(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As O, { Code: O.Code, Description: O.Description })
                                                                             );
-                                                                            Set(varVhpObjListOpen, true)
+                                                                            Set(varVhpObjListOpen, true);
+                                                                            With(
+                                                                                { fl: Upper(Trim(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))),
+                                                                                  miss: Filter(colVhpObjDraft, IsBlank(Description) && !(Code in colVhpObjDesc.Code) &&
+                                                                                             !(Code in colVhpFl.Code)) },
+                                                                                If(
+                                                                                    !IsBlank(fl) && CountRows(miss) > 0,
+                                                                                    IfError(
+                                                                                        Set(varVhpObjDescRaw, 'BioSap-Integration-FunctionalLocations'.Run(fl));
+                                                                                        With(
+                                                                                            { found: ForAll(
+                                                                                                Table(ParseJSON(Coalesce(varVhpObjDescRaw.functionallocationoutput, "[]"))) As R,
+                                                                                                { Code: Text(R.Value.functionKey), Description: Text(R.Value.description) }) },
+                                                                                            Collect(
+                                                                                                colVhpObjDesc,
+                                                                                                ForAll(miss As O,
+                                                                                                    { Code: O.Code, Description: Coalesce(LookUp(found, Code = O.Code).Description, "") })
+                                                                                            )
+                                                                                        ),
+                                                                                        Set(gblToast, { Text: "Could not load the object descriptions.", Kind: "Warning", At: Now() }); true
+                                                                                    )
+                                                                                )
+                                                                            )
                                                                         PressedFill: |-
                                                                             =C.'bg-muted'
                                                                         TabIndex: |-
@@ -9606,7 +9628,8 @@ Screens:
                                                                                 If(
                                                                                     n = 0, "No sub-objects selected.",
                                                                                     "Selected:" & Char(10) &
-                                                                                        Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code & " - " & Description, Char(10)) &
+                                                                                        Concat(ForAll(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code) As O,
+                                                                                            { t: O.Code & If(IsBlank(Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "")), "", " - " & Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "")) }), t, Char(10)) &
                                                                                         If(
                                                                                             fremmede > 0,
                                                                                             Char(10) & "WARNING: " & Text(fremmede) &
@@ -21402,7 +21425,7 @@ Screens:
                       ) As F, { Code: F.Code, Description: F.Description }) },
                           With(
                               { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
-                                          { Code: O.Code, Description: O.Description }) },
+                                          { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "") }) },
                               Sort(
                                   ForAll(
                                       Sequence(CountRows(c) + CountRows(x)),
@@ -26179,6 +26202,8 @@ Screens:
                             If(false, ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" }));
                 
                             If(false, ClearCollect(colVhpObjDraft, { Code: "", Description: "" }));
+                
+                            If(false, ClearCollect(colVhpObjDesc, { Code: "", Description: "" }));
                 
                             If(false, ClearCollect(colVhpPickerSelected, { OperationNo: "" }));
                 

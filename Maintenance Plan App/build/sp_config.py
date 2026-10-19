@@ -568,6 +568,9 @@ WORKING_COLLECTIONS = [
     # Kladden i Object List-popup'en. Foerst "Use selected" skriver den i
     # colVhpItemObjects; lukkes popup'en, er intet aendret.
     ("colVhpObjDraft", {"Code": '""', "Description": '""'}),
+    # KKS-beskrivelserne til en genaabnet plans objekter (issue #389) - slaaet
+    # op i FL-flowet, naar Object list aabnes. Kun visning; gemmes aldrig.
+    ("colVhpObjDesc", {"Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
     # Materialer til arbejdsplanen. Description og Unit staar tomme, indtil
     # materialeopslaget mod SAP er paa plads - felterne findes allerede, saa
