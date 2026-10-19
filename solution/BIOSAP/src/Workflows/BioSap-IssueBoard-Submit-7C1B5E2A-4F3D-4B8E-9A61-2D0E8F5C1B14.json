@@ -207,9 +207,29 @@
             ]
           }
         },
-        "Try": {
+        "Init_comment_ids": {
           "runAfter": {
             "Init_mail_body": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2f2a2bff-9bd8-5191-8828-dec337bc8fb8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CommentIds",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Try": {
+          "runAfter": {
+            "Init_comment_ids": [
               "Succeeded"
             ]
           },
@@ -292,7 +312,7 @@
             },
             "Load_ticket": {
               "runAfter": {
-                "Is_admin": [
+                "Payload": [
                   "Succeeded"
                 ]
               },
@@ -383,9 +403,171 @@
                 "actions": {}
               }
             },
+            "Resolve_admins": {
+              "runAfter": {
+                "Select_admins": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "8e60f626-3023-5fa7-8543-2371a4e9753e"
+              },
+              "type": "If",
+              "expression": {
+                "equals": [
+                  "@contains(createArray('comment', 'edit', 'reopen', 'archive', 'attach'), toLower(coalesce(triggerBody()?['text'], '')))",
+                  true
+                ]
+              },
+              "actions": {
+                "For_each_admin_id": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "9adeb81c-ae71-5e3e-9d64-a9cf866f7de5"
+                  },
+                  "type": "Foreach",
+                  "foreach": "@body('Select_admins')",
+                  "actions": {
+                    "Ensure_event_admin": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "8ae7a1dc-8044-58a4-a3d9-62bbd0186ecb"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "HttpRequest"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "parameters/method": "POST",
+                          "parameters/uri": "_api/web/ensureuser",
+                          "parameters/headers": {
+                            "Accept": "application/json;odata=nometadata",
+                            "Content-Type": "application/json;odata=nometadata"
+                          },
+                          "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{items('For_each_admin_id')}\"}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Remember_admin_id": {
+                      "runAfter": {
+                        "Ensure_event_admin": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "fa62c19f-2d59-5b34-a7af-749ca5bac5fe"
+                      },
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "AdminIds",
+                        "value": "@body('Ensure_event_admin')?['Id']"
+                      }
+                    },
+                    "Admin_id_handled": {
+                      "runAfter": {
+                        "Remember_admin_id": [
+                          "Succeeded",
+                          "Failed",
+                          "Skipped",
+                          "TimedOut"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "92b09bab-2752-56cf-9d2d-765c85d118a7"
+                      },
+                      "type": "Compose",
+                      "inputs": "@true"
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "concurrency": {
+                      "repetitions": 1
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Resolve_reporter": {
+              "runAfter": {
+                "Load_ticket": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5a9c552e-41cd-5231-8d66-dc5703d9cd68"
+              },
+              "type": "If",
+              "expression": {
+                "equals": [
+                  "@contains(createArray('comment', 'edit', 'reopen', 'archive', 'attach'), toLower(coalesce(triggerBody()?['text'], '')))",
+                  true
+                ]
+              },
+              "actions": {
+                "Has_reporter": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "c705945f-975b-55e7-a31c-0a227f7014aa"
+                  },
+                  "type": "If",
+                  "expression": {
+                    "not": {
+                      "equals": [
+                        "@toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], ''))",
+                        ""
+                      ]
+                    }
+                  },
+                  "actions": {
+                    "Ensure_event_reporter": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "f9e4e11d-f93c-537c-8fdb-7463e6d059c7"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "HttpRequest"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "parameters/method": "POST",
+                          "parameters/uri": "_api/web/ensureuser",
+                          "parameters/headers": {
+                            "Accept": "application/json;odata=nometadata",
+                            "Content-Type": "application/json;odata=nometadata"
+                          },
+                          "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], ''))}\"}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "else": {
+                    "actions": {}
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
             "Action": {
               "runAfter": {
                 "Load_ticket": [
+                  "Succeeded"
+                ],
+                "Is_admin": [
                   "Succeeded"
                 ]
               },
@@ -1590,6 +1772,9 @@
               "runAfter": {
                 "Action": [
                   "Succeeded"
+                ],
+                "Resolve_reporter": [
+                  "Succeeded"
                 ]
               },
               "metadata": {
@@ -1603,111 +1788,8 @@
                 ]
               },
               "actions": {
-                "Ensure_event_reporter": {
-                  "runAfter": {},
-                  "metadata": {
-                    "operationMetadataId": "f9e4e11d-f93c-537c-8fdb-7463e6d059c7"
-                  },
-                  "type": "OpenApiConnection",
-                  "inputs": {
-                    "host": {
-                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                      "connectionName": "shared_sharepointonline",
-                      "operationId": "HttpRequest"
-                    },
-                    "parameters": {
-                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                      "parameters/method": "POST",
-                      "parameters/uri": "_api/web/ensureuser",
-                      "parameters/headers": {
-                        "Accept": "application/json;odata=nometadata",
-                        "Content-Type": "application/json;odata=nometadata"
-                      },
-                      "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], ''))}\"}"
-                    },
-                    "authentication": "@parameters('$authentication')"
-                  }
-                },
-                "For_each_admin_id": {
-                  "runAfter": {
-                    "Ensure_event_reporter": [
-                      "Succeeded"
-                    ]
-                  },
-                  "metadata": {
-                    "operationMetadataId": "9adeb81c-ae71-5e3e-9d64-a9cf866f7de5"
-                  },
-                  "type": "Foreach",
-                  "foreach": "@body('Select_admins')",
-                  "actions": {
-                    "Ensure_event_admin": {
-                      "runAfter": {},
-                      "metadata": {
-                        "operationMetadataId": "8ae7a1dc-8044-58a4-a3d9-62bbd0186ecb"
-                      },
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "connectionName": "shared_sharepointonline",
-                          "operationId": "HttpRequest"
-                        },
-                        "parameters": {
-                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                          "parameters/method": "POST",
-                          "parameters/uri": "_api/web/ensureuser",
-                          "parameters/headers": {
-                            "Accept": "application/json;odata=nometadata",
-                            "Content-Type": "application/json;odata=nometadata"
-                          },
-                          "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{items('For_each_admin_id')}\"}"
-                        },
-                        "authentication": "@parameters('$authentication')"
-                      }
-                    },
-                    "Remember_admin_id": {
-                      "runAfter": {
-                        "Ensure_event_admin": [
-                          "Succeeded"
-                        ]
-                      },
-                      "metadata": {
-                        "operationMetadataId": "fa62c19f-2d59-5b34-a7af-749ca5bac5fe"
-                      },
-                      "type": "AppendToArrayVariable",
-                      "inputs": {
-                        "name": "AdminIds",
-                        "value": "@body('Ensure_event_admin')?['Id']"
-                      }
-                    },
-                    "Admin_id_handled": {
-                      "runAfter": {
-                        "Remember_admin_id": [
-                          "Succeeded",
-                          "Failed",
-                          "Skipped",
-                          "TimedOut"
-                        ]
-                      },
-                      "metadata": {
-                        "operationMetadataId": "92b09bab-2752-56cf-9d2d-765c85d118a7"
-                      },
-                      "type": "Compose",
-                      "inputs": "@true"
-                    }
-                  },
-                  "runtimeConfiguration": {
-                    "concurrency": {
-                      "repetitions": 1
-                    }
-                  }
-                },
                 "For_each_event": {
-                  "runAfter": {
-                    "For_each_admin_id": [
-                      "Succeeded"
-                    ]
-                  },
+                  "runAfter": {},
                   "metadata": {
                     "operationMetadataId": "e9f0309d-54ee-5f97-bb21-4ab88a7cc32c"
                   },
@@ -1837,57 +1919,19 @@
                         "actions": {}
                       }
                     },
-                    "For_each_event_admin": {
+                    "Remember_comment_id": {
                       "runAfter": {
                         "Grant_event_reporter": [
                           "Succeeded"
                         ]
                       },
                       "metadata": {
-                        "operationMetadataId": "ff008d7a-e02a-59ce-8706-588942725dc9"
+                        "operationMetadataId": "4b00712a-d504-5d4f-93d0-8f849d41013a"
                       },
-                      "type": "Foreach",
-                      "foreach": "@variables('AdminIds')",
-                      "actions": {
-                        "Grant_event_admin": {
-                          "runAfter": {},
-                          "metadata": {
-                            "operationMetadataId": "f05ce001-e7e1-504f-8d41-3f48e74c1a3e"
-                          },
-                          "type": "OpenApiConnection",
-                          "inputs": {
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "connectionName": "shared_sharepointonline",
-                              "operationId": "HttpRequest"
-                            },
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "parameters/method": "POST",
-                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/roleassignments/addroleassignment(principalid=@{items('For_each_event_admin')},roledefid=1073741827)",
-                              "parameters/headers": {
-                                "Accept": "application/json;odata=nometadata",
-                                "Content-Type": "application/json;odata=nometadata"
-                              }
-                            },
-                            "authentication": "@parameters('$authentication')"
-                          }
-                        },
-                        "Admin_event_handled": {
-                          "runAfter": {
-                            "Grant_event_admin": [
-                              "Succeeded",
-                              "Failed",
-                              "Skipped",
-                              "TimedOut"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "be4d867d-c1b4-5aa6-9f67-6288cae0bca0"
-                          },
-                          "type": "Compose",
-                          "inputs": "@true"
-                        }
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "CommentIds",
+                        "value": "@variables('CommentId')"
                       }
                     }
                   },
@@ -1960,6 +2004,98 @@
                           "type": "string"
                         }
                       }
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Grant_admins": {
+              "runAfter": {
+                "Respond": [
+                  "Succeeded"
+                ],
+                "Resolve_admins": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6096780b-79dc-5323-819a-20d02b1f521a"
+              },
+              "type": "If",
+              "expression": {
+                "greater": [
+                  "@length(variables('CommentIds'))",
+                  0
+                ]
+              },
+              "actions": {
+                "For_each_comment_id": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "243af852-4caf-5f36-aaa9-b21a9fb1b44a"
+                  },
+                  "type": "Foreach",
+                  "foreach": "@variables('CommentIds')",
+                  "actions": {
+                    "For_each_event_admin": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "ff008d7a-e02a-59ce-8706-588942725dc9"
+                      },
+                      "type": "Foreach",
+                      "foreach": "@variables('AdminIds')",
+                      "actions": {
+                        "Grant_event_admin": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "f05ce001-e7e1-504f-8d41-3f48e74c1a3e"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "HttpRequest"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/method": "POST",
+                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{items('For_each_comment_id')})/roleassignments/addroleassignment(principalid=@{items('For_each_event_admin')},roledefid=1073741827)",
+                              "parameters/headers": {
+                                "Accept": "application/json;odata=nometadata",
+                                "Content-Type": "application/json;odata=nometadata"
+                              }
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Admin_event_handled": {
+                          "runAfter": {
+                            "Grant_event_admin": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped",
+                              "TimedOut"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "be4d867d-c1b4-5aa6-9f67-6288cae0bca0"
+                          },
+                          "type": "Compose",
+                          "inputs": "@true"
+                        }
+                      }
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "concurrency": {
+                      "repetitions": 1
                     }
                   }
                 }
