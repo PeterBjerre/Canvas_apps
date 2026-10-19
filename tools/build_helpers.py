@@ -2141,7 +2141,7 @@ def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
     retry = button(f"btn{prefix}EditorRetry", '"Retry"', retry_fx,
                    width=fit_button_width('"Retry"'), height=PANEL_SAVE_H,
                    display_mode=panel_save_mode(state_var, display_mode), visible=failed,
-                   tooltip='"Try to save the row again"')
+                   tooltip='"Try to save again"')
     vis = f"{saving} || {failed}"
     return group(f"con{prefix}EditorSaveStatus", [spin, text, retry], direction="Horizontal",
                  gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)

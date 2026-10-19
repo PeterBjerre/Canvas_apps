@@ -78,7 +78,8 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            flow_row, grow, icon_on_mobile, label_row, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
-                           ICON_W, modern_badge, spinner)
+                           ICON_W, modern_badge, spinner, panel_save_fx, panel_save_mode,
+                           panel_save_status, panel_save_block)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
 import icons
@@ -122,6 +123,7 @@ INIT_STATE = (
     "    Set(varIbSelFullFor, -1);\n"
     "    Set(varIbTried, false);\n"
     "    Set(varIbBusy, false);\n"
+    '    Set(varIbPanelSave, "");\n'
     "    Set(varIbUploading, false);\n"
     "    Set(varIbSelPeek, false);\n"
     "    Set(varIbPosting, false);\n"
@@ -529,7 +531,11 @@ OPEN_EDIT = (
     "Set(varIbDetailOn, false);\n"
     "Set(varIbFormOn, true)"
 )
-CLOSE_FORM = 'Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDetailOn, true))'
+# Formularens gem-tilstand i panelet: saving, failed eller tom (issue #402,
+# build_helpers.panel_save_status). Nulstilles, naar formularen lukkes.
+IB_SAVE = "varIbPanelSave"
+CLOSE_FORM = ('Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDetailOn, true));\n'
+              f'Set({IB_SAVE}, "")')
 
 
 def build_bar():
@@ -1447,6 +1453,15 @@ SAVE_EDIT = (
     "Set(varIbBusy, false)"
 )
 
+def _in_panel(fx):
+    """SUBMIT/SAVE_EDIT fra formularens sidepanel (issue #402): samme gem,
+    men tilstanden er panelets (IB_SAVE) i stedet for sidens varIbBusy."""
+    on, off = "Set(varIbBusy, true);\n", ";\nSet(varIbBusy, false)"
+    assert fx.startswith(on) and fx.endswith(off), fx[:40]
+    return panel_save_fx(IB_SAVE, fx[len(on):-len(off)],
+                         f'Set({IB_SAVE}, If(varIbSaved, "", "failed"))')
+
+
 SIMILAR_ITEMS = (
     "With(\n"
     '    { w: Filter(ForAll(Split(Trim(inpIbTitle.Text), " ") As s, { Word: s.Value }), Len(Word) >= 4) },\n'
@@ -1724,20 +1739,25 @@ def build_form():
     # mens felterne er ufuldstaendige - et tryk siger, hvad der mangler.
     # Kun mens et kald koerer er den laast, og OnSelect tjekker det selv:
     # et hurtigt dobbeltklik naar ikke at sende sagen to gange.
+    # Gemmets tilstand vises i panelet under knappen - ikke som sidens sloer
+    # og bjaelke (issue #402). Retry er det samme tryk.
+    submit_fx = ("If(\n    varIbBusy,\n    false,\n"
+                 f"    !({VALID}),\n"
+                 "    Set(varIbTried, true);\n"
+                 f"    Notify({missing_text}, NotificationType.Warning),\n"
+                 f"    If(\n        {EDITING},\n        "
+                 + _in_panel(SAVE_EDIT).replace("\n", "\n        ") + ",\n        "
+                 + _in_panel(SUBMIT).replace("\n", "\n        ") + "\n    )\n)")
+    idle = "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
     submit = button("btnIbFormSubmit", f'If({EDITING}, "Save changes", "Submit issue")',
-                    "If(\n    varIbBusy,\n    false,\n"
-                    f"    !({VALID}),\n"
-                    "    Set(varIbTried, true);\n"
-                    f"    Notify({missing_text}, NotificationType.Warning),\n"
-                    f"    If(\n        {EDITING},\n        "
-                    + SAVE_EDIT.replace("\n", "\n        ") + ",\n        "
-                    + SUBMIT.replace("\n", "\n        ") + "\n    )\n)", primary=True,
+                    submit_fx, primary=True,
                     width=fit_button_width('"Save changes"') + ICON_W, height=36,
                     icon=f'If({EDITING}, "Save", "Send")',
-                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+                    display_mode=panel_save_mode(IB_SAVE, idle))
     footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    foot = group("conIbFormFoot", [footer, missing], direction="Vertical", gap=8)
+    status = panel_save_status("Ib", IB_SAVE, submit_fx, idle)
+    foot = group("conIbFormFoot", [footer, status, missing], direction="Vertical", gap=8)
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
             manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
@@ -2494,6 +2514,8 @@ def build_loading():
     # En kommentar har sin egen ventetilstand i kommentarfeltet (issue #370) -
     # varIbPosting daekker ikke skaermen.
     return [_post_timer(),
+            # Formularens gem: et gennemsigtigt lag, ingen sloer (issue #402).
+            panel_save_block("Ib", IB_SAVE),
             *progress_overlay("imgIbBusy", "varIbBusy && !varIbUploading",
                               "Sending, please wait"),
             *progress_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
