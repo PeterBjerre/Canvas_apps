@@ -9944,7 +9944,8 @@ Screens:
                                                                       Maintainable: true, Level: "" },
                                                                 n: CountRows(colEqFl),
                                                                 ask: Len(q) >= 7 && !varEqFlBusy &&
-                                                                     Upper(q) <> Upper(Coalesce(varEqFlLast, "")),
+                                                                     Upper(q) <> Upper(Coalesce(varEqFlLast, "")) &&
+                                                                     IsBlank(LookUp(colEqFl, Upper(Trim(Display)) = Upper(q)).Code),
                                                                 narrow: CountRows(colEqFl) > 0 && !IsBlank(varEqFlLast) &&
                                                                         StartsWith(Upper(q), Upper(varEqFlLast))
                                                             },
