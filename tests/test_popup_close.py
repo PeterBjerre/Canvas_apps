@@ -11,7 +11,11 @@ kun handlingen. Fjern-bekraeftelsen inde i dokumentpopuppen (doc_upload,
 "...RemoveCancel") er et ja/nej-valg - den lukker ikke popuppen.
 
 Undtagelse (issue #429): Materials' Purchase order text er en lille
-editor og har Cancel og Save i bunden som sidepanelet. X'et er der stadig."""
+editor og har Cancel og Save i bunden som sidepanelet. X'et er der stadig.
+
+Undtagelse (issue #450): Reset-bekraeftelserne (...ResetConfirmModal) har
+Cancel (sikker) og Reset (destruktiv) i bunden, som issuet kraever. X'et
+er der stadig."""
 import glob
 import os
 
@@ -108,7 +112,8 @@ SIDEBAR_X = _sidebar_x()
 def test_one_x_no_close_button(screen, name, node):
     # Issue #343: ingen Close- eller Cancel-knap med tekst; EET X.
     btns = _buttons(node)
-    banned = ('"Close"',) if name in CANCEL_SAVE_POPUPS else ('"Close"', '"Cancel"')
+    cancel_ok = name in CANCEL_SAVE_POPUPS or name.endswith("ResetConfirmModal")
+    banned = ('"Close"',) if cancel_ok else ('"Close"', '"Cancel"')
     texts = [n for n, v, _ in btns if _prop(v, "Text") in banned
              and not n.endswith("RemoveCancel")]
     assert not texts, f"{name}: Close/Cancel-knapper med tekst: {texts}"

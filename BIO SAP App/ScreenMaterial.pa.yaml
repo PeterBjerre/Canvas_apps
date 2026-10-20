@@ -15349,72 +15349,169 @@ Screens:
                                   =77
                               OnSelect: |-
                                   =If(
-                                      IsBlank(LookUp(colMatRows, RowId = varMatActiveRowId)),
-                                      Set(varMatActiveRowId, Blank());
-                                      Set(varMatRowStatus, "valid");
-                                      Set(varMatValidated, false);
-                                      Set(varMatFText, "");
-                                      Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
-                                      Set(varMatEditorOpen, false);
-                                      Set(varMatPanelSave, "");
-                                      Set(varMatEditorTab, "Details");
-                                      If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
-                                      Set(varMatFManufacturer, "");
-                                      Set(varMatFModelNumber, "");
-                                      Set(varMatFManufacturerPartNo, "");
-                                      Set(varMatFSupplier, "");
-                                      Set(varMatFSupplierPartNo, "");
-                                      Set(varMatFDeliveringTime, Blank());
-                                      Set(varMatFPrice, "");
-                                      Set(varMatFPriceUnit, "");
-                                      Set(varMatFStockUnit, "");
-                                      Set(varMatFIsStockItem, false);
-                                      Set(varMatFMinStock, Blank());
-                                      Set(varMatFMaxStock, Blank());
-                                      Set(varMatFStorageBin, "X");
-                                      Set(varMatFStrategicPart, "");
-                                      Set(varMatFWearPart, "");
-                                      Set(varMatFRemarks, "");
-                                      Set(varMatFMaintenanceOrderNo, "");
-                                      Set(varMatFReplacesExisting, false);
-                                      Set(varMatFReplacedMaterialNo, "");
-                                      Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
-                                      Clear(colMatObjects);
-                                      Set(varMatObjRowId, Blank());
-                                      Clear(colMatObjPop);
-                                      Set(varMatInfo, "");
-                                      Set(varMatEditorOpen, true),
-                                      Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
-                                      Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
-                                      Set(varMatValidated, false);
-                                      Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
-                                      Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
-                                      Set(varMatEditorOpen, true);
-                                      Set(varMatPanelSave, "");
-                                      Set(varMatEditorTab, "Details");
-                                      If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
-                                      Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
-                                      Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
-                                      Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
-                                      Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
-                                      Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
-                                      Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
-                                      Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
-                                      Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
-                                      Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
-                                      Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
-                                      Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
-                                      Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
-                                      Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
-                                      Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
-                                      Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
-                                      Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
-                                      Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
-                                      Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
-                                      Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
-                                      Clear(colMatObjects);
-                                      Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
-                                      Reset(inpMatDetCreatedNo)
+                                      If(
+                                          IsBlank(varMatActiveRowId),
+                                          !IsBlank(Trim(Coalesce(varMatFText, ""))) ||
+                                          Coalesce(varMatFPlant, "") <> Coalesce(First(colAppPrefs).prefMatNewPlant, "") ||
+                                          CountRows(colMatObjects) > 0 ||
+                                          !IsBlank(Trim(Coalesce(varMatFManufacturer, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFModelNumber, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFManufacturerPartNo, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFSupplier, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFSupplierPartNo, ""))) ||
+                                          !IsBlank(varMatFDeliveringTime) ||
+                                          !IsBlank(Trim(Coalesce(varMatFPrice, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFPriceUnit, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFStockUnit, ""))) ||
+                                          Coalesce(varMatFIsStockItem, false) ||
+                                          !IsBlank(varMatFMinStock) ||
+                                          !IsBlank(varMatFMaxStock) ||
+                                          Coalesce(varMatFStorageBin, "") <> "X" ||
+                                          !IsBlank(Trim(Coalesce(varMatFStrategicPart, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFWearPart, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFRemarks, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMatFMaintenanceOrderNo, ""))) ||
+                                          Coalesce(varMatFReplacesExisting, false) ||
+                                          !IsBlank(Trim(Coalesce(varMatFReplacedMaterialNo, ""))),
+                                          !IsBlank(With({ o: LookUp(colMatRows, RowId = varMatActiveRowId) },
+                                          Concat(
+                                              Filter(
+                                                  Table(
+                                                  { f: "Material description", a: Text(o.MaterialDescription), b: Text(varMatFText) },
+                                                  { f: "Plant", a: Text(o.Plant), b: Text(varMatFPlant) },
+                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varMatFManufacturer) },
+                                                  { f: "Model number", a: Text(o.ModelNumber), b: Text(varMatFModelNumber) },
+                                                  { f: "Manufacturer part no.", a: Text(o.ManufacturerPartNo), b: Text(varMatFManufacturerPartNo) },
+                                                  { f: "Supplier", a: Text(o.Supplier), b: Text(varMatFSupplier) },
+                                                  { f: "Supplier part no.", a: Text(o.SupplierPartNo), b: Text(varMatFSupplierPartNo) },
+                                                  { f: "Delivery time (days)", a: Text(o.DeliveringTime), b: Text(varMatFDeliveringTime) },
+                                                  { f: "Price", a: Text(o.Price), b: Text(varMatFPrice) },
+                                                  { f: "Price unit", a: Text(o.PriceUnit), b: Text(varMatFPriceUnit) },
+                                                  { f: "Stock unit", a: Text(o.StockUnit), b: Text(varMatFStockUnit) },
+                                                  { f: "Stock item", a: Text(o.IsStockItem), b: Text(varMatFIsStockItem) },
+                                                  { f: "Min stock", a: Text(o.MinStock), b: Text(varMatFMinStock) },
+                                                  { f: "Max stock", a: Text(o.MaxStock), b: Text(varMatFMaxStock) },
+                                                  { f: "Storage bin", a: Text(o.StorageBin), b: Text(varMatFStorageBin) },
+                                                  { f: "Strategic part", a: Text(o.StrategicPart), b: Text(varMatFStrategicPart) },
+                                                  { f: "Wear part", a: Text(o.WearPart), b: Text(varMatFWearPart) },
+                                                  { f: "Purchase order text", a: Text(o.Remarks), b: Text(varMatFRemarks) },
+                                                  { f: "Maintenance order no.", a: Text(o.MaintenanceOrderNo), b: Text(varMatFMaintenanceOrderNo) },
+                                                  { f: "Replace existing material", a: Text(o.ReplacesExisting), b: Text(varMatFReplacesExisting) },
+                                                  { f: "Replaced material no.", a: Text(o.ReplacedMaterialNo), b: Text(varMatFReplacedMaterialNo) }
+                                                  ),
+                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                              ),
+                                              "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                              "; "
+                                          )
+                                      ))
+                                      ),
+                                      Set(varMatResetAsk, true),
+                                      With(
+                                          { keepTab: Coalesce(varMatEditorTab, "Details") },
+                                          If(
+                                              IsBlank(LookUp(colMatRows, RowId = varMatActiveRowId)),
+                                              Set(varMatActiveRowId, Blank());
+                                              Set(varMatRowStatus, "valid");
+                                              Set(varMatValidated, false);
+                                              Set(varMatFText, "");
+                                              Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
+                                              Set(varMatEditorOpen, false);
+                                              Set(varMatPanelSave, "");
+                                              Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
+                                              Set(varMatFManufacturer, "");
+                                              Set(varMatFModelNumber, "");
+                                              Set(varMatFManufacturerPartNo, "");
+                                              Set(varMatFSupplier, "");
+                                              Set(varMatFSupplierPartNo, "");
+                                              Set(varMatFDeliveringTime, Blank());
+                                              Set(varMatFPrice, "");
+                                              Set(varMatFPriceUnit, "");
+                                              Set(varMatFStockUnit, "");
+                                              Set(varMatFIsStockItem, false);
+                                              Set(varMatFMinStock, Blank());
+                                              Set(varMatFMaxStock, Blank());
+                                              Set(varMatFStorageBin, "X");
+                                              Set(varMatFStrategicPart, "");
+                                              Set(varMatFWearPart, "");
+                                              Set(varMatFRemarks, "");
+                                              Set(varMatFMaintenanceOrderNo, "");
+                                              Set(varMatFReplacesExisting, false);
+                                              Set(varMatFReplacedMaterialNo, "");
+                                              Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                              Clear(colMatObjects);
+                                              Set(varMatObjRowId, Blank());
+                                              Clear(colMatObjPop);
+                                              Set(varMatInfo, "");
+                                              Set(varMatEditorOpen, true),
+                                              Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
+                                              Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
+                                              Set(varMatValidated, false);
+                                              Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
+                                              Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
+                                              Set(varMatEditorOpen, true);
+                                              Set(varMatPanelSave, "");
+                                              Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
+                                              Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
+                                              Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
+                                              Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
+                                              Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
+                                              Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
+                                              Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
+                                              Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
+                                              Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
+                                              Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
+                                              Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
+                                              Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
+                                              Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
+                                              Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
+                                              Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
+                                              Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
+                                              Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
+                                              Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
+                                              Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
+                                              Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
+                                              Clear(colMatObjects);
+                                              Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
+                                              Reset(inpMatDetCreatedNo)
+                                          );
+                                          Set(varMatEditorTab, keepTab);
+                                          If(
+                                              keepTab = "Documents" && !IsBlank(varMatActiveRowId) && !IfError(Coalesce(varMatAttBusy, false), false),
+                                              Set(varMatDocsId, varMatActiveRowId);
+                                              With(
+                                                  { docRowId: Coalesce(varMatActiveRowId, 0) },
+                                                  Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
+                                              )
+                                          );
+                                          If(
+                                              keepTab = "Objects",
+                                              Set(varMatObjRowId, varMatActiveRowId);
+                                              Set(varMatObjPick, "");
+                                              Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                              Clear(colMatObjPop);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjPop,
+                                                      ForAll(Table(ParseJSON(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjPop,
+                                                      ForAll(Filter(Split(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FunctionalLocation, ""))),
+                                                  Collect(colMatObjPop, { Code: Trim(LookUp(colMatRows, RowId = varMatActiveRowId).FunctionalLocation), Description: "" })
+                                              )
+                                          )
+                                      )
                                   )
                               RadiusBottomLeft: |-
                                   =R.input
@@ -17938,6 +18035,458 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =If(IfError(varMatAct = "delete", false), Max(137, 106), 106)
+      - conMatResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(varMatResetAsk, false)
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(varMatResetAsk, false) && ((IfError(varMatEditorOpen, false) && !IfError(varMatViewOnly, false)) && (If(     IsBlank(varMatActiveRowId),     !IsBlank(Trim(Coalesce(varMatFText, ""))) ||     Coalesce(varMatFPlant, "") <> Coalesce(First(colAppPrefs).prefMatNewPlant, "") ||     CountRows(colMatObjects) > 0 ||     !IsBlank(Trim(Coalesce(varMatFManufacturer, ""))) ||     !IsBlank(Trim(Coalesce(varMatFModelNumber, ""))) ||     !IsBlank(Trim(Coalesce(varMatFManufacturerPartNo, ""))) ||     !IsBlank(Trim(Coalesce(varMatFSupplier, ""))) ||     !IsBlank(Trim(Coalesce(varMatFSupplierPartNo, ""))) ||     !IsBlank(varMatFDeliveringTime) ||     !IsBlank(Trim(Coalesce(varMatFPrice, ""))) ||     !IsBlank(Trim(Coalesce(varMatFPriceUnit, ""))) ||     !IsBlank(Trim(Coalesce(varMatFStockUnit, ""))) ||     Coalesce(varMatFIsStockItem, false) ||     !IsBlank(varMatFMinStock) ||     !IsBlank(varMatFMaxStock) ||     Coalesce(varMatFStorageBin, "") <> "X" ||     !IsBlank(Trim(Coalesce(varMatFStrategicPart, ""))) ||     !IsBlank(Trim(Coalesce(varMatFWearPart, ""))) ||     !IsBlank(Trim(Coalesce(varMatFRemarks, ""))) ||     !IsBlank(Trim(Coalesce(varMatFMaintenanceOrderNo, ""))) ||     Coalesce(varMatFReplacesExisting, false) ||     !IsBlank(Trim(Coalesce(varMatFReplacedMaterialNo, ""))),     !IsBlank(With({ o: LookUp(colMatRows, RowId = varMatActiveRowId) },     Concat(         Filter(             Table(             { f: "Material description", a: Text(o.MaterialDescription), b: Text(varMatFText) },             { f: "Plant", a: Text(o.Plant), b: Text(varMatFPlant) },             { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varMatFManufacturer) },             { f: "Model number", a: Text(o.ModelNumber), b: Text(varMatFModelNumber) },             { f: "Manufacturer part no.", a: Text(o.ManufacturerPartNo), b: Text(varMatFManufacturerPartNo) },             { f: "Supplier", a: Text(o.Supplier), b: Text(varMatFSupplier) },             { f: "Supplier part no.", a: Text(o.SupplierPartNo), b: Text(varMatFSupplierPartNo) },             { f: "Delivery time (days)", a: Text(o.DeliveringTime), b: Text(varMatFDeliveringTime) },             { f: "Price", a: Text(o.Price), b: Text(varMatFPrice) },             { f: "Price unit", a: Text(o.PriceUnit), b: Text(varMatFPriceUnit) },             { f: "Stock unit", a: Text(o.StockUnit), b: Text(varMatFStockUnit) },             { f: "Stock item", a: Text(o.IsStockItem), b: Text(varMatFIsStockItem) },             { f: "Min stock", a: Text(o.MinStock), b: Text(varMatFMinStock) },             { f: "Max stock", a: Text(o.MaxStock), b: Text(varMatFMaxStock) },             { f: "Storage bin", a: Text(o.StorageBin), b: Text(varMatFStorageBin) },             { f: "Strategic part", a: Text(o.StrategicPart), b: Text(varMatFStrategicPart) },             { f: "Wear part", a: Text(o.WearPart), b: Text(varMatFWearPart) },             { f: "Purchase order text", a: Text(o.Remarks), b: Text(varMatFRemarks) },             { f: "Maintenance order no.", a: Text(o.MaintenanceOrderNo), b: Text(varMatFMaintenanceOrderNo) },             { f: "Replace existing material", a: Text(o.ReplacesExisting), b: Text(varMatFReplacesExisting) },             { f: "Replaced material no.", a: Text(o.ReplacedMaterialNo), b: Text(varMatFReplacedMaterialNo) }             ),             Coalesce(a, "") <> Coalesce(b, "")         ),         "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),         "; "     ) )) )))
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =196
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMatResetAsk, false) && ((IfError(varMatEditorOpen, false) && !IfError(varMatViewOnly, false)) && (If(     IsBlank(varMatActiveRowId),     !IsBlank(Trim(Coalesce(varMatFText, ""))) ||     Coalesce(varMatFPlant, "") <> Coalesce(First(colAppPrefs).prefMatNewPlant, "") ||     CountRows(colMatObjects) > 0 ||     !IsBlank(Trim(Coalesce(varMatFManufacturer, ""))) ||     !IsBlank(Trim(Coalesce(varMatFModelNumber, ""))) ||     !IsBlank(Trim(Coalesce(varMatFManufacturerPartNo, ""))) ||     !IsBlank(Trim(Coalesce(varMatFSupplier, ""))) ||     !IsBlank(Trim(Coalesce(varMatFSupplierPartNo, ""))) ||     !IsBlank(varMatFDeliveringTime) ||     !IsBlank(Trim(Coalesce(varMatFPrice, ""))) ||     !IsBlank(Trim(Coalesce(varMatFPriceUnit, ""))) ||     !IsBlank(Trim(Coalesce(varMatFStockUnit, ""))) ||     Coalesce(varMatFIsStockItem, false) ||     !IsBlank(varMatFMinStock) ||     !IsBlank(varMatFMaxStock) ||     Coalesce(varMatFStorageBin, "") <> "X" ||     !IsBlank(Trim(Coalesce(varMatFStrategicPart, ""))) ||     !IsBlank(Trim(Coalesce(varMatFWearPart, ""))) ||     !IsBlank(Trim(Coalesce(varMatFRemarks, ""))) ||     !IsBlank(Trim(Coalesce(varMatFMaintenanceOrderNo, ""))) ||     Coalesce(varMatFReplacesExisting, false) ||     !IsBlank(Trim(Coalesce(varMatFReplacedMaterialNo, ""))),     !IsBlank(With({ o: LookUp(colMatRows, RowId = varMatActiveRowId) },     Concat(         Filter(             Table(             { f: "Material description", a: Text(o.MaterialDescription), b: Text(varMatFText) },             { f: "Plant", a: Text(o.Plant), b: Text(varMatFPlant) },             { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varMatFManufacturer) },             { f: "Model number", a: Text(o.ModelNumber), b: Text(varMatFModelNumber) },             { f: "Manufacturer part no.", a: Text(o.ManufacturerPartNo), b: Text(varMatFManufacturerPartNo) },             { f: "Supplier", a: Text(o.Supplier), b: Text(varMatFSupplier) },             { f: "Supplier part no.", a: Text(o.SupplierPartNo), b: Text(varMatFSupplierPartNo) },             { f: "Delivery time (days)", a: Text(o.DeliveringTime), b: Text(varMatFDeliveringTime) },             { f: "Price", a: Text(o.Price), b: Text(varMatFPrice) },             { f: "Price unit", a: Text(o.PriceUnit), b: Text(varMatFPriceUnit) },             { f: "Stock unit", a: Text(o.StockUnit), b: Text(varMatFStockUnit) },             { f: "Stock item", a: Text(o.IsStockItem), b: Text(varMatFIsStockItem) },             { f: "Min stock", a: Text(o.MinStock), b: Text(varMatFMinStock) },             { f: "Max stock", a: Text(o.MaxStock), b: Text(varMatFMaxStock) },             { f: "Storage bin", a: Text(o.StorageBin), b: Text(varMatFStorageBin) },             { f: "Strategic part", a: Text(o.StrategicPart), b: Text(varMatFStrategicPart) },             { f: "Wear part", a: Text(o.WearPart), b: Text(varMatFWearPart) },             { f: "Purchase order text", a: Text(o.Remarks), b: Text(varMatFRemarks) },             { f: "Maintenance order no.", a: Text(o.MaintenanceOrderNo), b: Text(varMatFMaintenanceOrderNo) },             { f: "Replace existing material", a: Text(o.ReplacesExisting), b: Text(varMatFReplacesExisting) },             { f: "Replaced material no.", a: Text(o.ReplacedMaterialNo), b: Text(varMatFReplacedMaterialNo) }             ),             Coalesce(a, "") <> Coalesce(b, "")         ),         "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),         "; "     ) )) )))
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMatResetConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatResetConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset changes?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Reset changes?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatResetConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMatResetAsk, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtMatResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Unsaved changes to this row will be discarded and cannot be recovered."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =56
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Unsaved changes to this row will be discarded and cannot be recovered."
+                  Wrap: |-
+                      =true
+            - conMatResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMatResetConfirmKeep:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        Tooltip: |-
+                            ="Close without changing anything"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnMatResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatResetAsk, false);
+                            With(
+                                { keepTab: Coalesce(varMatEditorTab, "Details") },
+                                If(
+                                    IsBlank(LookUp(colMatRows, RowId = varMatActiveRowId)),
+                                    Set(varMatActiveRowId, Blank());
+                                    Set(varMatRowStatus, "valid");
+                                    Set(varMatValidated, false);
+                                    Set(varMatFText, "");
+                                    Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
+                                    Set(varMatEditorOpen, false);
+                                    Set(varMatPanelSave, "");
+                                    Set(varMatEditorTab, "Details");
+                                    If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
+                                    Set(varMatFManufacturer, "");
+                                    Set(varMatFModelNumber, "");
+                                    Set(varMatFManufacturerPartNo, "");
+                                    Set(varMatFSupplier, "");
+                                    Set(varMatFSupplierPartNo, "");
+                                    Set(varMatFDeliveringTime, Blank());
+                                    Set(varMatFPrice, "");
+                                    Set(varMatFPriceUnit, "");
+                                    Set(varMatFStockUnit, "");
+                                    Set(varMatFIsStockItem, false);
+                                    Set(varMatFMinStock, Blank());
+                                    Set(varMatFMaxStock, Blank());
+                                    Set(varMatFStorageBin, "X");
+                                    Set(varMatFStrategicPart, "");
+                                    Set(varMatFWearPart, "");
+                                    Set(varMatFRemarks, "");
+                                    Set(varMatFMaintenanceOrderNo, "");
+                                    Set(varMatFReplacesExisting, false);
+                                    Set(varMatFReplacedMaterialNo, "");
+                                    Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                    Clear(colMatObjects);
+                                    Set(varMatObjRowId, Blank());
+                                    Clear(colMatObjPop);
+                                    Set(varMatInfo, "");
+                                    Set(varMatEditorOpen, true),
+                                    Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
+                                    Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
+                                    Set(varMatValidated, false);
+                                    Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
+                                    Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
+                                    Set(varMatEditorOpen, true);
+                                    Set(varMatPanelSave, "");
+                                    Set(varMatEditorTab, "Details");
+                                    If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
+                                    Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
+                                    Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
+                                    Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
+                                    Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
+                                    Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
+                                    Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
+                                    Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
+                                    Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
+                                    Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
+                                    Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
+                                    Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
+                                    Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
+                                    Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
+                                    Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
+                                    Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
+                                    Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
+                                    Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
+                                    Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
+                                    Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
+                                    Clear(colMatObjects);
+                                    Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
+                                    Reset(inpMatDetCreatedNo)
+                                );
+                                Set(varMatEditorTab, keepTab);
+                                If(
+                                    keepTab = "Documents" && !IsBlank(varMatActiveRowId) && !IfError(Coalesce(varMatAttBusy, false), false),
+                                    Set(varMatDocsId, varMatActiveRowId);
+                                    With(
+                                        { docRowId: Coalesce(varMatActiveRowId, 0) },
+                                        Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
+                                    )
+                                );
+                                If(
+                                    keepTab = "Objects",
+                                    Set(varMatObjRowId, varMatActiveRowId);
+                                    Set(varMatObjPick, "");
+                                    Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                    Clear(colMatObjPop);
+                                    If(
+                                        !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson, ""))),
+                                        Collect(
+                                            colMatObjPop,
+                                            ForAll(Table(ParseJSON(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson)) As R,
+                                                { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                        ),
+                                    
+                                        !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectList, ""))),
+                                        Collect(
+                                            colMatObjPop,
+                                            ForAll(Filter(Split(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                { Code: Trim(S.Value), Description: "" })
+                                        ),
+                                    
+                                        !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FunctionalLocation, ""))),
+                                        Collect(colMatObjPop, { Code: Trim(LookUp(colMatRows, RowId = varMatActiveRowId).FunctionalLocation), Description: "" })
+                                    )
+                                )
+                            )
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - conMatConfirmBackdrop:
           Control: Image
           Properties:
@@ -18972,6 +19521,8 @@ Screens:
                             // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
                             Set(varMatDeleteId, Blank());
                             Set(varMatConfirmDelete, false);
+                            // Reset spoerger foerst, naar der er ugemte aendringer (issue #450).
+                            Set(varMatResetAsk, false);
                             // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
                             Set(varMatDocsId, Blank());
                             Set(varMatFlMsg, "");

@@ -37,7 +37,7 @@ from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_reque
                            confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
                            panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
-                           panel_save_block)
+                           panel_save_block, reset_click_fx, reset_confirm)
 
 # Under Desktop er headerens Edit, Save draft og Submit kun deres ikon
 # (_bar_btn). FL har ingen bundbjaelke (issue #392), saa knapperne SKAL
@@ -703,9 +703,11 @@ PANEL_ISSUE = V.field_issue("varFlDetailRow", "ThisItem.Field").replace("\n", " 
 # stadig direkte i raekken (de skal valideres, mens man skriver), saa
 # panelet tager et AFTRYK af raekken, naar det aabnes paa den (PANEL_SNAP):
 #   Reset   raekken tilbage til aftrykket, og panelet bliver aabent
-#           (issue #403). Slaaet fra, naar intet er aendret. Ingen
-#           bekraeftelse og intet sloer: dens graa sloer kunne blive
-#           staaende og laase siden (issue #405).
+#           (issue #403). Slaaet fra, naar intet er aendret. Spoerger
+#           foerst med den faelles Reset-bekraeftelse (issue #450,
+#           build_helpers.reset_confirm): den vises kun, mens der er noget
+#           at kassere, og et tryk paa dens sloer lukker den altid, saa
+#           sloeret ikke kan blive staaende (issue #405).
 #   Cancel  raekken tilbage til aftrykket, og panelet lukker.
 #   Save    anmodningen gemmes (samme gem som Save draft), og panelet
 #           lukker, naar gemmet lykkedes.
@@ -733,6 +735,8 @@ PANEL_RESTORE = f"""With(
 {REVERIFY}"""
 PANEL_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 PANEL_DM = f"If({PANEL_LOCKED}, DisplayMode.Disabled, DisplayMode.Edit)"
+# Reset spoerger foerst (issue #450, build_helpers.reset_confirm).
+RESET_ASK = "varFlPanelResetAsk"
 # Reset er slaaet fra, naar raekken allerede er som ved aabningen (#403).
 RESET_DM = f"If({PANEL_LOCKED} || !({PANEL_DIRTY}), DisplayMode.Disabled, DisplayMode.Edit)"
 
@@ -904,11 +908,10 @@ def _panel_footer():
     delete = button("btnFlEditorDelete", '"Delete row"', "Set(varFlPanelDelAsk, true)",
                     danger=True, width=fit_button_width('"Delete row"'), height=lay.HIT_TOUCH,
                     display_mode=PANEL_DM, visible="!IsBlank(varFlDetailRow)")
-    # Reset: direkte tilbage til aftrykket - intet sloer, ingen popup og
-    # ingen ventevariabel, saa intet kan blive haengende (issue #405).
-    # Panelet bliver aabent (issue #403).
+    # Reset: tilbage til aftrykket efter bekraeftelsen (issue #450) - kun
+    # naar der er noget at kassere. Panelet bliver aabent (issue #403).
     reset = button("btnFlEditorReset", '"Reset"',
-                   f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n)",
+                   reset_click_fx(RESET_ASK, PANEL_DIRTY, PANEL_RESTORE),
                    width=fit_button_width('"Reset"'), height=lay.HIT_TOUCH, display_mode=RESET_DM,
                    tooltip='"Undo the changes made to this row since it was opened"')
     cancel = button("btnFlEditorCancel", '"Cancel"',
@@ -925,15 +928,17 @@ def _panel_footer():
 
 
 def _panel_confirms():
-    """Delete row spoerger foerst - som Materials. Reset spoerger ikke
-    (issue #405): den kasserer kun aendringerne siden panelet blev aabnet."""
+    """Delete row og Reset spoerger foerst - som Materials (issue #450).
+    Reset kasserer kun aendringerne siden panelet blev aabnet."""
     pos = 'Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos)'
     delete = confirm_modal(
         "FlRowDel", "varFlPanelDelAsk", "Delete row?",
         f'"Row " & {pos} & " is removed from the request. Save the request to delete it in SharePoint too."',
         "Delete", delete_row_fx("varFlDetailRow") + ";\n" + CLOSE_PANEL_FX,
         "btnFlRowDelConfirm", icon="Delete")
-    return delete
+    reset = reset_confirm("FlRowReset", RESET_ASK, PANEL_RESTORE, PANEL_DIRTY, "this row",
+                          guard=f"IfError(varFlPanelOpen, false) && !({PANEL_LOCKED})")
+    return delete + reset
 
 
 def build_rows():

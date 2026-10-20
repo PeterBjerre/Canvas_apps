@@ -22,8 +22,8 @@ from build_helpers import app_frame, sticky_actions, act_layers
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
-from build_plan_header import build_plan_header
-from build_items import build_items_section, build_object_list_modal
+from build_plan_header import build_plan_header, plan_reset_confirm
+from build_items import build_items_section, build_object_list_modal, item_reset_confirm
 from build_tasklist import build_tasklist_section, build_ops_modals, build_mat_discard_confirm
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
@@ -66,6 +66,8 @@ def build_screen(render=render_screen):
                           # Over Materials-popuppen (issue #451).
                           *build_mat_discard_confirm(),
                           *CONFIRM,
+                          # Reset spoerger foerst (issue #450).
+                          *plan_reset_confirm(), *item_reset_confirm(),
                           *overlay,
                           # Mens der gemmes: knapperne viser det selv (issue #420);
                           # et gennemsigtigt lag oeverst af alt, ingen sloer.

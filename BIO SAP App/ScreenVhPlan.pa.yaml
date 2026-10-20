@@ -5277,10 +5277,28 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
-                                              =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
-                                              Set(varVhpLivePlant, "");
-                                              Set(varVhpPlanValidated, false);
-                                              If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
+                                              =If(
+                                                  (
+                                                      (drpVhpPlanType.Selected.Key & "") <> (varVhpPlan.PlanType & "") ||
+                                                      (drpVhpPlanType.Selected.Key = "Strategy" && (drpVhpStrategy.Selected.Key & "") <> (varVhpPlan.Strategy & "")) ||
+                                                      (drpVhpPlant.Selected.Value & "") <> (varVhpPlan.Plant & "") ||
+                                                      Trim(inpVhpPlanText.Text & "") <> Trim((If(
+                                                      varVhpViewOnly || IsBlank(drpVhpPlant.Selected.Value), varVhpPlan.PlanText,
+                                                      Upper(Trim(varVhpPlan.PlanText)) = Upper(drpVhpPlant.Selected.Value), drpVhpPlant.Selected.Value & " ",
+                                                      StartsWith(Upper(varVhpPlan.PlanText), Upper(drpVhpPlant.Selected.Value) & " "), varVhpPlan.PlanText,
+                                                      drpVhpPlant.Selected.Value & " " & If(StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant) & " "), Mid(varVhpPlan.PlanText, Len(varVhpPlan.Plant) + 2), varVhpPlan.PlanText)
+                                                  )) & "") ||
+                                                      (drpVhpSortField.Selected.Value & "") <> (varVhpPlan.SortField & "") ||
+                                                      Trim(inpVhpCycle.Text & "") <> If(IsBlank(varVhpPlan.Cycle), "", Text(varVhpPlan.Cycle)) ||
+                                                      (drpVhpUnit.Selected.Value & "") <> (varVhpPlan.Unit & "") ||
+                                                      (Text(dteVhpFirstCall.SelectedDate, "yyyymmdd") & "") <> (Text(If(IsBlank(varVhpPlan.FirstCallYear), Blank(), Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay)), "yyyymmdd") & "")
+                                                  ),
+                                                  Set(varVhpPlanResetAsk, true),
+                                                  Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
+                                                  Set(varVhpLivePlant, "");
+                                                  Set(varVhpPlanValidated, false);
+                                                  If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
+                                              )
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -9725,49 +9743,86 @@ Screens:
                                                     =ButtonLayout.TextOnly
                                                 OnSelect: |-
                                                     =If(
-                                                        !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId,
-                                                        UpdateIf(
-                                                            colVhpItems,
-                                                            ItemId = varVhpActiveItemId,
-                                                            { ShortText: varVhpItemBase.ShortText, FunctionalLocation: varVhpItemBase.FunctionalLocation, FlDescription: varVhpItemBase.FlDescription, MainWorkCenter: varVhpItemBase.MainWorkCenter, ActivityType: varVhpItemBase.ActivityType, Revision: varVhpItemBase.Revision, Initials: varVhpItemBase.Initials, NonFlowUserStatus: varVhpItemBase.NonFlowUserStatus }
-                                                        )
-                                                    );
-                                                    With(
-                                                        {
-                                                            keep: ForAll(
-                                                                Filter(
-                                                                    Split(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ObjectList, ";"),
-                                                                    !IsBlank(Trim(Value))
-                                                                ) As S,
-                                                                {
-                                                                    ItemId: varVhpActiveItemId,
-                                                                    Code: Trim(S.Value),
-                                                                    Description: Coalesce(
-                                                                        LookUp(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = Trim(S.Value)).Description,
-                                                                        ""
-                                                                    )
-                                                                }
+                                                        (With(
+                                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                            !IsBlank(varVhpActiveItemId) && (
+                                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                             )
-                                                        },
-                                                        RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);
-                                                        Collect(colVhpItemObjects, keep)
-                                                    );
-                                                    Set(varVhpItemValidated, false);
-                                                    Set(varVhpFlMsg, "");
-                                                    Clear(colVhpFl);
-                                                    With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        )) ||
+                                                        (With(
+                                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                            !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId && (
+                                                                (it.ShortText & "") <> (varVhpItemBase.ShortText & "") ||
+                                                                (it.FunctionalLocation & "") <> (varVhpItemBase.FunctionalLocation & "") ||
+                                                                (it.FlDescription & "") <> (varVhpItemBase.FlDescription & "") ||
+                                                                (it.MainWorkCenter & "") <> (varVhpItemBase.MainWorkCenter & "") ||
+                                                                (it.ActivityType & "") <> (varVhpItemBase.ActivityType & "") ||
+                                                                (it.Revision & "") <> (varVhpItemBase.Revision & "") ||
+                                                                (it.Initials & "") <> (varVhpItemBase.Initials & "") ||
+                                                                (it.NonFlowUserStatus & "") <> (varVhpItemBase.NonFlowUserStatus & "")
+                                                            )
+                                                        )) ||
+                                                        (With(
+                                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                            !IsBlank(varVhpActiveItemId) &&
+                                                            Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ";") <>
+                                                            Concat(
+                                                                Sort(Filter(Split(it.ObjectList, ";"), !IsBlank(Trim(Value))), Trim(Value)),
+                                                                Trim(Value), ";"
+                                                            )
+                                                        )),
+                                                        Set(varVhpItemResetAsk, true),
                                                         If(
-                                                            !IsBlank(it.FunctionalLocation),
-                                                            Collect(
-                                                                colVhpFl,
-                                                                { Code: it.FunctionalLocation, Description: it.FlDescription,
-                                                                  Display: it.FunctionalLocation & " - " & it.FlDescription,
-                                                                  Maintainable: true, Level: "" }
+                                                            !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId,
+                                                            UpdateIf(
+                                                                colVhpItems,
+                                                                ItemId = varVhpActiveItemId,
+                                                                { ShortText: varVhpItemBase.ShortText, FunctionalLocation: varVhpItemBase.FunctionalLocation, FlDescription: varVhpItemBase.FlDescription, MainWorkCenter: varVhpItemBase.MainWorkCenter, ActivityType: varVhpItemBase.ActivityType, Revision: varVhpItemBase.Revision, Initials: varVhpItemBase.Initials, NonFlowUserStatus: varVhpItemBase.NonFlowUserStatus }
                                                             )
-                                                        )
-                                                    );
-                                                    Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                        );
+                                                        With(
+                                                            {
+                                                                keep: ForAll(
+                                                                    Filter(
+                                                                        Split(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ObjectList, ";"),
+                                                                        !IsBlank(Trim(Value))
+                                                                    ) As S,
+                                                                    {
+                                                                        ItemId: varVhpActiveItemId,
+                                                                        Code: Trim(S.Value),
+                                                                        Description: Coalesce(
+                                                                            LookUp(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = Trim(S.Value)).Description,
+                                                                            ""
+                                                                        )
+                                                                    }
+                                                                )
+                                                            },
+                                                            RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);
+                                                            Collect(colVhpItemObjects, keep)
+                                                        );
+                                                        Set(varVhpItemValidated, false);
+                                                        Set(varVhpFlMsg, "");
+                                                        Clear(colVhpFl);
+                                                        With(
+                                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                            If(
+                                                                !IsBlank(it.FunctionalLocation),
+                                                                Collect(
+                                                                    colVhpFl,
+                                                                    { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                                                      Display: it.FunctionalLocation & " - " & it.FlDescription,
+                                                                      Maintainable: true, Level: "" }
+                                                                )
+                                                            )
+                                                        );
+                                                        Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -23957,6 +24012,748 @@ Screens:
                                   )
                               Wrap: |-
                                   =true
+      - conVhpPlanResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(varVhpPlanResetAsk, false)
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(varVhpPlanResetAsk, false) && ((!varVhpViewOnly && !varVhpPlanLocked) && ((     (drpVhpPlanType.Selected.Key & "") <> (varVhpPlan.PlanType & "") ||     (drpVhpPlanType.Selected.Key = "Strategy" && (drpVhpStrategy.Selected.Key & "") <> (varVhpPlan.Strategy & "")) ||     (drpVhpPlant.Selected.Value & "") <> (varVhpPlan.Plant & "") ||     Trim(inpVhpPlanText.Text & "") <> Trim((If(     varVhpViewOnly || IsBlank(drpVhpPlant.Selected.Value), varVhpPlan.PlanText,     Upper(Trim(varVhpPlan.PlanText)) = Upper(drpVhpPlant.Selected.Value), drpVhpPlant.Selected.Value & " ",     StartsWith(Upper(varVhpPlan.PlanText), Upper(drpVhpPlant.Selected.Value) & " "), varVhpPlan.PlanText,     drpVhpPlant.Selected.Value & " " & If(StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant) & " "), Mid(varVhpPlan.PlanText, Len(varVhpPlan.Plant) + 2), varVhpPlan.PlanText) )) & "") ||     (drpVhpSortField.Selected.Value & "") <> (varVhpPlan.SortField & "") ||     Trim(inpVhpCycle.Text & "") <> If(IsBlank(varVhpPlan.Cycle), "", Text(varVhpPlan.Cycle)) ||     (drpVhpUnit.Selected.Value & "") <> (varVhpPlan.Unit & "") ||     (Text(dteVhpFirstCall.SelectedDate, "yyyymmdd") & "") <> (Text(If(IsBlank(varVhpPlan.FirstCallYear), Blank(), Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay)), "yyyymmdd") & "") )))
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conVhpPlanResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =196
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varVhpPlanResetAsk, false) && ((!varVhpViewOnly && !varVhpPlanLocked) && ((     (drpVhpPlanType.Selected.Key & "") <> (varVhpPlan.PlanType & "") ||     (drpVhpPlanType.Selected.Key = "Strategy" && (drpVhpStrategy.Selected.Key & "") <> (varVhpPlan.Strategy & "")) ||     (drpVhpPlant.Selected.Value & "") <> (varVhpPlan.Plant & "") ||     Trim(inpVhpPlanText.Text & "") <> Trim((If(     varVhpViewOnly || IsBlank(drpVhpPlant.Selected.Value), varVhpPlan.PlanText,     Upper(Trim(varVhpPlan.PlanText)) = Upper(drpVhpPlant.Selected.Value), drpVhpPlant.Selected.Value & " ",     StartsWith(Upper(varVhpPlan.PlanText), Upper(drpVhpPlant.Selected.Value) & " "), varVhpPlan.PlanText,     drpVhpPlant.Selected.Value & " " & If(StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant) & " "), Mid(varVhpPlan.PlanText, Len(varVhpPlan.Plant) + 2), varVhpPlan.PlanText) )) & "") ||     (drpVhpSortField.Selected.Value & "") <> (varVhpPlan.SortField & "") ||     Trim(inpVhpCycle.Text & "") <> If(IsBlank(varVhpPlan.Cycle), "", Text(varVhpPlan.Cycle)) ||     (drpVhpUnit.Selected.Value & "") <> (varVhpPlan.Unit & "") ||     (Text(dteVhpFirstCall.SelectedDate, "yyyymmdd") & "") <> (Text(If(IsBlank(varVhpPlan.FirstCallYear), Blank(), Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay)), "yyyymmdd") & "") )))
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conVhpPlanResetConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtVhpPlanResetConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset changes?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Reset changes?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnVhpPlanResetConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varVhpPlanResetAsk, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtVhpPlanResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Unsaved changes to the plan header will be discarded and cannot be recovered."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =56
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Unsaved changes to the plan header will be discarded and cannot be recovered."
+                  Wrap: |-
+                      =true
+            - conVhpPlanResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnVhpPlanResetConfirmKeep:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpPlanResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        Tooltip: |-
+                            ="Close without changing anything"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnVhpPlanResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpPlanResetAsk, false);
+                            Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
+                            Set(varVhpLivePlant, "");
+                            Set(varVhpPlanValidated, false);
+                            If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+      - conVhpItemResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(varVhpItemResetAsk, false)
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(varVhpItemResetAsk, false) && ((!varVhpViewOnly && !IsBlank(varVhpActiveItemId)) && ((With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) && (         Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||         (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||         (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||         (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||         (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||         (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||         Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")     ) )) || (With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId && (         (it.ShortText & "") <> (varVhpItemBase.ShortText & "") ||         (it.FunctionalLocation & "") <> (varVhpItemBase.FunctionalLocation & "") ||         (it.FlDescription & "") <> (varVhpItemBase.FlDescription & "") ||         (it.MainWorkCenter & "") <> (varVhpItemBase.MainWorkCenter & "") ||         (it.ActivityType & "") <> (varVhpItemBase.ActivityType & "") ||         (it.Revision & "") <> (varVhpItemBase.Revision & "") ||         (it.Initials & "") <> (varVhpItemBase.Initials & "") ||         (it.NonFlowUserStatus & "") <> (varVhpItemBase.NonFlowUserStatus & "")     ) )) || (With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) &&     Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ";") <>     Concat(         Sort(Filter(Split(it.ObjectList, ";"), !IsBlank(Trim(Value))), Trim(Value)),         Trim(Value), ";"     ) ))))
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conVhpItemResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =196
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varVhpItemResetAsk, false) && ((!varVhpViewOnly && !IsBlank(varVhpActiveItemId)) && ((With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) && (         Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||         (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||         (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||         (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||         (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||         (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||         Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")     ) )) || (With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId && (         (it.ShortText & "") <> (varVhpItemBase.ShortText & "") ||         (it.FunctionalLocation & "") <> (varVhpItemBase.FunctionalLocation & "") ||         (it.FlDescription & "") <> (varVhpItemBase.FlDescription & "") ||         (it.MainWorkCenter & "") <> (varVhpItemBase.MainWorkCenter & "") ||         (it.ActivityType & "") <> (varVhpItemBase.ActivityType & "") ||         (it.Revision & "") <> (varVhpItemBase.Revision & "") ||         (it.Initials & "") <> (varVhpItemBase.Initials & "") ||         (it.NonFlowUserStatus & "") <> (varVhpItemBase.NonFlowUserStatus & "")     ) )) || (With(     { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },     !IsBlank(varVhpActiveItemId) &&     Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ";") <>     Concat(         Sort(Filter(Split(it.ObjectList, ";"), !IsBlank(Trim(Value))), Trim(Value)),         Trim(Value), ";"     ) ))))
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conVhpItemResetConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtVhpItemResetConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset changes?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Reset changes?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnVhpItemResetConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varVhpItemResetAsk, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtVhpItemResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Unsaved changes to this item will be discarded and cannot be recovered."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =56
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Unsaved changes to this item will be discarded and cannot be recovered."
+                  Wrap: |-
+                      =true
+            - conVhpItemResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnVhpItemResetConfirmKeep:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpItemResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        Tooltip: |-
+                            ="Close without changing anything"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnVhpItemResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpItemResetAsk, false);
+                            If(
+                                !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId,
+                                UpdateIf(
+                                    colVhpItems,
+                                    ItemId = varVhpActiveItemId,
+                                    { ShortText: varVhpItemBase.ShortText, FunctionalLocation: varVhpItemBase.FunctionalLocation, FlDescription: varVhpItemBase.FlDescription, MainWorkCenter: varVhpItemBase.MainWorkCenter, ActivityType: varVhpItemBase.ActivityType, Revision: varVhpItemBase.Revision, Initials: varVhpItemBase.Initials, NonFlowUserStatus: varVhpItemBase.NonFlowUserStatus }
+                                )
+                            );
+                            With(
+                                {
+                                    keep: ForAll(
+                                        Filter(
+                                            Split(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ObjectList, ";"),
+                                            !IsBlank(Trim(Value))
+                                        ) As S,
+                                        {
+                                            ItemId: varVhpActiveItemId,
+                                            Code: Trim(S.Value),
+                                            Description: Coalesce(
+                                                LookUp(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = Trim(S.Value)).Description,
+                                                ""
+                                            )
+                                        }
+                                    )
+                                },
+                                RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);
+                                Collect(colVhpItemObjects, keep)
+                            );
+                            Set(varVhpItemValidated, false);
+                            Set(varVhpFlMsg, "");
+                            Clear(colVhpFl);
+                            With(
+                                { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                If(
+                                    !IsBlank(it.FunctionalLocation),
+                                    Collect(
+                                        colVhpFl,
+                                        { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                          Display: it.FunctionalLocation & " - " & it.FlDescription,
+                                          Maintainable: true, Level: "" }
+                                    )
+                                )
+                            );
+                            Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - imgVhpNavScrim:
           Control: Image
           Properties:
@@ -26330,6 +27127,9 @@ Screens:
                             // Popuppen med noterne - ved Submit og i visningen (issue #115).
                             Set(varVhpConfirmSubmit, false);
                             Set(varVhpConfirmNew, false);
+                            // Reset i Plan header og Item Editor spoerger foerst (issue #450).
+                            Set(varVhpPlanResetAsk, false);
+                            Set(varVhpItemResetAsk, false);
                             // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
                             Set(varVhpMatOpNo, "");
                             // Materials-popuppen (issue #451): Save er proevet (felterne viser, hvad der

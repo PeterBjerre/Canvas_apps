@@ -17,6 +17,7 @@ from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, grou
                            mark_done, segmented, border_rule, row_n)
 from build_plan_header import section_header, help_panel, section_footer, status_icon
 from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
+from build_helpers import reset_click_fx, reset_confirm
 from gen_screen import lock_section
 import build_help as bh
 from fl_picker import fl_picker, result_count_fx
@@ -1237,41 +1238,11 @@ def build_item_editor():
     # hentes derfor tilbage fra itemets gemte ObjectList - beskrivelsen
     # bevares for de objekter, der allerede stod der. Andre items og andre
     # sektioner roeres ikke, og intet slettes i SharePoint.
+    # Spoerger foerst, naar der er ugemte aendringer (issue #450).
     btnResetItem = button(
         "btnVhpResetItem", "\"Reset\"",
-        (
-            # Issue #448: felterne staar allerede paa itemet (write_item),
-            # saa itemet laegges foerst tilbage til kopien fra, da det blev
-            # aabnet eller gemt (varVhpItemBase).
-            f"If(\n    !IsBlank(varVhpActiveItemId) && {ITEM_BASE}.ItemId = varVhpActiveItemId,\n"
-            "    UpdateIf(\n        colVhpItems,\n        ItemId = varVhpActiveItemId,\n"
-            "        { " + ", ".join(f"{c}: {ITEM_BASE}.{c}" for c in EDITOR_COLUMNS) + " }\n"
-            "    )\n);\n"
-            "With(\n"
-            "    {\n"
-            "        keep: ForAll(\n"
-            "            Filter(\n"
-            "                Split(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ObjectList, \";\"),\n"
-            "                !IsBlank(Trim(Value))\n"
-            "            ) As S,\n"
-            "            {\n"
-            "                ItemId: varVhpActiveItemId,\n"
-            "                Code: Trim(S.Value),\n"
-            "                Description: Coalesce(\n"
-            "                    LookUp(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = Trim(S.Value)).Description,\n"
-            "                    \"\"\n"
-            "                )\n"
-            "            }\n"
-            "        )\n"
-            "    },\n"
-            "    RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);\n"
-            "    Collect(colVhpItemObjects, keep)\n"
-            ");\n"
-            "Set(varVhpItemValidated, false);\n"
-            "Set(varVhpFlMsg, \"\");\n"
-            f"{SEED_FL_PICKER};\n"
-            f"{RESET_EDITOR_CONTROLS}"
-        ), width=fit_button_width("\"Reset\""), height=36,
+        reset_click_fx(ITEM_RESET_ASK, item_reset_dirty(), item_reset_fx()),
+        width=fit_button_width("\"Reset\""), height=36,
         display_mode=DM_ITEM)
     btnSaveItem.props["Width"] = str(ITEM_SAVE_W)
     act_button(btnSaveItem, ACT, "item", text="Saving...", grow=False)
@@ -1308,6 +1279,86 @@ def build_item_editor():
     editor = card("conVhpEditorCard", [body, footer])
     editor.props["LayoutJustifyContent"] = "LayoutJustifyContent.SpaceBetween"
     return editor
+
+
+# ITEM EDITORENS RESET (issue #54, #450). Koeres fra bekraeftelsen - eller
+# direkte, naar der intet er at kassere.
+ITEM_RESET_ASK = "varVhpItemResetAsk"
+
+
+def item_reset_fx():
+    """Item Editorens usavede aendringer tilbage til det, der sidst blev
+    gemt paa itemet (se RESET i build_item_editor)."""
+    return (
+        # Issue #448: felterne staar allerede paa itemet (write_item), saa
+        # itemet laegges foerst tilbage til kopien fra, da det blev aabnet
+        # eller gemt (varVhpItemBase).
+        f"If(\n    !IsBlank(varVhpActiveItemId) && {ITEM_BASE}.ItemId = varVhpActiveItemId,\n"
+        "    UpdateIf(\n        colVhpItems,\n        ItemId = varVhpActiveItemId,\n"
+        "        { " + ", ".join(f"{c}: {ITEM_BASE}.{c}" for c in EDITOR_COLUMNS) + " }\n"
+        "    )\n);\n"
+        "With(\n"
+        "    {\n"
+        "        keep: ForAll(\n"
+        "            Filter(\n"
+        "                Split(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ObjectList, \";\"),\n"
+        "                !IsBlank(Trim(Value))\n"
+        "            ) As S,\n"
+        "            {\n"
+        "                ItemId: varVhpActiveItemId,\n"
+        "                Code: Trim(S.Value),\n"
+        "                Description: Coalesce(\n"
+        "                    LookUp(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = Trim(S.Value)).Description,\n"
+        "                    \"\"\n"
+        "                )\n"
+        "            }\n"
+        "        )\n"
+        "    },\n"
+        "    RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);\n"
+        "    Collect(colVhpItemObjects, keep)\n"
+        ");\n"
+        "Set(varVhpItemValidated, false);\n"
+        "Set(varVhpFlMsg, \"\");\n"
+        f"{SEED_FL_PICKER};\n"
+        f"{RESET_EDITOR_CONTROLS}"
+    )
+
+
+def item_reset_dirty():
+    """Er der noget at kassere i Item Editoren? Felterne (build_hero.
+    ITEM_DIRTY - den samme, som holder Submit tilbage) eller objektlisten,
+    som Reset ogsaa henter tilbage fra itemets gemte ObjectList."""
+    from build_hero import ITEM_DIRTY
+    objects = (
+        "With(\n"
+        "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
+        "    !IsBlank(varVhpActiveItemId) &&\n"
+        "    Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \";\") <>\n"
+        "    Concat(\n"
+        "        Sort(Filter(Split(it.ObjectList, \";\"), !IsBlank(Trim(Value))), Trim(Value)),\n"
+        "        Trim(Value), \";\"\n"
+        "    )\n"
+        ")"
+    )
+    # Siden issue #448 skriver felterne paa itemet, naar de aendres, saa
+    # itemet sammenlignes ogsaa med kopien fra aabning/gem (varVhpItemBase).
+    cols = " ||\n".join(f"        (it.{c} & \"\") <> ({ITEM_BASE}.{c} & \"\")"
+                        for c in EDITOR_COLUMNS)
+    written = (
+        "With(\n"
+        "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
+        f"    !IsBlank(varVhpActiveItemId) && {ITEM_BASE}.ItemId = varVhpActiveItemId && (\n"
+        f"{cols}\n"
+        "    )\n"
+        ")"
+    )
+    return f"({ITEM_DIRTY}) ||\n({written}) ||\n({objects})"
+
+
+def item_reset_confirm():
+    """Item Editorens Reset-bekraeftelse (issue #450)."""
+    return reset_confirm("VhpItemReset", ITEM_RESET_ASK, item_reset_fx(), item_reset_dirty(),
+                         "this item", guard="!varVhpViewOnly && !IsBlank(varVhpActiveItemId)")
 
 
 # Save-knappens bredde i Item Editoren.
