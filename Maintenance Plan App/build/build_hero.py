@@ -13,7 +13,7 @@ from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text
 from build_status import MISSING_NAMES, join_lines
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
-from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
+from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS, item_delete_confirm
 from build_plan_header import PLAN_CONTROLS
 from build_load import EMPTY_ITEM_FIELDS, _record, cfg as _cfg
 from generate_app_onstart import VARS_BLOCK
@@ -709,7 +709,9 @@ def build_top_bar():
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
         "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon=None, danger=True)
     CONFIRM[:] = (confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
-                  + missing_modal())
+                  + missing_modal()
+                  # Delete paa et items kort spoerger foerst (issue #457).
+                  + item_delete_confirm())
     btnNotes, btnDelete = _header_actions(NOTES_HAVE, NOTES_OPEN_VIEW)
     more_vis = f"({NOTES_HAVE} || {DELETE_VIS})"
     btnDraft.props["Text"] = DRAFT_TEXT
