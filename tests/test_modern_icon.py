@@ -23,7 +23,9 @@ TOAST_ICON = ('Switch(IfError(gblToast.Kind, ""), "Success", "CheckmarkCircle", 
               '"ErrorCircle", "Error", "DismissCircle", "Info")')
 TOAST_COLOR = ('Switch(IfError(gblToast.Kind, ""), "Success", C.\'state-ok-fg\', "Warning", '
                'C.\'state-warn-fg\', "Error", C.\'state-error-fg\', C.\'state-info-fg\')')
-ITEM_OK = ('(ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0)')
+# Issue #448: kortet er "Valid", naar itemet ingen blokeringer har
+# (build_items.ITEM_BLOCKERS) - ikke af den gemte Status.
+ITEM_OK = "IsEmpty(With("
 
 # Skaerm -> {ikon: (Icon, IconColor, Height/Width, Visible)}.
 ICONS = {
@@ -102,10 +104,14 @@ def test_every_icon_is_modern_icon_in_the_token_color():
 
 def test_item_card_status_follows_the_same_rule_as_its_text():
     block = _block(_read("ScreenVhPlan.pa.yaml"), "icoVhpItemCardStatus")
-    icon = _prop(block, "Icon")
+    # Formlerne fylder flere linjer (issue #448) - hele vaerdien laeses.
+    def full(key):
+        m = re.search(r"^( +)%s: \|-\n +=(.*(?:\n\1 .*)*)" % key, block, re.M)
+        return " ".join(m.group(2).split())
+    icon = full("Icon")
     assert icon.startswith("If(" + ITEM_OK), icon
     assert icon.endswith(', "CheckmarkCircle", "ErrorCircle")'), icon
-    assert _prop(block, "IconColor").endswith(", C.'state-ok-fg', C.'state-error-fg')")
+    assert full("IconColor").endswith(", C.'state-ok-fg', C.'state-error-fg')")
 
 
 def test_person_keeps_its_place():

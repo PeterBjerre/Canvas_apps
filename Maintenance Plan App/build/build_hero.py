@@ -10,7 +10,7 @@ from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
                            new_request_label, new_request_widths, ghost, with_fix_count,
                            SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H, act_status, act_width)
-from build_status import MISSING_NAMES, join_lines
+from build_status import MISSING_NAMES
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
 from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
@@ -60,12 +60,14 @@ HELP_ACTION = f"Set(varVhpShowHints, !{HELP_ON})"
 # vaelger ogsaa den rigtige fane.
 #
 # GROENT = faerdigt OG gemt. Betingelserne er navngivne formler
-# (build_status.py), saa de regnes om, hver gang data aendres. Items har een
-# betingelse mere, som kun skaermen kan se: usavede aendringer i Item
-# Editoren (ITEM_DIRTY). Aktuelt trin = det foerste, der ikke er faerdigt.
+# (build_status.py), saa de regnes om, hver gang data aendres. Item Editoren
+# skriver sine felter i colVhpItems, naar de aendres (issue #448), saa
+# formlerne ser de aktuelle vaerdier. Aktuelt trin = det foerste, der ikke
+# er faerdigt.
 
-# Item Editoren er aendret siden sidste Save. "& \"\"" goer blank til tom
-# tekst paa begge sider, saa et tomt felt og en tom kolonne er ens.
+# Item Editoren viser noget andet end colVhpItems. "& \"\"" goer blank til
+# tom tekst paa begge sider, saa et tomt felt og en tom kolonne er ens.
+# Kun usavet TILSTAND (HAS_UNSAVED) - aldrig validering (issue #448).
 ITEM_DIRTY = (
     "With(\n"
     "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
@@ -109,29 +111,35 @@ IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 # hoerer til, faar en tyk kant i primaerfarven (focus_border nedenfor).
 # Tasklist- og Operations-trinnet vaelger ogsaa den rigtige fane.
 
-# Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
-# venter paa at blive gemt. VhpCanSubmit er falsk, naar planen er indsendt.
-CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
+# Submit er aktiv, naar planen kan indsendes. VhpCanSubmit er falsk, naar
+# planen er indsendt.
+#
+# ISSUE #448: usavede aendringer i Item Editoren (ITEM_DIRTY) holder ikke
+# laengere Submit tilbage, og de er ikke et "to fix". Editoren skriver hvert
+# felt i colVhpItems, naar det aendres eller forlades (build_items.
+# write_item), saa reglerne og Submit ser de aktuelle vaerdier. ITEM_DIRTY
+# bruges kun til at sige, at der er noget usavet (HAS_UNSAVED) - det er
+# tilstand, ikke validering.
+CAN_SUBMIT = "VhpCanSubmit"
 
 # HVAD MANGLER (issue #220) - grupperet efter sektion. Kilden er de
 # navngivne formler VhpPlanMissing, VhpItemMissing og VhpOpsMissing
 # (build_status.py): trinenes beskeder plus sektionens linjer fra
 # VhpValidationErrors - de samme betingelser, som Submit, progressbaren og
 # badgerne bruger. Skaermen laegger kun usavede aendringer i Item Editoren
-# til (ITEM_DIRTY), som ingen formel kan se. Trinenes tooltips, Submits
+# til (ITEM_DIRTY) - siden issue #448 ikke laengere. Trinenes tooltips, Submits
 # tooltip, linjen under trinene og listen "Before you can submit" bygges
 # alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
 # them" - nu staar selve reglerne der.
-DIRTY_MSG = '"Press Save in the item editor to keep the changes."'
 # (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
 GROUPS = [
     ("Plan header", MISSING_NAMES["Plan"], 1),
-    ("Items", join_lines([MISSING_NAMES["Item"], f'If({ITEM_DIRTY}, {DIRTY_MSG}, "")']), 2),
+    ("Items", MISSING_NAMES["Item"], 2),
     ("Task list and operations", MISSING_NAMES["Ops"], 3),
 ]
 # Listen "Before you can submit" (missing_modal) har een tekst pr. gruppe.
-# De tekster ER skaermens kilde: ITEM_DIRTY regnes kun der, og linjen under
-# trinene, info-ikonet, trinenes tooltips og Submits tooltip laeser dem.
+# De tekster ER skaermens kilde: linjen under trinene, info-ikonet,
+# trinenes tooltips og Submits tooltip laeser dem.
 # Teksterne regnes, ogsaa naar popuppen er lukket.
 MISS_TXT = ("txtVhpMissingPlan", "txtVhpMissingItem", "txtVhpMissingOps")
 GT = [f"{n}.Text" for n in MISS_TXT]
@@ -142,7 +150,10 @@ DIRTY = "vhpDirty"
 
 
 def with_dirty(expr):
-    """expr med ITEM_DIRTY regnet een gang i en With."""
+    """expr med ITEM_DIRTY regnet een gang i en With - uaendret, naar expr
+    ikke bruger den (issue #448: valideringen goer ikke laengere)."""
+    if ITEM_DIRTY not in expr:
+        return expr
     return ("With(\n    { %s: %s },\n    %s\n)"
             % (DIRTY, ITEM_DIRTY, expr.replace(ITEM_DIRTY, DIRTY)))
 
@@ -167,7 +178,7 @@ STEPS = [
     ('"Plan"', "VhpStepPlanDone",
      '"Submitted"', "true",
      "Set(varVhpFocusStep, 1)"),
-    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})",
+    ('"Item"', "VhpStepItemDone",
      'If(varVhpFlow.Stage = "Cost", "Cost approval", '
      'VhpApprovalDone, "Approved", "System approval")', "VhpApprovalDone",
      "Set(varVhpFocusStep, 2)"),

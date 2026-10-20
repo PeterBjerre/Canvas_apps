@@ -1962,8 +1962,8 @@ App:
       // Trin 1: planhovedet er gemt og laast.
       VhpStepPlanDone = varVhpPlanCommitted && varVhpPlanLocked;
 
-      // Trin 2: alle items er gemt som valid.
-      VhpStepItemDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, Status <> "valid")) = 0;
+      // Trin 2: mindst eet item, og alle items har deres paakraevede felter (issue #448 - vaerdierne, ikke om itemet er gemt med Save).
+      VhpStepItemDone = CountRows(VhpSaveableItems) > 0 && IsEmpty(Filter(VhpSaveableItems, IsBlank(Trim(ShortText)) || IsBlank(Trim(MainWorkCenter)) || IsBlank(Trim(ActivityType)) || IsBlank(Trim(FunctionalLocation)) || Len(Trim(Initials)) <> 5));
 
       // Trin 3: alle items har en tasklist.
       VhpStepTasklistDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, IsBlank(TasklistKey))) = 0;
@@ -2041,17 +2041,18 @@ App:
                   { m: Concat(
                       Filter(
                           VhpSaveableItems,
-                          IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
+                          IsBlank(Trim(ShortText)) || IsBlank(Trim(MainWorkCenter)) || IsBlank(Trim(ActivityType)) || IsBlank(Trim(FunctionalLocation)) || Len(Trim(Initials)) <> 5
                       ),
                       With(
                           { rid: ItemId },
                           With(
                               {
                                   f:
-                                      If(IsBlank(ShortText), ", Item short text", "") &
-                                      If(IsBlank(MainWorkCenter), ", Main work center", "") &
-                                      If(IsBlank(ActivityType), ", Maintenance activity type", "") &
-                                      If(IsBlank(FunctionalLocation), ", Functional Location", "")
+                                      If(IsBlank(Trim(ShortText)), ", Item short text", "") &
+                                      If(IsBlank(Trim(MainWorkCenter)), ", Main work center", "") &
+                                      If(IsBlank(Trim(ActivityType)), ", Maintenance activity type", "") &
+                                      If(IsBlank(Trim(FunctionalLocation)), ", Functional Location", "") &
+                                      If(Len(Trim(Initials)) <> 5, ", Initials", "")
                               },
                               With(
                                   { ir: LookUp(colVhpItems, ItemId = rid) },
@@ -2181,7 +2182,7 @@ App:
       VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Press Save in the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Items (issue #220) - een linje pr. krav. Tom = intet.
-      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Press Save on every item in the item editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
+      VhpItemMissing = Concat(Filter(Table({ m: If(IsEmpty(VhpSaveableItems), "Add at least one item.", "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Task list and operations (issue #220) - een linje pr. krav. Tom = intet.
       VhpOpsMissing = Concat(Filter(Table({ m: If(!VhpStepTasklistDone, "Choose a task list for every item.", "") }, { m: If(!VhpStepOpsDone, If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation."), "") }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));
