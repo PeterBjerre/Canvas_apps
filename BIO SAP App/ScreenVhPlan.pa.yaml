@@ -5667,13 +5667,18 @@ Screens:
                                               
                                                   With(
                                                       { src: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                      With(
+                                                      { keepFl: !IsBlank(src.FunctionalLocation) && !(IsBlank(VhpPlant) || Upper(Left(Trim(src.FunctionalLocation), 3)) <> Upper(Left(Trim(VhpPlant), 3))) },
                                                       Set(varVhpNextItemId, varVhpNextItemId + 1);
                                                       Collect(
                                                           colVhpItems,
                                                           {
-                                                              ItemId: varVhpNextItemId, ShortText: src.ShortText, FunctionalLocation: "",
-                                                              FlDescription: "", MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,
-                                                              ObjectList: src.ObjectList, Revision: src.Revision,
+                                                              ItemId: varVhpNextItemId, ShortText: src.ShortText,
+                                                              FunctionalLocation: If(keepFl, src.FunctionalLocation, ""),
+                                                              FlDescription: If(keepFl, src.FlDescription, ""),
+                                                              MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,
+                                                              ObjectList: If(keepFl, Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, "; "), ""),
+                                                              Revision: src.Revision,
                                                               OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,
                                                               NonFlowUserStatus: src.NonFlowUserStatus,
                                                               TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft",
@@ -5728,7 +5733,7 @@ Screens:
                                                       Collect(
                                                           colVhpItemObjects,
                                                           ForAll(
-                                                              Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,
+                                                              Filter(colVhpItemObjects, keepFl && ItemId = varVhpActiveItemId) As OBJ,
                                                               { ItemId: varVhpNextItemId, Code: OBJ.Code, Description: OBJ.Description }
                                                           )
                                                       );
@@ -5747,7 +5752,10 @@ Screens:
                                                   )
                                               );
                                                       Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
-                                                      Set(gblToast, { Text: "Item copied. Functional Location cleared on the copied item.", Kind: "Success", At: Now() }); true
+                                                      Set(gblToast, { Text: If(keepFl || IsBlank(src.FunctionalLocation), "Item copied.",
+                                                              "Item copied. Functional Location and objects cleared - they do not belong to plant " &
+                                                                  Upper(Left(Trim(VhpPlant), 3)) & "."), Kind: "Success", At: Now() }); true
+                                                      )
                                                   )
                                               )
                                           RadiusBottomLeft: |-
@@ -8734,7 +8742,8 @@ Screens:
                                                                                         Maintainable: true, Level: "" },
                                                                                   n: CountRows(colVhpFl),
                                                                                   ask: Len(q) >= 8 && !varVhpFlBusy &&
-                                                                                       Upper(q) <> Upper(Coalesce(varVhpFlLast, "")) && !((IsBlank(VhpPlant) || Upper(Left(q, 3)) <> Upper(Left(Trim(VhpPlant), 3)))),
+                                                                                       Upper(q) <> Upper(Coalesce(varVhpFlLast, "")) && !((IsBlank(VhpPlant) || Upper(Left(q, 3)) <> Upper(Left(Trim(VhpPlant), 3)))) &&
+                                                                                       IsBlank(LookUp(colVhpFl, Upper(Trim(Display)) = Upper(q)).Code),
                                                                                   narrow: CountRows(colVhpFl) > 0 && !IsBlank(varVhpFlLast) &&
                                                                                           StartsWith(Upper(q), Upper(varVhpFlLast))
                                                                               },
@@ -8771,7 +8780,7 @@ Screens:
                                                                               Set(varVhpFlBusy, true);
                                                                               Set(varVhpFlLast, q);
                                                                               Clear(colVhpFl);
-                                                                              Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft);
+                                                                              Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Clear(colVhpObjDraft);
                                                                               Set(varVhpFlMsg, "");
                                                                               IfError(
                                                                                   Set(varVhpFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -8798,7 +8807,7 @@ Screens:
                                                                                       Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                           Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                           Reset(cmbVhpItemFL);
-                                                                                          If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
+                                                                                          If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && !StartsWith(Code, varVhpFlPick)); UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
                                                                                   );
                                                                                   Set(
                                                                                       varVhpFlMsg,
@@ -8827,9 +8836,9 @@ Screens:
                                                                           Reset(cmbVhpItemFL),
                                                                           If(
                                                                           IsBlank(Self.Selected.Code) && !varVhpFlBusy,
-                                                                          Set(varVhpFlPick, ""); Clear(colVhpFl); Set(varVhpFlLast, ""); Set(varVhpFlQuery, ""); Set(varVhpFlMsg, ""); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft),
+                                                                          Set(varVhpFlPick, ""); Clear(colVhpFl); Set(varVhpFlLast, ""); Set(varVhpFlQuery, ""); Set(varVhpFlMsg, ""); Clear(colVhpObjDraft),
                                                                           Set(varVhpFlPick, Coalesce(Self.Selected.Code, ""));
-                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(cmbVhpItemFL.Selected.Code) && (cmbVhpItemFL.Selected.Code) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: cmbVhpItemFL.Selected.Code, FlDescription: cmbVhpItemFL.Selected.Description }))
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(cmbVhpItemFL.Selected.Code) && (cmbVhpItemFL.Selected.Code) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && !StartsWith(Code, cmbVhpItemFL.Selected.Code)); UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: cmbVhpItemFL.Selected.Code, FlDescription: cmbVhpItemFL.Selected.Description }))
                                                                       )
                                                                       )
                                                                   RadiusBottomLeft: |-
@@ -8926,7 +8935,7 @@ Screens:
                                                                                     Set(varVhpFlBusy, true);
                                                                                     Set(varVhpFlLast, q);
                                                                                     Clear(colVhpFl);
-                                                                                    Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft);
+                                                                                    Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Clear(colVhpObjDraft);
                                                                                     Set(varVhpFlMsg, "");
                                                                                     IfError(
                                                                                         Set(varVhpFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -8953,7 +8962,7 @@ Screens:
                                                                                             Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                                 Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                                 Reset(cmbVhpItemFL);
-                                                                                                If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
+                                                                                                If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && !StartsWith(Code, varVhpFlPick)); UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
                                                                                         );
                                                                                         Set(
                                                                                             varVhpFlMsg,
@@ -9814,19 +9823,19 @@ Screens:
                                                             IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||
                                                             IsBlank(drpVhpItemActivityType.Selected.Value) ||
                                                             Len(Trim(inpVhpItemInitials.Text)) <> 5 ||
-                                                            IsBlank(cmbVhpItemFL.Selected.Code),
+                                                            IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
                                                             UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: "invalid" });
                                                             Set(gblToast, { Text: "Item contains issues. Fix required fields (marked with *).", Kind: "Warning", At: Now() }); true,
                                                     
                                                             With(
-                                                                { code: cmbVhpItemFL.Selected.Code },
+                                                                { code: Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) },
                                                                 UpdateIf(
                                                                     colVhpItems,
                                                                     ItemId = varVhpActiveItemId,
                                                                     {
                                                                         ShortText: Trim(inpVhpItemShortText.Text),
                                                                         FunctionalLocation: code,
-                                                                        FlDescription: cmbVhpItemFL.Selected.Description,
+                                                                        FlDescription: If(IsBlank(cmbVhpItemFL.Selected.Code), LookUp(colVhpItems, ItemId = varVhpActiveItemId).FlDescription, cmbVhpItemFL.Selected.Description),
                                                                         MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,
                                                                         ActivityType: drpVhpItemActivityType.Selected.Value,
                                                                         ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, "; "),
@@ -18803,7 +18812,8 @@ Screens:
                                                     Maintainable: true, Level: "" },
                                               n: CountRows(colVhpVendors),
                                               ask: Len(q) >= 3 && !varVhpVenBusy &&
-                                                   Upper(q) <> Upper(Coalesce(varVhpVenLast, "")),
+                                                   Upper(q) <> Upper(Coalesce(varVhpVenLast, "")) &&
+                                                   IsBlank(LookUp(colVhpVendors, Upper(Trim(Display)) = Upper(q)).Code),
                                               narrow: CountRows(colVhpVendors) > 0 && !IsBlank(varVhpVenLast) &&
                                                       StartsWith(Upper(q), Upper(varVhpVenLast))
                                           },

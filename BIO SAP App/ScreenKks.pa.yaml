@@ -10066,7 +10066,8 @@ Screens:
                                                     Maintainable: true, Level: "" },
                                               n: CountRows(colKksFl),
                                               ask: Len(q) >= 7 && !varKksFlBusy &&
-                                                   Upper(q) <> Upper(Coalesce(varKksFlLast, "")),
+                                                   Upper(q) <> Upper(Coalesce(varKksFlLast, "")) &&
+                                                   IsBlank(LookUp(colKksFl, Upper(Trim(Display)) = Upper(q)).Code),
                                               narrow: CountRows(colKksFl) > 0 && !IsBlank(varKksFlLast) &&
                                                       StartsWith(Upper(q), Upper(varKksFlLast))
                                           },

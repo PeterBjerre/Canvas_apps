@@ -8412,7 +8412,8 @@ Screens:
                                                                             Maintainable: true, Level: "" },
                                                                       n: CountRows(colMpFl),
                                                                       ask: Len(q) >= 7 && !varMpFlBusy &&
-                                                                           Upper(q) <> Upper(Coalesce(varMpFlLast, "")),
+                                                                           Upper(q) <> Upper(Coalesce(varMpFlLast, "")) &&
+                                                                           IsBlank(LookUp(colMpFl, Upper(Trim(Display)) = Upper(q)).Code),
                                                                       narrow: CountRows(colMpFl) > 0 && !IsBlank(varMpFlLast) &&
                                                                               StartsWith(Upper(q), Upper(varMpFlLast))
                                                                   },

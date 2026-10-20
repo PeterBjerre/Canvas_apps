@@ -13456,7 +13456,8 @@ Screens:
                                                                       Maintainable: true, Level: "" },
                                                                 n: CountRows(colMatFl),
                                                                 ask: Len(q) >= 16 && !varMatFlBusy &&
-                                                                     Upper(q) <> Upper(Coalesce(varMatFlLast, "")),
+                                                                     Upper(q) <> Upper(Coalesce(varMatFlLast, "")) &&
+                                                                     IsBlank(LookUp(colMatFl, Upper(Trim(Display)) = Upper(q)).Code),
                                                                 narrow: CountRows(colMatFl) > 0 && !IsBlank(varMatFlLast) &&
                                                                         StartsWith(Upper(q), Upper(varMatFlLast))
                                                             },
