@@ -24,9 +24,11 @@ Et trin er GROENT, naar dets paakraevede felter er udfyldt OG gemt:
 
     Plan         faerdigt og laast (Save i Plan header). Edit laaser op, og
                  saa er trinnet ikke faerdigt, foer der trykkes Save igen.
-    Item         mindst eet item, og alle gemte items er valid. Usavede
-                 aendringer i Item Editoren tjekkes paa skaermen
-                 (build_hero.ITEM_DIRTY) - de kan ikke ses herfra.
+    Item         mindst eet item, og alle items har deres paakraevede
+                 felter (ITEM_REQUIRED, issue #448). Item Editoren skriver
+                 felterne i colVhpItems, naar de aendres - Save i editoren
+                 er ikke et krav, og usavede aendringer (build_hero.
+                 ITEM_DIRTY) er ikke en valideringsfejl.
     Task list    alle items har en tasklist.
     Operations   alle items har mindst een operation - og paa en
                  strategiplan har hver operation en pakke (S4).
@@ -109,18 +111,59 @@ def _items_list(table, msg):
             ")")
 
 
+# ITEMETS PAAKRAEVEDE FELTER (issue #448) - EEN liste, som reglen
+# nedenfor, trin 2 (VhpStepItemDone) og itemets kort i Items-listen
+# (build_items: "N to fix") alle bygges af. Foer talte kortet sine egne
+# felter, trin 2 kraevede, at itemet var GEMT med Save (Status "valid"),
+# og Submit ventede paa, at Item Editoren var gemt (ITEM_DIRTY). Kortet
+# kunne derfor sige "4 to fix", mens felterne var udfyldt, og Submit blev
+# staaende graa. Nu er det vaerdierne, der afgoer det: Item Editoren
+# skriver hvert felt i colVhpItems, naar feltet aendres eller forlades
+# (build_items.write_item), og reglerne laeser colVhpItems.
+#
+# Trim: et felt med kun mellemrum er tomt. IsBlank er sand for baade
+# Blank() og "", saa en tom tekst og en tom kolonne er ens. Initials skal
+# vaere fem tegn - det kraever Item Editorens Save, og feltet er markeret
+# paakraevet (*).
+#
+# (navn i beskeden, betingelse for "mangler"; {r} er "ThisItem." eller "")
+ITEM_REQUIRED = [
+    ("Item short text", "IsBlank(Trim({r}ShortText))"),
+    ("Main work center", "IsBlank(Trim({r}MainWorkCenter))"),
+    ("Maintenance activity type", "IsBlank(Trim({r}ActivityType))"),
+    ("Functional Location", "IsBlank(Trim({r}FunctionalLocation))"),
+    ("Initials", "Len(Trim({r}Initials)) <> 5"),
+]
+
+
+def item_required(r=""):
+    """[(navn, betingelse)] for itemets paakraevede felter; r er
+    praefikset foran kolonnerne ("ThisItem." i et galleri)."""
+    return [(n, c.format(r=r)) for n, c in ITEM_REQUIRED]
+
+
+# Itemet mangler mindst eet paakraevet felt (raekkens egne kolonner).
+ITEM_MISSING_ANY = " || ".join(c for _n, c in item_required())
+
+# OPERATIONERNES REGLER (samme betingelser som RULES nedenfor), saa
+# itemets kort kan sige, at dets operationer mangler noget. Kolonnerne er
+# colVhpOperations'.
+OP_NO_TEXT = "IsBlank(Trim(OperationShortText))"
+OP_NO_MG = ('Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && '
+            'IsBlank(Trim(Coalesce(MaterialGroup, "")))')
+OP_NO_COST = 'Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0'
+OP_NO_PKG = 'Len(Coalesce(PackagesKey, ";")) <= 1'
+
+
 ITEM_RULE = _per_row(
     "Filter(\n"
     "    VhpSaveableItems,\n"
-    "    IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)\n"
+    f"    {ITEM_MISSING_ANY}\n"
     ")",
     "With(\n"
     "    {\n"
     "        f:\n"
-    "            If(IsBlank(ShortText), \", Item short text\", \"\") &\n"
-    "            If(IsBlank(MainWorkCenter), \", Main work center\", \"\") &\n"
-    "            If(IsBlank(ActivityType), \", Maintenance activity type\", \"\") &\n"
-    "            If(IsBlank(FunctionalLocation), \", Functional Location\", \"\")\n"
+    + " &\n".join(f'            If({c}, ", {n}", "")' for n, c in item_required()) + "\n"
     "    },\n"
     f"    {_nest(REF)} &\n"
     "        \": fill in \" & Mid(f, 3) & \" in the item editor.\"\n"
@@ -241,9 +284,10 @@ STEP_MISSING = {
     "Plan": [("!VhpStepPlanDone", '"Press Save in the plan header."')],
     # Samme betingelse som foer (trin 2) - kun beskeden siger nu, hvilken
     # halvdel der mangler.
-    "Item": [("!VhpStepItemDone",
-              'If(IsEmpty(VhpSaveableItems), "Add at least one item.", '
-              '"Press Save on every item in the item editor.")')],
+    # Issue #448: kun "intet item". Et item, der mangler et felt, staar
+    # allerede som sin egen linje fra reglen (VhpItemRuleErrors) - Save i
+    # Item Editoren er ikke laengere et krav for Submit.
+    "Item": [("IsEmpty(VhpSaveableItems)", '"Add at least one item."')],
     "Ops": [("!VhpStepTasklistDone", '"Choose a task list for every item."'),
             ("!VhpStepOpsDone",
              f'If({IS_STRAT}, "Give every item operations, each with a package.", '
@@ -273,8 +317,9 @@ def formulas():
         "Trin 1: planhovedet er gemt og laast.")
     add("VhpStepItemDone",
         "CountRows(VhpSaveableItems) > 0 && "
-        "CountRows(Filter(VhpSaveableItems, Status <> \"valid\")) = 0",
-        "Trin 2: alle items er gemt som valid.")
+        f"IsEmpty(Filter(VhpSaveableItems, {ITEM_MISSING_ANY}))",
+        "Trin 2: mindst eet item, og alle items har deres paakraevede felter "
+        "(issue #448 - vaerdierne, ikke om itemet er gemt med Save).")
     add("VhpStepTasklistDone",
         "CountRows(VhpSaveableItems) > 0 && "
         "CountRows(Filter(VhpSaveableItems, IsBlank(TasklistKey))) = 0",
