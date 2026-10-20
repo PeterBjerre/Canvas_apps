@@ -147,31 +147,9 @@ Screens:
                                     AccessibleLabel: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "Go to step 1, " & If(VhpSubmitted, "Submitted", "Plan") & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
                                         )
                                     BorderStyle: |-
@@ -183,31 +161,9 @@ Screens:
                                     Image: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -225,31 +181,9 @@ Screens:
                                     Tooltip: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             If(
                                             VhpSubmitted, "Submitted for approval.",
                                             !IsBlank(txtVhpMissingPlan.Text), "Missing:" & Char(10) & txtVhpMissingPlan.Text,
@@ -264,31 +198,9 @@ Screens:
                                     AccessibleLabel: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "Go to step 2, " & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
                                         )
                                     BorderStyle: |-
@@ -300,31 +212,9 @@ Screens:
                                     Image: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -343,31 +233,9 @@ Screens:
                                     Tooltip: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             If(
                                             VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
                                             !IsBlank(txtVhpMissingItem.Text), "Missing:" & Char(10) & txtVhpMissingItem.Text,
@@ -382,31 +250,9 @@ Screens:
                                     AccessibleLabel: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "Go to step 3, " & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
                                         )
                                     BorderStyle: |-
@@ -418,31 +264,9 @@ Screens:
                                     Image: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -462,31 +286,9 @@ Screens:
                                     Tooltip: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             If(
                                             VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
                                             !IsBlank(txtVhpMissingOps.Text), "Missing:" & Char(10) & txtVhpMissingOps.Text,
@@ -501,31 +303,9 @@ Screens:
                                     AccessibleLabel: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "Go to step 4, " & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
                                         )
                                     BorderStyle: |-
@@ -537,31 +317,9 @@ Screens:
                                     Image: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -579,31 +337,9 @@ Screens:
                                     Tooltip: |-
                                         =With(
                                             { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                               d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ))) },
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                             If(
                                             VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
                                             d4, "Ready - Submit is available.",
@@ -1055,31 +791,9 @@ Screens:
                                           AccessibleLabel: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "Go to step 1, " & If(VhpSubmitted, "Submitted", "Plan") & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
                                               )
                                           BorderStyle: |-
@@ -1091,31 +805,9 @@ Screens:
                                           Image: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -1133,31 +825,9 @@ Screens:
                                           Tooltip: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   If(
                                                   VhpSubmitted, "Submitted for approval.",
                                                   !IsBlank(txtVhpMissingPlan.Text), "Missing:" & Char(10) & txtVhpMissingPlan.Text,
@@ -1172,31 +842,9 @@ Screens:
                                           AccessibleLabel: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "Go to step 2, " & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
                                               )
                                           BorderStyle: |-
@@ -1208,31 +856,9 @@ Screens:
                                           Image: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -1251,31 +877,9 @@ Screens:
                                           Tooltip: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   If(
                                                   VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
                                                   !IsBlank(txtVhpMissingItem.Text), "Missing:" & Char(10) & txtVhpMissingItem.Text,
@@ -1290,31 +894,9 @@ Screens:
                                           AccessibleLabel: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "Go to step 3, " & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
                                               )
                                           BorderStyle: |-
@@ -1326,31 +908,9 @@ Screens:
                                           Image: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -1370,31 +930,9 @@ Screens:
                                           Tooltip: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   If(
                                                   VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
                                                   !IsBlank(txtVhpMissingOps.Text), "Missing:" & Char(10) & txtVhpMissingOps.Text,
@@ -1409,31 +947,9 @@ Screens:
                                           AccessibleLabel: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "Go to step 4, " & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
                                               )
                                           BorderStyle: |-
@@ -1445,31 +961,9 @@ Screens:
                                           Image: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
@@ -1487,31 +981,9 @@ Screens:
                                           Tooltip: |-
                                               =With(
                                                   { d1: If(VhpSubmitted, true, VhpStepPlanDone),
-                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone),
                                                     d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
-                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))) },
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit) },
                                                   If(
                                                   VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
                                                   d4, "Ready - Submit is available.",
@@ -1674,7 +1146,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
+                                              Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                               Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
                                               Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true)
                                           RadiusBottomLeft: |-
@@ -2557,18 +2029,7 @@ Screens:
                                           Color: |-
                                               =C.'text-on-primary'
                                           DisplayMode: |-
-                                              =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(!varVhpViewOnly && VhpCanSubmit && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              )), DisplayMode.Edit, DisplayMode.Disabled))
+                                              =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(!varVhpViewOnly && VhpCanSubmit, DisplayMode.Edit, DisplayMode.Disabled))
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -2599,27 +2060,13 @@ Screens:
                                           Text: |-
                                               =If(IfError(varVhpAct = "submit", false), "Submitting...", If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & ")", "")), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))))
                                           Tooltip: |-
-                                              =With(
-                                                  { vhpDirty: With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ) },
-                                                  If(
+                                              =If(
                                                   VhpSubmitted, "Already submitted - see the progress bar.",
                                                   IfError(varVhpViewOnly, false), "View mode - select Edit to change or submit the plan.",
-                                                  VhpCanSubmit && !(vhpDirty),
+                                                  VhpCanSubmit,
                                                   "Submit the plan for approval.",
                                                   varVhpSaving, "Saving ...",
                                                   "Not ready yet - select the info icon to see what is missing."
-                                              )
                                               )
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
@@ -2775,21 +2222,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =With(
-                                            { vhpDirty: With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ) },
-                                            If((VhpSubmitted || (VhpCanSubmit && !(vhpDirty))), C.'state-ok-fg', C.'text-muted')
-                                        )
+                                        =If((VhpSubmitted || (VhpCanSubmit)), C.'state-ok-fg', C.'text-muted')
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -2809,20 +2242,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =With(
-                                            { vhpDirty: With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ) },
-                                            If(
+                                        =If(
                                             VhpSubmitted,
                                             "Submitted. " & If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", VhpApprovalDone, "Waiting for the quality review.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
                                             varVhpFlow.Status = "Returned",
@@ -2830,10 +2250,9 @@ Screens:
                                                 " Correct the plan and submit it again.",
                                             varVhpViewOnly,
                                             "View only - this plan has not been submitted.",
-                                            VhpCanSubmit && !(vhpDirty),
+                                            VhpCanSubmit,
                                             "Ready to submit.",
                                             Mid(First(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))).Value, 3)
-                                        )
                                         )
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
@@ -6133,34 +5552,12 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, (((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), 360)) - 18 - 18)) - ((54) + 12) - (If(((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              )))), (72) + 12, 0)) - (If(!varVhpViewOnly, (Max(36, H.hit)) + 12, 0)) - (If(!varVhpViewOnly, (108) + 12, 0)) - 2)
+                                              =Max(0, (((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), 360)) - 18 - 18)) - ((54) + 12) - (If((VhpItemsValid), (72) + 12, 0)) - (If(!varVhpViewOnly, (Max(36, H.hit)) + 12, 0)) - (If(!varVhpViewOnly, (108) + 12, 0)) - 2)
                                     - bdgVhpItemsHeadBadge:
                                         Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))), "Step 2: valid", "Step 2: not complete yet")
+                                              =If(VhpItemsValid, "Step 2: valid", "Step 2: not complete yet")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -6172,44 +5569,11 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =If((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))), C.'state-ok-fg', C.'text-muted')
+                                              =If(VhpItemsValid, C.'state-ok-fg', C.'text-muted')
                                           Content: |-
-                                              =If((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))), "Valid", "")
+                                              =If(VhpItemsValid, "Valid", "")
                                           Fill: |-
-                                              =If((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))), C.'state-ok-bg', C.'state-neutral-bg')
+                                              =If(VhpItemsValid, C.'state-ok-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -6241,18 +5605,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
-                                              =((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))))
+                                              =(VhpItemsValid)
                                           Width: |-
                                               =72
                                     - btnVhpCopyItem:
@@ -6371,7 +5724,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
+                                                      Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                                       Set(gblToast, { Text: "Item copied. Functional Location cleared on the copied item.", Kind: "Success", At: Now() }); true
                                                   )
                                               )
@@ -6452,7 +5805,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
+                                                  Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                                   Set(gblToast, { Text: "Item " & Text(CountRows(colVhpItems)) & " added.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
@@ -6588,13 +5941,67 @@ Screens:
                                         Control: ModernIcon@1.1.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), "Complete", "Needs attention")
+                                              =If(IsEmpty(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              )), "Complete", "Needs attention")
                                           Height: |-
                                               =20
                                           Icon: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), "CheckmarkCircle", "ErrorCircle")
+                                              =If(IsEmpty(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              )), "CheckmarkCircle", "ErrorCircle")
                                           IconColor: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), C.'state-ok-fg', C.'state-error-fg')
+                                              =If(IsEmpty(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              )), C.'state-ok-fg', C.'state-error-fg')
                                           IconStyle: |-
                                               =IconStyle.Outline
                                           Width: |-
@@ -6728,7 +6135,25 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), C.'state-ok-fg', C.'state-error-fg')
+                                              =If(IsEmpty(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              )), C.'state-ok-fg', C.'state-error-fg')
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -6748,7 +6173,25 @@ Screens:
                                           Size: |-
                                               =T.small
                                           Text: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), "Valid", If((If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) > 0, Text((If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0))) & " to fix", "Needs fixing"))
+                                              =With({ fixN: CountRows(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              )) }, If(fixN = 0, "Valid", Text(fixN) & " to fix"))
                                           Width: |-
                                               =84
                                           Wrap: |-
@@ -6790,7 +6233,7 @@ Screens:
                                               =C.'row-hover'
                                           OnSelect: |-
                                               =Set(varVhpActiveItemId, ThisItem.ItemId);
-                                              Set(varVhpItemValidated, (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) > 0);
+                                              Set(varVhpItemValidated, (IsBlank(Trim(ThisItem.ShortText)) || IsBlank(Trim(ThisItem.MainWorkCenter)) || IsBlank(Trim(ThisItem.ActivityType)) || IsBlank(Trim(ThisItem.FunctionalLocation)) || Len(Trim(ThisItem.Initials)) <> 5));
                                               Set(varVhpFlMsg, "");
                                               Clear(colVhpFl);
                                               With(
@@ -6805,7 +6248,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                              Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                           PressedBorderColor: |-
                                               =C.'color-brand-primary'
                                           PressedColor: |-
@@ -6825,7 +6268,25 @@ Screens:
                                           Text: |-
                                               ="Open item " & Text(CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId))) & " " & ThisItem.ShortText
                                           Tooltip: |-
-                                              =If((ThisItem.Status <> "invalid" && (If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + If(IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey), 1, 0)) = 0), "", "To fix: " & Concat(Filter(Table({n: "Short text", m: IsBlank(ThisItem.ShortText)}, {n: "Main work center", m: IsBlank(ThisItem.MainWorkCenter)}, {n: "Activity type", m: IsBlank(ThisItem.ActivityType)}, {n: "Functional location", m: IsBlank(ThisItem.FunctionalLocation)}, {n: "Tasklist", m: IfError(varVhpPlan.PlanType = "Strategy", false) && IsBlank(ThisItem.TasklistKey)}), m), n, ", "))
+                                              =With({ miss: Concat(With(
+                                                  {
+                                                      ops: Filter(colVhpOperations, ItemId = ThisItem.ItemId),
+                                                      pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+                                                  },
+                                                  Filter(
+                                                      Table(
+                                                          { n: "Item short text", m: IsBlank(Trim(ThisItem.ShortText)) },
+                                                          { n: "Main work center", m: IsBlank(Trim(ThisItem.MainWorkCenter)) },
+                                                          { n: "Maintenance activity type", m: IsBlank(Trim(ThisItem.ActivityType)) },
+                                                          { n: "Functional Location", m: IsBlank(Trim(ThisItem.FunctionalLocation)) },
+                                                          { n: "Initials", m: Len(Trim(ThisItem.Initials)) <> 5 },
+                                                          { n: "Task list", m: IsBlank(Trim(ThisItem.TasklistKey)) },
+                                                          { n: "Operations", m: IsEmpty(ops) },
+                                                          { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                                                      ),
+                                                      m
+                                                  )
+                                              ), n, ", ") }, If(IsBlank(miss), "", "To fix: " & miss))
                                           Width: |-
                                               =(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), 360)) - 36) - 2 * 0 - 0)
                                           X: |-
@@ -6868,7 +6329,7 @@ Screens:
                                                   If(
                                                       varVhpActiveItemId = id,
                                                       Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                      Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                   );
                                                   Set(gblToast, { Text: "Item " & Text(no) & " deleted.", Kind: "Success", At: Now() }); true
                                               )
@@ -7044,7 +6505,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
+                                                  Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                                   Set(gblToast, { Text: "Item " & Text(CountRows(colVhpItems)) & " added.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
@@ -7275,18 +6736,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20)) - 18 - 18))) - ((43) + 12) - ((260) + 12) - (If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), (110) + 12, 0)) - (If(((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    )))) || (LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid"), (72) + 12, 0)) - 2)
+                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20)) - 18 - 18))) - ((43) + 12) - ((260) + 12) - (If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), (110) + 12, 0)) - (If((VhpItemsValid) || ((varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", "))))), (72) + 12, 0)) - 2)
                                           - btnVhpEditorDelete:
                                               Control: ModernButton
                                               Properties:
@@ -7327,7 +6777,7 @@ Screens:
                                                         If(
                                                             varVhpActiveItemId = id,
                                                             Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
-                                                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                            Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                         );
                                                         Set(gblToast, { Text: "Item " & Text(no) & " deleted.", Kind: "Success", At: Now() }); true
                                                     )
@@ -7353,18 +6803,7 @@ Screens:
                                               Control: ModernBadge@1.0.0
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =If((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    ))), "Step 2: valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Step 2: invalid", "Step 2: not complete yet")
+                                                    =If(VhpItemsValid, "Step 2: valid", (varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")))), "Step 2: invalid", "Step 2: not complete yet")
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -7376,44 +6815,11 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =If((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    ))), C.'state-ok-fg', LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", C.'state-error-fg', C.'text-muted')
+                                                    =If(VhpItemsValid, C.'state-ok-fg', (varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")))), C.'state-error-fg', C.'text-muted')
                                                 Content: |-
-                                                    =If((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    ))), "Valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Invalid", "")
+                                                    =If(VhpItemsValid, "Valid", (varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")))), "Invalid", "")
                                                 Fill: |-
-                                                    =If((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    ))), C.'state-ok-bg', LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                                    =If(VhpItemsValid, C.'state-ok-bg', (varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")))), C.'state-error-bg', C.'state-neutral-bg')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -7445,18 +6851,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Visible: |-
-                                                    =((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    )))) || (LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid")
+                                                    =(VhpItemsValid) || ((varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")))))
                                                 Width: |-
                                                     =72
                                     - conVhpItemHelp:
@@ -7876,6 +7271,8 @@ Screens:
                                                                 =0
                                                             MaxLength: |-
                                                                 =40
+                                                            OnChange: |-
+                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && ((Trim(inpVhpItemShortText.Text)) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { ShortText: Trim(inpVhpItemShortText.Text) }))
                                                             Placeholder: |-
                                                                 =""
                                                             RadiusBottomLeft: |-
@@ -8112,6 +7509,8 @@ Screens:
                                                                 )
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            OnChange: |-
+                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemMainWorkCenter.Selected.Value) && (drpVhpItemMainWorkCenter.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value }))
                                                             RadiusBottomLeft: |-
                                                                 =R.input
                                                             RadiusBottomRight: |-
@@ -8507,6 +7906,8 @@ Screens:
                                                                 =colVhpActivityTypeOptions
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            OnChange: |-
+                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemActivityType.Selected.Value) && (drpVhpItemActivityType.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { ActivityType: drpVhpItemActivityType.Selected.Value }))
                                                             RadiusBottomLeft: |-
                                                                 =R.input
                                                             RadiusBottomRight: |-
@@ -8739,7 +8140,8 @@ Screens:
                                                                   LayoutMinWidth: |-
                                                                       =98
                                                                   OnSelect: |-
-                                                                      =Set(varVhpItemRevPick, false)
+                                                                      =Set(varVhpItemRevPick, false);
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Revision: "" }))
                                                                   RadiusBottomLeft: |-
                                                                       =15
                                                                   RadiusBottomRight: |-
@@ -8792,7 +8194,8 @@ Screens:
                                                                   LayoutMinWidth: |-
                                                                       =98
                                                                   OnSelect: |-
-                                                                      =Set(varVhpItemRevPick, true)
+                                                                      =Set(varVhpItemRevPick, true);
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Revision: First(colVhpRevisionOptions).Value }))
                                                                   RadiusBottomLeft: |-
                                                                       =15
                                                                   RadiusBottomRight: |-
@@ -9009,7 +8412,8 @@ Screens:
                                                             MaxLength: |-
                                                                 =5
                                                             OnChange: |-
-                                                                =If(inpVhpItemInitials.Text <> Upper(inpVhpItemInitials.Text), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Initials: Upper(inpVhpItemInitials.Text) }); Reset(inpVhpItemInitials))
+                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && ((Upper(Trim(inpVhpItemInitials.Text))) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Initials: Upper(Trim(inpVhpItemInitials.Text)) }));
+                                                                If(inpVhpItemInitials.Text <> Upper(Trim(inpVhpItemInitials.Text)), Reset(inpVhpItemInitials))
                                                             Placeholder: |-
                                                                 =""
                                                             RadiusBottomLeft: |-
@@ -9429,7 +8833,8 @@ Screens:
                                                                                       CountRows(colVhpFl) = 0,
                                                                                       Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                           Set(varVhpFlPick, First(colVhpFl).Code);
-                                                                                          Reset(cmbVhpItemFL)
+                                                                                          Reset(cmbVhpItemFL);
+                                                                                          If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
                                                                                   );
                                                                                   Set(
                                                                                       varVhpFlMsg,
@@ -9459,7 +8864,8 @@ Screens:
                                                                           If(
                                                                           IsBlank(Self.Selected.Code) && !varVhpFlBusy,
                                                                           Set(varVhpFlPick, ""); Clear(colVhpFl); Set(varVhpFlLast, ""); Set(varVhpFlQuery, ""); Set(varVhpFlMsg, ""); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft),
-                                                                          Set(varVhpFlPick, Coalesce(Self.Selected.Code, ""))
+                                                                          Set(varVhpFlPick, Coalesce(Self.Selected.Code, ""));
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(cmbVhpItemFL.Selected.Code) && (cmbVhpItemFL.Selected.Code) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: cmbVhpItemFL.Selected.Code, FlDescription: cmbVhpItemFL.Selected.Description }))
                                                                       )
                                                                       )
                                                                   RadiusBottomLeft: |-
@@ -9582,7 +8988,8 @@ Screens:
                                                                                             CountRows(colVhpFl) = 0,
                                                                                             Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                                 Set(varVhpFlPick, First(colVhpFl).Code);
-                                                                                                Reset(cmbVhpItemFL)
+                                                                                                Reset(cmbVhpItemFL);
+                                                                                                If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
                                                                                         );
                                                                                         Set(
                                                                                             varVhpFlMsg,
@@ -10043,7 +9450,8 @@ Screens:
                                                                   LayoutMinWidth: |-
                                                                       =98
                                                                   OnSelect: |-
-                                                                      =Set(varVhpItemNfPick, { Value: "" })
+                                                                      =Set(varVhpItemNfPick, { Value: "" });
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { NonFlowUserStatus: "" }))
                                                                   RadiusBottomLeft: |-
                                                                       =15
                                                                   RadiusBottomRight: |-
@@ -10096,7 +9504,8 @@ Screens:
                                                                   LayoutMinWidth: |-
                                                                       =98
                                                                   OnSelect: |-
-                                                                      =Set(varVhpItemNfPick, { Value: "ZBOW" })
+                                                                      =Set(varVhpItemNfPick, { Value: "ZBOW" });
+                                                                      If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { NonFlowUserStatus: "ZBOW" }))
                                                                   RadiusBottomLeft: |-
                                                                       =15
                                                                   RadiusBottomRight: |-
@@ -10252,7 +9661,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =If(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", C.'state-error-fg', C.'text-muted')
+                                                    =If(varVhpItemValidated && !IsBlank(With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", "))), C.'state-error-fg', C.'text-muted')
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -10270,7 +9679,7 @@ Screens:
                                                 Size: |-
                                                     =T.small
                                                 Text: |-
-                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "invalid", "Fix the fields marked * and press Save.", "valid", "Item is valid.", "Not done yet.")
+                                                    =With({ miss: With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, Concat(Filter(Table({ n: "Item short text", m: IsBlank(Trim(ar.ShortText)) }, { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) }, { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) }, { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) }, { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 }), m), n, ", ")) }, If(IsBlank(miss), "Item is valid.", "Fill in " & miss & "."))
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Visible: |-
@@ -10336,7 +9745,15 @@ Screens:
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
                                                 OnSelect: |-
-                                                    =With(
+                                                    =If(
+                                                        !IsBlank(varVhpActiveItemId) && varVhpItemBase.ItemId = varVhpActiveItemId,
+                                                        UpdateIf(
+                                                            colVhpItems,
+                                                            ItemId = varVhpActiveItemId,
+                                                            { ShortText: varVhpItemBase.ShortText, FunctionalLocation: varVhpItemBase.FunctionalLocation, FlDescription: varVhpItemBase.FlDescription, MainWorkCenter: varVhpItemBase.MainWorkCenter, ActivityType: varVhpItemBase.ActivityType, Revision: varVhpItemBase.Revision, Initials: varVhpItemBase.Initials, NonFlowUserStatus: varVhpItemBase.NonFlowUserStatus }
+                                                        )
+                                                    );
+                                                    With(
                                                         {
                                                             keep: ForAll(
                                                                 Filter(
@@ -10371,7 +9788,7 @@ Screens:
                                                             )
                                                         )
                                                     );
-                                                    Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                    Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -10456,6 +9873,7 @@ Screens:
                                                                 Set(gblToast, { Text: "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was changed.", Kind: "Error", At: Now() }); true,
                                                                 With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist)))));
                                                                 Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: "Item" });
+                                                                Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId));
                                                                 Set(varVhpAct, "item:ok")
                                                             )
                                                         );
@@ -15056,18 +14474,7 @@ Screens:
                               Color: |-
                                   =C.'text-on-primary'
                               DisplayMode: |-
-                                  =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(!varVhpViewOnly && VhpCanSubmit && !(With(
-                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                      !IsBlank(varVhpActiveItemId) && (
-                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                      )
-                                  )), DisplayMode.Edit, DisplayMode.Disabled))
+                                  =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(!varVhpViewOnly && VhpCanSubmit, DisplayMode.Edit, DisplayMode.Disabled))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -15098,27 +14505,13 @@ Screens:
                               Text: |-
                                   =If(IfError(varVhpAct = "submit", false), "Submitting...", If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & ")", "")), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))))
                               Tooltip: |-
-                                  =With(
-                                      { vhpDirty: With(
-                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                      !IsBlank(varVhpActiveItemId) && (
-                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                      )
-                                  ) },
-                                      If(
+                                  =If(
                                       VhpSubmitted, "Already submitted - see the progress bar.",
                                       IfError(varVhpViewOnly, false), "View mode - select Edit to change or submit the plan.",
-                                      VhpCanSubmit && !(vhpDirty),
+                                      VhpCanSubmit,
                                       "Submit the plan for approval.",
                                       varVhpSaving, "Saving ...",
                                       "Not ready yet - select the info icon to see what is missing."
-                                  )
                                   )
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
@@ -22806,7 +22199,7 @@ Screens:
                                     )
                                 )
                             );
-                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
+                            Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                             Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
                             Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
@@ -23800,22 +23193,8 @@ Screens:
                                   =T.body
                               Text: |-
                                   =With(
-                                      { vhpDirty: With(
-                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                      !IsBlank(varVhpActiveItemId) && (
-                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                      )
-                                  ) },
-                                      With(
-                                      { t: Concat(Filter(Table({ m: VhpItemMissing }, { m: If(vhpDirty, "Press Save in the item editor to keep the changes.", "") }), !IsBlank(m)), m, Char(10)) },
+                                      { t: VhpItemMissing },
                                       If(IsBlank(t), "", "• " & Substitute(t, Char(10), Char(10) & "• "))
-                                  )
                                   )
                               Wrap: |-
                                   =true
@@ -26657,6 +26036,7 @@ Screens:
                                             );
                                             // --- hvad der er valgt naar skaermen tegnes -------
                                             Set(varVhpActiveItemId, First(colVhpItems).ItemId);
+                                            Set(varVhpItemBase, First(colVhpItems));
                                             Set(varVhpNextItemId, Max(colVhpItems, ItemId));
                                             Set(gblToast, { Text: "Opened " & idx.RequestNo & " - " &
                                                     With({ _c: CountRows(colVhpItems) }, Text(_c) & If(_c = 1, " item", " items")) & ", " &
@@ -26692,7 +26072,7 @@ Screens:
                                     )
                                 )
                             );
-                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                            Set(varVhpItemBase, LookUp(colVhpItems, ItemId = varVhpActiveItemId)); Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                         )
                     ),
                     Set(varVhpLoadFailed, true);
