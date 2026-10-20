@@ -102,6 +102,8 @@ Set(varDomDetailsId, Blank());
 // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
 Set(varDomDeleteId, Blank());
 Set(varDomConfirmDelete, false);
+// Reset spoerger foerst, naar der er ugemte aendringer (issue #450).
+Set(varDomResetAsk, false);
 // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
 Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
@@ -318,7 +320,8 @@ def build_screen(cfg, parts, render):
                                      *docs_above, *above,
                                      *dp.build_row_menu(), *dp.build_paste(),
                    # Bekraeftelserne og ventespinneren - oeverst.
-                   *dp.build_delete_confirm(), *dp.build_submit_confirm()])
+                   *dp.build_delete_confirm(), *dp.build_reset_confirm(),
+                   *dp.build_submit_confirm()])
 
 
 def write_screen(cfg, parts, app_dir, render):

@@ -60,7 +60,7 @@ from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_h
                            act_fx, act_mark, act_button, act_status, act_layers, icon_only_when,
                            confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
-                           request_actions, row_list)
+                           request_actions, row_list, reset_click_fx, reset_confirm)
 
 # Knappernes ventetilstand (issue #420, build_helpers.act_fx): handlingens
 # noegle ("save", "submit", "duplicate", "delete", "add"), mens den koerer,
@@ -950,19 +950,42 @@ def form_dirty_fx(extra_new=()):
 
 
 def reset_form_fx():
-    """Sidepanelets Reset (issue #403, #405): KUN de ugemte aendringer
+    """Sidepanelets Reset (issue #403, #405, #450): KUN de ugemte aendringer
     kasseres. En gemt raekke faar sine SENESTE gemte vaerdier igen - den
     samme indlaesning som Previous/Next (load_row_fx mod colDomRows, som
     Save opdaterer), saa variabler, FL-vaelgeren og appens egne kroge
     (load_extra, details_open) nulstilles ens. En ny, ugemt raekke ryddes
     til standardvaerdierne. Panelet bliver aabent.
 
-    Ingen bekraeftelse og intet sloer: knappen er slaaet fra, naar der
-    intet er at kassere (reset_mode), og der er derfor intet overlay, der
-    kan blive haengende (issue #405). Ingen ventevariabel saettes."""
+    Brugeren bliver paa den fane, hun stod paa (issue #450): indlaesningen
+    saetter fanen til Details, saa den saettes tilbage bagefter, og
+    Documents/Objects hentes igen for raekken, som fanerne selv goer.
+
+    Koeres fra Reset-bekraeftelsen (build_reset_confirm) - eller direkte
+    fra knappen, naar der intet er at kassere (reset_click_fx)."""
     load = load_row_fx().replace("ThisItem.", ACTIVE + ".")
-    return (f"If(\n    IsBlank({ACTIVE}),\n{_indent(new_row_fx(), 4)},\n"
+    body = (f"If(\n    IsBlank({ACTIVE}),\n{_indent(new_row_fx(), 4)},\n"
             f"{_indent(load, 4)}\n)")
+    tab = getattr(cfg, "ROW_EDITOR_TAB_VAR", None)
+    if not tab:
+        return body
+    lines = [body, f"Set({tab}, keepTab)"]
+    if DOCS:
+        lines.append(f'If(\n    keepTab = "Documents" && !IsBlank(varDomActiveRowId) && !{att.busy},\n'
+                     f"{_indent(open_active_docs_fx(), 4)}\n)")
+    if TAB_REOPEN.get("Objects"):
+        lines.append(f'If(\n    keepTab = "Objects",\n{_indent(TAB_REOPEN["Objects"], 4)}\n)')
+    return (f"With(\n    {{ keepTab: Coalesce({tab}, \"Details\") }},\n"
+            + _indent(";\n".join(lines), 4) + "\n)")
+
+
+# Det, en fane goer, naar den aabnes (editor_tabs) - Reset koerer det igen
+# for fanen, brugeren stod paa (issue #450).
+TAB_REOPEN = {}
+# Reset spoerger foerst, naar der er noget at kassere (issue #450).
+RESET_ASK = "varDomResetAsk"
+# Appens egne "ny raekke er aendret"-betingelser (reset_button(extra_new)).
+RESET_EXTRA = [()]
 
 
 def reset_mode(extra_new=()):
@@ -974,10 +997,23 @@ def reset_mode(extra_new=()):
 
 
 def reset_button(extra_new=()):
-    """Reset i sidepanelets bundbjaelke (tools/domain_app._row_editor)."""
-    return button("btnDomNew", '"Reset"', reset_form_fx(),
+    """Reset i sidepanelets bundbjaelke (tools/domain_app._row_editor).
+    Spoerger foerst, naar der er ugemte aendringer (issue #450)."""
+    RESET_EXTRA[0] = tuple(extra_new)
+    return button("btnDomNew", '"Reset"',
+                  reset_click_fx(RESET_ASK, form_dirty_fx(extra_new), reset_form_fx()),
                   display_mode=reset_mode(extra_new),
                   tooltip='"Undo the unsaved changes to this row"')
+
+
+def build_reset_confirm():
+    """Reset-bekraeftelsen (issue #450) - [sloer, popup], som sletningens.
+    Kun med sidepanel: dér staar Reset."""
+    if not getattr(cfg, "ROW_PANEL_ENABLED", False):
+        return []
+    return reset_confirm("DomReset", RESET_ASK, reset_form_fx(),
+                         form_dirty_fx(RESET_EXTRA[0]), "this row",
+                         guard="IfError(varDomEditorOpen, false) && !IfError(varDomViewOnly, false)")
 
 
 def copy_row_fx():
@@ -2242,6 +2278,7 @@ def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
     Fanerne er altid til at trykke paa - ogsaa i visning. Felterne paa
     dem foelger selv DM_ROW og DOCS_EDIT, saa de er skrivebeskyttede dér."""
     tab = cfg.ROW_EDITOR_TAB_VAR
+    TAB_REOPEN["Objects"] = open_objects
     objects_fx = f'Set({tab}, "Objects")' + (f";\n{open_objects}" if open_objects else "")
     selector = segmented("conDomEditorTabs", [
         ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
