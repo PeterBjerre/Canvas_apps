@@ -42,7 +42,14 @@ def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None)
     row.props["AlignInContainer"] = f"If({narrow}, AlignInContainer.End, AlignInContainer.Center)"
     info.props["Width"] = f"Max(0, If({narrow}, {cw}, {cw} - ({btn_w}) - 8 - 2))"
     info.props["LayoutMinWidth"] = "0"
-    footer = group(name, [info, row], direction="Horizontal", gap=8, align_items="Center")
+    # Knapperne staar ALTID nederst til hoejre (issue #449). Naar sektionen
+    # er gemt, skjules teksten til venstre; uden End rykkede Reset + Edit
+    # saa ud til venstre kant. Med End er raekkens hoejre kant den samme,
+    # om teksten er der eller ej, saa skift mellem Save og Edit flytter
+    # intet. Paa en telefon (lodret) er hoejderne skrevet ud, saa End
+    # flytter intet der.
+    footer = group(name, [info, row], direction="Horizontal", gap=8, align_items="Center",
+                   justify="End")
     footer.props["LayoutDirection"] = (f"If({narrow}, LayoutDirection.Vertical, "
                                        "LayoutDirection.Horizontal)")
     iv = f"({info.vis})" if info.vis else "true"
