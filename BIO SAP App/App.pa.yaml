@@ -1953,6 +1953,9 @@ App:
       // Appens eget begreb, ikke et SAP-felt.
       colVhpPlanTypeOptions = Table({ Key: "SingleCycle", Value: "Single cycle plan (IP41)" }, { Key: "Strategy", Value: "Strategy plan (IP42)" });
 
+      // Vaerket fra Plan Header, som det STAAR i dropdownen - ogsaa foer Save (issue #453). Filtre, standardvaerdier, regler og Save draft laeser den.
+      VhpPlant = Coalesce(varVhpLivePlant, varVhpPlan.Plant);
+
       // De items, der gemmes: har en kort tekst eller en funktionsplads.
       VhpSaveableItems = Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation));
 
@@ -2063,6 +2066,30 @@ App:
                           )
                       ),
                       Char(10)
+                  ) },
+                  { m: Concat(
+                      Filter(
+                          VhpSaveableItems,
+                          (!IsBlank(Trim(MainWorkCenter)) && !IsBlank(VhpPlant) && IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper(VhpPlant) && W.Value = Trim(MainWorkCenter)).Value)) || (!IsBlank(Trim(FunctionalLocation)) && !IsBlank(VhpPlant) && Upper(Left(Trim(FunctionalLocation), 3)) <> Upper(Left(Trim(VhpPlant), 3)))
+                      ),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              {
+                                  f:
+                                      If(!IsBlank(Trim(MainWorkCenter)) && !IsBlank(VhpPlant) && IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper(VhpPlant) && W.Value = Trim(MainWorkCenter)).Value), ", Main work center", "") &
+                                      If(!IsBlank(Trim(FunctionalLocation)) && !IsBlank(VhpPlant) && Upper(Left(Trim(FunctionalLocation), 3)) <> Upper(Left(Trim(VhpPlant), 3)), ", Functional Location", "")
+                              },
+                              With(
+                                  { ir: LookUp(colVhpItems, ItemId = rid) },
+                                  "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                      If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                              ) &
+                                  ": " & Mid(f, 3) & " does not belong to plant " & VhpPlant &
+                                  " - choose one for that plant in the item editor."
+                          )
+                      ),
+                      Char(10)
                   ) }
               ),
               !IsBlank(m)
@@ -2090,6 +2117,19 @@ App:
                           Char(10)
                       ),
                       ""
+                  ) },
+                  { m: Concat(
+                      Filter(VhpSaveableItems, !IsBlank(Trim(TasklistKey)) && !IsBlank(VhpPlant) && IsBlank(LookUp(colVhpTasklists As TL, Upper(TL.Plant) = Upper(VhpPlant) && TL.Key = TasklistKey).Key)),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              { ir: LookUp(colVhpItems, ItemId = rid) },
+                              "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                  If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                          ) &
+                              ": the task list " & TasklistKey & " belongs to another plant - choose the task list for " & VhpPlant & "."
+                      ),
+                      Char(10)
                   ) },
                   { m: If(
                       varVhpPlan.PlanType = "Strategy" && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)),
