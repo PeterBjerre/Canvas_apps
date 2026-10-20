@@ -172,6 +172,26 @@ def reset_fx(*, combo, results, msg_var, query_var, last_var, pick_var=None,
     return "; ".join(parts)
 
 
+def result_count_fx(*, combo, results, busy_var, last_var):
+    """Antal resultater i den AKTUELLE soegning - til en valgfri knap ved
+    soegningen, fx "Object list (6)" (issue #454).
+
+    Tallet laeses af SAMME samling som beskeden under feltet
+    ("6 Functional Locations found for ..." - build_flsearch.search_action
+    taeller CountRows(results)), saa de to aldrig er uenige. Det er 0:
+      - foer der er soegt, og naar vaelgeren er nulstillet eller ryddet
+        (last_var er tom, samlingen er tom - reset_fx, x-knappen),
+      - mens en ny soegning koerer (busy_var; samlingen er ogsaa ryddet),
+      - naar soegeteksten er aendret, siden der sidst blev soegt.
+    Tom SearchText (et valgt resultat i feltet) er ikke en aendring.
+    Ingen ny variabel og intet kald - kun vaelgerens egen tilstand, saa
+    ALLE FL-soegninger med en Object list-knap kan bruge den."""
+    typed = f"Upper(Trim({combo}.SearchText))"
+    return (f"If({busy_var} || IsBlank({last_var}) || "
+            f"(!IsBlank({typed}) && {typed} <> Upper(Trim({last_var}))), "
+            f"0, CountRows({results}))")
+
+
 # Pladsholderen, mens vaelgeren er laast af lock (issue #101).
 LOCKED_PLACEHOLDER = '"Not used - No BOM Item is on"'
 
