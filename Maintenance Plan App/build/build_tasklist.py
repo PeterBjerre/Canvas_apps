@@ -19,7 +19,7 @@ from gen_screen import lock_section
 
 # Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
 NV = num_value()
-from build_status import HAS_PKGS
+from build_status import HAS_PKGS, PLANT, tasklist_plant_conflict
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY, pkg_pills, PILLS_W
 import sp_config as cfg
@@ -903,8 +903,10 @@ def build_ops_modals():
 
 # Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
 # kontekst (issue #54). Upper paa begge sider, saa store og smaa bogstaver
-# ikke skjuler en gyldig liste.
-TL_ITEMS = "Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))"
+# ikke skjuler en gyldig liste. VhpPlant er det, der STAAR i Plan Header -
+# ogsaa foer Save (issue #453). colVhpTasklists er en indlaest samling, saa
+# filteret er lokalt (ingen delegering).
+TL_ITEMS = f"Filter(colVhpTasklists, Upper(Plant) = Upper({PLANT}))"
 
 # FOERSTE TASKLIST VAELGES AUTOMATISK (issue #158). drpVhpItemTasklist har
 # ingen egen tilstand: Default slaar itemets TasklistKey op i colVhpItems,
@@ -956,7 +958,11 @@ def build_tasklist_section():
     drpTasklist = themed_dropdown(
         "drpVhpItemTasklist", TL_ITEMS,
         f"LookUp({TL_ITEMS}, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name",
-        display_mode=DM_ITEM, value_col="Key", display_col="Name")
+        display_mode=DM_ITEM, value_col="Key", display_col="Name",
+        # Itemets tasklist hoerer til et andet vaerk (issue #453): feltet
+        # staar tomt (Default slaar op i den filtrerede liste) og roedt.
+        required_formula="(" + tasklist_plant_conflict(
+            "LookUp(colVhpItems, ItemId = varVhpActiveItemId).") + ")")
     # Valget ER stadig handlingen - OnChange skriver listen paa itemet. Apply
     # Tasklist nedenfor goer det samme, for den, der leder efter en knap.
     #

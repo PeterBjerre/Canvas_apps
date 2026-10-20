@@ -155,6 +155,66 @@ OP_NO_COST = 'Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0
 OP_NO_PKG = 'Len(Coalesce(PackagesKey, ";")) <= 1'
 
 
+# PLAN HEADERENS PLANT STYRER ALT, DER AFHAENGER AF VAERKET (issue #453).
+# Foer laeste arbejdscentre, tasklister, FL-soegningen og reglerne den GEMTE
+# varVhpPlan.Plant, saa et nyt valg i Plant-dropdownen foerst virkede efter
+# Save i Plan header. Nu er VhpPlant det, der STAAR i dropdownen: Plant-
+# dropdownens OnChange saetter varVhpLivePlant (build_plan_header), og den
+# toemmes, naar planhovedet gemmes, nulstilles, eller en plan aabnes eller
+# startes - saa gaelder den gemte vaerdi igen. Coalesce springer "" over.
+# EEN navngiven formel, som filtre, standardvaerdier, regler og Save draft
+# alle laeser - saa de aldrig kan vaere uenige om vaerket.
+LIVE_PLANT_VAR = "varVhpLivePlant"
+PLANT = "VhpPlant"
+PLANT_FX = f"Coalesce({LIVE_PLANT_VAR}, varVhpPlan.Plant)"
+# FL-koden starter med vaerket (SSV13 HFC10 hoerer til SSV).
+PLANT_PREFIX = f"Upper(Left(Trim({PLANT}), 3))"
+
+
+# VAERDIER FRA ET ANDET VAERK (issue #453) - MARKERES, SLETTES IKKE. Skifter
+# Plant, beholder itemet sine vaerdier; de, der ikke hoerer til det nye
+# vaerk, bliver en fejl paa itemet ("N to fix"), i Item Editoren og i
+# reglerne, og Submit er blokeret, til de er rettet. Samme moenster som
+# foer ved Save i Plan header ("de bliver roede ... i stedet for at blive
+# slettet uden at nogen har bekraeftet det"). En tom vaerdi er ikke en
+# konflikt - den er allerede et manglende felt (ITEM_REQUIRED).
+#
+# Opslagene er i de indlaeste samlinger (colVhpMainWorkCenters,
+# colVhpTasklists) - ingen datakald, saa delegering er ikke i spil. As-
+# navnene holder samlingens kolonner adskilt fra itemets.
+#
+# (navn, betingelse); {r} er "ThisItem." eller "", {p} er vaerket.
+ITEM_PLANT_CONFLICTS = [
+    ("Main work center",
+     "!IsBlank(Trim({r}MainWorkCenter)) && !IsBlank({p}) && "
+     "IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper({p}) && "
+     "W.Value = Trim({r}MainWorkCenter)).Value)"),
+    ("Functional Location",
+     "!IsBlank(Trim({r}FunctionalLocation)) && !IsBlank({p}) && "
+     "Upper(Left(Trim({r}FunctionalLocation), 3)) <> Upper(Left(Trim({p}), 3))"),
+]
+TASKLIST_PLANT_CONFLICT = (
+    "!IsBlank(Trim({r}TasklistKey)) && !IsBlank({p}) && "
+    "IsBlank(LookUp(colVhpTasklists As TL, Upper(TL.Plant) = Upper({p}) && "
+    "TL.Key = {r}TasklistKey).Key)")
+
+
+def item_plant_conflicts(r="", p=PLANT):
+    """[(navn, betingelse)] for itemets felter fra et andet vaerk end p."""
+    return [(n, c.format(r=r, p=p)) for n, c in ITEM_PLANT_CONFLICTS]
+
+
+def tasklist_plant_conflict(r="", p=PLANT):
+    """Itemets tasklist hoerer til et andet vaerk end p."""
+    return TASKLIST_PLANT_CONFLICT.format(r=r, p=p)
+
+
+def any_plant_conflict(r="", p=PLANT):
+    """Itemet har mindst een vaerdi fra et andet vaerk end p."""
+    return " || ".join(f"({c})" for c in [c for _n, c in item_plant_conflicts(r, p)]
+                       + [tasklist_plant_conflict(r, p)])
+
+
 ITEM_RULE = _per_row(
     "Filter(\n"
     "    VhpSaveableItems,\n"
@@ -168,6 +228,26 @@ ITEM_RULE = _per_row(
     f"    {_nest(REF)} &\n"
     "        \": fill in \" & Mid(f, 3) & \" in the item editor.\"\n"
     ")")
+
+# Felter fra et andet vaerk end Plan Headers Plant (issue #453) - een linje
+# pr. item, med de felter, der skal rettes.
+ITEM_PLANT_RULE = _per_row(
+    "Filter(\n"
+    "    VhpSaveableItems,\n"
+    f"    {' || '.join(f'({c})' for _n, c in item_plant_conflicts())}\n"
+    ")",
+    "With(\n"
+    "    {\n"
+    "        f:\n"
+    + " &\n".join(f'            If({c}, ", {n}", "")' for n, c in item_plant_conflicts()) + "\n"
+    "    },\n"
+    f"    {_nest(REF)} &\n"
+    f"        \": \" & Mid(f, 3) & \" does not belong to plant \" & {PLANT} &\n"
+    "        \" - choose one for that plant in the item editor.\"\n"
+    ")")
+TASKLIST_PLANT_RULE = _per_row(
+    f"Filter(VhpSaveableItems, {tasklist_plant_conflict()})",
+    REF + f" &\n    \": the task list \" & TasklistKey & \" belongs to another plant - choose the task list for \" & {PLANT} & \".\"")
 
 # (sektion, navn, udtryk) - navnet er kun til tests og laesning.
 RULES = [
@@ -198,12 +278,14 @@ RULES = [
          "        \"misses the outage. Marked as outage work (Revision): \"")) + ",\n"
      "    \"\"\n)"),
     ("Item", "item_fields", ITEM_RULE),
+    ("Item", "item_plant", ITEM_PLANT_RULE),
     ("Ops", "tasklist",
      f"If(\n    {IS_STRAT_PLAN},\n"
      "    " + _nest(_per_row(
          "Filter(VhpSaveableItems, IsBlank(TasklistKey))",
          REF + " &\n    \": choose a task list - the package allocation belongs to the task list.\"")) + ",\n"
      "    \"\"\n)"),
+    ("Ops", "tasklist_plant", TASKLIST_PLANT_RULE),
     ("Ops", "package",
      f"If(\n    {IS_STRAT_PLAN} && {HAS_PKGS},\n"
      "    " + _nest(_per_row(
@@ -309,6 +391,9 @@ def formulas():
     def add(name, expr, why=None):
         F.append((name, expr, why))
 
+    add(PLANT, PLANT_FX,
+        "Vaerket fra Plan Header, som det STAAR i dropdownen - ogsaa foer Save "
+        "(issue #453). Filtre, standardvaerdier, regler og Save draft laeser den.")
     add("VhpSaveableItems", SAVEABLE,
         "De items, der gemmes: har en kort tekst eller en funktionsplads.")
     add("VhpValidationErrors", VALIDATION,

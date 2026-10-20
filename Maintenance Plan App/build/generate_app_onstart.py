@@ -107,7 +107,9 @@ Set(varVhpMe, Lower(User().Email));
 // Trinene og Submit regnes af navngivne formler (build_status.py).
 // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
 Set(varVhpSavedJson, "");
-Set(varVhpPrevPlant, "");
+// Plant, som den STAAR i Plan Header, foer Save (issue #453). Tom = den
+// gemte varVhpPlan.Plant gaelder (build_status.VhpPlant).
+Set(varVhpLivePlant, "");
 // FL-vaelgeren (tools/fl_picker.py): om flowet koerer, soegeteksten og
 // den sidste soegning, det valgte resultat - og Object list-popup'en.
 Set(varVhpFlBusy, false);
