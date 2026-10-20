@@ -13877,63 +13877,120 @@ Screens:
                                   =77
                               OnSelect: |-
                                   =If(
-                                      IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId)),
-                                      Set(varMpActiveRowId, Blank());
-                                      Set(varMpRowStatus, "valid");
-                                      Set(varMpValidated, false);
-                                      Set(varMpFText, "");
-                                      Set(varMpFPlant, Coalesce(First(colAppPrefs).prefMpNewPlant, ""));
-                                      Set(varMpEditorOpen, false);
-                                      Set(varMpPanelSave, "");
-                                      Set(varMpFFunctionalLocation, "");
-                                      Set(varMpFExistsInSap, "");
-                                      Set(varMpFMeasuringPoint, "");
-                                      Set(varMpFMeasuringPointType, "");
-                                      Set(varMpFCharacteristic, "");
-                                      Set(varMpFCharacteristicDescription, "");
-                                      Set(varMpFCharacteristicUnit, "");
-                                      Set(varMpFCharacteristicUnitDescription, "");
-                                      Set(varMpFDecimalPlaces, Blank());
-                                      Set(varMpFTargetValue, "");
-                                      Set(varMpFLowerLimit, "");
-                                      Set(varMpFUpperLimit, "");
-                                      Set(varMpFExpectedAnnualUsage, "");
-                                      Set(varMpFInProdos, "");
-                                      Set(varMpFProdosTag, "");
-                                      Set(varMpFProdosCounterExists, "");
-                                      Set(varMpFCounterCreateIn, "");
-                                      Set(varMpFRemarks, "");
-                                      Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
-                                      Set(varMpInfo, "");
-                                      Set(varMpEditorOpen, true),
-                                      Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
-                                      Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
-                                      Set(varMpValidated, false);
-                                      Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
-                                      Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
-                                      Set(varMpEditorOpen, true);
-                                      Set(varMpPanelSave, "");
-                                      Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
-                                      Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
-                                      Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
-                                      Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
-                                      Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
-                                      Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
-                                      Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
-                                      Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
-                                      Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
-                                      Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
-                                      Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
-                                      Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
-                                      Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
-                                      Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
-                                      Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
-                                      Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
-                                      Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
-                                      Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
                                       If(
-                                          !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
-                                          Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                          IsBlank(varMpActiveRowId),
+                                          !IsBlank(Trim(Coalesce(varMpFText, ""))) ||
+                                          Coalesce(varMpFPlant, "") <> Coalesce(First(colAppPrefs).prefMpNewPlant, "") ||
+                                          !IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFCharacteristicDescription, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFCharacteristicUnit, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFCharacteristicUnitDescription, ""))) ||
+                                          !IsBlank(varMpFDecimalPlaces) ||
+                                          !IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFInProdos, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFProdosTag, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))) ||
+                                          !IsBlank(Trim(Coalesce(varMpFRemarks, ""))),
+                                          !IsBlank(With({ o: LookUp(colMpRows, RowId = varMpActiveRowId) },
+                                          Concat(
+                                              Filter(
+                                                  Table(
+                                                  { f: "Description", a: Text(o.Description), b: Text(varMpFText) },
+                                                  { f: "Plant", a: Text(o.Plant), b: Text(varMpFPlant) },
+                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varMpFFunctionalLocation) },
+                                                  { f: "Exists in SAP", a: Text(o.ExistsInSap), b: Text(varMpFExistsInSap) },
+                                                  { f: "Measuring point no.", a: Text(o.MeasuringPoint), b: Text(varMpFMeasuringPoint) },
+                                                  { f: "Measuring point type", a: Text(o.MeasuringPointType), b: Text(varMpFMeasuringPointType) },
+                                                  { f: "Characteristic", a: Text(o.Characteristic), b: Text(varMpFCharacteristic) },
+                                                  { f: "Characteristic description", a: Text(o.CharacteristicDescription), b: Text(varMpFCharacteristicDescription) },
+                                                  { f: "Unit", a: Text(o.CharacteristicUnit), b: Text(varMpFCharacteristicUnit) },
+                                                  { f: "Unit description", a: Text(o.CharacteristicUnitDescription), b: Text(varMpFCharacteristicUnitDescription) },
+                                                  { f: "Decimal places", a: Text(o.DecimalPlaces), b: Text(varMpFDecimalPlaces) },
+                                                  { f: "Target value", a: Text(o.TargetValue), b: Text(varMpFTargetValue) },
+                                                  { f: "Lower limit", a: Text(o.LowerLimit), b: Text(varMpFLowerLimit) },
+                                                  { f: "Upper limit", a: Text(o.UpperLimit), b: Text(varMpFUpperLimit) },
+                                                  { f: "Expected annual usage", a: Text(o.ExpectedAnnualUsage), b: Text(varMpFExpectedAnnualUsage) },
+                                                  { f: "In PRODOS", a: Text(o.InProdos), b: Text(varMpFInProdos) },
+                                                  { f: "PRODOS tag", a: Text(o.ProdosTag), b: Text(varMpFProdosTag) },
+                                                  { f: "Counter exists in PRODOS", a: Text(o.ProdosCounterExists), b: Text(varMpFProdosCounterExists) },
+                                                  { f: "Counter to be created in", a: Text(o.CounterCreateIn), b: Text(varMpFCounterCreateIn) },
+                                                  { f: "Remarks", a: Text(o.Remarks), b: Text(varMpFRemarks) }
+                                                  ),
+                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                              ),
+                                              "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                              "; "
+                                          )
+                                      ))
+                                      ),
+                                      Set(varMpResetAsk, true),
+                                      If(
+                                          IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId)),
+                                          Set(varMpActiveRowId, Blank());
+                                          Set(varMpRowStatus, "valid");
+                                          Set(varMpValidated, false);
+                                          Set(varMpFText, "");
+                                          Set(varMpFPlant, Coalesce(First(colAppPrefs).prefMpNewPlant, ""));
+                                          Set(varMpEditorOpen, false);
+                                          Set(varMpPanelSave, "");
+                                          Set(varMpFFunctionalLocation, "");
+                                          Set(varMpFExistsInSap, "");
+                                          Set(varMpFMeasuringPoint, "");
+                                          Set(varMpFMeasuringPointType, "");
+                                          Set(varMpFCharacteristic, "");
+                                          Set(varMpFCharacteristicDescription, "");
+                                          Set(varMpFCharacteristicUnit, "");
+                                          Set(varMpFCharacteristicUnitDescription, "");
+                                          Set(varMpFDecimalPlaces, Blank());
+                                          Set(varMpFTargetValue, "");
+                                          Set(varMpFLowerLimit, "");
+                                          Set(varMpFUpperLimit, "");
+                                          Set(varMpFExpectedAnnualUsage, "");
+                                          Set(varMpFInProdos, "");
+                                          Set(varMpFProdosTag, "");
+                                          Set(varMpFProdosCounterExists, "");
+                                          Set(varMpFCounterCreateIn, "");
+                                          Set(varMpFRemarks, "");
+                                          Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
+                                          Set(varMpInfo, "");
+                                          Set(varMpEditorOpen, true),
+                                          Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
+                                          Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
+                                          Set(varMpValidated, false);
+                                          Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
+                                          Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
+                                          Set(varMpEditorOpen, true);
+                                          Set(varMpPanelSave, "");
+                                          Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
+                                          Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
+                                          Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
+                                          Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
+                                          Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
+                                          Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
+                                          Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
+                                          Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
+                                          Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
+                                          Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
+                                          Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
+                                          Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
+                                          Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
+                                          Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
+                                          Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
+                                          Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
+                                          Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
+                                          Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
+                                          If(
+                                              !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
+                                              Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                          )
                                       )
                                   )
                               RadiusBottomLeft: |-
@@ -16181,6 +16238,413 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =If(IfError(varMpAct = "delete", false), Max(137, 106), 106)
+      - conMpResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(varMpResetAsk, false)
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(varMpResetAsk, false) && ((IfError(varMpEditorOpen, false) && !IfError(varMpViewOnly, false)) && (If(     IsBlank(varMpActiveRowId),     !IsBlank(Trim(Coalesce(varMpFText, ""))) ||     Coalesce(varMpFPlant, "") <> Coalesce(First(colAppPrefs).prefMpNewPlant, "") ||     !IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))) ||     !IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))) ||     !IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))) ||     !IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicDescription, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicUnit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicUnitDescription, ""))) ||     !IsBlank(varMpFDecimalPlaces) ||     !IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) ||     !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) ||     !IsBlank(Trim(Coalesce(varMpFInProdos, ""))) ||     !IsBlank(Trim(Coalesce(varMpFProdosTag, ""))) ||     !IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))) ||     !IsBlank(Trim(Coalesce(varMpFRemarks, ""))),     !IsBlank(With({ o: LookUp(colMpRows, RowId = varMpActiveRowId) },     Concat(         Filter(             Table(             { f: "Description", a: Text(o.Description), b: Text(varMpFText) },             { f: "Plant", a: Text(o.Plant), b: Text(varMpFPlant) },             { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varMpFFunctionalLocation) },             { f: "Exists in SAP", a: Text(o.ExistsInSap), b: Text(varMpFExistsInSap) },             { f: "Measuring point no.", a: Text(o.MeasuringPoint), b: Text(varMpFMeasuringPoint) },             { f: "Measuring point type", a: Text(o.MeasuringPointType), b: Text(varMpFMeasuringPointType) },             { f: "Characteristic", a: Text(o.Characteristic), b: Text(varMpFCharacteristic) },             { f: "Characteristic description", a: Text(o.CharacteristicDescription), b: Text(varMpFCharacteristicDescription) },             { f: "Unit", a: Text(o.CharacteristicUnit), b: Text(varMpFCharacteristicUnit) },             { f: "Unit description", a: Text(o.CharacteristicUnitDescription), b: Text(varMpFCharacteristicUnitDescription) },             { f: "Decimal places", a: Text(o.DecimalPlaces), b: Text(varMpFDecimalPlaces) },             { f: "Target value", a: Text(o.TargetValue), b: Text(varMpFTargetValue) },             { f: "Lower limit", a: Text(o.LowerLimit), b: Text(varMpFLowerLimit) },             { f: "Upper limit", a: Text(o.UpperLimit), b: Text(varMpFUpperLimit) },             { f: "Expected annual usage", a: Text(o.ExpectedAnnualUsage), b: Text(varMpFExpectedAnnualUsage) },             { f: "In PRODOS", a: Text(o.InProdos), b: Text(varMpFInProdos) },             { f: "PRODOS tag", a: Text(o.ProdosTag), b: Text(varMpFProdosTag) },             { f: "Counter exists in PRODOS", a: Text(o.ProdosCounterExists), b: Text(varMpFProdosCounterExists) },             { f: "Counter to be created in", a: Text(o.CounterCreateIn), b: Text(varMpFCounterCreateIn) },             { f: "Remarks", a: Text(o.Remarks), b: Text(varMpFRemarks) }             ),             Coalesce(a, "") <> Coalesce(b, "")         ),         "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),         "; "     ) )) )))
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMpResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =196
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMpResetAsk, false) && ((IfError(varMpEditorOpen, false) && !IfError(varMpViewOnly, false)) && (If(     IsBlank(varMpActiveRowId),     !IsBlank(Trim(Coalesce(varMpFText, ""))) ||     Coalesce(varMpFPlant, "") <> Coalesce(First(colAppPrefs).prefMpNewPlant, "") ||     !IsBlank(Trim(Coalesce(varMpFFunctionalLocation, ""))) ||     !IsBlank(Trim(Coalesce(varMpFExistsInSap, ""))) ||     !IsBlank(Trim(Coalesce(varMpFMeasuringPoint, ""))) ||     !IsBlank(Trim(Coalesce(varMpFMeasuringPointType, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristic, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicDescription, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicUnit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCharacteristicUnitDescription, ""))) ||     !IsBlank(varMpFDecimalPlaces) ||     !IsBlank(Trim(Coalesce(varMpFTargetValue, ""))) ||     !IsBlank(Trim(Coalesce(varMpFLowerLimit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFUpperLimit, ""))) ||     !IsBlank(Trim(Coalesce(varMpFExpectedAnnualUsage, ""))) ||     !IsBlank(Trim(Coalesce(varMpFInProdos, ""))) ||     !IsBlank(Trim(Coalesce(varMpFProdosTag, ""))) ||     !IsBlank(Trim(Coalesce(varMpFProdosCounterExists, ""))) ||     !IsBlank(Trim(Coalesce(varMpFCounterCreateIn, ""))) ||     !IsBlank(Trim(Coalesce(varMpFRemarks, ""))),     !IsBlank(With({ o: LookUp(colMpRows, RowId = varMpActiveRowId) },     Concat(         Filter(             Table(             { f: "Description", a: Text(o.Description), b: Text(varMpFText) },             { f: "Plant", a: Text(o.Plant), b: Text(varMpFPlant) },             { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varMpFFunctionalLocation) },             { f: "Exists in SAP", a: Text(o.ExistsInSap), b: Text(varMpFExistsInSap) },             { f: "Measuring point no.", a: Text(o.MeasuringPoint), b: Text(varMpFMeasuringPoint) },             { f: "Measuring point type", a: Text(o.MeasuringPointType), b: Text(varMpFMeasuringPointType) },             { f: "Characteristic", a: Text(o.Characteristic), b: Text(varMpFCharacteristic) },             { f: "Characteristic description", a: Text(o.CharacteristicDescription), b: Text(varMpFCharacteristicDescription) },             { f: "Unit", a: Text(o.CharacteristicUnit), b: Text(varMpFCharacteristicUnit) },             { f: "Unit description", a: Text(o.CharacteristicUnitDescription), b: Text(varMpFCharacteristicUnitDescription) },             { f: "Decimal places", a: Text(o.DecimalPlaces), b: Text(varMpFDecimalPlaces) },             { f: "Target value", a: Text(o.TargetValue), b: Text(varMpFTargetValue) },             { f: "Lower limit", a: Text(o.LowerLimit), b: Text(varMpFLowerLimit) },             { f: "Upper limit", a: Text(o.UpperLimit), b: Text(varMpFUpperLimit) },             { f: "Expected annual usage", a: Text(o.ExpectedAnnualUsage), b: Text(varMpFExpectedAnnualUsage) },             { f: "In PRODOS", a: Text(o.InProdos), b: Text(varMpFInProdos) },             { f: "PRODOS tag", a: Text(o.ProdosTag), b: Text(varMpFProdosTag) },             { f: "Counter exists in PRODOS", a: Text(o.ProdosCounterExists), b: Text(varMpFProdosCounterExists) },             { f: "Counter to be created in", a: Text(o.CounterCreateIn), b: Text(varMpFCounterCreateIn) },             { f: "Remarks", a: Text(o.Remarks), b: Text(varMpFRemarks) }             ),             Coalesce(a, "") <> Coalesce(b, "")         ),         "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),         "; "     ) )) )))
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMpResetConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMpResetConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset changes?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Reset changes?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMpResetConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMpResetAsk, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtMpResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Unsaved changes to this row will be discarded and cannot be recovered."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =56
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Unsaved changes to this row will be discarded and cannot be recovered."
+                  Wrap: |-
+                      =true
+            - conMpResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMpResetConfirmKeep:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMpResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        Tooltip: |-
+                            ="Close without changing anything"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnMpResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMpResetAsk, false);
+                            If(
+                                IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId)),
+                                Set(varMpActiveRowId, Blank());
+                                Set(varMpRowStatus, "valid");
+                                Set(varMpValidated, false);
+                                Set(varMpFText, "");
+                                Set(varMpFPlant, Coalesce(First(colAppPrefs).prefMpNewPlant, ""));
+                                Set(varMpEditorOpen, false);
+                                Set(varMpPanelSave, "");
+                                Set(varMpFFunctionalLocation, "");
+                                Set(varMpFExistsInSap, "");
+                                Set(varMpFMeasuringPoint, "");
+                                Set(varMpFMeasuringPointType, "");
+                                Set(varMpFCharacteristic, "");
+                                Set(varMpFCharacteristicDescription, "");
+                                Set(varMpFCharacteristicUnit, "");
+                                Set(varMpFCharacteristicUnitDescription, "");
+                                Set(varMpFDecimalPlaces, Blank());
+                                Set(varMpFTargetValue, "");
+                                Set(varMpFLowerLimit, "");
+                                Set(varMpFUpperLimit, "");
+                                Set(varMpFExpectedAnnualUsage, "");
+                                Set(varMpFInProdos, "");
+                                Set(varMpFProdosTag, "");
+                                Set(varMpFProdosCounterExists, "");
+                                Set(varMpFCounterCreateIn, "");
+                                Set(varMpFRemarks, "");
+                                Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
+                                Set(varMpInfo, "");
+                                Set(varMpEditorOpen, true),
+                                Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
+                                Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
+                                Set(varMpValidated, false);
+                                Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
+                                Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
+                                Set(varMpEditorOpen, true);
+                                Set(varMpPanelSave, "");
+                                Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
+                                Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
+                                Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
+                                Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
+                                Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
+                                Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
+                                Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
+                                Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
+                                Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
+                                Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
+                                Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
+                                Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
+                                Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
+                                Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
+                                Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
+                                Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
+                                Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
+                                Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
+                                If(
+                                    !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
+                                    Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                )
+                            )
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - conMpConfirmBackdrop:
           Control: Image
           Properties:
@@ -17202,6 +17666,8 @@ Screens:
                             // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
                             Set(varMpDeleteId, Blank());
                             Set(varMpConfirmDelete, false);
+                            // Reset spoerger foerst, naar der er ugemte aendringer (issue #450).
+                            Set(varMpResetAsk, false);
                             Set(varMpFlMsg, "");
                             Set(varMpFlBusy, false);
                             // Paste rows (UX-review L3): popuppen og den indsatte tekst.
