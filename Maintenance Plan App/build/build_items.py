@@ -24,6 +24,7 @@ from fl_picker import fl_picker
 import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
+import build_status as st
 
 from build_help import HINTS_ON
 
@@ -272,7 +273,74 @@ NF_VAL = f'If(IsBlank(varVhpItemNfPick), {ACTIVE_NF} & "", varVhpItemNfPick.Valu
 # kolonnen MaintenanceItems.NonFlowUserStatus.
 NF_ZBOW = '"ZBOW"'
 
+# DET AKTIVE ITEM, SOM DET STOD, DA DET BLEV AABNET ELLER GEMT (issue #448).
+# Item Editoren skriver sine felter i colVhpItems, naar de aendres
+# (write_item), saa colVhpItems er ikke laengere "senest gemt". Reset
+# laegger itemet tilbage til denne kopi. Den tages hver gang editoren
+# nulstilles - nyt, kopieret, slettet eller aabnet item, Reset, ny plan -
+# og naar itemet gemmes med Save. Indlaesningen tager den ogsaa
+# (build_load).
+ACTIVE_ROW = "LookUp(colVhpItems, ItemId = varVhpActiveItemId)"
+ITEM_BASE = "varVhpItemBase"
+SNAP_ITEM_BASE = f"Set({ITEM_BASE}, {ACTIVE_ROW})"
+# Felterne, Item Editoren skriver - og Reset laegger tilbage.
+EDITOR_COLUMNS = ("ShortText", "FunctionalLocation", "FlDescription", "MainWorkCenter",
+                  "ActivityType", "Revision", "Initials", "NonFlowUserStatus")
+
+
+def write_item(fields, cond="true"):
+    """Skriv et felt fra Item Editoren paa det aktive item (issue #448).
+
+    Felterne skriver deres vaerdi, naar de aendres eller forlades
+    (OnChange), saa itemets kort ("N to fix"), trinene og Submit regnes af
+    det, der STAAR i editoren - uden Save. Intet datakald: kun colVhpItems.
+
+    cond er feltets egen vagt - samme moenster som tasklist-dropdownen
+    (build_tasklist): et tomt valg skrives aldrig fra en dropdown (et
+    vaerksskift eller en Reset kan give tomt Selected), og en vaerdi, der
+    allerede staar paa itemet, skrives ikke igen."""
+    return (f"If(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly && ({cond}), "
+            f"UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, {fields}))")
+
+
+def _differs(new, col):
+    """new er forskellig fra det aktive items col (blank = tom tekst)."""
+    return f"({new}) <> ({ACTIVE_ROW}.{col} & \"\")"
+
+
+WRITE_SHORT = write_item("{ ShortText: Trim(inpVhpItemShortText.Text) }",
+                         _differs("Trim(inpVhpItemShortText.Text)", "ShortText"))
+WRITE_INITIALS = write_item("{ Initials: Upper(Trim(inpVhpItemInitials.Text)) }",
+                            _differs("Upper(Trim(inpVhpItemInitials.Text))", "Initials"))
+
+
+def write_choice(ctrl, col):
+    """Dropdownens valg paa itemet - aldrig et tomt valg."""
+    return write_item(f"{{ {col}: {ctrl}.Selected.Value }}",
+                      f"!IsBlank({ctrl}.Selected.Value) && "
+                      + _differs(f"{ctrl}.Selected.Value", col))
+
+
+# Functional Location: brugerens valg i comboboksen og det automatiske valg
+# af foerste soegeresultat (fl_picker on_found). Et tomt valg skrives ikke -
+# comboboksen kan staa tom efter en Reset uden at itemet har mistet sin FL.
+WRITE_FL_SELECT = write_item(
+    f"{{ FunctionalLocation: {FL_COMBO}.Selected.Code, FlDescription: {FL_COMBO}.Selected.Description }}",
+    f"!IsBlank({FL_COMBO}.Selected.Code) && " + _differs(f"{FL_COMBO}.Selected.Code", "FunctionalLocation"))
+WRITE_FL_FOUND = write_item(
+    f"{{ FunctionalLocation: {FL_PICK_VAR}, "
+    f"FlDescription: LookUp(colVhpFl, Code = {FL_PICK_VAR}).Description }}",
+    f"!IsBlank({FL_PICK_VAR}) && " + _differs(FL_PICK_VAR, "FunctionalLocation"))
+
+# Det aktive items manglende felter som tekst ("Item short text, Initials")
+# - tom, naar intet mangler. Samme liste som reglen (build_status).
+ACTIVE_MISSING = (
+    f"With({{ ar: {ACTIVE_ROW} }}, Concat(Filter(Table("
+    + ", ".join(f'{{ n: "{n}", m: {c} }}' for n, c in st.item_required("ar."))
+    + '), m), n, ", "))')
+
 RESET_EDITOR_CONTROLS = (
+    f"{SNAP_ITEM_BASE}; "
     f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Set({FL_PICK_VAR}, \"\"); "
     f"Reset({FL_COMBO}); "
     "Reset(inpVhpItemShortText); "
@@ -361,6 +429,38 @@ def _delete_item_fx(item_id):
             "    Notify(\"Item \" & Text(no) & \" deleted.\", NotificationType.Success)\n"
             ")"
     )
+
+
+# ITEMETS BLOKERINGER (issue #448) - til kortet i Items-listen. Hver raekke
+# er een ting, der holder Submit tilbage for itemet: de paakraevede felter
+# (build_status.ITEM_REQUIRED - samme liste som reglen og trin 2), en
+# tasklist (trin 3), mindst een operation (trin 4) og operationernes egne
+# regler (kort tekst, PM02, pakke paa en strategiplan). Alt laeses af
+# samlingerne - ingen datakald - og Item Editoren skriver sine felter i
+# colVhpItems, naar de aendres (write_item), saa kortet foelger med uden Save.
+_ROW = "ThisItem."
+_OP_PROBLEM = (f"{st.OP_NO_TEXT} || ({st.OP_NO_MG}) || ({st.OP_NO_COST}) || "
+               f"(pk && {st.OP_NO_PKG})")
+_BLOCKER_ROWS = [(n, c) for n, c in st.item_required(_ROW)] + [
+    ("Task list", f"IsBlank(Trim({_ROW}TasklistKey))"),
+    ("Operations", "IsEmpty(ops)"),
+    ("Operation details", f"!IsEmpty(Filter(ops, {_OP_PROBLEM}))"),
+]
+ITEM_BLOCKERS = (
+    "With(\n"
+    "    {\n"
+    f"        ops: Filter(colVhpOperations, ItemId = {_ROW}ItemId),\n"
+    f"        pk: IfError({st.IS_STRAT_PLAN}, false) && {st.HAS_PKGS}\n"
+    "    },\n"
+    "    Filter(\n"
+    "        Table(\n"
+    + ",\n".join(f'            {{ n: "{n}", m: {c} }}' for n, c in _BLOCKER_ROWS) + "\n"
+    "        ),\n"
+    "        m\n"
+    "    )\n"
+    ")")
+# Mangler kortets item et paakraevet felt? (de roede kanter i editoren)
+ITEM_FIELDS_MISSING_ROW = "(" + " || ".join(c for _n, c in st.item_required(_ROW)) + ")"
 
 
 def build_items_rail():
@@ -501,18 +601,20 @@ def build_items_rail():
     cardTextCol = grow(group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist],
                              direction="Vertical", gap=2))
     # STATUS (mockup): flueben/advarsel til venstre og "Valid" (groen) eller
-    # "N to fix" (roed) til hoejre - ikke et uppercase-badge. N er antal
-    # tomme paakraevede felter (samme som build_status.ITEM_RULE + tasklist
-    # paa en Strategy-plan).
-    FIX_N = ("(If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + "
-             "If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + "
-             "If(IfError(varVhpPlan.PlanType = \"Strategy\", false) && IsBlank(ThisItem.TasklistKey), 1, 0))")
-    ITEM_OK = f"(ThisItem.Status <> \"invalid\" && {FIX_N} = 0)"
+    # "N to fix" (roed) til hoejre - ikke et uppercase-badge.
+    #
+    # ISSUE #448: N er itemets AEGTE blokeringer for Submit, regnet af de
+    # aktuelle vaerdier (item_blockers). Foer talte kortet fire felter paa
+    # den GEMTE raekke og kraevede Status "valid" - saa det stod "4 to fix",
+    # mens felterne var udfyldt i editoren, og tasklist (uden for Strategy)
+    # og operationer taltes slet ikke, selvom Submit kraever dem.
+    FIX_N = f"CountRows({ITEM_BLOCKERS})"
+    ITEM_OK = f"IsEmpty({ITEM_BLOCKERS})"
     cardIcon = status_icon("icoVhpItemCardStatus", ITEM_OK, size=20)
     cardIcon.props["AlignInContainer"] = "AlignInContainer.Center"
     cardStatus = text_ctrl(
         "txtVhpItemCardStatus",
-        f"If({ITEM_OK}, \"Valid\", If({FIX_N} > 0, Text({FIX_N}) & \" to fix\", \"Needs fixing\"))",
+        f"With({{ fixN: {FIX_N} }}, If(fixN = 0, \"Valid\", Text(fixN) & \" to fix\"))",
         size=12, weight="Semibold", height=22, width=84, wrap="false", align="Right",
         extra={
             "AlignInContainer": "AlignInContainer.End",
@@ -558,19 +660,15 @@ def build_items_rail():
     btnOpen = row_hit(
         "btnVhpItemOpen",
         ("Set(varVhpActiveItemId, ThisItem.ItemId);\n"
-         f"Set(varVhpItemValidated, {FIX_N} > 0);\n"
+         f"Set(varVhpItemValidated, {ITEM_FIELDS_MISSING_ROW});\n"
          "Set(varVhpFlMsg, \"\");\n"
          f"{SEED_FL_PICKER};\n"
          f"{RESET_EDITOR_CONTROLS}"),
         f"\"Open item \" & Text({CARD_NO}) & \" \" & ThisItem.ShortText",
         "Parent.TemplateWidth", f"Parent.TemplateHeight - {ITEM_GAP}",
         radius=10, hover_border=True)
-    MISSING = ("Concat(Filter(Table({n: \"Short text\", m: IsBlank(ThisItem.ShortText)}, "
-               "{n: \"Main work center\", m: IsBlank(ThisItem.MainWorkCenter)}, "
-               "{n: \"Activity type\", m: IsBlank(ThisItem.ActivityType)}, "
-               "{n: \"Functional location\", m: IsBlank(ThisItem.FunctionalLocation)}, "
-               "{n: \"Tasklist\", m: IfError(varVhpPlan.PlanType = \"Strategy\", false) && IsBlank(ThisItem.TasklistKey)}), m), n, \", \")")
-    btnOpen.props["Tooltip"] = f'If({ITEM_OK}, "", "To fix: " & {MISSING})'
+    MISSING = f'Concat({ITEM_BLOCKERS}, n, ", ")'
+    btnOpen.props["Tooltip"] = f'With({{ miss: {MISSING} }}, If(IsBlank(miss), "", "To fix: " & miss))'
 
     gallery = Ctrl(
         "galVhpItemsRail", "Gallery", variant="Vertical",
@@ -684,21 +782,22 @@ def _obj_list_button(n_obj):
 
 
 def items_valid_fx():
-    """Trin 2 er "Valid" (issue #123): alle items er gemt som valid, ingen
-    item-regel fejler (build_status.VhpItemsValid) - og intet i Item
-    Editoren venter paa at blive gemt (build_hero.ITEM_DIRTY, samme
-    betingelse som progressbarens Item-trin)."""
-    from build_hero import ITEM_DIRTY
-    return f"(VhpItemsValid && !({ITEM_DIRTY}))"
+    """Trin 2 er "Valid" (issue #123): alle items har deres paakraevede
+    felter, og ingen item-regel fejler (build_status.VhpItemsValid) - samme
+    betingelse som progressbarens Item-trin. Issue #448: usavede
+    aendringer i Item Editoren goer ikke trinnet ugyldigt; editoren skriver
+    felterne paa itemet, naar de aendres (write_item)."""
+    return "VhpItemsValid"
 
 
 def build_item_editor():
     # TRIN-BADGE (issue #123): "Step 2", indtil trinnet er faerdigt og
     # gyldigt, saa "Valid" - som Plan Header og Tasklist and Operations.
     # Foer stod det valgte items egen status her (Draft/Valid/Invalid); den
-    # staar stadig paa itemets kort i listen. "Invalid" bliver staaende som
-    # badgets advarsel, naar det valgte item er gemt som ugyldigt.
-    ST = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status"
+    # staar stadig paa itemets kort i listen. Badgets advarsel vises, naar
+    # det valgte item mangler et paakraevet felt, efter Save er forsoegt
+    # eller itemet er aabnet med mangler (issue #448: af vaerdierne, ikke
+    # af Status fra sidste Save).
     # HVILKET ITEM (UX-review M5, VH-plan-mockuppen): "Item 1 - Bearing
     # lubrication" ved titlen og "Delete item" i hovedet - den samme
     # sletning som kortets Delete, paa det aktive item.
@@ -718,7 +817,8 @@ def build_item_editor():
     btnDelItem.props["LayoutMinWidth"] = btnDelItem.props["Width"]
     header = section_header("conVhpEditorHead", "Item", "Step 2", extra_left=[which],
                             extra_right=[btnDelItem],
-                            valid_fx=items_valid_fx(), attention_fx=f'{ST} = "invalid"')
+                            valid_fx=items_valid_fx(),
+                            attention_fx=f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))")
     helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: EEN combobox med Search (issue #63) ---------
@@ -748,6 +848,7 @@ def build_item_editor():
         # objekterne hoerer til den soegning, de blev valgt i.
         on_clear=("RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); "
                   "Clear(colVhpObjDraft)"),
+        on_select=WRITE_FL_SELECT, on_found=WRITE_FL_FOUND,
         display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
         stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})",
@@ -813,9 +914,14 @@ def build_item_editor():
     drpAct = themed_dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
                       "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
+    # Hvert felt skriver sin vaerdi paa itemet, naar det aendres eller
+    # forlades (issue #448, write_item) - saa "N to fix" og Submit foelger
+    # med uden Save.
+    drpMwc.props["OnChange"] = write_choice("drpVhpItemMainWorkCenter", "MainWorkCenter")
+    drpAct.props["OnChange"] = write_choice("drpVhpItemActivityType", "ActivityType")
     txtShort = text_input("inpVhpItemShortText",
                           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText", max_length=40,
-                          required_formula=REQ_ITEM, display_mode=DM_ITEM)
+                          required_formula=REQ_ITEM, display_mode=DM_ITEM, onchange=WRITE_SHORT)
     # REVISION (issue #54, #141). SharePoint-kolonnen RevisionMark har eet
     # valg - "REV - General Revision Mark" - saa feltet er et ja/nej: Yes =
     # det ene valg, No = tomt; vaerdien, der gemmes, er den samme som foer.
@@ -823,8 +929,11 @@ def build_item_editor():
     # saa begge muligheder kan ses (build_helpers.segmented).
     REV_TIP = '"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"'
     segRevision = segmented("conVhpItemRevisionSeg", [
-        ("No", "No", f"!{REV_ON}", "Set(varVhpItemRevPick, false)", REV_TIP),
-        ("Yes", "Yes", REV_ON, "Set(varVhpItemRevPick, true)", REV_TIP),
+        ("No", "No", f"!{REV_ON}",
+         "Set(varVhpItemRevPick, false);\n" + write_item('{ Revision: "" }'), REV_TIP),
+        ("Yes", "Yes", REV_ON,
+         "Set(varVhpItemRevPick, true);\n"
+         + write_item("{ Revision: First(colVhpRevisionOptions).Value }"), REV_TIP),
     ], display_mode=DM_ITEM, label="Revision")
     # "Orsted Responsible" er fjernet (issue #54) - Initials er nok.
     # Kolonnen OrstedResponsible paa itemet bliver staaende: Save skriver
@@ -833,9 +942,8 @@ def build_item_editor():
     txtInitials = text_input("inpVhpItemInitials",
                              "Upper(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials)",
                              max_length=5, required_formula=REQ_ITEM, display_mode=DM_ITEM,
-                             onchange=("If(inpVhpItemInitials.Text <> Upper(inpVhpItemInitials.Text), "
-                                       "UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, "
-                                       "{ Initials: Upper(inpVhpItemInitials.Text) }); "
+                             onchange=(WRITE_INITIALS + ";\n"
+                                       "If(inpVhpItemInitials.Text <> Upper(Trim(inpVhpItemInitials.Text)), "
                                        "Reset(inpVhpItemInitials))"))
     txtInitials.props["BorderColor"] = border_rule("Len(Trim(Self.Text)) <> 5", REQ_ITEM)
     txtInitials.props["ValidationState"] = (f"If({REQ_ITEM} && Len(Trim(Self.Text)) <> 5, "
@@ -878,9 +986,12 @@ def build_item_editor():
     NF_DESC = ("Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = " + NF_ZBOW + ").Display, "
                + NF_ZBOW + ")")
     segNonFlow = segmented("conVhpItemNonFlowSeg", [
-        ("None", "None", f"Len({NF_VAL}) = 0", 'Set(varVhpItemNfPick, { Value: "" })',
+        ("None", "None", f"Len({NF_VAL}) = 0",
+         'Set(varVhpItemNfPick, { Value: "" });\n' + write_item('{ NonFlowUserStatus: "" }'),
          '"No non flow user status"'),
-        ("Zbow", "ZBOW", f"{NF_VAL} = {NF_ZBOW}", "Set(varVhpItemNfPick, { Value: " + NF_ZBOW + " })",
+        ("Zbow", "ZBOW", f"{NF_VAL} = {NF_ZBOW}",
+         "Set(varVhpItemNfPick, { Value: " + NF_ZBOW + " });\n"
+         + write_item("{ NonFlowUserStatus: " + NF_ZBOW + " }"),
          NF_DESC),
     ], display_mode=DM_ITEM, label="Non-flow user status")
     NF_OTHER = f"(Len({NF_VAL}) > 0 && {NF_VAL} <> {NF_ZBOW})"
@@ -991,6 +1102,8 @@ def build_item_editor():
             # Gemt: sektionen laases (issue #433). Ingen besked om Save
             # draft - Edit-knappen og de graa felter er svaret.
             "            Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: \"Item\" });\n"
+            # Det gemte er nu det, Reset laegger tilbage (issue #448).
+            f"            {SNAP_ITEM_BASE};\n"
             f"            {act_mark(ACT, 'item')}\n"
             "        )\n"
             "    )"
@@ -1029,13 +1142,15 @@ def build_item_editor():
     # ALTID FOLDET UD (issue #192): felterne, Functional Location og
     # hjaelpepanelet staar der altid. Foden siger, hvad der mangler, foer
     # itemet er gemt som gyldigt.
+    # Issue #448: regnet af itemets aktuelle vaerdier - ikke af Status fra
+    # sidste Save.
     attention = text_ctrl(
         "txtVhpItemAttention",
-        f'Switch({ST}, "invalid", "Fix the fields marked * and press Save.", '
-        '"valid", "Item is valid.", "Not done yet.")',
+        f'With({{ miss: {ACTIVE_MISSING} }}, If(IsBlank(miss), "Item is valid.", '
+        '"Fill in " & miss & "."))',
         size=12, height=36, wrap="true",
         visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
-        extra={"Color": f'If({ST} = "invalid", {C_INVALID_FG}, {C_MUTED})',
+        extra={"Color": f'If({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}), {C_INVALID_FG}, {C_MUTED})',
                "VerticalAlign": "VerticalAlign.Middle"})
     footerInfo = group("conVhpItemFooterInfo", [attention], direction="Vertical", gap=0,
                        justify="Center", visible=attention.vis)
@@ -1063,6 +1178,13 @@ def item_reset_fx():
     """Item Editorens usavede aendringer tilbage til det, der sidst blev
     gemt paa itemet (se RESET i build_item_editor)."""
     return (
+        # Issue #448: felterne staar allerede paa itemet (write_item), saa
+        # itemet laegges foerst tilbage til kopien fra, da det blev aabnet
+        # eller gemt (varVhpItemBase).
+        f"If(\n    !IsBlank(varVhpActiveItemId) && {ITEM_BASE}.ItemId = varVhpActiveItemId,\n"
+        "    UpdateIf(\n        colVhpItems,\n        ItemId = varVhpActiveItemId,\n"
+        "        { " + ", ".join(f"{c}: {ITEM_BASE}.{c}" for c in EDITOR_COLUMNS) + " }\n"
+        "    )\n);\n"
         "With(\n"
         "    {\n"
         "        keep: ForAll(\n"
@@ -1106,7 +1228,19 @@ def item_reset_dirty():
         "    )\n"
         ")"
     )
-    return f"({ITEM_DIRTY}) ||\n({objects})"
+    # Siden issue #448 skriver felterne paa itemet, naar de aendres, saa
+    # itemet sammenlignes ogsaa med kopien fra aabning/gem (varVhpItemBase).
+    cols = " ||\n".join(f"        (it.{c} & \"\") <> ({ITEM_BASE}.{c} & \"\")"
+                        for c in EDITOR_COLUMNS)
+    written = (
+        "With(\n"
+        "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
+        f"    !IsBlank(varVhpActiveItemId) && {ITEM_BASE}.ItemId = varVhpActiveItemId && (\n"
+        f"{cols}\n"
+        "    )\n"
+        ")"
+    )
+    return f"({ITEM_DIRTY}) ||\n({written}) ||\n({objects})"
 
 
 def item_reset_confirm():
