@@ -420,10 +420,15 @@ def build_modal_backdrop():
     # valgte filer, naar den lukker (issue #134, tools/doc_upload.py).
     import build_attflows
     att = build_attflows.PANE
+    # Materials-popuppen lukker som sit X: ugemte aendringer spoerger
+    # foerst (issue #451, build_tasklist.MAT_CLOSE_FX).
+    from build_tasklist import MAT_CLOSE_FX
+    mat_close = " ".join(l.strip() for l in MAT_CLOSE_FX.split("\n"))
     return tap_backdrop("conVhpPickerBackdrop", vis,
                         f"If(!{att.busy} && !varVhpVenBusy, If({inner}, Set(varVhpTasklistPickerOpen, false); "
                         "Set(varVhpLongTextOpen, false); "
-                        "Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, \"\"); Set(varVhpAttOpNo, \"\"); "
+                        f"Set(varVhpObjListOpen, false); If(!IsBlank(varVhpMatOpNo), {mat_close}); "
+                        "Set(varVhpAttOpNo, \"\"); "
                         "Set(varVhpVenOpNo, \"\"); Set(varVhpMgOpNo, \"\"); "
                         + att.close_fx().replace("\n", " ") + ", "
                         "Set(varVhpOpMNo, \"\")))")

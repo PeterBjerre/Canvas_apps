@@ -162,6 +162,9 @@ OP_FIELDS = [
     # ukendt (blankt tal), til Docs-popuppen har hentet raekken
     # (build_attflows.open_fx) eller dokumenterne er gemt (on_ok).
     ("FileCount", "If(false, 0)"),
+    # Filernes navne til Docs-knappens tooltip (issue #451) - af samme
+    # grund ukendte, til Docs-popuppen har hentet raekken.
+    ("FileNames", '""'),
     ("SpId", "OP.ID"),
 ]
 
@@ -273,6 +276,9 @@ def load_block():
         # Konflikttjekket i build_save maaler mod den.
         "                Set(varVhpPlanModified, pl.Modified);\n"
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"
+        # Den indlaeste plans Plant gaelder - ikke et usavet valg fra den
+        # plan, der stod foer (issue #453, build_status.VhpPlant).
+        "                Set(varVhpLivePlant, \"\");\n"
         "                Set(varVhpPlanCommitted, true);\n"
         # Laast som efter Save i Plan Header: den indlaeste plan ER den
         # gemte, og trin 1 er faerdigt. Edit laaser op (issue #54).
