@@ -5,6 +5,7 @@ from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, SHELL_W, 
                         C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG)
 import icons
 import build_help as bh
+import build_status as st
 import layout_tokens as lay
 from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
                            themed_dropdown, field_cell, col_width, card, grow,
@@ -41,7 +42,14 @@ def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None)
     row.props["AlignInContainer"] = f"If({narrow}, AlignInContainer.End, AlignInContainer.Center)"
     info.props["Width"] = f"Max(0, If({narrow}, {cw}, {cw} - ({btn_w}) - 8 - 2))"
     info.props["LayoutMinWidth"] = "0"
-    footer = group(name, [info, row], direction="Horizontal", gap=8, align_items="Center")
+    # Knapperne staar ALTID nederst til hoejre (issue #449). Naar sektionen
+    # er gemt, skjules teksten til venstre; uden End rykkede Reset + Edit
+    # saa ud til venstre kant. Med End er raekkens hoejre kant den samme,
+    # om teksten er der eller ej, saa skift mellem Save og Edit flytter
+    # intet. Paa en telefon (lodret) er hoejderne skrevet ud, saa End
+    # flytter intet der.
+    footer = group(name, [info, row], direction="Horizontal", gap=8, align_items="Center",
+                   justify="End")
     footer.props["LayoutDirection"] = (f"If({narrow}, LayoutDirection.Vertical, "
                                        "LayoutDirection.Horizontal)")
     iv = f"({info.vis})" if info.vis else "true"
@@ -312,6 +320,45 @@ def plan_fold_row(fold, toggle_set, show):
                  align_items="Stretch", visible=fold)
 
 
+# PLANT STYRER MED DET SAMME (issue #453). Et nyt valg i Plant gaelder fra
+# det oejeblik, det er valgt - ikke foerst efter Save i Plan header:
+# varVhpLivePlant er det, build_status.VhpPlant laeser, og VhpPlant er det,
+# arbejdscentre, tasklister, FL-soegningen og reglerne filtrerer paa.
+#
+# Items, der har vaerdier fra det gamle vaerk, MARKERES - de slettes ikke
+# (build_status.ITEM_PLANT_CONFLICTS). Item Editorens felter nulstilles, saa
+# de viser det nye vaerks liste; en dropdown skriver aldrig et tomt valg paa
+# itemet (build_items.write_item), saa itemets vaerdi bliver staaende som
+# en fejl, til brugeren vaelger en ny. Beskeden kun ved et RIGTIGT skift -
+# en Reset eller en indlaest plan, der saetter samme vaerk, siger intet.
+# FL-soegningens gamle svar hoerer til det gamle vaerk og ryddes.
+_NP = "Self.Selected.Value"
+_N_CONFLICTS = (f"CountRows(Filter(VhpSaveableItems, "
+                f"{st.any_plant_conflict(p='np')}))")
+PLANT_ONCHANGE = (
+    "With(\n"
+    f"    {{ prev: {st.PLANT}, np: {_NP} }},\n"
+    f"    Set({st.LIVE_PLANT_VAR}, np);\n"
+    "    If(\n"
+    "        !IsBlank(prev) && !IsBlank(np) && Upper(prev) <> Upper(np),\n"
+    "        Set(varVhpFlQuery, \"\"); Set(varVhpFlLast, \"\"); Set(varVhpFlMsg, \"\");\n"
+    "        Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);\n"
+    f"        With(\n            {{ n: {_N_CONFLICTS} }},\n"
+    "            If(\n"
+    "                n = 0,\n"
+    "                Notify(\"Plant changed to \" & np & \".\", NotificationType.Information),\n"
+    "                Notify(\n"
+    "                    \"Plant changed to \" & np & \". \" & Text(n) & If(n = 1, \" item has\", \" items have\") &\n"
+    "                        \" a work center, functional location or task list from another plant - marked to fix.\",\n"
+    "                    NotificationType.Warning\n"
+    "                )\n"
+    "            )\n"
+    "        )\n"
+    "    )\n"
+    ")"
+)
+
+
 def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
@@ -325,7 +372,8 @@ def build_plan_header():
 
     drpPlant = themed_dropdown("drpVhpPlant", "colVhpPlantCodes",
                                "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value",
-                               required_formula=REQ_PLAN, display_mode=DM_PLAN)
+                               required_formula=REQ_PLAN, display_mode=DM_PLAN,
+                               onchange=PLANT_ONCHANGE)
     # STATUS (issue #113, #137). En plan oprettes altid som New, og feltet
     # kan ikke aendres: det er altid laast (Disabled -> View i input_theme,
     # saa listen aldrig foldes ud). Change og Deleted (SharePoints valg i
@@ -460,8 +508,6 @@ def build_plan_header():
             "            Year(dteVhpFirstCall.SelectedDate) < 2020 || Year(dteVhpFirstCall.SelectedDate) > 2100,\n"
             "            Notify(\"Plan contains issues. Fix plan fields before creating items.\", NotificationType.Warning),\n"
             "\n"
-            # Vaerket FOER gemningen - se plantskiftet nedenfor.
-            "            Set(varVhpPrevPlant, varVhpPlan.Plant);\n"
             "            Set(\n"
             "                varVhpPlan,\n"
             "                {\n"
@@ -485,22 +531,10 @@ def build_plan_header():
             f"            {act_mark(ACT, 'plan')};\n"
             "            Set(varVhpPlanShow, false);\n"
             "            Set(varVhpPlanCreatedAt, Now());\n"
-            # PLANT ER FAELLES KONTEKST (issue #54). Arbejdscentre, tasklister
-            # og FL-soegningen laeser varVhpPlan.Plant. Skifter vaerket, viser
-            # de afhaengige felter kun det, der passer til det nye vaerk -
-            # Reset henter deres Default, som slaar op i den FILTREREDE
-            # liste, saa et ugyldigt valg bliver tomt. Gemte items roeres
-            # ikke: de bliver roede, naar de gemmes igen, i stedet for at
-            # blive slettet uden at nogen har bekraeftet det.
-            "            If(\n"
-            "                !IsBlank(varVhpPrevPlant) && Upper(varVhpPrevPlant) <> Upper(drpVhpPlant.Selected.Value),\n"
-            "                Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);\n"
-            "                Notify(\n"
-            "                    \"Plant changed to \" & drpVhpPlant.Selected.Value &\n"
-            "                        \". Check work centre, task list and functional location on existing items.\",\n"
-            "                    NotificationType.Warning\n"
-            "                )\n"
-            "            )\n"
+            # PLANT ER FAELLES KONTEKST (issue #54, #453). Plantskiftet er
+            # allerede vist, da Plant blev valgt (PLANT_ONCHANGE) - nu er det
+            # gemte vaerk det gaeldende, og det usavede valg ryddes.
+            f"            Set({st.LIVE_PLANT_VAR}, \"\")\n"
             "        )\n"
             ")"
     )
@@ -530,6 +564,8 @@ def build_plan_header():
     btnReset = button(
         "btnVhpPlanReset", "\"Reset\"",
         "; ".join(f"Reset({c})" for c in PLAN_CONTROLS) + ";\n"
+        # Det gemte vaerk gaelder igen (issue #453).
+        f"Set({st.LIVE_PLANT_VAR}, \"\");\n"
         "Set(varVhpPlanValidated, false);\n"
         "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
         width=fit_button_width("\"Reset\""), height=36,

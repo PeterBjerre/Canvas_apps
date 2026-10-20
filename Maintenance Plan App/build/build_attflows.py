@@ -20,6 +20,18 @@ ACTIVE_OP = ("LookUp(colVhpOperations, ItemId = varVhpActiveItemId && "
              "OperationNo = varVhpAttOpNo)")
 
 
+# Docs-knappens tal og tooltip (issue #336, #451): antallet og navnene paa
+# de foerste fem filer, laest af den hentede raekke.
+SUMMARY_FILES = 5
+
+
+def file_fields(row):
+    att = f"{row}.Attachments"
+    return (f"{{ FileCount: CountRows({att}), "
+            f"FileNames: Concat(FirstN({att}, {SUMMARY_FILES}), DisplayName, \", \") & "
+            f"If(CountRows({att}) > {SUMMARY_FILES}, \", ...\", \"\") }}")
+
+
 class VhPlanPane(attflows.Pane):
     """Ruden haenger paa den aktive operation (varVhpAttOpNo)."""
 
@@ -42,14 +54,14 @@ class VhPlanPane(attflows.Pane):
         return (f"Set(varVhpAttOpNo, {op_no});\n"
                 + self.load_fx(f"{ACTIVE_OP}.SpId") + ";\n"
                 + f"If(!IsBlank({self.row_var}), UpdateIf(colVhpOperations, SpId = {self.row_var}.ID, "
-                  f"{{ FileCount: CountRows({self.row_var}.Attachments) }}))")
+                  f"{file_fields(self.row_var)}))")
 
     def on_ok(self):
         # Docs-knappen viser antallet (colVhpOperations.FileCount). Raekken
         # er hentet igen, foer on_ok koerer, saa den har de gemte filer.
         res = self.row_var + "Saved"
         return (f"UpdateIf(colVhpOperations, SpId = {res}.ID, "
-                f"{{ FileCount: CountRows({self.row_var}.Attachments) }});")
+                f"{file_fields(self.row_var)});")
 
 
 PANE = VhPlanPane()

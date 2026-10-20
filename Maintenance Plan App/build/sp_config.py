@@ -566,6 +566,9 @@ WORKING_COLLECTIONS = [
       # Antal vedhaeftninger paa operationens raekke - vises i Docs-knappen.
       # Hentes med operationen og rettes, naar dokumenterne gemmes.
       "FileCount": 0,
+      # Navnene paa de samme filer (de foerste fem) - Docs-knappens tooltip
+      # (issue #451). Hentes og rettes sammen med FileCount.
+      "FileNames": '""',
       # Raekkens ID i TaskListMain; 0 = ny. Se colVhpItems.SpId.
       "SpId": 0}),
     ("colVhpFl",
@@ -589,6 +592,14 @@ WORKING_COLLECTIONS = [
     ("colVhpMaterials",
      {"ItemId": 0, "LineId": 0, "MaterialNo": '""', "Description": '""',
       "Unit": '""', "Quantity": 0, "OperationNo": '""', "Selected": "false"}),
+    # Kladden i Materials-popuppen (issue #451): EEN operations linjer, som
+    # de stod, da popuppen blev aabnet (Orig*), og hvad der er sket med dem.
+    # Foerst Save skriver kladden i colVhpMaterials; X kasserer den. Kun
+    # skaermens tilstand; gemmes aldrig.
+    ("colVhpMatDraft",
+     {"LineId": 0, "MaterialNo": '""', "Description": '""', "Unit": '""', "Quantity": 0,
+      "OrigMaterialNo": '""', "OrigQuantity": 0, "IsNew": "false", "Editing": "false",
+      "Deleted": "false"}),
     # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
     # De hentes, men gemningen skriver og sletter dem ikke laengere
     # (R2-071), og dokumentruden viser dem ikke: nye filer er vedhaeftninger

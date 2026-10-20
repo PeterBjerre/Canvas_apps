@@ -20,4 +20,6 @@ def test_load_does_not_read_attachments_in_forall():
 def test_docs_button_shows_count_only_when_known():
     text = _read("ScreenVhPlan.pa.yaml")
     assert 'If(IsBlank(n), "Docs", "Docs (" & Text(n) & ")")' in text
-    assert "UpdateIf(colVhpOperations, SpId = varVhpAttRow.ID, { FileCount: CountRows(varVhpAttRow.Attachments) })" in text
+    # Navnene (issue #451) skrives sammen med antallet.
+    assert ("UpdateIf(colVhpOperations, SpId = varVhpAttRow.ID, { FileCount: CountRows(varVhpAttRow.Attachments), "
+            "FileNames: Concat(FirstN(varVhpAttRow.Attachments, 5), DisplayName, \", \")") in text

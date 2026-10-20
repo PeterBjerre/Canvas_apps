@@ -85,7 +85,7 @@ SEARCH_CODE = "?search"
 SEARCH_HINT = "  -  press Enter to search"
 
 
-def items_fx(results, busy_var, last_var, min_len=None, block=None):
+def items_fx(results, busy_var, last_var, min_len=None, block=None, query_map=None):
     """Comboboksens Items: resultaterne - plus en soegeraekke, naar der er
     skrevet nok til en ny soegning.
 
@@ -94,11 +94,13 @@ def items_fx(results, busy_var, last_var, min_len=None, block=None):
     foerste rigtige resultat. Mens soegningen koerer, er den vaek.
     ForAll over Sequence i stedet for Ungroup: Ungroup(Table({..},{..}), ..)
     gav kun en raekke pr. post i Power Apps.
-    block: se fl_picker - er den sand for teksten, vises soegeraekken ikke."""
+    block: se fl_picker - er den sand for teksten, vises soegeraekken ikke.
+    query_map: se fl_picker - soegeraekken baerer den udfyldte tekst."""
     no_block = f" && !({block('q')})" if block else ""
+    q0 = query_map("Self.SearchText") if query_map else "Trim(Self.SearchText)"
     return (
         "With(\n"
-        "    { q: Trim(Self.SearchText) },\n"
+        f"    {{ q: {q0} }},\n"
         "    With(\n"
         "        {\n"
         f"            s: {{ Code: \"{SEARCH_CODE}\", Description: q,\n"
@@ -178,6 +180,26 @@ def reset_fx(*, combo, results, msg_var, query_var, last_var, pick_var=None,
     return "; ".join(parts)
 
 
+def result_count_fx(*, combo, results, busy_var, last_var):
+    """Antal resultater i den AKTUELLE soegning - til en valgfri knap ved
+    soegningen, fx "Object list (6)" (issue #454).
+
+    Tallet laeses af SAMME samling som beskeden under feltet
+    ("6 Functional Locations found for ..." - build_flsearch.search_action
+    taeller CountRows(results)), saa de to aldrig er uenige. Det er 0:
+      - foer der er soegt, og naar vaelgeren er nulstillet eller ryddet
+        (last_var er tom, samlingen er tom - reset_fx, x-knappen),
+      - mens en ny soegning koerer (busy_var; samlingen er ogsaa ryddet),
+      - naar soegeteksten er aendret, siden der sidst blev soegt.
+    Tom SearchText (et valgt resultat i feltet) er ikke en aendring.
+    Ingen ny variabel og intet kald - kun vaelgerens egen tilstand, saa
+    ALLE FL-soegninger med en Object list-knap kan bruge den."""
+    typed = f"Upper(Trim({combo}.SearchText))"
+    return (f"If({busy_var} || IsBlank({last_var}) || "
+            f"(!IsBlank({typed}) && {typed} <> Upper(Trim({last_var}))), "
+            f"0, CountRows({results}))")
+
+
 # Pladsholderen, mens vaelgeren er laast af lock (issue #101).
 LOCKED_PLACEHOLDER = '"Not used - No BOM Item is on"'
 
@@ -209,7 +231,8 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               on_clear=None, required_formula="false", width="Parent.Width",
               label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None,
               lock=None, min_len=None, kind="Fl", searcher=None, placeholder=None,
-              search_accessible='"Search functional location"', block=None, on_found=None):
+              search_accessible='"Search functional location"', block=None, on_found=None,
+              query_map=None):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -234,6 +257,9 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     searcher   soegningen - samme signatur som build_flsearch.search_action.
                Standard er FL-flowet; tools/vendor_search.py giver sin egen
     placeholder  comboboksens pladsholder; standard er FL-eksemplet
+    query_map  q -> udtryk: soegeteksten, som den soeges paa (fx med VH-
+               planens vaerk foran, issue #453). Bruges af Search, Enter-
+               raekken, block og laengdetjekket. Standard: teksten, som den er
     block      (cond, msg): cond(q) giver et udtryk, der er sandt, naar
                soegeteksten q (trimmet) IKKE maa soeges paa - fx en FL fra et
                andet vaerk end VH-planens. Search er da deaktiveret, Enter-
@@ -242,6 +268,10 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     """
     n_min = min_len or fl.MIN_SEARCH_LEN
     query = f"Coalesce({combo}.SearchText, {query_var})"
+    enter_query = query_var
+    if query_map:
+        query = query_map(query)
+        enter_query = query_map(query_var)
     searcher = searcher or fl.search_action
     search = searcher(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
@@ -277,13 +307,13 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     # raekken bar, i stedet for at gemme et valg.
     search_enter = searcher(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
-        query_expr=query_var, last_var=last_var, min_len=n_min,
+        query_expr=enter_query, last_var=last_var, min_len=n_min,
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
         on_found=(f"Set({pick_var}, First({results}).Code);\n"
                   f"                    Reset({combo})"
                   + (f";\n                    {on_found}" if on_found else "")))
     if block:
-        search_enter = guard(query_var, search_enter)
+        search_enter = guard(enter_query, search_enter)
     on_change = (
         "If(\n"
         f"    Self.Selected.Code = \"{SEARCH_CODE}\",\n"
@@ -314,7 +344,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
             else f'"At least {n_min} characters, e.g. SSV13 HFC10"'),
         "IsSearchable": "true",
         "ItemDisplayText": "ThisItem.Display",
-        "Items": items_fx(results, busy_var, last_var, n_min, block_cond),
+        "Items": items_fx(results, busy_var, last_var, n_min, block_cond, query_map),
         "LayoutMinWidth": "0",
         "OnChange": on_change,
         # Samme hjoerner som alle andre felter (text_input, dropdown ...).
