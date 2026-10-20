@@ -926,7 +926,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
     return [scrim, card, timer]
 
 
-def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
+def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY, always=False):
     """Sloeret bag en popup. Paa mobil lukker et tryk udenfor popuppen den;
     sloeret daekker hele skaermen, saa siden under ikke kan trykkes paa. Er
     ventespinneren oppe, ligger den oven paa og tager trykket.
@@ -935,8 +935,14 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     stop paa ethvert Image (TabIndexShouldBeDefinedForInteractiveControl).
     Sloeret lukker kun under Tablet, saa det er et tab stop ("Close the
     dialog") netop dér - paa en bred skaerm ville Enter paa det intet goere.
-    X oeverst i popuppen er den lukning, der virker overalt."""
-    below = lay.below('Tablet')
+    X oeverst i popuppen er den lukning, der virker overalt.
+
+    always: et tryk paa sloeret lukker paa ALLE skaermbredder (Reset-
+    bekraeftelsen, issue #450). Saa kan sloeret aldrig blive staaende og
+    laase siden (issue #405) - et tryk udenfor er det samme som Cancel."""
+    below = "true" if always else lay.below('Tablet')
+    on_select = close_fx if always else f"If({below}, {close_fx})"
+    tab = "0" if always else f"If({below}, 0, -1)"
     return Ctrl(name, "Image", props={
         "AccessibleLabel": '"Close the dialog"',
         "BorderStyle": "BorderStyle.None",
@@ -944,8 +950,8 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
         **stable_scrim(fill),
         "Height": "App.Height",
         "Image": '""',
-        "OnSelect": f"If({below}, {close_fx})",
-        "TabIndex": f"If({below}, 0, -1)",
+        "OnSelect": on_select,
+        "TabIndex": tab,
         "Visible": vis,
         "Width": "App.Width",
         "X": "0",
@@ -954,7 +960,8 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
 
 
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
-                  confirm_name, icon=ICON_SUBMIT, danger=None, act=None):
+                  confirm_name, icon=ICON_SUBMIT, danger=None, act=None,
+                  cancel_text=None, vis_extra=None, msg_height=40, tap_closes=False):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
@@ -970,10 +977,18 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     lukker ikke foerst, knappen siger fx "Deleting..." (eet ventetegn,
     issue #441), og popuppen lukker, naar handlingen er faerdig. Fejler den,
     bliver popuppen staaende med "Delete failed" ved knappen. confirm_fx
-    skriver selv sit udfald (act_mark)."""
+    skriver selv sit udfald (act_mark).
+
+    cancel_text: en sikker knap i foden foran handlingen (fx "Cancel"), som
+    lukker uden at goere noget - ligesom X (issue #450). vis_extra: en
+    betingelse mere for at popuppen og sloeret vises (fx at der stadig er
+    noget at kassere). msg_height: tekstens hoejde. tap_closes: et tryk paa
+    sloeret lukker paa alle skaermbredder (tap_backdrop(always=True))."""
     if danger is None:
         danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
+    if vis_extra:
+        vis = f"{vis} && ({vis_extra})"
     close_fx = f"Set({open_var}, false)"
     run_fx = f"Set({open_var}, false);\n{confirm_fx}"
     if act:
@@ -984,14 +999,14 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
         # med sin egen besked (fx "Select a row first"), som foer.
         run_fx = (act_fx(av, key, confirm_fx) + ";\n"
                   f'If(!IfError({av} = "{key}:failed", false), Set({open_var}, false))')
-    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, close_fx)
+    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, close_fx, always=tap_closes)
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
     # Nej'et er X oeverst til hoejre (issue #343), som i appens andre
     # popupper - det lukker uden at goere noget. Navnet er det gamle.
     head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel", close_fx)
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
-                    height=40, wrap="true")
+                    height=msg_height, wrap="true")
     ok = button(confirm_name, f'"{confirm_text}"',
                 run_fx, primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
@@ -999,7 +1014,14 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     if act:
         act_button(ok, av, key)
         status = act_status(f"{prefix}ConfirmAct", av, (key,))
-    footer = group(f"con{prefix}ConfirmFooter", [*status, ok], direction="Horizontal", gap=8,
+    keep = []
+    if cancel_text:
+        # Den sikre knap: neutral kant (ikke roed, ikke primaer) og FOERST,
+        # saa den destruktive handling staar for sig selv yderst.
+        keep = [button(f"btn{prefix}ConfirmKeep", f'"{cancel_text}"', close_fx,
+                       width=fit_button_width(f'"{cancel_text}"'), height=36,
+                       tooltip='"Close without changing anything"')]
+    footer = group(f"con{prefix}ConfirmFooter", [*status, *keep, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     modal = group(f"con{prefix}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
@@ -1008,6 +1030,58 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return [backdrop, modal]
+
+
+# ---------------------------------------------------------------------------
+# RESET SPOERGER FOERST (issue #450)
+#
+# Alle Reset-knapper i appen - sidepanelerne i Materials, Equipment,
+# Measuring Point og Functional Location, og VH-planens Plan header og
+# Item Editor - bruger de to funktioner herunder:
+#
+#   reset_click_fx  knappens OnSelect: er der ugemte aendringer, aabnes
+#                   bekraeftelsen; ellers nulstilles der med det samme
+#                   (der er intet at miste, saa intet spoergsmaal).
+#   reset_confirm   bekraeftelsen [sloer, popup]: "Reset changes?", en
+#                   forklaring, Cancel (sikker) og Reset (roed, destruktiv).
+#                   Foerst Reset HER kasserer aendringerne.
+#
+# Popuppen er confirm_modal - den samme som sletningernes - med to
+# sikringer mod et sloer, der bliver haengende (issue #405): den vises kun,
+# mens der stadig er noget at kassere (vis_extra), og et tryk paa sloeret
+# lukker den paa alle skaermbredder. Reset lukker popuppen FOER selve
+# nulstillingen, saa en fejl i nulstillingen aldrig efterlader den aaben.
+# ---------------------------------------------------------------------------
+RESET_TITLE = "Reset changes?"
+
+
+def reset_message(what):
+    """Teksten i bekraeftelsen. what: hvad der nulstilles ("this row")."""
+    return f'"Unsaved changes to {what} will be discarded and cannot be recovered."'
+
+
+def reset_click_fx(open_var, dirty_fx, reset_fx):
+    """Reset-knappens OnSelect: spoerg kun, naar der er noget at kassere."""
+    ind = lambda t: t.replace("\n", "\n    ")
+    return (f"If(\n    {ind(dirty_fx)},\n    Set({open_var}, true),\n"
+            f"    {ind(reset_fx)}\n)")
+
+
+def reset_confirm(prefix, open_var, reset_fx, dirty_fx, what, guard=None):
+    """Reset-bekraeftelsen [sloer, popup] (issue #450).
+
+    prefix: navnenes hale (con<prefix>ConfirmModal, btn<prefix>Confirm).
+    reset_fx: selve nulstillingen - den samme, knappen ellers koerer.
+    dirty_fx: er der ugemte aendringer? Popuppen vises kun, mens det er
+    sandt - kan der ikke laengere kasseres noget, forsvinder den med sit
+    sloer. guard: en betingelse mere (fx at sidepanelet er aabent)."""
+    cond = dirty_fx.replace("\n", " ")
+    if guard:
+        cond = f"({guard}) && ({cond})"
+    return confirm_modal(
+        prefix, open_var, RESET_TITLE, reset_message(what),
+        "Reset", reset_fx, f"btn{prefix}Confirm", icon=None, danger=True,
+        cancel_text="Cancel", vis_extra=cond, msg_height=56, tap_closes=True)
 
 
 def close_x(name, close_fx, accessible=None, mode=None):

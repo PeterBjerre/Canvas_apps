@@ -120,6 +120,9 @@ Set(varVhpFocusStep, 0);
 // Popuppen med noterne - ved Submit og i visningen (issue #115).
 Set(varVhpConfirmSubmit, false);
 Set(varVhpConfirmNew, false);
+// Reset i Plan header og Item Editor spoerger foerst (issue #450).
+Set(varVhpPlanResetAsk, false);
+Set(varVhpItemResetAsk, false);
 // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
 Set(varVhpMatOpNo, "");
 Set(varVhpAttOpNo, "");

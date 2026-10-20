@@ -361,8 +361,8 @@ def reset_fx():
     """Reset: KUN de ugemte aendringer kasseres - en gemt raekke faar sine
     gemte vaerdier igen, en ny raekke ryddes (domain_parts.reset_form_fx,
     issue #403). Rows og anmodningen roeres ikke, og panelet bliver
-    aabent. Ingen bekraeftelse: knappen er slaaet fra, naar der intet er
-    at kassere, og der er intet sloer, der kan blive haengende (#405)."""
+    aabent. Panelets Reset spoerger foerst, naar der er noget at kassere
+    (domain_parts.reset_button / build_reset_confirm, issue #450)."""
     return dp.reset_form_fx()
 
 
@@ -644,8 +644,8 @@ def _objects_popup():
 
 def build_popups():
     """Materials' egne popupper (domain_app.build_screen): objektlisten og
-    indkoebsteksten - [sloer, popup] hver. Reset spoerger ikke laengere
-    (issue #405) - den har intet sloer."""
+    indkoebsteksten - [sloer, popup] hver. Reset's bekraeftelse er den
+    faelles (domain_parts.build_reset_confirm, issue #450)."""
     objects = [] if getattr(cfg, "ROW_PANEL_ENABLED", False) else _objects_popup()
     return objects + _po_popup()
 

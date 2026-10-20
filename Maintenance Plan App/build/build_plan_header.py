@@ -13,7 +13,7 @@ from build_helpers import (child_name, text_ctrl, group, button, text_input, num
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header  # noqa: F401
 from build_helpers import fluent, fluent_icon
-from build_helpers import act_fx, act_mark, act_button
+from build_helpers import act_fx, act_mark, act_button, reset_click_fx, reset_confirm
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -165,6 +165,23 @@ def help_panel(name, section):
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
                  "inpVhpPlanText", "drpVhpSortField", "inpVhpCycle", "drpVhpUnit",
                  "dteVhpFirstCall")
+
+
+# Planhovedets Reset (issue #54): felterne tilbage til deres Default. Var
+# planen gemt, laases den igen. Koeres fra bekraeftelsen (issue #450).
+PLAN_RESET_FX = ("; ".join(f"Reset({c})" for c in PLAN_CONTROLS) + ";\n"
+                 "Set(varVhpPlanValidated, false);\n"
+                 "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))")
+PLAN_RESET_ASK = "varVhpPlanResetAsk"
+# Er planhovedet aendret siden sidst gemt? Saettes af build_plan_header.
+PLAN_DIRTY = [None]
+
+
+def plan_reset_confirm():
+    """Planhovedets Reset-bekraeftelse (issue #450) - efter build_plan_header."""
+    return reset_confirm("VhpPlanReset", PLAN_RESET_ASK, PLAN_RESET_FX, PLAN_DIRTY[0],
+                         "the plan header",
+                         guard="!varVhpViewOnly && !varVhpPlanLocked")
 
 
 # Den foldede linje (UX-review M5) - laest af felterne.
@@ -392,6 +409,25 @@ def build_plan_header():
                                required_formula=REQ_PLAN, display_mode=DM_PLAN,
                                label='"First call"')
 
+    # UGEMTE AENDRINGER I PLANHOVEDET (issue #450): et felt staar ikke paa
+    # sin Default - den senest gemte plan (varVhpPlan). Hvert felt sammenlignes
+    # med det, Reset() ville give det, saa "aendret" og Reset er enige.
+    # Status er altid laast og taeller ikke med. Strategien taeller kun paa
+    # en strategiplan.
+    PLAN_DIRTY[0] = (
+        "(\n"
+        '    (drpVhpPlanType.Selected.Key & "") <> (varVhpPlan.PlanType & "") ||\n'
+        '    (drpVhpPlanType.Selected.Key = "Strategy" && '
+        '(drpVhpStrategy.Selected.Key & "") <> (varVhpPlan.Strategy & "")) ||\n'
+        '    (drpVhpPlant.Selected.Value & "") <> (varVhpPlan.Plant & "") ||\n'
+        f'    Trim(inpVhpPlanText.Text & "") <> Trim(({pt_default}) & "") ||\n'
+        '    (drpVhpSortField.Selected.Value & "") <> (varVhpPlan.SortField & "") ||\n'
+        '    Trim(inpVhpCycle.Text & "") <> If(IsBlank(varVhpPlan.Cycle), "", Text(varVhpPlan.Cycle)) ||\n'
+        '    (drpVhpUnit.Selected.Value & "") <> (varVhpPlan.Unit & "") ||\n'
+        '    (Text(dteVhpFirstCall.SelectedDate, "yyyymmdd") & "") <> '
+        f'(Text({FIRST_CALL_DEFAULT}, "yyyymmdd") & "")\n'
+        ")")
+
     # RAEKKE-ORDEN (issue #142). Planhovedet er fire kolonner og to raekker:
     #   Raekke 1: Plan Type | Status | Plant | Plan Text
     #   Raekke 2: Sort Field | Cycle | Unit | First Call
@@ -527,11 +563,10 @@ def build_plan_header():
     # gemt. Alle felterne har varVhpPlan som Default, saa Reset() ER
     # "senest gemt". Var planen gemt, laases den igen: den matcher nu det
     # gemte, og trinnet er faerdigt igen.
+    # Spoerger foerst, naar der er ugemte aendringer (issue #450).
     btnReset = button(
         "btnVhpPlanReset", "\"Reset\"",
-        "; ".join(f"Reset({c})" for c in PLAN_CONTROLS) + ";\n"
-        "Set(varVhpPlanValidated, false);\n"
-        "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
+        reset_click_fx(PLAN_RESET_ASK, PLAN_DIRTY[0], PLAN_RESET_FX),
         width=fit_button_width("\"Reset\""), height=36,
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)",
         visible="!varVhpViewOnly")
