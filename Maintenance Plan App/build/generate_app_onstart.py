@@ -122,6 +122,10 @@ Set(varVhpConfirmSubmit, false);
 Set(varVhpConfirmNew, false);
 // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
 Set(varVhpMatOpNo, "");
+// Materials-popuppen (issue #451): Save er proevet (felterne viser, hvad der
+// mangler), og bekraeftelsen foer ugemte aendringer kasseres.
+Set(varVhpMatTried, false);
+Set(varVhpMatDiscardOpen, false);
 Set(varVhpAttOpNo, "");
 // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
 // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
