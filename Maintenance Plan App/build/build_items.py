@@ -287,7 +287,7 @@ EDITOR_COLUMNS = ("ShortText", "FunctionalLocation", "FlDescription", "MainWorkC
                   "ActivityType", "Revision", "Initials", "NonFlowUserStatus")
 
 
-def write_item(fields, cond="true"):
+def write_item(fields, cond="true", before=None):
     """Skriv et felt fra Item Editoren paa det aktive item (issue #448).
 
     Felterne skriver deres vaerdi, naar de aendres eller forlades
@@ -297,9 +297,13 @@ def write_item(fields, cond="true"):
     cond er feltets egen vagt - samme moenster som tasklist-dropdownen
     (build_tasklist): et tomt valg skrives aldrig fra en dropdown (et
     vaerksskift eller en Reset kan give tomt Selected), og en vaerdi, der
-    allerede staar paa itemet, skrives ikke igen."""
+    allerede staar paa itemet, skrives ikke igen.
+
+    before koeres under samme vagt lige foer skrivningen (issue #455: Object
+    list foelger en ny Functional Location)."""
+    pre = f"{before}; " if before else ""
     return (f"If(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly && ({cond}), "
-            f"UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, {fields}))")
+            f"{pre}UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, {fields}))")
 
 
 def _differs(new, col):
@@ -320,16 +324,38 @@ def write_choice(ctrl, col):
                       + _differs(f"{ctrl}.Selected.Value", col))
 
 
+# OBJEKTERNE FOELGER ITEMETS FUNCTIONAL LOCATION (issue #455). Objekterne
+# ryddes ikke laengere, naar en soegning starter, eller naar comboboksen
+# staar tom (en Reset eller et vaerktoejsskift kan give et tomt valg, og et
+# klik paa Edit maa ikke koste itemet dets objekter). De ryddes FOERST, naar
+# itemet faktisk faar en ANDEN Functional Location - og kun de objekter,
+# der ikke ligger under den nye. Object list (X) taeller colVhpItemObjects,
+# saa tallet foelger med.
+def _sync_objects(code):
+    return (f"RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && "
+            f"!StartsWith(Code, {code}))")
+
+
 # Functional Location: brugerens valg i comboboksen og det automatiske valg
 # af foerste soegeresultat (fl_picker on_found). Et tomt valg skrives ikke -
 # comboboksen kan staa tom efter en Reset uden at itemet har mistet sin FL.
 WRITE_FL_SELECT = write_item(
     f"{{ FunctionalLocation: {FL_COMBO}.Selected.Code, FlDescription: {FL_COMBO}.Selected.Description }}",
-    f"!IsBlank({FL_COMBO}.Selected.Code) && " + _differs(f"{FL_COMBO}.Selected.Code", "FunctionalLocation"))
+    f"!IsBlank({FL_COMBO}.Selected.Code) && " + _differs(f"{FL_COMBO}.Selected.Code", "FunctionalLocation"),
+    before=_sync_objects(f"{FL_COMBO}.Selected.Code"))
 WRITE_FL_FOUND = write_item(
     f"{{ FunctionalLocation: {FL_PICK_VAR}, "
     f"FlDescription: LookUp(colVhpFl, Code = {FL_PICK_VAR}).Description }}",
-    f"!IsBlank({FL_PICK_VAR}) && " + _differs(FL_PICK_VAR, "FunctionalLocation"))
+    f"!IsBlank({FL_PICK_VAR}) && " + _differs(FL_PICK_VAR, "FunctionalLocation"),
+    before=_sync_objects(FL_PICK_VAR))
+
+# Den FL, Save gemmer (issue #455): comboboksens valg - eller, staar den
+# tom, den FL, itemet allerede har. Editoren skriver valget paa itemet
+# (WRITE_FL_*), saa itemet er sandheden; en tom comboboks efter Edit, en
+# Reset eller en soegning uden svar sletter ikke den gemte FL.
+SAVE_FL_CODE = f"Coalesce({FL_CODE}, {ACTIVE_ROW}.FunctionalLocation)"
+SAVE_FL_DESC = (f"If(IsBlank({FL_CODE}), {ACTIVE_ROW}.FlDescription, "
+                f"{FL_COMBO}.Selected.Description)")
 
 # Det aktive items manglende felter som tekst ("Item short text, Initials")
 # - tom, naar intet mangler. Samme liste som reglen (build_status).
@@ -504,13 +530,22 @@ def build_items_rail():
             "\n"
             "    With(\n"
             "        { src: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
+            # Issue #455: Functional Location og objekterne kopieres med -
+            # medmindre FL'en ikke hoerer til Plan Headerens vaerk.
+            "        With(\n"
+            f"        {{ keepFl: !IsBlank(src.FunctionalLocation) && !{fl_wrong_plant('Trim(src.FunctionalLocation)')} }},\n"
             "        Set(varVhpNextItemId, varVhpNextItemId + 1);\n"
             "        Collect(\n"
             "            colVhpItems,\n"
             "            {\n"
-            "                ItemId: varVhpNextItemId, ShortText: src.ShortText, FunctionalLocation: \"\",\n"
-            "                FlDescription: \"\", MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,\n"
-            "                ObjectList: src.ObjectList, Revision: src.Revision,\n"
+            "                ItemId: varVhpNextItemId, ShortText: src.ShortText,\n"
+            "                FunctionalLocation: If(keepFl, src.FunctionalLocation, \"\"),\n"
+            "                FlDescription: If(keepFl, src.FlDescription, \"\"),\n"
+            "                MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,\n"
+            # Objektlisten er kildens AKTUELLE objekter - de samme, der
+            # kopieres nedenfor - saa Reset paa kopien giver dem tilbage.
+            "                ObjectList: If(keepFl, Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"), \"\"),\n"
+            "                Revision: src.Revision,\n"
             "                OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,\n"
             "                NonFlowUserStatus: src.NonFlowUserStatus,\n"
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\",\n"
@@ -545,14 +580,20 @@ def build_items_rail():
             "        Collect(\n"
             "            colVhpItemObjects,\n"
             "            ForAll(\n"
-            "                Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,\n"
+            "                Filter(colVhpItemObjects, keepFl && ItemId = varVhpActiveItemId) As OBJ,\n"
             "                { ItemId: varVhpNextItemId, Code: OBJ.Code, Description: OBJ.Description }\n"
             "            )\n"
             "        );\n"
             "        Set(varVhpActiveItemId, varVhpNextItemId);\n"
             f"        {SEED_FL_PICKER};\n"
             f"        {RESET_EDITOR_CONTROLS};\n"
-            "        Notify(\"Item copied. Functional Location cleared on the copied item.\", NotificationType.Success)\n"
+            "        Notify(\n"
+            "            If(keepFl || IsBlank(src.FunctionalLocation), \"Item copied.\",\n"
+            "                \"Item copied. Functional Location and objects cleared - they do not belong to plant \" &\n"
+            f"                    {FL_PLANT_PREFIX} & \".\"),\n"
+            "            NotificationType.Success\n"
+            "        )\n"
+            "        )\n"
             "    )\n"
             ")"
         ), display_mode=VIEW_LOCK, visible="!varVhpViewOnly")
@@ -843,10 +884,11 @@ def build_item_editor():
         last_var=FL_LAST_VAR, pick_var=FL_PICK_VAR,
         default_items=(f"Filter(colVhpFl, Code = Coalesce({FL_PICK_VAR}, "
                        "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))"),
-        # En ny soegning goer det gamle objektvalg ugyldigt (issue #72):
-        # objekterne hoerer til den soegning, de blev valgt i.
-        on_clear=("RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); "
-                  "Clear(colVhpObjDraft)"),
+        # En ny soegning eller et tomt felt rydder kun kladden. Itemets
+        # objekter foelger itemets Functional Location og ryddes foerst,
+        # naar en ANDEN FL vaelges (WRITE_FL_*, issue #455) - foer gik de
+        # tabt, saa snart comboboksen stod tom eller en soegning startede.
+        on_clear="Clear(colVhpObjDraft)",
         on_select=WRITE_FL_SELECT, on_found=WRITE_FL_FOUND,
         display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
@@ -1060,7 +1102,7 @@ def build_item_editor():
             "        IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||\n"
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
             "        Len(Trim(inpVhpItemInitials.Text)) <> 5 ||\n"
-            f"        IsBlank({FL_CODE}),\n"
+            f"        IsBlank({SAVE_FL_CODE}),\n"
             "        UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: \"invalid\" });\n"
             "        Notify(\"Item contains issues. Fix required fields (marked with *).\", NotificationType.Warning),\n"
             "\n"
@@ -1069,14 +1111,14 @@ def build_item_editor():
             # konkurrerende liste, der skal kopieres herind ved Save.
 
             "        With(\n"
-            f"            {{ code: {FL_CODE} }},\n"
+            f"            {{ code: {SAVE_FL_CODE} }},\n"
             "            UpdateIf(\n"
             "                colVhpItems,\n"
             "                ItemId = varVhpActiveItemId,\n"
             "                {\n"
             "                    ShortText: Trim(inpVhpItemShortText.Text),\n"
             "                    FunctionalLocation: code,\n"
-            f"                    FlDescription: {FL_COMBO}.Selected.Description,\n"
+            f"                    FlDescription: {SAVE_FL_DESC},\n"
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"

@@ -106,7 +106,13 @@ def items_fx(results, busy_var, last_var, min_len=None, block=None):
         "                  Maintainable: true, Level: \"\" },\n"
         f"            n: CountRows({results}),\n"
         f"            ask: Len(q) >= {min_len or fl.MIN_SEARCH_LEN} && !{busy_var} &&\n"
-        f"                 Upper(q) <> Upper(Coalesce({last_var}, \"\")){no_block},\n"
+        f"                 Upper(q) <> Upper(Coalesce({last_var}, \"\")){no_block} &&\n"
+        # Teksten i feltet er et resultats Display - typisk det valgte, som
+        # feltet viser (issue #455). Det er ikke en ny soegning. Ellers stod soegeraekken
+        # oeverst, saa snart et gemt valg fik fokus, og Enter eller et
+        # klik ud kunne vaelge den - en ny soegning paa "KODE - tekst",
+        # der ryddede den gemte Functional Location og objekterne.
+        f"                 IsBlank(LookUp({results}, Upper(Trim(Display)) = Upper(q)).Code),\n"
         f"            narrow: CountRows({results}) > 0 && !IsBlank({last_var}) &&\n"
         f"                    StartsWith(Upper(q), Upper({last_var}))\n"
         "        },\n"
