@@ -732,13 +732,11 @@ def build_items_rail():
         },
         children=[itemCard, btnOpen], h=ITEMS_GAL_H)
 
-    # Tom tilstand (UX-review F4): ikon, een saetning og Add item.
+    # Tom tilstand (UX-review F4): ikon og een saetning. Ingen egen knap -
+    # Add item i kortets hoved er den eneste (issue #459: den stod to gange).
     emptyState = empty_state(
         "conVhpItemsEmpty", '"No items yet - choose Add item to create the first one."',
-        "Add item", btnAdd.props["OnSelect"], icon_key="vhplan",
-        button_name="btnVhpItemsEmptyAdd", action_icon="Add",
-        # Som Add item over listen: ingen nye items i View (issue #390).
-        action_visible="!varVhpViewOnly",
+        icon_key="vhplan",
         visible="IfError(CountRows(colVhpItems) = 0, true)")
 
     return card("conVhpItemsCard", [header, gallery, emptyState], gap=12)
