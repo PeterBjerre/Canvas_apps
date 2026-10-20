@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import display_text as dt
+import status_chip as sc
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
@@ -8,11 +9,11 @@ from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
                         C_NEUTRAL_BG, C_TITLE)
 import layout_tokens as lay
 import icons
-from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
+from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
-                           tab_list, tabs_w, modern_card)
+                           tab_list, tabs_w, modern_card, confirm_modal)
 from build_plan_header import section_header, help_panel, section_footer
 from build_helpers import act_fx, act_mark, act_button
 from gen_screen import lock_section
@@ -397,15 +398,113 @@ PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
 # dem og ikke flytte rundt paa tabellen.
 # OPERATION-kolonnen er vaek: materialerne vises nu pr. operation, i en
 # popup fra operationens egen raekke (issue #54), saa operationen ER givet.
-MAT_COLS = [("SEL", 30), ("MATERIAL", 110), ("DESCRIPTION", 230), ("QTY", 70),
-            ("UNIT", 60)]
+#
+# EN KLADDE MED SAVE (issue #451). Popuppen rettede foer direkte i
+# colVhpMaterials, og en SEL-kolonne + "Remove material" slettede. Man kunne
+# ikke se, hvad der var nyt, rettet eller gemt. Nu foelger den appens andre
+# popupper (Long text: kladde + "Save text"; Object list: kladde + "Use
+# selected"; X kasserer, issue #237): popuppen arbejder i colVhpMatDraft,
+# og foerst Save skriver i colVhpMaterials. Hver linje har en statuschip
+# (tools/status_chip.py - den ene statuschip i appen):
+#   Saved    staar i colVhpMaterials og er uaendret
+#   New      tilfoejet, ikke gemt endnu
+#   Edited   rettet, ikke gemt endnu
+#   Deleted  slettes ved Save - kan fortrydes til da
+# En gemt linje er skrivebeskyttet, til der trykkes Edit paa den - samme
+# model som en gemt sektion (issue #433). SEL er erstattet af ACTIONS:
+# Edit/Undo og Delete paa selve linjen. Delete af en gemt linje er en
+# ugemt aendring (chip + Undo), ikke en sletning med det samme, saa den
+# kraever ingen bekraeftelse; X med ugemte aendringer goer (confirm_modal).
+MAT_LINE = [
+    ("saved", "Saved", icons.STATUS_READY, "ok"),
+    ("new", "New", icons.STATUS_DRAFT, "info"),
+    ("edited", "Edited", icons.EDIT, "warn"),
+    ("deleted", "Deleted", icons.DELETE, "error"),
+]
+MAT_ACT_W = 2 * lay.HIT_TOUCH + 4
+MAT_COLS = [("MATERIAL", 120), ("DESCRIPTION", 150), ("QTY", 60), ("UNIT", 50),
+            ("STATUS", sc.table_width(MAT_LINE)), ("ACTIONS", MAT_ACT_W)]
 MAT_GAP = 10
 MAT_TABLE_W = sum(w for _, w in MAT_COLS) + MAT_GAP * (len(MAT_COLS) - 1)
-MAT_ROW_H = 34
+# Een linje: et felt (32) og Edit/Delete paa H.hit (44 paa touch).
+MAT_ROW_H = lay.HIT_TOUCH
 MAT_ACTIVE = "Filter(colVhpMaterials, ItemId = varVhpActiveItemId)"
-# Materialerne paa den operation, popup'en er aabnet for.
+# Materialerne paa den operation, popup'en er aabnet for (de GEMTE).
 MAT_OP = ("Filter(colVhpMaterials, ItemId = varVhpActiveItemId && "
           "OperationNo = varVhpMatOpNo)")
+
+
+def mat_changed(r=""):
+    """Er linjen en ugemt aendring? r: "ThisItem." eller "" (i Filter)."""
+    return (f"({r}Deleted || {r}IsNew || {r}MaterialNo <> {r}OrigMaterialNo || "
+            f"{r}Quantity <> {r}OrigQuantity)")
+
+
+def mat_state(r="ThisItem."):
+    return (f'If({r}Deleted, "deleted", {r}IsNew, "new", '
+            f'{r}MaterialNo <> {r}OrigMaterialNo || {r}Quantity <> {r}OrigQuantity, '
+            f'"edited", "saved")')
+
+
+# Antallet af ugemte aendringer i kladden.
+MAT_CHANGES = f"CountRows(Filter(colVhpMatDraft, {mat_changed()}))"
+MAT_DIRTY = f"IfError({MAT_CHANGES} > 0, false)"
+# Linjer, Save afviser: intet materialenummer eller intet antal over 0.
+MAT_INVALID = ("Filter(colVhpMatDraft, !Deleted && (IsBlank(Trim(MaterialNo)) || "
+               "IsBlank(Quantity) || Quantity <= 0))")
+
+
+def mat_open_fx(op_no):
+    """Materials-knappen: kladden er operationens gemte linjer, som de staar."""
+    return (
+        "Set(varVhpMatTried, false);\n"
+        "ClearCollect(\n"
+        "    colVhpMatDraft,\n"
+        "    ForAll(\n"
+        f"        Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = {op_no}) As M,\n"
+        "        {\n"
+        "            LineId: M.LineId, MaterialNo: M.MaterialNo, Description: M.Description,\n"
+        "            Unit: M.Unit, Quantity: M.Quantity,\n"
+        "            OrigMaterialNo: M.MaterialNo, OrigQuantity: M.Quantity,\n"
+        "            IsNew: false, Editing: false, Deleted: false\n"
+        "        }\n"
+        "    )\n"
+        ");\n"
+        f"Set(varVhpMatOpNo, {op_no})"
+    )
+
+
+# Luk uden at gemme: kladden glemmes.
+MAT_DISCARD_FX = 'Set(varVhpMatTried, false);\nClear(colVhpMatDraft);\nSet(varVhpMatOpNo, "")'
+# X (og sloeret paa mobil): med ugemte aendringer spoerges der foerst.
+MAT_CLOSE_FX = (f"If(\n    {MAT_DIRTY},\n    Set(varVhpMatDiscardOpen, true),\n"
+                + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + "\n)")
+
+
+def mat_summary(mats):
+    """Tooltip paa Materials-knappen (issue #451): de foerste fem linjer.
+    Tom, naar der intet er gemt - saa er der ingen tooltip."""
+    return (
+        f"With(\n    {{ ms: Sort({mats}, LineId) }},\n"
+        "    If(\n        CountRows(ms) = 0,\n        \"\",\n"
+        f"        {dt.plural('CountRows(ms)', 'material')} & \": \" & Concat(\n"
+        "            FirstN(ms, 5),\n"
+        "            MaterialNo & \" x \" & Text(Quantity) & If(IsBlank(Unit), \"\", \" \" & Unit),\n"
+        "            \", \"\n"
+        "        ) & If(CountRows(ms) > 5, \", ...\", \"\")\n"
+        "    )\n)")
+
+
+def docs_summary(op):
+    """Tooltip paa Docs-knappen (issue #451): antal og de foerste filnavne.
+    Tom, til antallet kendes (#336), og naar der ingen filer er."""
+    return (f"If(Coalesce({op}.FileCount, 0) = 0, \"\", "
+            f"{dt.plural(op + '.FileCount', 'document')} & \": \" & {op}.FileNames)")
+
+
+def docs_done(op):
+    """Docs (n) er groen, naar der er gemte filer - som Long text."""
+    return f"Coalesce({op}.FileCount, 0) > 0"
 
 
 def _mat_header_html():
@@ -447,54 +546,52 @@ def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False, cap=F
     return modal
 
 
-MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
 ATT_OPEN = "!IsBlank(varVhpAttOpNo)"
 # Popup'ernes indholdsbredde: 620 minus 18 + 18.
 MODAL_CW = "(Min(620, App.Width - 40) - 36)"
 
 
+MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
+# Materials-popuppen er bredere: STATUS og ACTIONS skal vaere der (#451).
+MAT_MODAL_W = MAT_TABLE_W + 4 + SCROLLBAR_W + 36
+
+
 def _materials_modal():
     """Materialer paa EEN operation - aabnet fra operationens Materials-knap.
 
-    Det var fanen Materials, med en OPERATION-kolonne pr. linje. Nu hoerer
-    popup'en til operationen, saa en ny linje faar dens nummer, og listen
-    viser kun dens linjer (issue #54). Linjerne er de samme i
-    colVhpMaterials, og gemningen er uaendret."""
+    Popup'en hoerer til operationen, saa en ny linje faar dens nummer, og
+    listen viser kun dens linjer (issue #54). Den arbejder i kladden
+    colVhpMatDraft; Save skriver kladden i colVhpMaterials, og planens Save
+    draft gemmer dem som foer (issue #451)."""
     w = {t: wd for t, wd in MAT_COLS}
+    ro = "varVhpViewOnly"
 
     btnAdd = button(
         "btnVhpAddMaterial", '"Add material"',
         (
             "Collect(\n"
-            "    colVhpMaterials,\n"
+            "    colVhpMatDraft,\n"
             "    {\n"
-            "        ItemId: varVhpActiveItemId,\n"
-            # LineId er unik pr. ITEM, ikke pr. operation.
-            f"        LineId: Coalesce(Max({MAT_ACTIVE}, LineId), 0) + 1,\n"
+            # LineId er unik pr. ITEM, ikke pr. operation - og ikke kun
+            # blandt de gemte: kladden kan have nye linjer.
+            f"        LineId: Max(Coalesce(Max({MAT_ACTIVE}, LineId), 0), "
+            "Coalesce(Max(colVhpMatDraft, LineId), 0)) + 1,\n"
             "        MaterialNo: \"\",\n"
             "        Description: \"\",\n"
             "        Unit: \"\",\n"
             "        Quantity: 1,\n"
-            "        OperationNo: varVhpMatOpNo,\n"
-            "        Selected: false\n"
+            "        OrigMaterialNo: \"\",\n"
+            "        OrigQuantity: 1,\n"
+            "        IsNew: true,\n"
+            "        Editing: true,\n"
+            "        Deleted: false\n"
             "    }\n"
-            ");\n"
-            "Notify(\"Material line added.\", NotificationType.Success)"
-        ), primary=True, width=fit_button_width('"Add material"'),
-        display_mode=VIEW_LOCK)
+            ")"
+        ), primary=True, width=fit_button_width('"Add material"') + ICON_W, icon="Add",
+        display_mode=VIEW_LOCK, visible=f"!{ro}")
 
-    btnRemove = button(
-        "btnVhpRemoveMaterial", '"Remove material"',
-        (
-            "RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, "
-            "OperationNo = varVhpMatOpNo, Selected = true);\n"
-            "Notify(\"Removed the selected material lines.\", NotificationType.Success)"
-        ), danger=True, width=fit_button_width('"Remove material"'),
-        display_mode=(f"If(varVhpViewOnly || CountRows(Filter({MAT_OP}, Selected = true)) = 0, "
-                      "DisplayMode.Disabled, DisplayMode.Edit)"))
-
-    actions = group("conVhpMatActions", [btnAdd, btnRemove], direction="Horizontal", gap=8,
-                    height=36, align_items="Center")
+    actions = group("conVhpMatActions", [btnAdd], direction="Horizontal", gap=8,
+                    height=36, align_items="Center", visible=f"!{ro}")
 
     header = Ctrl("htmVhpMatHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _mat_header_html(),
@@ -504,35 +601,64 @@ def _materials_modal():
     divider = group("conVhpMatDivider", [], height=1, fill=C_DIVIDER,
                     direction="Horizontal", width=str(MAT_TABLE_W))
 
-    chkSel = Ctrl("chkVhpMatSel", "ModernCheckbox", props=checkbox_theme({
-        "AccessibleLabel": '"Select material line"',
-        "Default": "ThisItem.Selected",
-        "Height": "24",
-        "Label": '""',
-        "OnCheck": "Patch(colVhpMaterials, ThisItem, { Selected: true })",
-        "OnUncheck": "Patch(colVhpMaterials, ThisItem, { Selected: false })",
-        "Width": str(w["SEL"]),
-    }), h=24)
-    # View: valget vises, men kan ikke slaas til/fra (issue #390).
-    chkSel.props["DisplayMode"] = VIEW_READONLY
-    txtNo = text_input("inpVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
-                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Material number\"")
+    # Felterne kan rettes paa en ny linje, og paa en gemt linje efter Edit.
+    # En linje, der slettes, og alt i View er skrivebeskyttet.
+    row_mode = (f"If({ro} || ThisItem.Deleted || !(ThisItem.IsNew || ThisItem.Editing), "
+                "DisplayMode.View, DisplayMode.Edit)")
+    tried = "(varVhpMatTried && !ThisItem.Deleted)"
+    txtNo = text_input("inpVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=32,
+                       required_formula=tried, display_mode=row_mode,
+                       onchange="Patch(colVhpMatDraft, ThisItem, { MaterialNo: Trim(Self.Text) })",
+                       label='"Material number"')
     # Kommer fra materialeopslaget, ikke fra brugeren.
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30,
-                          label="\"Quantity\"",
-                          onchange=f"Patch(colVhpMaterials, ThisItem, {{ Quantity: {NV} }})")
+    numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=32,
+                          label="\"Quantity\"", required_formula=tried, display_mode=row_mode,
+                          onchange=f"Patch(colVhpMatDraft, ThisItem, {{ Quantity: {NV} }})")
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
                         size=12, color=C_MUTED, height=30, width=w["UNIT"], wrap="false")
+    chip = sc.status_chip("imgVhpMatStatus", mat_state(), MAT_LINE, width=w["STATUS"])
 
-    row = group("conVhpMatRow", pin_widths([chkSel, txtNo, txtDesc, numQty, txtUnit]),
+    # ACTIONS: Edit (gemt linje) eller Undo (rettet eller slettet linje), og
+    # Delete. En ny linje har kun Delete - den kan rettes direkte.
+    undo = "(ThisItem.Editing || ThisItem.Deleted)"
+    btnEdit = button(
+        "btnVhpMatEdit", '""',
+        (f"If(\n    {undo},\n"
+         "    Patch(colVhpMatDraft, ThisItem, { MaterialNo: ThisItem.OrigMaterialNo, "
+         "Quantity: ThisItem.OrigQuantity, Editing: false, Deleted: false }),\n"
+         "    Patch(colVhpMatDraft, ThisItem, { Editing: true })\n)"),
+        width=40, height=32, icon="Edit", display_mode=VIEW_LOCK,
+        visible=f"!{ro} && (!ThisItem.IsNew || ThisItem.Deleted)",
+        accessible=(f'If(ThisItem.Deleted, "Restore material line ", {undo}, '
+                    '"Undo changes to material line ", "Edit material line ") & ThisItem.MaterialNo'))
+    btnEdit.props["Icon"] = f'If({undo}, "ArrowReset", "Edit")'
+    btnEdit.props["Layout"] = "ButtonLayout.IconOnly"
+    btnEdit.props["Tooltip"] = (f'If(ThisItem.Deleted, "Restore this line", {undo}, '
+                                '"Undo the unsaved changes to this line", "Edit this line")')
+    ensure_hit(btnEdit)
+    btnDel = button(
+        "btnVhpMatDelete", '""',
+        ("If(\n    ThisItem.IsNew,\n    Remove(colVhpMatDraft, ThisItem),\n"
+         "    Patch(colVhpMatDraft, ThisItem, { Deleted: true, Editing: false })\n)"),
+        danger=True, width=40, height=32, icon="Delete", display_mode=VIEW_LOCK,
+        visible=f"!{ro} && !ThisItem.Deleted",
+        accessible='"Delete material line " & ThisItem.MaterialNo')
+    btnDel.props["Layout"] = "ButtonLayout.IconOnly"
+    btnDel.props["Tooltip"] = ('If(ThisItem.IsNew, "Remove this new line", '
+                               '"Delete this line - it is removed when you choose Save")')
+    ensure_hit(btnDel)
+    cellAct = group("conVhpMatRowActions", [btnEdit, btnDel], direction="Horizontal", gap=4,
+                    height=lay.HIT_TOUCH, width=w["ACTIONS"], align_items="Center")
+
+    row = group("conVhpMatRow", pin_widths([txtNo, txtDesc, numQty, txtUnit, chip, cellAct]),
                 direction="Horizontal", gap=MAT_GAP, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
-    MAT_ROWS = 7
+    MAT_ROWS = 6
     gal_h = MAT_ROWS * (MAT_ROW_H + 2)
     gallery = Ctrl("galVhpMaterials", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Materials for this operation"',
@@ -540,7 +666,7 @@ def _materials_modal():
         "Fill": C_CARD_BG,
         "FillPortions": "0",
         "Height": str(gal_h),
-        "Items": f"Sort({MAT_OP}, LineId)",
+        "Items": "Sort(colVhpMatDraft, LineId)",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
@@ -556,9 +682,10 @@ def _materials_modal():
 
     # Tom tilstand (UX-review F4) - knappen Add material staar lige over.
     empty = empty_state("conVhpMatEmpty",
-                        '"No materials on this operation yet - choose Add material."',
+                        f'If({ro}, "No materials on this operation.", '
+                        '"No materials on this operation yet - choose Add material.")',
                         icon_path=icons.MATERIAL,
-                        visible=f"IfError(CountRows({MAT_OP}) = 0, false)")
+                        visible="IfError(CountRows(colVhpMatDraft) = 0, false)")
 
     note = text_ctrl("txtVhpMatNote",
                      '"Description and unit are filled in by the material lookup. '
@@ -571,8 +698,63 @@ def _materials_modal():
                   direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                   align_items="Start")
 
+    # Bunden: hvad der venter paa Save - og Save. X er popuppens eneste luk
+    # (issue #237) og kasserer kladden, efter en bekraeftelse.
+    info = text_ctrl(
+        "txtVhpMatChanges",
+        (f"If(\n    {ro},\n    \"Read-only.\",\n"
+         f"    With(\n        {{ c: {MAT_CHANGES} }},\n"
+         "        If(c = 0, \"No unsaved changes.\", "
+         f"{dt.plural('c', 'unsaved change')} & \" - choose Save to keep them.\")\n    )\n)"),
+        size=12, color=f"If({MAT_DIRTY}, {C_WARN_FG}, {C_MUTED})", height=18, wrap="false")
+    grow(info)
+    btnSave = button(
+        "btnVhpMatSave", '"Save"',
+        (
+            "If(\n"
+            f"    CountRows({MAT_INVALID}) > 0,\n"
+            "    Set(varVhpMatTried, true);\n"
+            "    Notify(\"Each material line needs a material number and a quantity above 0.\", "
+            "NotificationType.Error),\n"
+            f"    !({MAT_DIRTY}),\n"
+            + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + ",\n"
+            "    RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo);\n"
+            "    Collect(\n"
+            "        colVhpMaterials,\n"
+            "        ForAll(\n"
+            "            Filter(colVhpMatDraft, !Deleted) As D,\n"
+            "            {\n"
+            "                ItemId: varVhpActiveItemId, LineId: D.LineId,\n"
+            "                MaterialNo: Trim(D.MaterialNo), Description: D.Description,\n"
+            "                Unit: D.Unit, Quantity: D.Quantity,\n"
+            "                OperationNo: varVhpMatOpNo, Selected: false\n"
+            "            }\n"
+            "        )\n"
+            "    );\n"
+            "    Notify(\"Materials saved for operation \" & varVhpMatOpNo & \".\", "
+            "NotificationType.Success);\n"
+            + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + "\n"
+            ")"
+        ), primary=True, width=fit_button_width('"Save"') + ICON_W, icon="Save",
+        # Altid slaaet til (uden for View): et felt skriver foerst i kladden,
+        # naar det forlades, saa en Save, der var slaaet fra indtil da, ville
+        # sluge det klik, der forlader feltet. Uden aendringer lukker Save blot.
+        display_mode=VIEW_LOCK, visible=f"!{ro}")
+    footer = group("conVhpMatFooter", [info, btnSave], direction="Horizontal", gap=8,
+                   height=36, align_items="Center")
+
     return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', MAT_OPEN,
-                  'Set(varVhpMatOpNo, "")', [actions, note, table], cap=True)
+                  MAT_CLOSE_FX, [actions, note, table, footer], width=MAT_MODAL_W, cap=True)
+
+
+def build_mat_discard_confirm():
+    """X med ugemte aendringer i Materials-popuppen (issue #451) - appens
+    bekraeftelse (confirm_modal), som "Start a new request?". X i
+    bekraeftelsen lader popuppen og kladden staa."""
+    return confirm_modal(
+        "VhpMatDiscard", "varVhpMatDiscardOpen", "Discard unsaved changes?",
+        '"The new, edited and deleted material lines on this operation are not saved."',
+        "Discard changes", MAT_DISCARD_FX, "btnVhpMatDiscardConfirm", icon=None, danger=True)
 
 
 # ---------------------------------------------------------------------------
@@ -796,12 +978,18 @@ def _op_detail_modal():
                     f'"Duration: " & {lay.num_text(OPM + ".DurationHours")} & " h   Work center: " & '
                     f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
                     wrap="false")
-    mats = button("btnVhpOpMMat", '"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
-                  'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
-                  width=fit_button_width('"Materials (00)"'), height=32)
+    opm_mats = "Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo)"
+    mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows({opm_mats})) & ")"',
+                  mat_open_fx("varVhpOpMNo"),
+                  width=fit_button_width('"Materials (00)"'), height=32,
+                  tooltip=mat_summary(opm_mats))
     docs = button("btnVhpOpMDocs", docs_label(f"{OPM}.FileCount"),
                   att.open_fx("varVhpOpMNo"),
-                  width=fit_button_width('"Docs (00)"'), height=32)
+                  width=fit_button_width('"Docs (00)"'), height=32,
+                  tooltip=docs_summary(OPM))
+    # Udfyldt = groen kant, som Long text (issue #451).
+    mark_done(mats, f"CountRows({opm_mats}) > 0")
+    mark_done(docs, docs_done(OPM))
     rem = button("btnVhpOpMRemove", '"Remove"',
                  "RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);\n"
                  'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32,
@@ -1296,18 +1484,22 @@ def build_tasklist_section():
                "OperationNo = ThisItem.OperationNo)")
     btnOpMat = button(
         "btnVhpOpMaterials", f'"Materials (" & Text(CountRows({OP_MATS})) & ")"',
-        "Set(varVhpMatOpNo, ThisItem.OperationNo)", width=w["MATERIALS"], height=32,
-        accessible='"Materials for operation " & ThisItem.OperationNo')
+        mat_open_fx("ThisItem.OperationNo"), width=w["MATERIALS"], height=32,
+        accessible='"Materials for operation " & ThisItem.OperationNo',
+        tooltip=mat_summary(OP_MATS))
     btnOpDocs = button(
         # Dokumenterne er vedhaeftninger paa operationens raekke (issue
         # #300) og hentes foerst, naar popuppen aabnes. Antallet kendes
         # foerst derefter (FileCount, #336) - indtil da blot "Docs".
         "btnVhpOpDocs", docs_label("ThisItem.FileCount"),
         att.open_fx("ThisItem.OperationNo"), width=w["DOCS"], height=32,
-        accessible='"Documents for operation " & ThisItem.OperationNo')
+        accessible='"Documents for operation " & ThisItem.OperationNo',
+        tooltip=docs_summary("ThisItem"))
     for b_ in (btnOpMat, btnOpDocs):
         b_.props["Size"] = "12"
     mark_done(btnOpMat, f"CountRows({OP_MATS}) > 0")
+    # Docs (n) ogsaa groen, naar der er gemte filer (issue #451).
+    mark_done(btnOpDocs, docs_done("ThisItem"))
 
     opRow = group("conVhpOpRow",
                   pin_widths([txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,

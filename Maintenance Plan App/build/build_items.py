@@ -426,6 +426,8 @@ def _copy_record(collection, alias, indent):
         elif k == "FileCount":
             # Dokumenterne haenger paa originalens raekke - kopien har ingen.
             fields.append("FileCount: 0")
+        elif k == "FileNames":
+            fields.append('FileNames: ""')
         else:
             fields.append(f"{k}: {alias}.{k}")
     return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"

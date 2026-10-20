@@ -162,6 +162,9 @@ OP_FIELDS = [
     # ukendt (blankt tal), til Docs-popuppen har hentet raekken
     # (build_attflows.open_fx) eller dokumenterne er gemt (on_ok).
     ("FileCount", "If(false, 0)"),
+    # Filernes navne til Docs-knappens tooltip (issue #451) - af samme
+    # grund ukendte, til Docs-popuppen har hentet raekken.
+    ("FileNames", '""'),
     ("SpId", "OP.ID"),
 ]
 
