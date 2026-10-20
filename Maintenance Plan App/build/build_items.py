@@ -19,7 +19,7 @@ from build_plan_header import section_header, help_panel, section_footer, status
 from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
 from gen_screen import lock_section
 import build_help as bh
-from fl_picker import fl_picker
+from fl_picker import fl_picker, result_count_fx
 import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
@@ -716,7 +716,7 @@ EDITOR_COL_W = col_width(EDITOR_CW, EDITOR_COLS)
 FL_W = fits(EDITOR_CW, TWO_COL_MIN, EDITOR_CW, f"(({EDITOR_CW} - 40) / 3) * 2 + 20")
 
 
-def _obj_list_button(n_obj):
+def _obj_list_button(n_obj, n_found):
     """Object list-knappen som et billede med SAMME udseende som en outline-
     knap. Et billede, fordi dets Tooltip er browserens egen: den bryder
     linjerne (Char(10)) og ombryder lange tekster. ModernButtons Fluent-
@@ -724,7 +724,14 @@ def _obj_list_button(n_obj):
 
     Udfyldt (mindst et objekt valgt): groen kant og tekst, som Item Long
     Text (issue #73) - tilstanden foelger antallet, saa den forsvinder, naar
-    valget ryddes."""
+    valget ryddes.
+
+    Tallet i knappen (issue #454) er n_found: antal resultater i den
+    aktuelle FL-soegning - samme samling og samme tal som beskeden under
+    feltet ("6 Functional Locations found ..." -> "Object list (6)").
+    Det nulstilles af fl_picker.result_count_fx, naar soegeteksten aendres,
+    resultaterne ryddes, eller en ny soegning starter. De VALGTE objekter
+    staar i tooltip'en og i den groenne tilstand (n_obj)."""
     w, h = fit_button_width('"Object list (000)"') + 28, 34
     done = f"({n_obj} > 0)"
     # I View (issue #406) kan knappen altid bruges paa et item: popup'en
@@ -748,9 +755,10 @@ def _obj_list_button(n_obj):
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
             + '</svg>"')
     svg = (f'If({below("Tablet")}, ' + _svg(40, 12, None) + ', '
-           + _svg(w, 14, '"Object list (" & Text(' + n_obj + ') & ")"') + ')')
+           + _svg(w, 14, '"Object list (" & Text(' + n_found + ') & ")"') + ')')
     img = Ctrl("imgVhpObjList", "Image", props={
-        "AccessibleLabel": f'"Object list, " & Text({n_obj}) & " selected"',
+        "AccessibleLabel": (f'"Object list, " & Text({n_found}) & " found, " & '
+                           f'Text({n_obj}) & " selected"'),
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
@@ -834,7 +842,10 @@ def build_item_editor():
     # konstant i appens EGEN kopi af build_flsearch.py - og det var netop
     # den ene linje, de tre kopier havde glidt fra hinanden paa.
     n_obj = f"CountRows({OBJ_CHOSEN})"
-    btnObjList = _obj_list_button(n_obj)
+    # Knappens tal: den aktuelle soegnings resultater (issue #454).
+    n_found = result_count_fx(combo=FL_COMBO, results="colVhpFl",
+                              busy_var=FL_BUSY_VAR, last_var=FL_LAST_VAR)
+    btnObjList = _obj_list_button(n_obj, n_found)
     btnObjList.props["AlignInContainer"] = "AlignInContainer.Center"
     btnObjList.props["LayoutMinWidth"] = btnObjList.props["Width"]
     flPicker = fl_picker(
@@ -886,7 +897,9 @@ def build_item_editor():
     #
     # Issue #63: ingen hjaelpe- eller statustekst under knappen. Antallet
     # staar i knappen - "Object List (3)" - og de valgte vises ved hover
-    # (Tooltip). Er der intet at vaelge og intet valgt, er den deaktiveret.
+    # (Tooltip). Issue #454: tallet i knappen er nu soegningens antal
+    # resultater - det samme som beskeden under feltet. Er der intet at
+    # vaelge og intet valgt, er den deaktiveret.
     # Bredden er regnet af den bredeste tekst, den kan faa.
     flBlock = group("conVhpItemFlBlock",
                     [flLabelRow, flHint, flPicker, flWrongPlant, flTooShort, flMsg],
