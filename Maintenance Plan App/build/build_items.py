@@ -19,7 +19,7 @@ from build_plan_header import section_header, help_panel, section_footer, status
 from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
 from gen_screen import lock_section
 import build_help as bh
-from fl_picker import fl_picker
+from fl_picker import fl_picker, result_count_fx
 import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
@@ -236,18 +236,38 @@ FL_MIN_LEN = 8
 # hoerer til et andet vaerk end planens. Derfor soeges der kun, naar de
 # foerste 3 tegn er planens Plant (store/smaa bogstaver er ligegyldige). Er
 # der ikke valgt Plant endnu, kan der slet ikke soeges.
-FL_PLANT_PREFIX = "Upper(Left(Trim(varVhpPlan.Plant), 3))"
+#
+# Issue #453: vaerket er det, der STAAR i Plan Header (st.PLANT = VhpPlant) -
+# ogsaa foer Save.
+FL_PLANT_PREFIX = st.PLANT_PREFIX
 
 
 def fl_wrong_plant(q):
     """Sand, naar soegeteksten q (trimmet) ikke maa soeges paa i denne plan."""
-    return (f"(IsBlank(varVhpPlan.Plant) || "
+    return (f"(IsBlank({st.PLANT}) || "
             f"Upper(Left({q}, 3)) <> {FL_PLANT_PREFIX})")
+
+
+# VAERKET STAAR ALLEREDE I SOEGNINGEN (issue #453). ModernCombobox har ingen
+# standard-soegetekst, saa "SSV" kan ikke staa skrevet i feltet. I stedet
+# udfylder appen praefikset: starter det skrevne med et tal ("13 HFC10"),
+# soeges der paa vaerket foran ("SSV13 HFC10"). Pladsholderen siger det.
+# Skriver brugeren selv hele koden ("SSV13 HFC10"), er intet aendret, og en
+# kode fra et andet vaerk ("AVV13 ...") stoppes som foer (fl_wrong_plant).
+def fl_with_prefix(q):
+    """Soegeteksten q med vaerkets praefiks foran, naar q starter med et tal."""
+    return (f"With({{ fq: Trim({q}) }}, "
+            f"If(!IsBlank({FL_PLANT_PREFIX}) && IsMatch(Left(fq, 1), \"[0-9]\"), "
+            f"{FL_PLANT_PREFIX} & fq, fq))")
+
+
+FL_PLACEHOLDER = (f'If(IsBlank({st.PLANT}), "Choose a plant in the Plan header first", '
+                  f'{FL_PLANT_PREFIX} & "... type the rest, e.g. 13 HFC10")')
 
 
 FL_WRONG_PLANT_MSG = (
     "If(\n"
-    "    IsBlank(varVhpPlan.Plant),\n"
+    f"    IsBlank({st.PLANT}),\n"
     "    \"Choose a plant in the Plan header before searching for a functional location.\",\n"
     f"    \"Only functional locations for plant \" & {FL_PLANT_PREFIX} &\n"
     f"        \" can be searched. The search must start with \" & {FL_PLANT_PREFIX} & \".\"\n"
@@ -338,6 +358,15 @@ ACTIVE_MISSING = (
     + ", ".join(f'{{ n: "{n}", m: {c} }}' for n, c in st.item_required("ar."))
     + '), m), n, ", "))')
 
+# Det aktive items felter fra et andet vaerk end Plan Headers Plant (issue
+# #453) - "Main work center, Functional Location" - tom, naar alt passer.
+# Samme betingelser som reglen (build_status.ITEM_PLANT_CONFLICTS).
+ACTIVE_CONFLICTS = (
+    f"With({{ ar: {ACTIVE_ROW} }}, Concat(Filter(Table("
+    + ", ".join(f'{{ n: "{n}", m: {c} }}' for n, c in st.item_plant_conflicts("ar."))
+    + '), m), n, ", "))')
+ACTIVE_MWC_CONFLICT = dict(st.item_plant_conflicts(f"{ACTIVE_ROW}."))["Main work center"]
+
 RESET_EDITOR_CONTROLS = (
     f"{SNAP_ITEM_BASE}; "
     f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Set({FL_PICK_VAR}, \"\"); "
@@ -397,6 +426,8 @@ def _copy_record(collection, alias, indent):
         elif k == "FileCount":
             # Dokumenterne haenger paa originalens raekke - kopien har ingen.
             fields.append("FileCount: 0")
+        elif k == "FileNames":
+            fields.append('FileNames: ""')
         else:
             fields.append(f"{k}: {alias}.{k}")
     return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"
@@ -510,8 +541,12 @@ def item_delete_confirm():
 _ROW = "ThisItem."
 _OP_PROBLEM = (f"{st.OP_NO_TEXT} || ({st.OP_NO_MG}) || ({st.OP_NO_COST}) || "
                f"(pk && {st.OP_NO_PKG})")
+# Issue #453: vaerdier fra et andet vaerk end Plan Headers Plant er ogsaa
+# blokeringer - de markeres, de slettes ikke.
 _BLOCKER_ROWS = [(n, c) for n, c in st.item_required(_ROW)] + [
+    (f"{n} (other plant)", c) for n, c in st.item_plant_conflicts(_ROW)] + [
     ("Task list", f"IsBlank(Trim({_ROW}TasklistKey))"),
+    ("Task list (other plant)", st.tasklist_plant_conflict(_ROW)),
     ("Operations", "IsEmpty(ops)"),
     ("Operation details", f"!IsEmpty(Filter(ops, {_OP_PROBLEM}))"),
 ]
@@ -790,7 +825,7 @@ EDITOR_COL_W = col_width(EDITOR_CW, EDITOR_COLS)
 FL_W = fits(EDITOR_CW, TWO_COL_MIN, EDITOR_CW, f"(({EDITOR_CW} - 40) / 3) * 2 + 20")
 
 
-def _obj_list_button(n_obj):
+def _obj_list_button(n_obj, n_found):
     """Object list-knappen som et billede med SAMME udseende som en outline-
     knap. Et billede, fordi dets Tooltip er browserens egen: den bryder
     linjerne (Char(10)) og ombryder lange tekster. ModernButtons Fluent-
@@ -798,7 +833,14 @@ def _obj_list_button(n_obj):
 
     Udfyldt (mindst et objekt valgt): groen kant og tekst, som Item Long
     Text (issue #73) - tilstanden foelger antallet, saa den forsvinder, naar
-    valget ryddes."""
+    valget ryddes.
+
+    Tallet i knappen (issue #454) er n_found: antal resultater i den
+    aktuelle FL-soegning - samme samling og samme tal som beskeden under
+    feltet ("6 Functional Locations found ..." -> "Object list (6)").
+    Det nulstilles af fl_picker.result_count_fx, naar soegeteksten aendres,
+    resultaterne ryddes, eller en ny soegning starter. De VALGTE objekter
+    staar i tooltip'en og i den groenne tilstand (n_obj)."""
     w, h = fit_button_width('"Object list (000)"') + 28, 34
     done = f"({n_obj} > 0)"
     # I View (issue #406) kan knappen altid bruges paa et item: popup'en
@@ -822,9 +864,10 @@ def _obj_list_button(n_obj):
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
             + '</svg>"')
     svg = (f'If({below("Tablet")}, ' + _svg(40, 12, None) + ', '
-           + _svg(w, 14, '"Object list (" & Text(' + n_obj + ') & ")"') + ')')
+           + _svg(w, 14, '"Object list (" & Text(' + n_found + ') & ")"') + ')')
     img = Ctrl("imgVhpObjList", "Image", props={
-        "AccessibleLabel": f'"Object list, " & Text({n_obj}) & " selected"',
+        "AccessibleLabel": (f'"Object list, " & Text({n_found}) & " found, " & '
+                           f'Text({n_obj}) & " selected"'),
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
@@ -899,7 +942,10 @@ def build_item_editor():
     # konstant i appens EGEN kopi af build_flsearch.py - og det var netop
     # den ene linje, de tre kopier havde glidt fra hinanden paa.
     n_obj = f"CountRows({OBJ_CHOSEN})"
-    btnObjList = _obj_list_button(n_obj)
+    # Knappens tal: den aktuelle soegnings resultater (issue #454).
+    n_found = result_count_fx(combo=FL_COMBO, results="colVhpFl",
+                              busy_var=FL_BUSY_VAR, last_var=FL_LAST_VAR)
+    btnObjList = _obj_list_button(n_obj, n_found)
     btnObjList.props["AlignInContainer"] = "AlignInContainer.Center"
     btnObjList.props["LayoutMinWidth"] = btnObjList.props["Width"]
     flPicker = fl_picker(
@@ -916,26 +962,41 @@ def build_item_editor():
         display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
         stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})",
-        min_len=FL_MIN_LEN, block=(fl_wrong_plant, FL_WRONG_PLANT_MSG))
+        min_len=FL_MIN_LEN, block=(fl_wrong_plant, FL_WRONG_PLANT_MSG),
+        query_map=fl_with_prefix, placeholder=FL_PLACEHOLDER)
 
     # For kort soegetekst (issue #144): en kort besked under feltet, saa
     # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser
     # comboboksens SearchText direkte - ikke FL_QUERY_VAR, som timeren kun
     # opdaterer, naar der staar noget, og som derfor kan vaere foraeldet.
+    # Issue #453: laengden og vaerket af det, der SOEGES paa - med vaerket
+    # udfyldt foran (fl_with_prefix), som Search-knappen goer.
     fl_typed = f"Len(Trim({FL_COMBO}.SearchText))"
+    fl_query = fl_with_prefix(f"{FL_COMBO}.SearchText")
+    fl_query_len = f"Len({fl_query})"
     # Forkert vaerk: vises fra 3 tegn (der kan prefikset afgoeres) - eller med
     # det samme, hvis planen ikke har en Plant endnu.
     fl_wrong = (f"!{FL_BUSY_VAR} && {fl_typed} > 0 && "
-                f"(IsBlank(varVhpPlan.Plant) || ({fl_typed} >= 3 && "
-                f"{fl_wrong_plant(f'Trim({FL_COMBO}.SearchText)')}))")
+                f"(IsBlank({st.PLANT}) || ({fl_query_len} >= 3 && "
+                f"{fl_wrong_plant(fl_query)}))")
+    # ITEMETS GEMTE FL HOERER TIL ET ANDET VAERK (issue #453) - fx efter et
+    # skift af Plant. FL'en bliver staaende (markeret, ikke slettet), og
+    # beskeden siger, hvad der skal goeres. Kun naar der ikke skrives.
+    fl_conflict = (f"!{FL_BUSY_VAR} && {fl_typed} = 0 && "
+                   + dict(st.item_plant_conflicts(f"{ACTIVE_ROW}."))["Functional Location"])
     flWrongPlant = text_ctrl(
-        "txtVhpFlWrongPlant", FL_WRONG_PLANT_MSG,
-        size=12, color=C_WARN_FG, height=32, wrap="true", visible=fl_wrong)
+        "txtVhpFlWrongPlant",
+        (f"If(\n    {fl_typed} = 0,\n"
+         f"    \"Functional location \" & {ACTIVE_ROW}.FunctionalLocation & "
+         f"\" belongs to another plant. Search for one in \" & {FL_PLANT_PREFIX} & \".\",\n"
+         f"    {FL_WRONG_PLANT_MSG}\n)"),
+        size=12, color=C_WARN_FG, height=32, wrap="true",
+        visible=f"({fl_wrong}) || ({fl_conflict})")
     flTooShort = text_ctrl(
         "txtVhpFlTooShort",
         f'"Enter at least {FL_MIN_LEN} characters to search."',
         size=12, color=C_WARN_FG, height=18, wrap="false",
-        visible=(f"!{FL_BUSY_VAR} && {fl_typed} > 0 && {fl_typed} < {FL_MIN_LEN} && "
+        visible=(f"!{FL_BUSY_VAR} && {fl_typed} > 0 && {fl_query_len} < {FL_MIN_LEN} && "
                  f"!({fl_wrong})"))
 
     # Soegningens status UNDER feltet - som i Materials (issue #72): "6
@@ -951,7 +1012,9 @@ def build_item_editor():
     #
     # Issue #63: ingen hjaelpe- eller statustekst under knappen. Antallet
     # staar i knappen - "Object List (3)" - og de valgte vises ved hover
-    # (Tooltip). Er der intet at vaelge og intet valgt, er den deaktiveret.
+    # (Tooltip). Issue #454: tallet i knappen er nu soegningens antal
+    # resultater - det samme som beskeden under feltet. Er der intet at
+    # vaelge og intet valgt, er den deaktiveret.
     # Bredden er regnet af den bredeste tekst, den kan faa.
     flBlock = group("conVhpItemFlBlock",
                     [flLabelRow, flHint, flPicker, flWrongPlant, flTooShort, flMsg],
@@ -961,12 +1024,14 @@ def build_item_editor():
     # Arbejdscentrene til det valgte vaerk (Plant i Plan Header). Upper paa
     # begge sider, saa "asv" og "ASV" er det samme vaerk. Er der ikke valgt
     # vaerk endnu, vises de alle - en tom dropdown uden forklaring er vaerre
-    # end en lang.
+    # end en lang. Issue #453: vaerket, som det STAAR i Plan Header (VhpPlant)
+    # - ogsaa foer Save. colVhpMainWorkCenters er indlaest, saa filteret er
+    # lokalt (ingen delegering).
     MWC_ITEMS = ("Sort(\n"
                  "    If(\n"
-                 "        IsBlank(varVhpPlan.Plant),\n"
+                 f"        IsBlank({st.PLANT}),\n"
                  "        colVhpMainWorkCenters,\n"
-                 "        Filter(colVhpMainWorkCenters, Upper(Plant) = Upper(varVhpPlan.Plant))\n"
+                 f"        Filter(colVhpMainWorkCenters, Upper(Plant) = Upper({st.PLANT}))\n"
                  "    ),\n"
                  "    Value\n"
                  ")")
@@ -974,7 +1039,10 @@ def build_item_editor():
     # vaerk vises som tomt i stedet for som et gyldigt valg.
     drpMwc = themed_dropdown("drpVhpItemMainWorkCenter", MWC_ITEMS,
                       f"LookUp({MWC_ITEMS}, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value",
-                      required_formula=REQ_ITEM, display_mode=DM_ITEM)
+                      # Arbejdscenter fra et andet vaerk (issue #453): feltet
+                      # staar tomt og roedt med det samme - ikke foerst efter Save.
+                      required_formula=f"({REQ_ITEM} || {ACTIVE_MWC_CONFLICT})",
+                      display_mode=DM_ITEM)
     drpAct = themed_dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
                       "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
@@ -1240,11 +1308,15 @@ def build_item_editor():
     # sidste Save.
     attention = text_ctrl(
         "txtVhpItemAttention",
-        f'With({{ miss: {ACTIVE_MISSING} }}, If(IsBlank(miss), "Item is valid.", '
-        '"Fill in " & miss & "."))',
+        f'With({{ miss: {ACTIVE_MISSING}, other: {ACTIVE_CONFLICTS} }}, '
+        'If(!IsBlank(miss), "Fill in " & miss & ".", '
+        # Issue #453: felter fra et andet vaerk staar her med det samme.
+        f'!IsBlank(other), other & " does not belong to plant " & {st.PLANT} & " - choose one for that plant.", '
+        '"Item is valid."))',
         size=12, height=36, wrap="true",
         visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
-        extra={"Color": f'If({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}), {C_INVALID_FG}, {C_MUTED})',
+        extra={"Color": (f'If(({REQ_ITEM} && !IsBlank({ACTIVE_MISSING})) || '
+                          f'!IsBlank({ACTIVE_CONFLICTS}), {C_INVALID_FG}, {C_MUTED})'),
                "VerticalAlign": "VerticalAlign.Middle"})
     footerInfo = group("conVhpItemFooterInfo", [attention], direction="Vertical", gap=0,
                        justify="Center", visible=attention.vis)

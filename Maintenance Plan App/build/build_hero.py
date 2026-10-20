@@ -436,7 +436,9 @@ RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "co
 
 NEW_PLAN_FX = (
     VARS_BLOCK[:VARS_BLOCK.index("// Brugeren")].strip() + "\n"
-    'Set(varVhpSavedJson, ""); Set(varVhpPrevPlant, ""); Set(varVhpPlanSpId, 0);\n'
+    'Set(varVhpSavedJson, ""); Set(varVhpPlanSpId, 0);\n'
+    # Ingen usavet Plant fra den forrige plan (issue #453).
+    'Set(varVhpLivePlant, "");\n'
     'Set(varVhpPlanKey, ""); Set(varVhpPlanModified, Blank()); Set(varVhpRequestGuid, "");\n'
     "Set(varVhpFocusStep, 0);\n"
     + "".join(f"Clear({c});\n" for c in RESET_COLLECTIONS)

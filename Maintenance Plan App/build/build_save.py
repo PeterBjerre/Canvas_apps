@@ -896,6 +896,14 @@ def save_action():
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
+        # PLANT ER AENDRET, MEN IKKE GEMT (issue #453). Items, regler og
+        # filtre foelger allerede det nye vaerk (VhpPlant), men gemningen
+        # skriver planhovedet, som det blev gemt (varVhpPlan). Saa ville
+        # planen gemmes med det gamle vaerk og items valideret mod det nye.
+        "    Upper(VhpPlant) <> Upper(varVhpPlan.Plant),\n"
+        "    Set(varVhpSubmitting, false);\n"
+        "    Notify(\"Plant changed to \" & VhpPlant & \" - press Save in the plan header before saving the plan.\", NotificationType.Warning),\n"
+        "\n"
         # Kort tekst, funktionsplads, aktivitetstype og arbejdscenter er
         # PAAKRAEVEDE kolonner i MaintenanceItems. Et item uden dem kan ikke
         # gemmes - heller ikke som kladde - saa det siges her, foer noget
