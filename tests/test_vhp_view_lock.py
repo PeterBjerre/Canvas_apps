@@ -82,8 +82,8 @@ def test_named_controls_follow_view_mode():
     att = c["attVhpAttPicker"][1]["DisplayMode"]
     assert VIEW in att and "DisplayMode.View" in att
     assert VIEW in c["btnVhpAttUpload"][2] + c["btnVhpAttUpload"][3]
-    # Tom item-liste: ingen Add item i View.
-    assert VIEW in c["btnVhpItemsEmptyAdd"][2] + c["btnVhpItemsEmptyAdd"][3]
+    # Tom item-liste: ingen egen Add item mere (issue #459) - kun kortets.
+    assert "btnVhpItemsEmptyAdd" not in c
 
 
 def test_view_and_read_actions_stay_open():
