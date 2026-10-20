@@ -65,10 +65,12 @@ def test_footer_actions():
     locked = 'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)'
     assert T._prop("btnFlEditorDelete", "OnSelect") == "Set(varFlPanelDelAsk, true)"
     assert T._prop("btnFlEditorDelete", "DisplayMode") == locked
-    # Reset gaar direkte tilbage til aftrykket - ingen bekraeftelse (#405).
+    # Reset spoerger foerst, naar der er aendringer (issue #450); ellers
+    # gaar den direkte tilbage til aftrykket.
     reset = T._prop("btnFlEditorReset", "OnSelect")
     assert reset.startswith("If(\n    With({ s: First(colFlPanelSnap)")
-    assert "Collect(colFlVals, colFlPanelSnapVals)" in reset
+    assert "Set(varFlPanelResetAsk, true)" in reset
+    assert "Collect(colFlVals, colFlPanelSnapVals)" in T._prop("btnFlRowResetConfirm", "OnSelect")
     cancel = T._prop("btnFlEditorCancel", "OnSelect")
     assert "Collect(colFlVals, colFlPanelSnapVals)" in cancel
     assert cancel.rstrip().endswith("Clear(colFlPanelSnapVals)")

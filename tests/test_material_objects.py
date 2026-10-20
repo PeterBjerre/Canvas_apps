@@ -236,15 +236,18 @@ def test_purchase_order_text_is_remarks_in_a_popup():
     assert "varMatPoOpen" not in _prop("conMatPoBackdrop", "OnSelect")
 
 
-def test_reset_restores_only_the_form_and_does_not_ask():
-    """Reset kasserer kun formularens ugemte aendringer og spoerger ikke
-    (issue #403, #405)."""
-    reset = _prop("btnMatNew", "OnSelect")
+def test_reset_restores_only_the_form_and_asks_first():
+    """Reset kasserer kun formularens ugemte aendringer (issue #403) - og
+    spoerger foerst, naar der er nogen (issue #450)."""
+    click = _prop("btnMatNew", "OnSelect")
     assert _prop("btnMatNew", "Text") == '"Reset"'
-    assert "ResetAsk" not in reset
+    assert "Set(varMatResetAsk, true)" in click
+    reset = _prop("btnMatResetConfirm", "OnSelect")
+    assert reset.startswith("Set(varMatResetAsk, false);")
     assert "Set(varMatEditorOpen, true)" in reset
-    # Saved Rows og anmodningen roeres ikke.
-    for untouched in ("MaterialItems", "Remove(", "ClearCollect(colMatRows",
+    # Saved Rows og anmodningen roeres ikke. (Documents-fanen laeser
+    # raekkens dokumenter igen, naar brugeren stod paa den - kun en LookUp.)
+    for untouched in ("Patch(MaterialItems", "Remove(", "ClearCollect(colMatRows",
                       "RemoveIf(colMatRows", "varMatRequestGuid", "varMatRequestNo",
                       "MD_RequestIndex"):
         assert untouched not in reset, untouched
