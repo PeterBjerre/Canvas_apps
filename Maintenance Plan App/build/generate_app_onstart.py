@@ -152,6 +152,10 @@ Set(varVhpLongTextOpen, false);
 Set(varVhpLongTextItemId, 0);
 Set(varVhpLongTextOpNo, "");
 Set(varVhpLongTextDraft, "");
+// Delete paa et items kort spoerger foerst (issue #457): popuppen og
+// det item, der skal slettes (tom = intet).
+Set(varVhpItemDelAsk, false);
+Set(varVhpItemDelId, Blank());
 
 // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
 // saa opdateres den i stedet for at blive oprettet igen.

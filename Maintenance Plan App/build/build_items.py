@@ -466,8 +466,18 @@ CARD_NO = "CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId))"
 
 
 def _delete_item_fx(item_id):
-    """Sletningen af et item - editorens "Delete item"
-    (UX-review M5). Id'et laeses FOER noget fjernes."""
+    """Sletningen af et item. Koeres KUN fra bekraeftelsen
+    (item_delete_confirm, issue #457) - kortets Delete aabner den.
+    Id'et laeses FOER noget fjernes.
+
+    Alt, der haenger paa itemet, gaar med i samme omgang: operationerne
+    (og dermed deres dokumenter, som er vedhaeftninger paa operationens
+    raekke i TaskListMain), materialerne, objektlisten, de aeldre
+    dokumentraekker og itemets gemte (laaste) sektioner. Tasklisten er et
+    felt paa itemet selv. Et gemt item (SpId) og dets operationer fjernes
+    fra SharePoint ved naeste gem (build_save, trin 7: raekker, der ikke
+    laengere er i appen); et ugemt item findes kun her og er vaek med det
+    samme."""
     return (
             "With(\n"
             "    { id: " + item_id + ", no: CountRows(Filter(colVhpItems, ItemId <= " + item_id + ")) },\n"
@@ -477,6 +487,9 @@ def _delete_item_fx(item_id):
             # blev de gemt med tom ItemKey og laa usynlige i planen.
             "    RemoveIf(colVhpMaterials, ItemId = id);\n"
             "    RemoveIf(colVhpAttachments, ItemId = id);\n"
+            # En laast sektion paa et slettet item maa ikke hoere til et
+            # nyt item med samme id (issue #457).
+            "    RemoveIf(colVhpSectionLocks, ItemId = id);\n"
             "    RemoveIf(colVhpItems, ItemId = id);\n"
             "    If(\n"
             "        varVhpActiveItemId = id,\n"
@@ -486,6 +499,63 @@ def _delete_item_fx(item_id):
             "    Notify(\"Item \" & Text(no) & \" deleted.\", NotificationType.Success)\n"
             ")"
     )
+
+
+# BEKRAEFTELSEN FOER SLETNING AF ET ITEM (issue #457). Kortets Delete
+# saetter ITEM_DEL_ID og aabner popuppen; foerst Delete her sletter.
+# Samme konstruktion som appens andre bekraeftelser (build_helpers.
+# confirm_modal: sloer, titel med X, tekst, handling) - med en Cancel-
+# knap foran Delete, som issuet kraever. Cancel, X og et tryk paa sloeret
+# (mobil) lukker uden at slette noget.
+ITEM_DEL_ASK = "varVhpItemDelAsk"
+ITEM_DEL_ID = "varVhpItemDelId"
+
+
+def item_delete_message():
+    """Hvilket item, og at ALT dets indhold forsvinder. Et gemt item
+    (SpId) faar at vide, at det forsvinder fra SharePoint ved naeste gem."""
+    it = f"LookUp(colVhpItems, ItemId = {ITEM_DEL_ID})"
+    no = f"CountRows(Filter(colVhpItems, ItemId <= {ITEM_DEL_ID}))"
+    return (
+        f'"Item " & Text({no}) & '
+        f'If(IsBlank({it}.ShortText), "", " \u00b7 " & {it}.ShortText) & '
+        '" and all its data - task list, operations, materials, documents and '
+        'object list selections - will be permanently deleted. This cannot be undone." & '
+        f'If(IfError({it}.SpId, 0) > 0, " It is removed from SharePoint when you save the plan.", "")'
+    )
+
+
+def item_delete_confirm():
+    """[sloer, popup] - skal staa blandt skaermens sidste boern."""
+    from build_helpers import tap_backdrop
+    p = "VhpItemDel"
+    vis = (f"IfError({ITEM_DEL_ASK}, false) && !IfError(varVhpViewOnly, false) && !IsBlank({ITEM_DEL_ID}) && "
+           f"!IsBlank(LookUp(colVhpItems, ItemId = {ITEM_DEL_ID}))")
+    close_fx = f"Set({ITEM_DEL_ASK}, false);\nSet({ITEM_DEL_ID}, Blank())"
+    run_fx = (f"Set({ITEM_DEL_ASK}, false);\n{_delete_item_fx(ITEM_DEL_ID)};\n"
+              f"Set({ITEM_DEL_ID}, Blank())")
+    backdrop = tap_backdrop(f"con{p}ConfirmBackdrop", vis, close_fx)
+    t = text_ctrl(f"txt{p}ConfirmTitle", '"Delete item?"', size=lay.SIZE_CARD_TITLE,
+                  weight="Semibold", height=26, wrap="false")
+    head = popup_head(f"con{p}ConfirmHead", t, f"btn{p}ConfirmCancel", close_fx)
+    msg = text_ctrl(f"txt{p}ConfirmText", item_delete_message(), size=13, color=C_MUTED,
+                    height=if_below("Tablet", "112", "72"), wrap="true")
+    # Den sikre knap foerst og neutral; Delete roed og yderst.
+    cancel = button(f"btn{p}ConfirmKeep", '"Cancel"', close_fx,
+                    width=fit_button_width('"Cancel"'), height=36,
+                    tooltip='"Close without deleting anything"')
+    ok = button(f"btn{p}Confirm", '"Delete"', run_fx, danger=True,
+                width=fit_button_width('"Delete"') + ICON_W, height=36, icon="Delete",
+                accessible='"Delete the item permanently"')
+    footer = group(f"con{p}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group(f"con{p}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
 
 
 # ITEMETS BLOKERINGER (issue #448) - til kortet i Items-listen. Hver raekke
@@ -704,10 +774,14 @@ def build_items_rail():
     # Samme sletning som foer: operationer og objekter foelger med.
     # Beskeden naevner itemets nummer i listen (issue #230), regnet FOER
     # sletningen - ikke ItemId, som er SharePoint-ID'et.
+    #
+    # Spoerger foerst (issue #457): knappen husker kortets item og aabner
+    # bekraeftelsen; foerst Delete DER sletter. Det er nu den eneste
+    # Delete paa et item - Item Editorens "Delete item" er fjernet.
     DEL_W = fit_button_width("\"Delete\"", size=13, min_w=64)
     btnDelete = button(
         "btnVhpRemoveItem", "\"Delete\"",
-        _delete_item_fx("ThisItem.ItemId"), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK, visible="!varVhpViewOnly",
+        f"Set({ITEM_DEL_ID}, ThisItem.ItemId);\nSet({ITEM_DEL_ASK}, true)", danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK, visible="!varVhpViewOnly",
         accessible=f"\"Delete item \" & Text({CARD_NO})")
     btnDelete.props["Size"] = "13"
     btnDelete.props["_OnTop"] = "true"
@@ -881,24 +955,15 @@ def build_item_editor():
     # eller itemet er aabnet med mangler (issue #448: af vaerdierne, ikke
     # af Status fra sidste Save).
     # HVILKET ITEM (UX-review M5, VH-plan-mockuppen): "Item 1 - Bearing
-    # lubrication" ved titlen og "Delete item" i hovedet - den samme
-    # sletning som kortets Delete, paa det aktive item.
+    # lubrication" ved titlen. Hovedets "Delete item" er fjernet (issue
+    # #457): et item slettes kun fra sit kort i Items-listen.
     active = "LookUp(colVhpItems, ItemId = varVhpActiveItemId)"
     no = "CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId))"
     which = text_ctrl("txtVhpEditorWhich",
                       f'If(IsBlank(varVhpActiveItemId), "", Text({no}) & '
                       f'If(IsBlank({active}.ShortText), "", "  \u00b7  " & {active}.ShortText))',
                       size=lay.SIZE_BODY, color=C_MUTED, height=20, width="260", wrap="false")
-    del_txt = '"Delete item"'
-    btnDelItem = button("btnVhpEditorDelete", del_txt, _delete_item_fx("varVhpActiveItemId"),
-                        danger=True, width=fit_button_width(del_txt, size=13), height=30,
-                        display_mode=VIEW_LOCK,
-                        visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
-                        accessible=f'"Delete item " & Text({no})')
-    btnDelItem.props["Size"] = "13"
-    btnDelItem.props["LayoutMinWidth"] = btnDelItem.props["Width"]
     header = section_header("conVhpEditorHead", "Item", "Step 2", extra_left=[which],
-                            extra_right=[btnDelItem],
                             valid_fx=items_valid_fx(),
                             attention_fx=f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))")
     helpPanel = help_panel("conVhpItemHelp", "item")
