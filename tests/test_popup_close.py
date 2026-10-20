@@ -22,7 +22,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCREENS = sorted(glob.glob(os.path.join(ROOT, "BIO SAP App", "Screen*.pa.yaml")))
 BUTTONS = ("ModernButton", "Classic/Button")
 # Popupper, der bevidst har en Cancel-knap ved siden af Save (issue #429).
-CANCEL_SAVE_POPUPS = {"conMatPoModal"}
+CANCEL_SAVE_POPUPS = {"conMatPoModal",
+                      # Slet et item: Cancel og Delete, som issue #457 kraever.
+                      "conVhpItemDelConfirmModal"}
 
 
 def _icon_close(v):

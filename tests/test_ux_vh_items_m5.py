@@ -15,16 +15,13 @@ def _block(y, name, n=3000):
     return y[i:i + n]
 
 
-def test_the_editor_says_which_item_and_can_delete_it():
+def test_the_editor_says_which_item():
     y = _yaml()
     which = _block(y, "txtVhpEditorWhich")
     assert "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText" in which
-    delete = _block(y, "btnVhpEditorDelete", 5000)
-    assert "{ id: varVhpActiveItemId," in delete
-    assert "RemoveIf(colVhpItems, ItemId = id)" in delete
-    # Det samme som kortets Delete - bare paa det aktive item.
-    card = _block(y, "btnVhpRemoveItem", 5000)
-    assert "{ id: ThisItem.ItemId," in card
+    # Issue #457: "Delete item" er fjernet fra editoren - et item slettes
+    # kun fra sit kort i Items-listen (tests/test_item_delete_confirm.py).
+    assert "btnVhpEditorDelete" not in y
 
 
 def test_the_subtitle_is_the_plan_name_when_there_is_one():
