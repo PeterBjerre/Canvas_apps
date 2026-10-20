@@ -203,7 +203,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               on_clear=None, required_formula="false", width="Parent.Width",
               label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None,
               lock=None, min_len=None, kind="Fl", searcher=None, placeholder=None,
-              search_accessible='"Search functional location"', block=None):
+              search_accessible='"Search functional location"', block=None, on_found=None):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -214,6 +214,9 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     default_items  DefaultSelectedItems - det gemte valg som tabel
     on_select  hvad et valg goer ud over at saette pick_var
     on_clear   ryd det gemte valg - koeres, naar en ny soegning starter
+    on_found   hvad det automatiske valg af foerste resultat goer ud over at
+               saette pick_var (koden staar i pick_var) - fx skrive koden paa
+               raekken, saa den ikke kun staar i comboboksen (issue #448)
     lock       udtryk, der goer vaelgeren utilgaengelig, mens det er sandt
                (Materials' No BOM Item, issue #101) - se _lock_combo
     min_len    mindste antal tegn (trimmet) foer der kan soeges - baade med
@@ -241,7 +244,8 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         # ogsaa hvis den ikke finder noget.
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
         on_found=(f"Set({pick_var}, First({results}).Code);\n"
-                  f"                    Reset({combo})"))
+                  f"                    Reset({combo})"
+                  + (f";\n                    {on_found}" if on_found else "")))
 
     block_cond = None
     if block:
@@ -270,7 +274,8 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         query_expr=query_var, last_var=last_var, min_len=n_min,
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
         on_found=(f"Set({pick_var}, First({results}).Code);\n"
-                  f"                    Reset({combo})"))
+                  f"                    Reset({combo})"
+                  + (f";\n                    {on_found}" if on_found else "")))
     if block:
         search_enter = guard(query_var, search_enter)
     on_change = (

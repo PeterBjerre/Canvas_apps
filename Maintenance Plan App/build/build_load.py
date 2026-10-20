@@ -389,6 +389,8 @@ def load_block():
         "                );\n"
         "                // --- hvad der er valgt naar skaermen tegnes -------\n"
         "                Set(varVhpActiveItemId, First(colVhpItems).ItemId);\n"
+        # Reset i Item Editoren laegger itemet tilbage hertil (issue #448).
+        "                Set(varVhpItemBase, First(colVhpItems));\n"
         "                Set(varVhpNextItemId, Max(colVhpItems, ItemId));\n"
         "                Notify(\n"
         "                    \"Opened \" & idx.RequestNo & \" - \" &\n"
