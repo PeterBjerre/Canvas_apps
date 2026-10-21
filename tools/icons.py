@@ -258,6 +258,11 @@ LIST = "M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01"
 # View mode: et oeje. Edit mode: blyanten (EDIT).
 EYE = ("M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z "
        "M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z")
+# SAP-objekter (issue #471): kaedeleddet i hubbens SAP OBJECT-kolonne og
+# "aabn udenfor" ved hvert SAP-nummer i popuppen.
+LINK = ("M10 13.5a4.5 4.5 0 0 0 6.8.5l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.7 1.7 "
+        "M14 10.5a4.5 4.5 0 0 0-6.8-.5l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.7-1.7")
+OPEN_EXTERNAL = "M14 3.5h6.5V10 M20.5 3.5 11 13 M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"
 
 # --- status paa en anmodning (MD_RequestIndex.Status) --------------------
 # Hver status sin egen FORM - farven alene maa ikke baere den (issue #74,

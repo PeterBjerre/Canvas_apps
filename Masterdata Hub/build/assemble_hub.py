@@ -16,6 +16,7 @@ from build_helpers import app_frame
 from side_nav import side_nav
 import build_hub
 import approval_flow
+import sap_objects
 import submission_notes as sn
 from build_hub import (build_bar, build_tiles, build_filters, build_banner, build_list, build_new_menu,
                        build_closed_peek, build_delete_modal, build_close_modal)
@@ -35,6 +36,7 @@ def build_screen(render=render_screen):
     return render("ScreenMdHub", {"Fill": C_APP_BG,
                                          "OnVisible": build_hub.HUB_ON_VISIBLE},
                          [root, *nav, *build_new_menu(), *build_closed_peek(), *build_delete_modal(), *build_close_modal(), *approval_flow.build_popup(),
+                          *sap_objects.build_popup(),
                           # Noterne aabnes ogsaa fra Activity, saa de ligger over den (issue #115).
                           *sn.hub_popup(),
                           *overlay])
