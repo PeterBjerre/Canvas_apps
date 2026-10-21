@@ -136,7 +136,7 @@ def calc_rows():
     ForAll(
         colFlRows As R,
         With(
-            {{ fl: R.FL, d: Trim(R.Description) }},
+            {{ fl: R.FL, d: Upper(Trim(R.Description)) }},
             With(
                 {{
                     k0: Left(fl, 3), k7: Mid(fl, 7, 3), k12: Mid(fl, 12, 2),
