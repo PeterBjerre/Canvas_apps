@@ -193,6 +193,9 @@ FLUENT = {
     "expand": "ChevronDown",
     "collapse": "ChevronUp",
     "attach": "Attach",
+    # Raekkens Objects-handling (issue #485): funktionspladserne, raekken
+    # er knyttet til. Efterproeves i Studio - ikke brugt foer.
+    "objects": "Link",
     # UX-review 2026-10 (efterproeves i Studio - ikke brugt foer):
     "refresh": "ArrowClockwise",
     "copy": "Copy",

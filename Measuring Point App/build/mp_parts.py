@@ -352,12 +352,10 @@ def build_rows():
                          "Search FL, measuring point, characteristic, PRODOS tag")
 
 
-dp.configure(row_actions=[
-    dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), 64,
-                 mode=dp.DM_ROW_EDIT),
-    dp.RowAction("btnDomRowMore", '"More"', "Set(varDomMoreRowId, ThisItem.RowId)",
-                 64, label='"More actions for " & ThisItem.ItemKey', line=2),
-])
+# De faelles raekkeikoner (issue #485): Edit, Copy og Delete. Maalepunkter
+# har ingen dokumenter (issue #300) og ingen Objects-fane - et maalepunkt
+# sidder paa EEN funktionsplads, som vaelges i formularen. Ingen More-menu.
+dp.configure(row_actions=dp.standard_row_actions())
 
 
 # ---------------------------------------------------------------------------
