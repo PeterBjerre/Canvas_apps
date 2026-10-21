@@ -39,8 +39,8 @@ from gen_screen import C_INFO_FG, C_MUTED, C_WARN_FG
 import admin_log as alog
 import permissions as perm
 import stepper as st
-from build_helpers import (button, card, fit_button_width, group, grow, text_ctrl,
-                           text_input, themed_dropdown)
+from build_helpers import (button, card, fit_button_width, group, grow, segmented_width,
+                           text_ctrl, text_input, themed_dropdown)
 
 CELL_W = dp.CELL_W
 REQUIRED = dp.REQUIRED
@@ -200,6 +200,50 @@ SECTION_STARTS = {
 NOT_IN_GRID = {cfg.FL_FIELD}
 
 
+# JA/NEJ-SEGMENTET I SIDEPANELET (issue #477). Panelets celler er en
+# tredjedel af formularen (ca. 170 px ved 1920 x 1080), men skinnen
+# [ No | Yes ] er bredere - saa "Yes" blev klippet af, selvom feltet staar
+# alene paa sin linje. En ja/nej-celle er derfor mindst skinnens bredde
+# (build_helpers.segmented_width) - og aldrig bredere end panelet.
+YES_NO_KEYS = {c for c, _l, kind, ch in dp.FIELDS
+               if kind == "choice" and set(ch or ()) == set(dp.YES_NO)}
+YES_NO_SEG_W = segmented_width(len(dp.YES_NO))
+
+
+def _panel_runs(keys):
+    """Cellerne, der deler en linje i panelet - som domain_parts.grid_row
+    (columns=2): felter med hele bredden staar alene, de andre i tre."""
+    runs, cur = [], []
+    for k in keys:
+        if k in dp.PANEL_FULL_KEYS:
+            if cur:
+                runs.append(cur)
+                cur = []
+            runs.append([k])
+            continue
+        cur.append(k)
+        if len(cur) == 3:
+            runs.append(cur)
+            cur = []
+    if cur:
+        runs.append(cur)
+    return runs
+
+
+def _panel_w(key, keys, cell_width):
+    """Cellebredden i panelet. Et ja/nej-segment, der staar alene paa sin
+    linje, faar mindst skinnens bredde; deler det linje, ville en bredere
+    celle skubbe naboen ud, saa det afvises her."""
+    w = dp.panel_cell_w(key, cell_width)
+    if key not in YES_NO_KEYS:
+        return w
+    run = next(r for r in _panel_runs(keys) if key in r)
+    if len(run) != 1:
+        raise SystemExit(f"mp_parts: ja/nej-feltet {key} deler linje med {run} i "
+                         f"panelet - cellen kan ikke goeres bredere (issue #477)")
+    return dp.panel_fit_w(w, YES_NO_SEG_W)
+
+
 # ---------------------------------------------------------------------------
 # Beskederne under formularen
 # ---------------------------------------------------------------------------
@@ -308,7 +352,8 @@ def build_form(panel=False):
             title, vis = SECTION_STARTS[name]
             rows.append(dp.form_section(name, title, visible=vis, first=not rows))
         row = dp.grid_row(f"conDomGrid{name}",
-                          [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
+                          [_cell(k, _panel_w(k, keys, cell_width) if panel else
+                                 dp.panel_cell_w(k, cell_width)) for k in keys],
                           container_w=form_width, columns=2 if panel else None,
                   cell_width=cell_width)
         if cond:

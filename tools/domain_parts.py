@@ -2017,6 +2017,14 @@ def panel_cell_w(key, cell_width):
     return PANEL_FORM_W if key in PANEL_FULL_KEYS and cell_width == PANEL_CELL_W else cell_width
 
 
+def panel_fit_w(cell_width, need):
+    """En celle i panelet, der mindst er need px bred - dog aldrig bredere
+    end panelets formular (issue #477). Til en celle, der staar ALENE paa
+    sin linje i panelet, saa den udnytter pladsen i stedet for at klippe
+    sit indhold af ved en tredjedel af bredden."""
+    return f"Min({PANEL_FORM_W}, Max({cell_width}, {need}))"
+
+
 def _line_h(hs):
     """Den hoejeste af cellerne paa en linje - tal, hvis de alle er tal."""
     if all(isinstance(h, (int, float)) for h in hs):
