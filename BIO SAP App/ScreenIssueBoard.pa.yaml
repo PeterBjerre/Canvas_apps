@@ -445,6 +445,8 @@ Screens:
                                   =T.input
                               Text: |-
                                   ="New issue"
+                              Tooltip: |-
+                                  ="Report a new issue"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
@@ -3197,7 +3199,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Show the attachments on " & ThisItem.TicketNo
+                                        =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, "No attachments", "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " attachment", " attachments")))) & " - " & ThisItem.TicketNo
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3286,7 +3288,7 @@ Screens:
                                     Text: |-
                                         ="Attachments"
                                     Tooltip: |-
-                                        ="Show attachments"
+                                        =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, "No attachments", "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " attachment", " attachments"))))
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
@@ -3381,7 +3383,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Tooltip: |-
-                                        ="Show activity"
+                                        ="View activity"
                                     Visible: |-
                                         =(LayoutRank >= 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
                                     Width: |-
@@ -3394,7 +3396,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Show the attachments on " & ThisItem.TicketNo
+                                        =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, "No attachments", "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " attachment", " attachments")))) & " - " & ThisItem.TicketNo
                                     Align: |-
                                         =Align.Center
                                     Appearance: |-
@@ -3481,7 +3483,7 @@ Screens:
                                     Text: |-
                                         ="Attachments"
                                     Tooltip: |-
-                                        ="Show attachments"
+                                        =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, "No attachments", "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " attachment", " attachments"))))
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
@@ -3576,7 +3578,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Tooltip: |-
-                                        ="Show activity"
+                                        ="View activity"
                                     Visible: |-
                                         =(LayoutRank < 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
                                     Width: |-
@@ -4561,6 +4563,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =Max(36, H.hit)
       - conIbMobileBar:
@@ -5502,6 +5506,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =104
       - conIbFbBackdrop:
@@ -6240,6 +6246,8 @@ Screens:
                                                           =Set(gblFbPick, !gblFbPick)
                                                       TabIndex: |-
                                                           =0
+                                                      Tooltip: |-
+                                                          =If(gblFbPick, "Collapse list", "Expand list")
                                                       Width: |-
                                                           =H.hit
                               - conIbFbMessageCell:

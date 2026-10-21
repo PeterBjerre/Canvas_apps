@@ -470,7 +470,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Edit"
+                                  ="Edit this request"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -511,6 +511,8 @@ Screens:
                                   =T.input
                               Text: |-
                                   ="Edit"
+                              Tooltip: |-
+                                  ="Edit this request"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
@@ -2486,7 +2488,7 @@ Screens:
                                           Text: |-
                                               ="Class data"
                                           Tooltip: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass), "Edit the class characteristics and TRM fields of this row", "Valid FL first - the class is determined by the KKS code of a valid Functional Location.")
+                                              =If(!IsBlank(ThisItem.AssignedClass), With({ _n: Coalesce(CountRows(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), 0) }, If(_n = 0, If(varFlViewOnly || varFlStatus = "Indsendt", "No class data", "Add class data"), If(varFlViewOnly || varFlStatus = "Indsendt", "View", "Edit") & " class data - " & With({ _c: _n }, Text(_c) & If(_c = 1, " field", " fields")) & " filled")), "Valid FL first - the class is determined by the KKS code of a valid Functional Location.")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2559,7 +2561,7 @@ Screens:
                                           Text: |-
                                               ="Manufacturer"
                                           Tooltip: |-
-                                              ="Manufacturer, Model Number, Manufacturer Part Number and Manufacturer Serial Number"
+                                              =With({ _n: Coalesce(CountRows(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in ["MANUFACTURER", "MODEL NUMBER", "MANUFACTURER PART NUMBER", "MANUFACTURER SERIAL NUMBER"])), 0) }, If(_n = 0, If(varFlViewOnly || varFlStatus = "Indsendt", "No manufacturer", "Add manufacturer"), If(varFlViewOnly || varFlStatus = "Indsendt", "View", "Edit") & " manufacturer - " & With({ _c: _n }, Text(_c) & If(_c = 1, " field", " fields")) & " filled"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2632,7 +2634,7 @@ Screens:
                                           Text: |-
                                               ="Warranty"
                                           Tooltip: |-
-                                              ="Warranty Start and Warranty End"
+                                              =With({ _n: Coalesce(CountRows(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in ["WARRANTY START", "WARRANTY END"])), 0) }, If(_n = 0, If(varFlViewOnly || varFlStatus = "Indsendt", "No warranty", "Add warranty"), If(varFlViewOnly || varFlStatus = "Indsendt", "View", "Edit") & " warranty - " & With({ _c: _n }, Text(_c) & If(_c = 1, " field", " fields")) & " filled"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2692,7 +2694,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy row " & ThisItem.Pos
+                                              ="Copy row" & " - " & ThisItem.Pos
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -2754,7 +2756,7 @@ Screens:
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
-                                              ="Copy row " & ThisItem.Pos
+                                              ="Copy row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2767,7 +2769,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete row " & ThisItem.Pos
+                                              ="Delete row" & " - " & ThisItem.Pos
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -2812,7 +2814,7 @@ Screens:
                                           Text: |-
                                               ="Delete"
                                           Tooltip: |-
-                                              ="Delete row " & ThisItem.Pos
+                                              ="Delete row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -5232,6 +5234,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =Max(36, H.hit)
       - conFlMobileBar:
@@ -6173,6 +6177,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =104
       - conFlFbBackdrop:
@@ -6911,6 +6917,8 @@ Screens:
                                                           =Set(gblFbPick, !gblFbPick)
                                                       TabIndex: |-
                                                           =0
+                                                      Tooltip: |-
+                                                          =If(gblFbPick, "Collapse list", "Expand list")
                                                       Width: |-
                                                           =H.hit
                               - conFlFbMessageCell:

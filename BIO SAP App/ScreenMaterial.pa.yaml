@@ -2805,7 +2805,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row") & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -2890,7 +2890,7 @@ Screens:
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
-                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -2905,7 +2905,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Documents for " & ThisItem.ItemKey & " (" & With({ _c: Coalesce(ThisItem.FileCount, 0) }, Text(_c) & If(_c = 1, " file", " files")) & ")"
+                                              =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, If((varMatViewOnly || ThisItem.Status = "submitted"), "No documents", "Add documents"), "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " document", " documents")))) & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -2996,7 +2996,7 @@ Screens:
                                           Text: |-
                                               ="Documents"
                                           Tooltip: |-
-                                              ="Documents for " & ThisItem.ItemKey & " (" & With({ _c: Coalesce(ThisItem.FileCount, 0) }, Text(_c) & If(_c = 1, " file", " files")) & ")"
+                                              =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, If((varMatViewOnly || ThisItem.Status = "submitted"), "No documents", "Add documents"), "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " document", " documents"))))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3011,7 +3011,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Functional locations for " & ThisItem.ItemKey & " (" & With({ _c: With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)) }, Text(_c) & If(_c = 1, " functional location", " functional locations")) & ")"
+                                              =With({ _n: Coalesce(With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)), 0) }, If(_n = 0, "No Functional Locations selected", With({ _c: _n }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & " selected")) & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3099,7 +3099,7 @@ Screens:
                                           Text: |-
                                               ="Objects"
                                           Tooltip: |-
-                                              ="Functional locations for " & ThisItem.ItemKey & " (" & With({ _c: With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)) }, Text(_c) & If(_c = 1, " functional location", " functional locations")) & ")"
+                                              =With({ _n: Coalesce(With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)), 0) }, If(_n = 0, "No Functional Locations selected", With({ _c: _n }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & " selected"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3114,7 +3114,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3409,7 +3409,7 @@ Screens:
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3424,7 +3424,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3463,7 +3463,7 @@ Screens:
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3591,7 +3591,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row") & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3676,7 +3676,7 @@ Screens:
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
-                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3691,7 +3691,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Documents for " & ThisItem.ItemKey & " (" & With({ _c: Coalesce(ThisItem.FileCount, 0) }, Text(_c) & If(_c = 1, " file", " files")) & ")"
+                                              =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, If((varMatViewOnly || ThisItem.Status = "submitted"), "No documents", "Add documents"), "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " document", " documents")))) & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3782,7 +3782,7 @@ Screens:
                                           Text: |-
                                               ="Documents"
                                           Tooltip: |-
-                                              ="Documents for " & ThisItem.ItemKey & " (" & With({ _c: Coalesce(ThisItem.FileCount, 0) }, Text(_c) & If(_c = 1, " file", " files")) & ")"
+                                              =With({ _n: Coalesce(ThisItem.FileCount, 0) }, If(_n = 0, If((varMatViewOnly || ThisItem.Status = "submitted"), "No documents", "Add documents"), "View " & With({ _c: _n }, Text(_c) & If(_c = 1, " document", " documents"))))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3797,7 +3797,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Functional locations for " & ThisItem.ItemKey & " (" & With({ _c: With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)) }, Text(_c) & If(_c = 1, " functional location", " functional locations")) & ")"
+                                              =With({ _n: Coalesce(With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)), 0) }, If(_n = 0, "No Functional Locations selected", With({ _c: _n }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & " selected")) & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3885,7 +3885,7 @@ Screens:
                                           Text: |-
                                               ="Objects"
                                           Tooltip: |-
-                                              ="Functional locations for " & ThisItem.ItemKey & " (" & With({ _c: With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)) }, Text(_c) & If(_c = 1, " functional location", " functional locations")) & ")"
+                                              =With({ _n: Coalesce(With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) }, If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n)), 0) }, If(_n = 0, "No Functional Locations selected", With({ _c: _n }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & " selected"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3900,7 +3900,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -4195,7 +4195,7 @@ Screens:
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -4210,7 +4210,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -4249,7 +4249,7 @@ Screens:
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -6020,6 +6020,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =Max(36, H.hit)
       - conMatMobileBar:
@@ -6961,6 +6963,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =104
       - conMatFbBackdrop:
@@ -7699,6 +7703,8 @@ Screens:
                                                           =Set(gblFbPick, !gblFbPick)
                                                       TabIndex: |-
                                                           =0
+                                                      Tooltip: |-
+                                                          =If(gblFbPick, "Collapse list", "Expand list")
                                                       Width: |-
                                                           =H.hit
                               - conMatFbMessageCell:
