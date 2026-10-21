@@ -653,6 +653,7 @@ Screens:
                                   Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                   Clear(colMatObjects);
                                   Set(varMatObjPick, "");
+                                  Set(varMatObjListOpen, false);
                                   Set(varMatInfo, "")
                               RadiusBottomLeft: |-
                                   =R.input
@@ -872,6 +873,7 @@ Screens:
                                           Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                           Clear(colMatObjects);
                                           Set(varMatObjPick, "");
+                                          Set(varMatObjListOpen, false);
                                           Set(varMatInfo, "");
                                           If(
                                               (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
@@ -1522,7 +1524,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly && !IsEmpty(colMatRows), 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
+                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly && !IsEmpty(colMatRows), 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
                                 colMatRows,
                                 (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
                                 (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
@@ -1586,11 +1588,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly && !IsEmpty(colMatRows), 8 + (36), 0))) + 12
+                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly && !IsEmpty(colMatRows), 8 + (36), 0))) + 12
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -1632,7 +1634,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 240, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 323, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMatSearch: Self.Text });
@@ -1652,7 +1654,7 @@ Screens:
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
-                                        =240
+                                        =323
                               - drpMatStatusFilter:
                                   Control: ModernDropdown
                                   Properties:
@@ -1683,7 +1685,7 @@ Screens:
                                     Items: |-
                                         =["All status", "Draft", "Valid", "Submitted"]
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMatStatus: Self.Selected.Value });
@@ -1740,7 +1742,7 @@ Screens:
                                             Rows
                                         )
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMatPlant: Self.Selected.Value });
@@ -1784,9 +1786,9 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Visible: |-
-                                        =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48
+                                        =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varMatViewOnly, (124) + 8, 0)) - (If(!varMatViewOnly, (138) + 8, 0)) - (If(!varMatViewOnly && !IsEmpty(colMatRows), (91) + 8, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((323) + 8) - ((170) + 8) - ((170) + 8) - (If(!varMatViewOnly, (124) + 8, 0)) - (If(!varMatViewOnly, (138) + 8, 0)) - (If(!varMatViewOnly && !IsEmpty(colMatRows), (91) + 8, 0)) - 2)
                               - btnMatToolbarCopy:
                                   Control: ModernButton
                                   Properties:
@@ -1817,7 +1819,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 124, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 124, 0)
                                     OnSelect: |-
                                         =With(
                                             { srcId: LookUp(colMatRows, RowId = varMatActiveRowId).RowId, srcKey: LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey },
@@ -2125,7 +2127,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 138, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 138, 0)
                                     OnSelect: |-
                                         =Set(varMatPasteText, "");
                                         Clear(colMatPaste);
@@ -2173,7 +2175,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (323) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 91, 0)
                                     OnSelect: |-
                                         =Set(varMatActiveRowId, Blank());
                                         Set(varMatRowStatus, "valid");
@@ -2206,6 +2208,7 @@ Screens:
                                         Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                         Clear(colMatObjects);
                                         Set(varMatObjPick, "");
+                                        Set(varMatObjListOpen, false);
                                         Set(varMatInfo, "");
                                         Set(varMatEditorOpen, true)
                                     RadiusBottomLeft: |-
@@ -4475,6 +4478,7 @@ Screens:
                                         Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                         Clear(colMatObjects);
                                         Set(varMatObjPick, "");
+                                        Set(varMatObjListOpen, false);
                                         Set(varMatInfo, "");
                                         Set(varMatEditorOpen, true)
                                     RadiusBottomLeft: |-
@@ -8395,6 +8399,7 @@ Screens:
                 Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                 Clear(colMatObjects);
                 Set(varMatObjPick, "");
+                Set(varMatObjListOpen, false);
                 Set(varMatInfo, "")
             PressedFill: |-
                 =RGBA(0, 0, 0, 0)
@@ -8461,6 +8466,7 @@ Screens:
                 Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                 Clear(colMatObjects);
                 Set(varMatObjPick, "");
+                Set(varMatObjListOpen, false);
                 Set(varMatInfo, "")
             PressedFill: |-
                 =RGBA(0, 0, 0, 0)
@@ -9119,6 +9125,7 @@ Screens:
                             Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                             Clear(colMatObjects);
                             Set(varMatObjPick, "");
+                            Set(varMatObjListOpen, false);
                             Set(varMatInfo, "")
                         PressedFill: |-
                             =C.'row-pressed'
@@ -14026,7 +14033,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted"), "Search with at least 16 characters, pick a result and press Add. The functional locations are saved with the row when you choose Save.", "Read only - the row or the request cannot be changed.")
+                                        =If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted"), "Search with at least 16 characters, then open the object list to tick the functional locations. They are saved with the row when you choose Save.", "Read only - the row or the request cannot be changed.")
                                     Wrap: |-
                                         =true
                               - conMatFlWrap:
@@ -14098,6 +14105,8 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Functional location - type at least 16 characters, then Search or Enter"
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Start
                                                 Appearance: |-
                                                     =If((DisplayMode.Edit) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
@@ -14243,140 +14252,228 @@ Screens:
                                                 ValidationState: |-
                                                     =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
                                                 Width: |-
-                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If(!varMatFlBusy, (154) + 8, 0)) - (If(varMatFlBusy, (154) + 8, 0)) - 2)
-                                          - btnMatFlSearch:
-                                              Control: ModernButton
+                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - ((154 + (113) + 8) + 8) - 2)
+                                          - conMatFlActions:
+                                              Control: GroupContainer
+                                              Variant: AutoLayout
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    ="Search functional location"
-                                                Align: |-
-                                                    =Align.Center
                                                 AlignInContainer: |-
-                                                    =If(LayoutRank < 2, AlignInContainer.Start, AlignInContainer.Center)
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-input'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                DisplayMode: |-
-                                                    =If(Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 16, DisplayMode.Disabled, DisplayMode.Edit)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
+                                                    =AlignInContainer.Start
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                DropShadow: |-
+                                                    =DropShadow.None
+                                                FillPortions: |-
+                                                    =0
                                                 Height: |-
                                                     =36
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
+                                                LayoutAlignItems: |-
+                                                    =LayoutAlignItems.Center
+                                                LayoutDirection: |-
+                                                    =LayoutDirection.Horizontal
+                                                LayoutGap: |-
+                                                    =8
+                                                LayoutJustifyContent: |-
+                                                    =LayoutJustifyContent.Start
                                                 LayoutMinWidth: |-
-                                                    =154
-                                                OnSelect: |-
-                                                    =With(
-                                                        { q: Upper(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) },
-                                                        If(
-                                                            Len(q) < 16,
-                                                            Set(gblToast, { Text: "Type at least 16 characters before searching.", Kind: "Warning", At: Now() }); true,
-                                                    
-                                                            Set(varMatFlBusy, true);
-                                                            Set(varMatFlLast, q);
-                                                            Clear(colMatFl);
-                                                            Set(varMatObjPick, ""); Reset(cmbMatFl);
-                                                            Set(varMatFlMsg, "");
-                                                            IfError(
-                                                                Set(varMatFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
-                                                                If(
-                                                                    IsBlank(varMatFlRaw) || IsBlank(varMatFlRaw.functionallocationoutput),
-                                                                    Clear(colMatFl),
-                                                                    ClearCollect(
-                                                        colMatFl,
-                                                        ForAll(
-                                                            Table(ParseJSON(varMatFlRaw.functionallocationoutput)) As R,
-                                                            {
-                                                                Code: Text(R.Value.functionKey),
-                                                                Description: Text(R.Value.description),
-                                                                Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                                    If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
-                                                                Maintainable: Boolean(R.Value.maintainable),
-                                                                Level: Text(R.Value.level)
-                                                            }
-                                                        )
-                                                    )
-                                                                );
-                                                                If(
-                                                                    CountRows(colMatFl) = 0,
-                                                                    Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
-                                                                        Set(varMatObjPick, First(colMatFl).Code);
-                                                                        Reset(cmbMatFl)
-                                                                );
-                                                                Set(
-                                                                    varMatFlMsg,
-                                                                    With(
-                                                                        { n: CountRows(colMatFl) },
-                                                                        If(
-                                                                            n = 0,
-                                                                            "No Functional Locations found for " & Upper(q) & ".",
-                                                                            Text(n) & " Functional Locations found for " & Upper(q) & ". " &
-                                                                                If(
-                                                                                    n > 50,
-                                                                                    "The list is long - type more characters to narrow it.",
-                                                                                    "Select one from the list below."
-                                                                                )
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                Clear(colMatFl);
-                                                                Set(varMatFlMsg, "Search failed: " & FirstError.Message);
-                                                                Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
-                                                            );
-                                                            Set(varMatFlBusy, false)
-                                                        )
-                                                    )
-                                                RadiusBottomLeft: |-
-                                                    =R.input
-                                                RadiusBottomRight: |-
-                                                    =R.input
-                                                RadiusTopLeft: |-
-                                                    =R.input
-                                                RadiusTopRight: |-
-                                                    =R.input
-                                                Size: |-
-                                                    =T.input
-                                                Text: |-
-                                                    ="Search"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =!varMatFlBusy
+                                                    =If(LayoutRank < 2, 0, 154 + (113) + 8)
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =154
-                                          - spnMatFlBusy:
-                                              Control: ModernSpinner@1.1.0
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Searching"
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =36
-                                                Label: |-
-                                                    ="Searching..."
-                                                LayoutMinWidth: |-
-                                                    =154
-                                                Size: |-
-                                                    =T.input
-                                                Visible: |-
-                                                    =varMatFlBusy
-                                                Width: |-
-                                                    =154
+                                                    =154 + (113) + 8
+                                              Children:
+                                                - btnMatFlSearch:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Search functional location"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =If(LayoutRank < 2, AlignInContainer.Start, AlignInContainer.Center)
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-input'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 16, DisplayMode.Disabled, DisplayMode.Edit)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =36
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =154
+                                                      OnSelect: |-
+                                                          =With(
+                                                              { q: Upper(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) },
+                                                              If(
+                                                                  Len(q) < 16,
+                                                                  Set(gblToast, { Text: "Type at least 16 characters before searching.", Kind: "Warning", At: Now() }); true,
+                                                          
+                                                                  Set(varMatFlBusy, true);
+                                                                  Set(varMatFlLast, q);
+                                                                  Clear(colMatFl);
+                                                                  Set(varMatObjPick, ""); Reset(cmbMatFl);
+                                                                  Set(varMatFlMsg, "");
+                                                                  IfError(
+                                                                      Set(varMatFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                      If(
+                                                                          IsBlank(varMatFlRaw) || IsBlank(varMatFlRaw.functionallocationoutput),
+                                                                          Clear(colMatFl),
+                                                                          ClearCollect(
+                                                              colMatFl,
+                                                              ForAll(
+                                                                  Table(ParseJSON(varMatFlRaw.functionallocationoutput)) As R,
+                                                                  {
+                                                                      Code: Text(R.Value.functionKey),
+                                                                      Description: Text(R.Value.description),
+                                                                      Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                          If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                      Maintainable: Boolean(R.Value.maintainable),
+                                                                      Level: Text(R.Value.level)
+                                                                  }
+                                                              )
+                                                          )
+                                                                      );
+                                                                      If(
+                                                                          CountRows(colMatFl) = 0,
+                                                                          Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                                              Set(varMatObjPick, First(colMatFl).Code);
+                                                                              Reset(cmbMatFl)
+                                                                      );
+                                                                      Set(
+                                                                          varMatFlMsg,
+                                                                          With(
+                                                                              { n: CountRows(colMatFl) },
+                                                                              If(
+                                                                                  n = 0,
+                                                                                  "No Functional Locations found for " & Upper(q) & ".",
+                                                                                  Text(n) & " Functional Locations found for " & Upper(q) & ". " &
+                                                                                      If(
+                                                                                          n > 50,
+                                                                                          "The list is long - type more characters to narrow it.",
+                                                                                          "Select one from the list below."
+                                                                                      )
+                                                                              )
+                                                                          )
+                                                                      ),
+                                                                      Clear(colMatFl);
+                                                                      Set(varMatFlMsg, "Search failed: " & FirstError.Message);
+                                                                      Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
+                                                                  );
+                                                                  Set(varMatFlBusy, false)
+                                                              )
+                                                          )
+                                                      RadiusBottomLeft: |-
+                                                          =R.input
+                                                      RadiusBottomRight: |-
+                                                          =R.input
+                                                      RadiusTopLeft: |-
+                                                          =R.input
+                                                      RadiusTopRight: |-
+                                                          =R.input
+                                                      Size: |-
+                                                          =T.input
+                                                      Text: |-
+                                                          ="Search"
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Visible: |-
+                                                          =!varMatFlBusy
+                                                      Width: |-
+                                                          =154
+                                                - spnMatFlBusy:
+                                                    Control: ModernSpinner@1.1.0
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Searching"
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =36
+                                                      Label: |-
+                                                          ="Searching..."
+                                                      LayoutMinWidth: |-
+                                                          =154
+                                                      Size: |-
+                                                          =T.input
+                                                      Visible: |-
+                                                          =varMatFlBusy
+                                                      Width: |-
+                                                          =154
+                                                - btnMatObjList:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Object list - choose the functional locations for this row"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-input'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted") && (If(varMatFlBusy || IsBlank(varMatFlLast) || (!IsBlank(Upper(Trim(cmbMatFl.SearchText))) && Upper(Trim(cmbMatFl.SearchText)) <> Upper(Trim(varMatFlLast))), 0, CountRows(colMatFl)) > 0 || CountRows(colMatObjects) > 0), DisplayMode.Edit, DisplayMode.Disabled)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =36
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =113
+                                                      OnSelect: |-
+                                                          =Clear(colMatObjDraft);
+                                                          Collect(colMatObjDraft, ForAll(colMatObjects As O, { Code: O.Code, Description: O.Description }));
+                                                          Clear(colMatObjCands);
+                                                          Collect(colMatObjCands, ForAll(colMatFl As R,
+                                                              { Code: Trim(R.Code), Description: Coalesce(R.Description, "") }));
+                                                          Collect(colMatObjCands, ForAll(
+                                                              Filter(colMatObjects As O, IsBlank(LookUp(colMatFl, Upper(Trim(Code)) = Upper(Trim(O.Code))).Code)) As S,
+                                                              { Code: S.Code, Description: S.Description }));
+                                                          Set(varMatObjListOpen, true)
+                                                      RadiusBottomLeft: |-
+                                                          =R.input
+                                                      RadiusBottomRight: |-
+                                                          =R.input
+                                                      RadiusTopLeft: |-
+                                                          =R.input
+                                                      RadiusTopRight: |-
+                                                          =R.input
+                                                      Size: |-
+                                                          =T.input
+                                                      Text: |-
+                                                          ="Object list"
+                                                      Tooltip: |-
+                                                          ="Choose functional locations from the search results"
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Width: |-
+                                                          =113
                                     - tmrMatFlCapture:
                                         Control: Timer
                                         Properties:
@@ -14442,7 +14539,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =36 + If(CountRows(colMatObjects) = 0, 4 + (18), 0) + If(CountRows(colMatObjects) > 0, 4 + (Max(Min(CountRows(colMatObjects), 5), 1) * 32), 0)
+                                        =36 + If(CountRows(colMatObjects) = 0, 4 + (18), 0) + If(CountRows(colMatObjects) > 0, 4 + (Max(CountRows(colMatObjects), 1) * 44), 0)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -14521,69 +14618,9 @@ Screens:
                                                 Text: |-
                                                     ="Functional locations (" & Text(CountRows(colMatObjects)) & ")"
                                                 Width: |-
-                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted"), (72) + 8, 0)) - 2)
+                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - 2)
                                                 Wrap: |-
                                                     =false
-                                          - btnMatObjAdd:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Add the selected functional location to the object list"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-input'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                DisplayMode: |-
-                                                    =If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted") && Len(Trim(Coalesce(varMatObjPick, ""))) >= 16, DisplayMode.Edit, DisplayMode.Disabled)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =36
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =72
-                                                OnSelect: |-
-                                                    =If(
-                                                        IsBlank(Trim(Coalesce(varMatObjPick, ""))),
-                                                        Set(varMatFlMsg, "Search for a functional location and select one first."),
-                                                    
-                                                        CountRows(Filter(colMatObjects, Upper(Trim(Code)) = Upper(Trim(varMatObjPick)))) > 0,
-                                                        Set(varMatFlMsg, "Already in the object list."),
-                                                    
-                                                        Collect(colMatObjects, { Code: Trim(varMatObjPick), Description: Coalesce(Coalesce(LookUp(colMatFl, Code = varMatObjPick).Description, ""), "") });
-                                                        Set(varMatFlMsg, "Added " & Trim(varMatObjPick) & " - " & Text(CountRows(colMatObjects)) & " in the object list.")
-                                                    )
-                                                RadiusBottomLeft: |-
-                                                    =R.input
-                                                RadiusBottomRight: |-
-                                                    =R.input
-                                                RadiusTopLeft: |-
-                                                    =R.input
-                                                RadiusTopRight: |-
-                                                    =R.input
-                                                Size: |-
-                                                    =T.input
-                                                Text: |-
-                                                    ="Add"
-                                                Tooltip: |-
-                                                    ="Add the selected functional location to the object list"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted")
-                                                Width: |-
-                                                    =72
                                     - txtMatObjEmpty:
                                         Control: ModernText
                                         Properties:
@@ -14630,7 +14667,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =Max(Min(CountRows(colMatObjects), 5), 1) * 32
+                                              =Max(CountRows(colMatObjects), 1) * 44
                                           Items: |-
                                               =Sort(colMatObjects, Code)
                                           LayoutMinWidth: |-
@@ -14640,13 +14677,13 @@ Screens:
                                           Selectable: |-
                                               =false
                                           ShowScrollbar: |-
-                                              =true
+                                              =false
                                           TabIndex: |-
                                               =0
                                           TemplatePadding: |-
-                                              =1
+                                              =0
                                           TemplateSize: |-
-                                              =32
+                                              =44
                                           Visible: |-
                                               =CountRows(colMatObjects) > 0
                                           Width: |-
@@ -14692,7 +14729,7 @@ Screens:
                                                 X: |-
                                                     =0 + 0 + 0
                                                 Y: |-
-                                                    =0 + 0 + (((30) - 0 - 0) - (20)) / 2
+                                                    =0 + 0 + (((44) - 0 - 0) - (20)) / 2
                                           - txtMatObjDesc:
                                               Control: ModernText
                                               Properties:
@@ -14723,24 +14760,24 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(ThisItem.Description, "")
                                                 Width: |-
-                                                    =Max(0, ((((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)
+                                                    =Max(0, ((((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 0 - 0 - 40)) - ((170) + 8) - ((44) + 8) - 2)
                                                 Wrap: |-
                                                     =false
                                                 X: |-
                                                     =0 + 0 + 0 + (170) + 8
                                                 Y: |-
-                                                    =0 + 0 + (((30) - 0 - 0) - (20)) / 2
+                                                    =0 + 0 + (((44) - 0 - 0) - (20)) / 2
                                           - btnMatObjRemove:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Remove " & ThisItem.Code
+                                                    ="Remove object " & ThisItem.Code
                                                 Align: |-
                                                     =Align.Center
                                                 Appearance: |-
                                                     =ButtonAppearance.Outline
                                                 BorderColor: |-
-                                                    =C.'border-input'
+                                                    =RGBA(0, 0, 0, 0)
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
@@ -14752,9 +14789,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =30
+                                                    =44
+                                                Icon: |-
+                                                    ="Delete"
                                                 Layout: |-
-                                                    =ButtonLayout.TextOnly
+                                                    =ButtonLayout.IconOnly
                                                 OnSelect: |-
                                                     =RemoveIf(colMatObjects, Code = ThisItem.Code);
                                                     Set(varMatFlMsg, "Removed " & ThisItem.Code & ".")
@@ -14767,19 +14806,19 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =R.input
                                                 Size: |-
-                                                    =T.small
+                                                    =T.input
                                                 Text: |-
-                                                    ="Remove"
+                                                    ="Remove object"
                                                 Tooltip: |-
-                                                    ="Remove " & ThisItem.Code
+                                                    ="Remove object"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =76
+                                                    =44
                                                 X: |-
-                                                    =0 + 0 + 0 + (170) + 8 + (Max(0, ((((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)) + 8
+                                                    =0 + 0 + 0 + (170) + 8 + (Max(0, ((((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 0 - 0 - 40)) - ((170) + 8) - ((44) + 8) - 2)) + 8
                                                 Y: |-
-                                                    =0 + 0 + (((30) - 0 - 0) - (30)) / 2
+                                                    =0 + 0 + (((44) - 0 - 0) - (44)) / 2
                   - conMatEditorDocuments:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -15967,6 +16006,7 @@ Screens:
                                               Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                               Clear(colMatObjects);
                                               Set(varMatObjPick, "");
+                                              Set(varMatObjListOpen, false);
                                               Set(varMatInfo, "");
                                               Set(varMatEditorOpen, true),
                                               Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
@@ -16144,6 +16184,7 @@ Screens:
                                   Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                   Clear(colMatObjects);
                                   Set(varMatObjPick, "");
+                                  Set(varMatObjListOpen, false);
                                   Set(varMatInfo, "")
                               RadiusBottomLeft: |-
                                   =R.input
@@ -17245,6 +17286,634 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =134
+      - conMatObjListBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varMatObjListOpen, false);
+                Clear(colMatObjDraft);
+                Clear(colMatObjCands))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varMatObjListOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatObjListModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =128 + 12 + (If(LayoutRank < 2, 36, 18)) + If(CountRows(colMatObjCands) > 0, 12 + (Min(Max(CountRows(colMatObjCands), 1) * 40, Max(80, App.Height - 300))), 0) + If(CountRows(colMatObjCands) = 0, 12 + (18), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMatObjListOpen, false)
+            Width: |-
+                =Min(640, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMatObjListHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatObjListTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Object list"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Object list"
+                        Width: |-
+                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatObjListClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close the object list without changes"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMatObjListOpen, false);
+                            Clear(colMatObjDraft);
+                            Clear(colMatObjCands)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
+            - txtMatObjListSub:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =If(LayoutRank < 2, 36, 18)
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      =If(IsBlank(varMatFlLast), "Functional locations on this row.", Text(CountRows(colMatFl)) & " found for " & varMatFlLast & ". Tick the ones the material belongs to.")
+                  Wrap: |-
+                      =true
+            - galMatObjList:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: |-
+                      ="Functional locations to choose from"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =Min(Max(CountRows(colMatObjCands), 1) * 40, Max(80, App.Height - 300))
+                  Items: |-
+                      =Sort(colMatObjCands, Code)
+                  LayoutMinWidth: |-
+                      =0
+                  LoadingSpinner: |-
+                      =LoadingSpinner.None
+                  Selectable: |-
+                      =false
+                  ShowScrollbar: |-
+                      =true
+                  TabIndex: |-
+                      =0
+                  TemplatePadding: |-
+                      =0
+                  TemplateSize: |-
+                      =40
+                  Visible: |-
+                      =CountRows(colMatObjCands) > 0
+                  Width: |-
+                      =(Min(640, App.Width - 40)) - 36
+                  WrapCount: |-
+                      =1
+                Children:
+                  - rctMatObjListRowBg:
+                      Control: Rectangle
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Background"
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =40
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =((Min(640, App.Width - 40)) - 18 - 18) - 2 * 0 - 18 - 40
+                        X: |-
+                            =0
+                        Y: |-
+                            =0
+                  - chkMatObjPick:
+                      Control: ModernCheckbox
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Select " & ThisItem.Code
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
+                        Default: |-
+                            =CountRows(Filter(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))) > 0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =24
+                        Label: |-
+                            =""
+                        OnCheck: |-
+                            =If(
+                                !(CountRows(Filter(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))) > 0),
+                                Collect(colMatObjDraft, { Code: ThisItem.Code, Description: ThisItem.Description })
+                            )
+                        OnUncheck: |-
+                            =RemoveIf(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))
+                        Size: |-
+                            =T.body
+                        Width: |-
+                            =28
+                        X: |-
+                            =0 + 8 + 0
+                        Y: |-
+                            =0 + 0 + (((40) - 0 - 0) - (24)) / 2
+                  - txtMatObjListCode:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =20
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =ThisItem.Code
+                        Width: |-
+                            =170
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10
+                        Y: |-
+                            =0 + 0 + (((40) - 0 - 0) - (20)) / 2
+                  - txtMatObjListDesc:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            =Coalesce(ThisItem.Description, "")
+                        Width: |-
+                            =Max(0, ((((Min(640, App.Width - 40)) - 18 - 18) - 2 * 0 - 18 - 40) - 8 - 8) - ((28) + 10) - ((170) + 10) - ((83) + 10) - 2)
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10 + (170) + 10
+                        Y: |-
+                            =0 + 0 + (((40) - 0 - 0) - (20)) / 2
+                  - imgMatObjListStatus:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Status: " & Switch(If(CountRows(Filter(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))) > 0, "selected", "available"), "selected", "Selected", "available", "Available", If(CountRows(Filter(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))) > 0, "selected", "available"))
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Height: |-
+                            =22
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                If(CountRows(Filter(colMatObjDraft, Upper(Trim(Code)) = Upper(Trim(ThisItem.Code)))) > 0, "selected", "available"),
+                                "selected", "<svg xmlns='http://www.w3.org/2000/svg' width='83' height='22' viewBox='0 0 83 22'><rect width='79' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Selected</text></svg>",
+                                "available", "<svg xmlns='http://www.w3.org/2000/svg' width='83' height='22' viewBox='0 0 83 22'><rect width='83' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 8v8M8 12h8'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Available</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='83' height='22' viewBox='0 0 83 22'><rect width='79' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Selected</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =83
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10 + (170) + 10 + (Max(0, ((((Min(640, App.Width - 40)) - 18 - 18) - 2 * 0 - 18 - 40) - 8 - 8) - ((28) + 10) - ((170) + 10) - ((83) + 10) - 2)) + 10
+                        Y: |-
+                            =0 + 0 + (((40) - 0 - 0) - (22)) / 2
+            - txtMatObjListEmpty:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Nothing to choose from yet. Search for a functional location first."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =18
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      ="Nothing to choose from yet. Search for a functional location first."
+                  Visible: |-
+                      =CountRows(colMatObjCands) = 0
+                  Wrap: |-
+                      =false
+            - conMatObjListFoot:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatObjListInfo:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =Text(CountRows(colMatObjDraft)) & " selected"
+                        Width: |-
+                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - ((86) + 8) - ((153) + 8) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatObjListCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel - close without changing the object list"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =86
+                        OnSelect: |-
+                            =Set(varMatObjListOpen, false);
+                            Clear(colMatObjDraft);
+                            Clear(colMatObjCands)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnMatObjListApply:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Apply the selected functional locations to this row"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted"), DisplayMode.Edit, DisplayMode.Disabled)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =153
+                        OnSelect: |-
+                            =Clear(colMatObjects);
+                            Collect(colMatObjects, ForAll(colMatObjDraft As D, { Code: D.Code, Description: D.Description }));
+                            Set(varMatFlMsg, Text(CountRows(colMatObjects)) & If(CountRows(colMatObjects) = 1, " functional location", " functional locations") & " in the object list.");
+                            Set(varMatObjListOpen, false);
+                            Clear(colMatObjDraft);
+                            Clear(colMatObjCands)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Apply selection"
+                        Tooltip: |-
+                            ="Apply the selection to this row - it is saved when you save the row"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =153
       - conMatPasteBackdrop:
           Control: Image
           Properties:
@@ -18400,6 +19069,7 @@ Screens:
                                         Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                         Clear(colMatObjects);
                                         Set(varMatObjPick, "");
+                                        Set(varMatObjListOpen, false);
                                         Set(varMatInfo, "")
                                     );
                                     If(
@@ -18924,6 +19594,7 @@ Screens:
                                     Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                     Clear(colMatObjects);
                                     Set(varMatObjPick, "");
+                                    Set(varMatObjListOpen, false);
                                     Set(varMatInfo, "");
                                     Set(varMatEditorOpen, true),
                                     Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
@@ -20028,6 +20699,10 @@ Screens:
                 
                             If(false, ClearCollect(colMatObjects, { Code: "", Description: "" }));
                 
+                            If(false, ClearCollect(colMatObjDraft, { Code: "", Description: "" }));
+                
+                            If(false, ClearCollect(colMatObjCands, { Code: "", Description: "" }));
+                
                             Set(varMatMe, Lower(User().Email));
                             Set(varMatRequestNo, "");
                             Set(varMatRequestGuid, "");
@@ -20085,6 +20760,7 @@ Screens:
                             Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                             Clear(colMatObjects);
                             Set(varMatObjPick, "");
+                            Set(varMatObjListOpen, false);
                             Set(varMatInfo, "");
                             If(
                                 !IsBlank(gblMatReqId) && varMatRequestGuid <> gblMatReqId,
