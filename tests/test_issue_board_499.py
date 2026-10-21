@@ -21,16 +21,17 @@ def _ctrls():
     return P, {c.name: c for c in _walk(P.build_detail())}
 
 
-def test_comment_box_grows_with_the_text_between_a_min_and_a_max():
+def test_comment_box_grows_with_the_text_from_a_min():
     P, c = _ctrls()
     box, field = c["conIbCommentBox"], c["inpIbComment"]
     h = box.props["Height"]
-    # Hoejden foelger teksten (linjeskift og laengde), med loft og bund.
+    # Hoejden foelger teksten (linjeskift og laengde) og har en bund. Issue
+    # #503 fjernede loftet - se tests/test_issue_board_503.py.
     assert "inpIbComment.Text" in h and "Char(10)" in h
-    assert h.startswith("Min(") and f"Min({P.COMMENT_MAX_H}," in h
+    assert h.startswith("Max(")
     assert "H.hit + 8" in h
-    # Loftet foelger fanens plads - ingen kontrol-til-kontrol hoejdereference.
-    assert "App.Height" in h and ".Height" not in h.replace("App.Height", "")
+    # Ingen kontrol-til-kontrol hoejdereference.
+    assert ".Height" not in h.replace("App.Height", "")
     # Feltet fylder boksen; send-ikonet staar fast nederst til hoejre.
     assert field.props["Height"] == "Parent.Height"
     assert field.props["Type"] == "TextInputType.Multiline"
