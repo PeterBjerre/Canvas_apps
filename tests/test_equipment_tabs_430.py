@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Issue #430: Equipments sidepanel har fanerne Details, Objects og
-Documents - samme moenster som Materials (domain_parts.editor_tabs).
+Issue #430: Equipments sidepanel har fanerne Details og Documents - samme
+moenster som Materials (domain_parts.editor_tabs). Objects-fanen er fjernet
+igen (issue #485): udstyret har EEN funktionsplads, og dens soegning staar
+paa Details, som i Measuring Point.
 
-- Details: felterne uden funktionspladsen og garantien.
-- Objects: funktionspladsen med soegningen (FL-vaelgeren).
+- Details: felterne uden garantien - med funktionspladsen og soegningen.
 - Documents: Warranty from/to, antallet af dokumenter og
   ModernAttachments-kontrollen. Ingen dokumentpopup laengere.
 - Bundbjaelken (Delete row, Reset, Cancel, Save) er faelles for fanerne.
@@ -60,13 +61,15 @@ EQ = _screen("ScreenEquipment")
 MAT = _screen("ScreenMaterial")
 
 
-def test_equipment_has_the_three_tabs_like_materials():
+TABS = {"Eq": ("Details", "Documents"), "Mat": ("Details", "Objects", "Documents")}
+
+
+def test_equipment_has_the_tabs_like_materials_but_no_objects():
     for screen, tag in ((EQ, "Eq"), (MAT, "Mat")):
         sections = _find(screen, f"con{tag}EditorSections")
         top = [n for c in sections["Children"] for n in c]
-        assert top == [f"con{tag}EditorTabs", f"con{tag}EditorDetails",
-                       f"con{tag}EditorObjects", f"con{tag}EditorDocuments"], top
-        for tab in ("Details", "Objects", "Documents"):
+        assert top == [f"con{tag}EditorTabs"] + [f"con{tag}Editor{t}" for t in TABS[tag]], top
+        for tab in TABS[tag]:
             box = _find(screen, f"con{tag}Editor{tab}")
             assert _prop(box, "Visible") == f'var{tag}EditorTab = "{tab}"'
             btn = _find(screen, f"con{tag}EditorTabs{tab}")
@@ -76,9 +79,10 @@ def test_equipment_has_the_three_tabs_like_materials():
 
 
 def test_tab_styling_is_the_same_as_materials():
-    """Samme skinne og knapper - kun praefikset og Objects' handling er
-    forskellige."""
-    for suffix in ("", "Details", "Objects", "Documents"):
+    """Samme skinne og knapper - kun praefikset er forskelligt. Skinnen
+    selv deler bredden paa antallet af faner, saa den sammenlignes ikke."""
+    assert _find(EQ, "conEqEditorTabsObjects") is None
+    for suffix in ("Details", "Documents"):
         eq = _find(EQ, f"conEqEditorTabs{suffix}")
         mat = _find(MAT, f"conMatEditorTabs{suffix}")
         assert eq.get("Control") == mat.get("Control")
@@ -92,13 +96,13 @@ def test_tab_styling_is_the_same_as_materials():
 
 def test_fields_moved_out_of_details_and_not_duplicated():
     details = _names(_find(EQ, "conEqEditorDetails"))
-    objects = _names(_find(EQ, "conEqEditorObjects"))
+    assert _find(EQ, "conEqEditorObjects") is None
     documents = _names(_find(EQ, "conEqEditorDocuments"))
-    for name in ("cmbEqFl", "btnEqFlSearch", "txtEqFlMsg", "dteEqWarrantyStart",
-                 "dteEqWarrantyEnd", "inpEqDocsInfo", "attEqPicker"):
+    for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd", "inpEqDocsInfo", "attEqPicker"):
         assert name not in details, name
-    for name in ("cmbEqFl", "btnEqFlSearch", "txtEqFlMsg"):
-        assert name in objects, name
+    # Funktionspladsen og dens soegning staar paa Details (issue #485).
+    for name in ("conEqFl", "cmbEqFl", "btnEqFlSearch", "txtEqFlMsg"):
+        assert name in details, name
     for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd", "inpEqDocsInfo",
                  "attEqPicker", "btnEqAttUpload", "txtEqAttReadOnly"):
         assert name in documents, name
@@ -125,8 +129,8 @@ def test_footer_stays_outside_the_tabs():
 
 
 def test_read_only_in_view_mode():
-    # FL-soegningen paa Objects-fanen er skjult i visning (issue #485).
-    assert "varEqViewOnly" in _prop(_find(EQ, "conEqFlWrap"), "Visible")
+    fl = _find(EQ, "cmbEqFl")
+    assert "varEqViewOnly" in _prop(fl, "DisplayMode")
     for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd"):
         assert "varEqViewOnly" in _prop(_find(EQ, name), "DisplayMode"), name
     assert "DisplayMode.Edit" not in _prop(_find(EQ, "inpEqDocsInfo"), "DisplayMode").split(",")[-1]

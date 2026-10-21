@@ -46,12 +46,14 @@ def test_equipment_sections_follow_the_mockup():
     assert pos == sorted(pos)
     for t in ("Identification", "Location", "Manufacturer", "Warranty and documents"):
         assert f'Upper("{t}")' in y, t
-    # Felterne staar i deres sektion. FL staar paa Objects-fanen og
-    # garantien paa Documents-fanen (issue #430) - efter Details.
-    assert y.index("txtEqSecLoc:") < y.index("conEqRoomCoordinates:") < y.index("txtEqSecMfr:")
-    assert y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("conEqEditorObjects:")
-    assert (y.index("conEqEditorObjects:") < y.index("conEqObjTabBody:")
-            < y.index("conEqEditorDocuments:") < y.index("txtEqSecWarranty:"))
+    # Felterne staar i deres sektion. FL staar i Location paa Details
+    # (issue #485 - ingen Objects-fane) og garantien paa Documents-fanen
+    # (issue #430) - efter Details.
+    assert (y.index("txtEqSecLoc:") < y.index("conEqFl:") < y.index("conEqRoomCoordinates:")
+            < y.index("txtEqSecMfr:"))
+    assert y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("conEqEditorDocuments:")
+    assert "conEqEditorObjects:" not in y
+    assert y.index("conEqEditorDocuments:") < y.index("txtEqSecWarranty:")
 
 
 def test_materials_and_measuring_points_have_titled_sections():

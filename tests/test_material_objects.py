@@ -320,10 +320,11 @@ def test_row_actions_are_edit_docs_objects_copy_and_delete_last():
     assert "ThisItem.ObjectList" in _prop("btnMatRowObjects", "Tooltip")
 
 
-def test_equipment_has_the_same_row_actions():
+def test_equipment_has_the_same_row_actions_without_objects():
     eq = open(EQ, encoding="utf-8").read()
-    for gone in ("btnEqRowMore", "btnEqMoreCopy", "btnEqMoreDelete", "btnEqRowDetails"):
+    # Udstyret har EEN funktionsplads i formularen - intet Objects-ikon (#485).
+    for gone in ("btnEqRowMore", "btnEqMoreCopy", "btnEqMoreDelete", "btnEqRowDetails",
+                 "btnEqRowObjects"):
         assert gone not in eq, gone
-    for name in ("btnEqRowOpen", "btnEqRowDocs", "btnEqRowObjects", "btnEqRowCopy",
-                 "btnEqRowDelete"):
+    for name in ("btnEqRowOpen", "btnEqRowDocs", "btnEqRowCopy", "btnEqRowDelete"):
         assert "- %s:" % name in eq, name

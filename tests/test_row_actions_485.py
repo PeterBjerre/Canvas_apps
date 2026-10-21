@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Issue #485: de samme raekkeikoner, den samme Copy og den samme Objects-fane
-i Materials, Equipment og Measuring Point.
+Issue #485: de samme raekkeikoner og den samme Copy i Materials, Equipment
+og Measuring Point. Kun Materials har Objects (fane og ikon); Equipment og
+Measuring Point sidder paa EEN funktionsplads, som vaelges i formularen.
 
 Reglerne staar i Power Fx, som ikke kan koeres her, saa testene laeser den
 GENEREREDE skaerm i BIO SAP App - det er den, Studio kompilerer.
@@ -17,9 +18,9 @@ from conftest import ROOT
 SCREENS = {"Eq": "ScreenEquipment.pa.yaml", "Mat": "ScreenMaterial.pa.yaml",
            "Mp": "ScreenMeasuringPoint.pa.yaml"}
 LISTS = {"Eq": "EquipmentItems", "Mat": "MaterialItems", "Mp": "MeasuringPointItems"}
-# Raekkefoelgen paa alle tre sider. Measuring Point har hverken dokumenter
-# (issue #300) eller Objects-fane.
-ORDER = {"Eq": ["Open", "Docs", "Objects", "Copy", "Delete"],
+# Raekkefoelgen paa alle tre sider. Kun Materials har Objects; Measuring
+# Point har heller ingen dokumenter (issue #300).
+ORDER = {"Eq": ["Open", "Docs", "Copy", "Delete"],
          "Mat": ["Open", "Docs", "Objects", "Copy", "Delete"],
          "Mp": ["Open", "Copy", "Delete"]}
 ICONS = {"Open": "Edit", "Docs": "Attach", "Objects": "Link", "Copy": "Copy",
@@ -122,8 +123,8 @@ def test_the_toolbar_copy_copies_the_open_row():
         assert fx.startswith(f"With(\n    {{ srcId: LookUp(col{p}Rows, RowId = var{p}ActiveRowId).RowId")
 
 
-def test_objects_tab_in_materials_and_equipment_is_part_of_the_form():
-    for p in ("Eq", "Mat"):
+def test_objects_tab_in_materials_is_part_of_the_form():
+    for p in ("Mat",):
         tab = _prop(p, f"con{p}EditorTabsObjects", "OnSelect")
         # Fanen henter ikke raekken igen - valget bevares ved fanskift.
         assert f"col{p}Objects" not in tab
@@ -137,11 +138,17 @@ def test_objects_tab_in_materials_and_equipment_is_part_of_the_form():
         assert "Patch(" not in _prop(p, f"btn{p}ObjAdd", "OnSelect")
 
 
-def test_equipment_keeps_its_functional_location_field_in_step_with_the_list():
-    fl = "Set(varEqFFunctionalLocation, Coalesce(First(Sort(colEqObjects, Code)).Code, \"\"))"
-    assert fl in _prop("Eq", "btnEqObjAdd", "OnSelect")
-    assert fl in _prop("Eq", "btnEqObjRemove", "OnSelect")
-    # Kravet til en faerdig raekke er uaendret.
+def test_equipment_and_measuring_point_have_one_functional_location_search_and_no_objects():
+    for p in ("Eq", "Mp"):
+        y = _text(p)
+        # Intet Objects-ikon, ingen Objects-fane og ingen objektliste.
+        for gone in (f"btn{p}RowObjects", f"con{p}EditorTabsObjects", f"con{p}EditorObjects",
+                     f"col{p}Objects", f"btn{p}ObjAdd", "ObjectList"):
+            assert gone not in y, (p, gone)
+        # EEN FL-soegning i formularen.
+        assert y.count(f"- cmb{p}Fl:") == 1, p
+        assert y.count(f"- btn{p}FlSearch:") == 1, p
+        # Den skrives til kolonnen FunctionalLocation.
+        assert f"FunctionalLocation: Trim(Coalesce(var{p}FFunctionalLocation, \"\"))," in _prop(p, f"btn{p}Save", "OnSelect")
+    # Udstyrets krav til en faerdig raekke.
     assert "A functional location is required." in _prop("Eq", "btnEqSave", "OnSelect")
-    # Samlingens skema staar i skaermens klargoering (som Materials').
-    assert "If(false, ClearCollect(colEqObjects, { Code: \"\", Description: \"\" }))" in _text("Eq")
