@@ -60,6 +60,8 @@ SPINNERS = {
     "ScreenMdHub.pa.yaml": {
         "spnMdNavigating": ("IfError(gblNavigating, false)", '"Opening..."'),
         "spnMdAprSpinner": ("IfError(varMdAprBusy, false)", '""'),
+        # SAP OBJECT-popuppen (issue #471).
+        "spnMdSapSpinner": ("IfError(varMdSapBusy, false)", '""'),
     },
 }
 
@@ -140,7 +142,8 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             total += 1
     # 20 foer #420, minus 5 hjul over sidepanelets bundbjaelke, + 5 hjul
     # ved rene ikonknapper (ACT_SPINNERS, issue #441).
-    assert total == 20
+    # + 1 i SAP OBJECT-popuppen (issue #471).
+    assert total == 21
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
