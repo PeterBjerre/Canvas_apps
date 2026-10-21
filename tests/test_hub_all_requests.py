@@ -43,6 +43,18 @@ SEG_PROPS = ("Appearance", "BasePaletteColor", "BorderColor", "Color", "FontWeig
              "Height", "RadiusTopLeft")
 
 
+def _same_track(a, b, p):
+    """Skinnens egenskab ens i de to. Hoejden er en sum over segmenterne
+    (paa mobil 40 px hoeje, issue #508), saa den sammenlignes som tal."""
+    va, vb = _prop(a, p), _prop(b, p)
+    if p != "Height" or va == vb:
+        return va == vb
+    import sys
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import check_layout as cl
+    return all(cl._evaluate_n(va, w, 3) == cl._evaluate_n(vb, w, 3) for w in (360, 800, 1366))
+
+
 def _same_style(view_seg, status_seg, view_on, status_on):
     for p in SEG_PROPS:
         assert _prop(view_seg, p) == _prop(status_seg, p).replace(status_on, view_on), p
@@ -60,7 +72,7 @@ def test_view_selector_is_styled_like_open_closed_all():
     assert "Control: GroupContainer" in view
     assert "ModernTabList" not in view
     for p in TRACK_PROPS + ("Visible", "AlignInContainer"):
-        assert _prop(_own(view), p) == _prop(_own(status), p), p
+        assert _same_track(_own(view), _own(status), p), p
     _same_style(_block("conMdFltViewMine", y), _block("conMdFltStatusOpen", y),
                 'varMdView = "mine"', 'varMdStatusMode = "open"')
     _same_style(_block("conMdFltViewAll", y), _block("conMdFltStatusOpen", y),
@@ -104,7 +116,7 @@ def test_mobile_keeps_my_and_all_as_the_same_track():
     assert "Control: GroupContainer" in b
     assert _prop(_own(b), "Visible") == "LayoutRank < 2"
     for p in TRACK_PROPS:
-        assert _prop(_own(b), p) == _prop(_own(_block("conMdFltStatus", y)), p), p
+        assert _same_track(_own(b), _own(_block("conMdFltStatus", y)), p), p
     for seg, txt, key in (("conMdViewMMine", "My", "mine"), ("conMdViewMAll", "All", "queue")):
         s = _block(seg, y)
         assert _prop(s, "Text") == f'"{txt}"'

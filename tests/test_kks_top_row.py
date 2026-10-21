@@ -86,7 +86,10 @@ def test_row_fits_at_every_width_and_exactly_one_fl_button_shows():
     narrow = _find(_screen(), "btnKksFlOpenNarrow")["Properties"]
     kids = dict(_kids(row))
     for w in cl.WIDTHS:
-        card_w = w - (56 if lay.rank_for(w) >= 2 else 0) - 64 - 36
+        # Paa en telefon er rammen og kortet smallere polstret (issue #508).
+        phone = lay.rank_for(w) < lay.MOBILE_RANK
+        card_w = (w - (56 if lay.rank_for(w) >= 2 else 0)
+                  - (lay.SHELL_INSET_MOBILE if phone else 64) - (24 if phone else 36))
         need = 0.0
         shown = []
         for name, body in kids.items():
