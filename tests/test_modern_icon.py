@@ -31,9 +31,8 @@ ITEM_OK = "IsEmpty(With("
 ICONS = {
     "ScreenIssueBoard.pa.yaml": {
         "icoIbSearchIcon": ('"Search"', "C.'text-muted'", "20", None),
-        # Issue #422: Activity-taelleren i tabellen og i den kompakte raekke.
-        "icoIbRowAct": ('"Comment"', "C.'text-muted'", "16", None),
-        "icoIbRowActC": ('"Comment"', "C.'text-muted'", "16", None),
+        # Issue #422's Activity-ikoner er siden #469 en klikbar knap
+        # (btnIbRowAct*, tests/test_issue_board_469.py).
     },
     "ScreenKks.pa.yaml": {
         "icoKksFindIcon": ('"Search"', "C.'text-muted'", "20", None),
@@ -99,7 +98,7 @@ def test_every_icon_is_modern_icon_in_the_token_color():
             # Det gamle billede er vaek.
             assert f"- img{name[3:]}:" not in text, name
             total += 1
-    assert total == 15
+    assert total == 13   # 15 foer issue #469 (Activity-ikonerne blev en knap)
 
 
 def test_item_card_status_follows_the_same_rule_as_its_text():

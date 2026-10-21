@@ -447,7 +447,8 @@ def open_ticket(rec, peek, tab="details"):
     """Aabn en sag i View mode. rec: raekken; peek: sand, naar sagen
     aabnes fra forslagene i New issue - kun laesning, ingen handlinger
     (Edit ville overskrive formularen bagved). tab: fanen, der vises -
-    "files" fra papirclipsen paa flisen (issue #193)."""
+    "files" fra papirclipsen paa flisen (issue #193), "activity" fra
+    taleboblen i kolonnen Activity (issue #469)."""
     files = tab == "files"
     return (
         f"Set(varIbSel, {rec});\n"
@@ -930,7 +931,7 @@ ROW_PAD = 10         # raekkens luft til venstre og hoejre
 COL_GAP = 8
 ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen FILES og raekken under Desktop
 ACTV_W = 52          # kolonnen ACTIVITY (issue #422): ikonet, tallet og overskriften
-ACTV_ICON = 16
+ACTV_PAD = 4         # knappens luft i siderne (issue #469) - ikon og tal skal staa i 52 px
 FILES_W = 44         # kolonnen FILES: papirclipsen med sin klikflade (hit_size, regel 40)
 
 # (noegle, overskrift, mindstebredde, vaegt, kun Wide). Raekkefoelgen er
@@ -993,6 +994,9 @@ OPEN_ROW = open_ticket("ThisItem", "false")
 # Papirclipsen (issue #193): sagen aabnes direkte paa fanen Attachments,
 # hvor filerne vises (og nye laegges paa af rapportoeren og admins).
 OPEN_ROW_FILES = open_ticket("ThisItem", "false", tab="files")
+# Taleboblen og tallet (issue #469): samme moenster - sagen aabnes direkte
+# paa fanen Activity.
+OPEN_ROW_ACT = open_ticket("ThisItem", "false", tab="activity")
 # Issue #422: papirclipsen er et tegn paa, at sagen HAR filer - ikke en
 # upload-knap paa hver raekke. Uden filer er cellen tom. Fanen
 # Attachments kan alle se, saa tegnet staar for alle. Issue #443: raekkens
@@ -1107,20 +1111,32 @@ def _attach_btn(name, visible, width=ACT_BTN):
 
 
 def _act_count(suffix, width):
-    """Activity-taelleren (issue #422): et lille kommentarikon og tallet.
-    Containeren staar altid (cellen flytter aldrig kolonnerne); ikonet og
-    tallet kun, naar brugeren maa se sagens Activity. 0 er dempet."""
-    n = ROW_ACT_N
-    ico = fluent_icon(f"icoIbRowAct{suffix}", fluent("comment"), C_MUTED, '"Activity"',
-                      size=ACTV_ICON, visible=ROW_SEE_ACT)
-    # Opslaget staar een gang (Text); farve, vaegt og etiket laeser Self.Text.
-    txt = text_ctrl(f"txtIbRowAct{suffix}", f"Text({n})", size=lay.SIZE_SMALL, height=20, wrap="false",
-                    width=f"({width}) - {ACTV_ICON + 4}",
-                    color=f'If(Self.Text = "0", {C_MUTED}, {C_TITLE})',
-                    visible=ROW_SEE_ACT,
-                    accessible='"Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries")',
-                    extra={"FontWeight": 'If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)'})
-    return group(f"conIbRowAct{suffix}", [ico, txt], direction="Horizontal", gap=4, height=20,
+    """Activity-taelleren (issue #422, #469): taleboblen og tallet som EEN
+    knap - samme moenster som papirclipsen (_attach_btn): en ModernButton
+    oven paa raekkens klikflade, der aabner sagen direkte paa fanen
+    Activity (OPEN_ROW_ACT). Resten af raekken aabner stadig Description.
+    Hover-, tryk- og fokusfladen er knappens egen og daekker hele
+    handlingen - ikon og tal. Containeren staar altid (cellen flytter
+    aldrig kolonnerne); knappen kun, naar brugeren maa se sagens Activity.
+    0 er dempet. Foer (#422) var det et ModernIcon og en tekst - kun pynt."""
+    b = button(f"btnIbRowAct{suffix}", f"Text({ROW_ACT_N})", OPEN_ROW_ACT, width=width, height=32,
+               icon=fluent("comment"), visible=ROW_SEE_ACT,
+               accessible=('"Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries") & '
+                           '". Show the activity on " & ThisItem.TicketNo'),
+               tooltip='"Show activity"')
+    # Opslaget staar een gang (Text); farve og vaegt laeser Self.Text.
+    b.props["Color"] = f'If(Self.Text = "0", {C_MUTED}, {C_TITLE})'
+    b.props["FontWeight"] = 'If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)'
+    b.props["Size"] = str(lay.SIZE_SMALL)
+    b.props["BorderColor"] = C_TRANSPARENT
+    # Fluent-knappens indre luft er for bred til ikon + tal i cellen.
+    for side in ("Left", "Right"):
+        b.props[f"Padding{side}"] = str(ACTV_PAD)
+    b.props["LayoutMinWidth"] = b.props["Width"]
+    # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
+    b.props["_OnTop"] = "true"
+    ensure_hit(b, square=False)        # H.hit (UX-review F6, regel 40)
+    return group(f"conIbRowAct{suffix}", [b], direction="Horizontal", height=b.props["Height"],
                  width=width, align_items="Center")
 
 
@@ -1263,7 +1279,7 @@ def _compact_row():
     pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
     gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
     chip = _chip("txtIbRowStatusC", "ThisItem.Status", "ThisItem.Archived")
-    act = _act_count("C", 44)
+    act = _act_count("C", ACTV_W)
     line1 = group("conIbRowLineC1", [no, pri, gap, act, chip], direction="Horizontal", gap=8,
                   height=CHIP_H, align_items="Center")
     title = text_ctrl("txtIbRowTitleC", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
