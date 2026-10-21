@@ -37,7 +37,7 @@ from build_helpers import (fluent, fluent_icon, button, card, concurrent, fit_bu
                            loading_overlay, row_hit, row_rule, text_ctrl,
                            text_modal, top_bar, app_frame, text_input,
                            ensure_hit, hit_size)
-from fl_picker import HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD, _timer
+from fl_picker import HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD
 import layout_tokens as lay
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
 
@@ -122,7 +122,11 @@ def row_h(ref):
 # Tilstand
 # ---------------------------------------------------------------------------
 CLEAR_LEVELS = 'Set(varKksL1, "ALL");\nSet(varKksL2, "");\nSet(varKksL3, "")'
-CLEAR_QUERY = 'Set(varKksQuery, "");\nReset(inpKksFind)'
+# Soegeteksten er feltets egen tekst (KksQuery) - at rydde den er at
+# nulstille feltet. Ingen variabel at holde i trit (issue #478).
+CLEAR_QUERY = 'Reset(inpKksFind)'
+# Mindste soegetekst: eet tegn filtrerer allerede (issue #478).
+SEARCH_MIN = 1
 
 # FL-soegningens popup (issue #295) - dens EGNE variabler, saa aabning og
 # lukning aldrig roerer KKS-filtrene, den valgte kode eller resultaterne.
@@ -144,7 +148,6 @@ INIT_STATE = (
     "    IsBlank(varKksKey),\n"
     '    Set(varKksKey, "function");\n'
     "    " + CLEAR_LEVELS.replace("\n", "\n    ") + ";\n"
-    '    Set(varKksQuery, "");\n'
     '    Set(varKksDetailCode, "");\n'
     '    Set(varKksDetailText, "");\n'
     '    Set(varKksDetailOn, false);\n'
@@ -262,7 +265,12 @@ FORMULAS = f'''// KKS-opslaget (KKS App/build/kks_parts.py). Samlingerne hentes 
 colKksScope = With({{ready: varKksLoaded}}, Switch(varKksKey, "aggregate", colKksAggregate, "component", colKksComponent, colKksFunction));
 KksHasL3 = varKksKey = "function";
 colKksBase = If(varKksL1 = "ALL", colKksScope, Filter(colKksScope, L1 = varKksL1));
-colKksBaseQ = If(IsBlank(varKksQuery), colKksBase, Filter(colKksBase, varKksQuery in Code || varKksQuery in Description));
+// Soegningen (issue #478): feltets tekst, mens man skriver - ingen timer og
+// ingen variabel imellem. Lower paa begge sider: uafhaengig af store og
+// smaa bogstaver, ogsaa Æ/æ, Ø/ø og Å/å. Kode OG beskrivelse; det valgte
+// noegleomraade og bogstav (colKksBase) gaelder stadig.
+KksQuery = With({{ _t: Trim(inpKksFind.Text) }}, If(Len(_t) >= {SEARCH_MIN}, _t, ""));
+colKksBaseQ = If(IsBlank(KksQuery), colKksBase, With({{ _q: Lower(KksQuery) }}, Filter(colKksBase, _q in Lower(Code) || _q in Lower(Description))));
 // Bogstaverne (issue #164): kun de bogstaver, der har mindst een gruppe
 // (niveau 2) i den valgte noegletype - regnet af samme betingelse som
 // colKksL2Keys, i hukommelsen, pr. type. Et bogstav uden grupper (fx
@@ -273,13 +281,13 @@ colKksL2Keys = Sort(Distinct(Filter(colKksBaseQ, varKksL1 <> "ALL" && Len(P2) = 
 colKksL2Rows = If(IsBlank(varKksL2), colKksBaseQ, Filter(colKksBaseQ, P2 = varKksL2));
 colKksL3Keys = Sort(Distinct(Filter(colKksL2Rows, KksHasL3 && !IsBlank(varKksL2) && Len(P3) = 3 && StartsWith(P3, varKksL2)), P3), Value);
 colKksL3Rows = If(!KksHasL3 || IsBlank(varKksL3), colKksL2Rows, Filter(colKksL2Rows, P3 = varKksL3));
-colKksResults = If(varKksL1 = "ALL" && IsBlank(varKksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
-KksNote2 = If(varKksL1 = "ALL", "", CountRows(colKksL2Keys) = 0, If(IsBlank(varKksQuery), "No groups under this letter.", "No groups match the search."), "");
-KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "", IsBlank(varKksL2), "", CountRows(colKksL3Keys) = 0, If(IsBlank(varKksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
+colKksResults = If(varKksL1 = "ALL" && IsBlank(KksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
+KksNote2 = If(varKksL1 = "ALL", "", CountRows(colKksL2Keys) = 0, If(IsBlank(KksQuery), "No groups under this letter.", "No groups match the search."), "");
+KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "", IsBlank(varKksL2), "", CountRows(colKksL3Keys) = 0, If(IsBlank(KksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
 KksHeadL1 = If(varKksL1 = "ALL", "", Coalesce(LookUp(colKksScope, L1 = "HOME" && Upper(Code) = varKksL1, Description), LookUp(colKksBase, Upper(Code) = varKksL1, Description), LookUp(colKksBase, Len(P2) = 2 && Upper(Code) = P2 && StartsWith(P2, varKksL1), Description), ""));
 KksHeadL2 = If(IsBlank(varKksL2), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL2, Description), ""));
 KksHeadL3 = If(IsBlank(varKksL3), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL3, Description), ""));
-KksTitle = {KEY_SW} & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & {_cap("KksHeadL1")}, "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & {_cap("KksHeadL2")}, "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & {_cap("KksHeadL3")}, ""))) & If(IsBlank(varKksQuery), "", " - search results") & " \u00b7 " & Text(CountRows(colKksResults)) & If(CountRows(colKksResults) = 1, " code", " codes");'''
+KksTitle = {KEY_SW} & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & {_cap("KksHeadL1")}, "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & {_cap("KksHeadL2")}, "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & {_cap("KksHeadL3")}, ""))) & If(IsBlank(KksQuery), "", " - search results") & " \u00b7 " & Text(CountRows(colKksResults)) & If(CountRows(colKksResults) = 1, " code", " codes");'''
 
 
 
@@ -380,8 +388,10 @@ TOP_GAP = 8
 def _key_tabs():
     tabs = []
     for key, text, _sub in cfg.KEYS:
+        # Soegeteksten bliver staaende: den gaelder i det nye noegleomraade
+        # (issue #478). Bogstav og grupper nulstilles som foer.
         b = button(f"btnKksKey{key.title()}", f'"{text}"',
-                   f'Set(varKksKey, "{key}");\n{CLEAR_LEVELS};\n{CLEAR_QUERY}',
+                   f'Set(varKksKey, "{key}");\n{CLEAR_LEVELS}',
                    width=TAB_W, height=32,
                    accessible=f'"Show {text.lower()}s"')
         b.props["Size"] = f"If({lay.below('Tablet')}, {lay.SIZE_MICRO}, {lay.SIZE_SMALL})"
@@ -410,8 +420,15 @@ def _fl_button(name, visible, width):
     KKS-opslagets tilstand."""
     b = button(name, FL_BTN_TEXT, f"Set({FL_OPEN}, true)",
                width=width, height=32, icon="Search",
-               accessible='"Search Functional Locations in SAP"', visible=visible)
+               accessible='"Search Functional Locations in SAP"', visible=visible,
+               tooltip='"Search Functional Locations in SAP"',
+               display_mode="DisplayMode.Edit")
     b.props["Size"] = str(lay.SIZE_SMALL)
+    # Issue #478: hover-, tryk- og fokus-tilstandene regner Fluent ud af
+    # BasePaletteColor - som fanerne ved siden af (_selected). Uden den
+    # stod knappen ens i alle tilstande og saa ud, som om den ikke kunne
+    # klikkes.
+    b.props["BasePaletteColor"] = C_PRIMARY
     return _soft(b)
 
 
@@ -435,15 +452,27 @@ def _fl_button_narrow():
     return _fl_button("btnKksFlOpenNarrow", TOP_NARROW, FL_BTN_W)
 
 
-SEARCH_MIN = 2
 SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Min({CARD_W}, 420))"
 # Soegningen (UX-review, KKS): et tekstfelt med soegeikon og et kryds, der
-# rydder det. Den soeger, mens man skriver - en timer laegger teksten i
-# varKksQuery et kort ophold efter sidste tastetryk, saa filtreringen over
-# alle raekker ikke regnes om for hvert tegn. Search og Reset er vaek; et
-# klik paa en raekke gaar stadig til dens plads (ROW_SELECT).
-QUERY_OF_TEXT = (f'With({{ _t: Trim(inpKksFind.Text) }}, '
-                 f'If(Len(_t) >= {SEARCH_MIN}, _t, ""))')
+# rydder det. Search og Reset er vaek; et klik paa en raekke gaar stadig til
+# dens plads (ROW_SELECT).
+#
+# ISSUE #478 - SOEGNINGEN FILTREREDE IKKE
+# --------------------------------------
+# Foer gik teksten gennem en timer (tmrKksFindApply) til varKksQuery, og
+# feltets Default var varKksQuery:
+#   * Timeren havde Repeat = false og intet Reset - den eneste i appen, der
+#     startes af en Start-formel uden at blive nulstillet (act_timer har
+#     Reset netop derfor). En timer, der er loebet til ende, staar ved sin
+#     Duration; Start kan skifte, uden at den koerer igen, og saa naaede
+#     teksten aldrig formlerne.
+#   * Default = varKksQuery gav en sloejfe: naar timeren skrev variablen,
+#     nulstillede feltet sig til den trimmede tekst og aad et mellemrum, man
+#     lige havde skrevet.
+# Nu er der hverken timer eller variabel: den navngivne formel KksQuery
+# laeser feltets tekst direkte, og TriggerOutput.Delayed er den indbyggede
+# korte pause efter sidste tastetryk - som Issue Boards soegefelt
+# (inpIbSearch). Default er tom, saa Reset(inpKksFind) rydder feltet.
 SEARCH_ICON = 20
 
 
@@ -453,10 +482,11 @@ def _search_row():
                       size=SEARCH_ICON)
     ico.props["AlignInContainer"] = "AlignInContainer.Center"
     ico.props["LayoutMinWidth"] = str(SEARCH_ICON)
-    inp = text_input("inpKksFind", "varKksQuery", placeholder='"Search code or description"',
+    inp = text_input("inpKksFind", '""', placeholder='"Search code or description"',
                      height=SEARCH_H, label='"Search KKS codes and descriptions"')
-    inp.props["TriggerOutput"] = "TriggerOutput.Keypress"
+    inp.props["TriggerOutput"] = "TriggerOutput.Delayed"
     grow(inp)
+    # Krydset rydder kun teksten - noegleomraadet og bogstavet bliver staaende.
     clear = button("btnKksFindClear", '""', CLEAR_QUERY, width=SEARCH_H, height=SEARCH_H,
                    icon="Dismiss", accessible='"Clear the search"',
                    tooltip='"Clear the search"', visible="!IsBlank(inpKksFind.Text)")
@@ -467,10 +497,7 @@ def _search_row():
     row = group("conKksFindRow", [inp, clear, ico], direction="Horizontal", gap=8,
                 height=f"{hit_size(SEARCH_H)} + {2 * SEARCH_PAD}", pad=(SEARCH_PAD, 0, SEARCH_PAD, 0),
                 align_items="Center", width=SEARCH_ROW_W)
-    apply = _timer("tmrKksFindApply", f'{QUERY_OF_TEXT} <> Coalesce(varKksQuery, "")', 350,
-                   f"Set(varKksQuery, {QUERY_OF_TEXT})")
-    apply.props["Repeat"] = "false"
-    return group("conKksFindWrap", [row, apply], direction="Vertical", gap=0,
+    return group("conKksFindWrap", [row], direction="Vertical", gap=0,
                  width=SEARCH_ROW_W, align_in_container="Start")
 
 
