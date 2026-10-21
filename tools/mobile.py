@@ -68,12 +68,17 @@ def _and_vis(ctrl, cond):
     return ctrl
 
 
-def chevron_toggle(name, title, var, default_open=False, on_select_extra=None):
+def chevron_toggle(name, title, var, default_open=False, on_select_extra=None,
+                   open_expr=None):
     """Chevronknappen: 44 x 44 (TOUCH), kun paa mobil. Ned = lukket, op =
-    aaben. Skaermlaeseren faar "Expand <title>" / "Collapse <title>"."""
+    aaben. Skaermlaeseren faar "Expand <title>" / "Collapse <title>".
+    open_expr: et eget udtryk for "aaben" (standard state(var, default_open))
+    - fx naar standarden afhaenger af andet end en fast vaerdi. Et tryk
+    saetter var til det modsatte af udtrykket."""
     from build_helpers import icon_button  # cirkulaer import undgaas
-    st = state(var, default_open)
-    fx = "Set(%s, !%s)" % (var, st)
+    st = open_expr or state(var, default_open)
+    # !(...) om et eget udtryk: ! binder staerkere end && (test_not_precedence).
+    fx = "Set(%s, !%s)" % (var, "(%s)" % st if open_expr else st)
     if on_select_extra:
         fx += ";\n" + on_select_extra
     btn = icon_button(name, "Expand %s" % title, fx, _icons.CHEVRON_DOWN)
@@ -92,7 +97,7 @@ def chevron_toggle(name, title, var, default_open=False, on_select_extra=None):
 
 
 def collapsible(prefix, title, children, var, default_open=False, summary=None,
-                size=None):
+                size=None, open_expr=None):
     """En sektion, der kan klappes sammen PAA MOBIL. Returnerer en LISTE:
 
         [overskrift (kun mobil), *children]
@@ -104,7 +109,8 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     Paa mobil: overskriften er titlen, en kort opsummering (summary, en
     Power Fx-tekst, der vises, mens sektionen er lukket) og chevronen.
     Boernene vises kun, mens sektionen er aaben. var er en global variabel
-    (Set); blank = default_open, saa der skal intet i OnStart."""
+    (Set); blank = default_open, saa der skal intet i OnStart. open_expr:
+    se chevron_toggle (fase 3, FL-sidepanelets sektioner)."""
     from build_helpers import text_ctrl, group, grow, label_px
     from gen_screen import C_TITLE, C_MUTED
     size = size or lay.SIZE_INPUT
@@ -116,16 +122,18 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     if summary:
         s = grow(text_ctrl("txt%sFoldSummary" % prefix, summary, size=lay.SIZE_SMALL,
                            color=C_MUTED, height=20, wrap="false", align="Right"))
-        s.vis = "!%s" % state(var, default_open)
+        s.vis = "!%s" % (open_expr or state(var, default_open))
         s.props["Visible"] = s.vis
         kids.append(s)
     else:
         kids.append(grow(group("con%sFoldGap" % prefix, [], direction="Horizontal", height=0)))
-    kids.append(chevron_toggle("btn%sFold" % prefix, title, var, default_open))
+    kids.append(chevron_toggle("btn%sFold" % prefix, title, var, default_open,
+                               open_expr=open_expr))
     head = group("con%sFold" % prefix, kids, direction="Horizontal", gap=8,
                  height=TOUCH, align_items="Center", visible=MOBILE)
+    vis = ("(%s || %s)" % (NOT_MOBILE, open_expr)) if open_expr else shown(var, default_open)
     for c in children:
-        _and_vis(c, shown(var, default_open))
+        _and_vis(c, vis)
     return [head, *children]
 
 
