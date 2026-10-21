@@ -134,8 +134,8 @@ def test_objects_tab_in_materials_is_part_of_the_form():
         assert '"Object list"' in save
         edit = f'!(IfError(var{p}ViewOnly, false) || var{p}RowStatus = "submitted")'
         assert _prop(p, f"con{p}FlWrap", "Visible") == edit
-        assert _prop(p, f"btn{p}ObjAdd", "Visible") == edit
-        assert "Patch(" not in _prop(p, f"btn{p}ObjAdd", "OnSelect")
+        assert edit in _prop(p, f"btn{p}ObjList", "DisplayMode")
+        assert "Patch(" not in _prop(p, f"btn{p}ObjListApply", "OnSelect")
 
 
 def test_equipment_and_measuring_point_have_one_functional_location_search_and_no_objects():
