@@ -83,8 +83,9 @@ def test_classes_reuse_the_rows_column_widths():
     shared = ["No", "Fl", "Desc", "Kks", "Cls", "Room", "Sort", "Abc", "Atex"]
     for n in shared:
         assert cls[n] == rows[n], n
-    # Issue #468: de faelles kolonner foerst, saa Edit.
-    assert [n for n, *_ in p.C_SPEC] == shared + ["Open"]
+    # Issue #468: de faelles kolonner foerst, saa Edit - nu (issue #490) en
+    # tom Gap-kolonne og Actions med blyanten.
+    assert [n for n, *_ in p.C_SPEC] == shared + ["Gap", "Open"]
     # Genereret: overskrifter, celler og mellemrum flugter med Rows.
     for n, cell in (("Fl", "txtFlCFl"), ("Desc", "txtFlCDesc")):
         w = T._prop(f"txtFlRowsHead{n}", "Width")

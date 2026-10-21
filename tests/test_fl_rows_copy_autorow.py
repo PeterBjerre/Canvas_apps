@@ -38,7 +38,9 @@ def test_new_empty_row_when_the_last_row_is_ready():
 
 def test_same_names_in_rows_classes_and_panel():
     rows = [T._prop(n, "Text").strip('"') for n in T._children("conFlRowsHead")]
-    cls = [T._prop(n, "Text").strip('"') for n in T._children("conFlClsHead")]
+    cls = [T._prop(n, "Text").strip('"') for n in T._children("conFlClsHead")
+           # Gap (issue #490) er en tom container uden overskrift.
+           if n.startswith("txt")]
     for lbl in ("StrIndicator", "Class"):
         assert lbl in rows and lbl in cls, lbl
     text = T._text()
@@ -51,7 +53,9 @@ def test_same_names_in_rows_classes_and_panel():
 
 
 def test_classes_show_row_values_read_only():
-    heads = [T._prop(n, "Text").strip('"') for n in T._children("conFlClsHead")]
+    heads = [T._prop(n, "Text").strip('"') for n in T._children("conFlClsHead")
+           # Gap (issue #490) er en tom container uden overskrift.
+           if n.startswith("txt")]
     i = heads.index("Class")
     assert heads[i + 1:i + 5] == ["Room", "Sort field", "ABC indicator", "ATEX"]
     for n, f in (("Room", "ROOM"), ("Sort", "SORT FIELD"), ("Abc", "ABC INDIC."), ("Atex", "ATEX")):
