@@ -1,0 +1,245 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_powerbi": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
+          "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenanceItems"
+          }
+        },
+        "BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)": {
+          "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIWorkspaceId"
+          }
+        },
+        "BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)": {
+          "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIDatasetId"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 1
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "@parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')"
+            }
+          },
+          "conditions": [
+            {
+              "expression": "@not(equals(toUpper(trim(coalesce(triggerBody()?['FunctionalLocation'], ''))), toUpper(trim(coalesce(triggerBody()?['SystemFL'], '')))))"
+            }
+          ],
+          "runtimeConfiguration": {
+            "concurrency": {
+              "runs": 5
+            }
+          }
+        }
+      },
+      "actions": {
+        "FL": {
+          "runAfter": {},
+          "type": "Compose",
+          "inputs": "@trim(coalesce(triggerBody()?['FunctionalLocation'], ''))",
+          "description": "The item's FL now. SystemFL is set to it, so the trigger condition stops the next run."
+        },
+        "Has_FL": {
+          "runAfter": {
+            "FL": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@outputs('FL')",
+                    ""
+                  ]
+                }
+              }
+            ]
+          },
+          "actions": {
+            "Run_a_query_against_a_dataset": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi",
+                  "operationId": "ExecuteDatasetQuery",
+                  "connectionName": "shared_powerbi"
+                },
+                "parameters": {
+                  "groupid": "@parameters('BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)')",
+                  "datasetid": "@parameters('BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)')",
+                  "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] = \"@{replace(outputs('FL'), '\"', '\"\"')}\"), \"SystemNo\", 'Functional Locations'[Plant Section Key])",
+                  "specification/serializerSettings/includeNulls": false
+                }
+              },
+              "description": "Same Power BI table and column as BioSap-VhPlan-SystemApproval: Plant Section Key is the system."
+            },
+            "SysNoRaw": {
+              "runAfter": {
+                "Run_a_query_against_a_dataset": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Compose",
+              "inputs": "@trim(coalesce(first(coalesce(outputs('Run_a_query_against_a_dataset')?['body/firstTableRows'], json('[]')))?['[SystemNo]'], ''))"
+            },
+            "SysNo": {
+              "runAfter": {
+                "SysNoRaw": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Compose",
+              "inputs": "@if(startsWith(outputs('SysNoRaw'), '00'), substring(outputs('SysNoRaw'), 2), if(startsWith(outputs('SysNoRaw'), '0'), substring(outputs('SysNoRaw'), 1), outputs('SysNoRaw')))",
+              "description": "Leading zeros removed as in BioSap-VhPlan-SystemApproval, so the value matches MD_Approver. Empty when the FL is not in the system model."
+            },
+            "Body_system": {
+              "runAfter": {
+                "SysNo": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "SystemNo": "@outputs('SysNo')",
+                "SystemFL": "@outputs('FL')"
+              }
+            },
+            "Set_item_system": {
+              "runAfter": {
+                "Body_system": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "HttpRequest"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "parameters/method": "POST",
+                  "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')}')/items(@{triggerBody()?['ID']})",
+                  "parameters/headers": {
+                    "Accept": "application/json;odata=nometadata",
+                    "Content-Type": "application/json;odata=nometadata",
+                    "IF-MATCH": "*",
+                    "X-HTTP-Method": "MERGE"
+                  },
+                  "parameters/body": "@string(outputs('Body_system'))"
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Body_clear": {
+                "runAfter": {},
+                "type": "Compose",
+                "inputs": {
+                  "SystemNo": "",
+                  "SystemFL": ""
+                }
+              },
+              "Clear_item_system": {
+                "runAfter": {
+                  "Body_clear": [
+                    "Succeeded"
+                  ]
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "connectionName": "shared_sharepointonline",
+                    "operationId": "HttpRequest"
+                  },
+                  "parameters": {
+                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                    "parameters/method": "POST",
+                    "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')}')/items(@{triggerBody()?['ID']})",
+                    "parameters/headers": {
+                      "Accept": "application/json;odata=nometadata",
+                      "Content-Type": "application/json;odata=nometadata",
+                      "IF-MATCH": "*",
+                      "X-HTTP-Method": "MERGE"
+                    },
+                    "parameters/body": "@string(outputs('Body_clear'))"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
