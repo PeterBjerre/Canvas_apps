@@ -59,8 +59,9 @@ def rules():
 # --- sidepanelet (raekkens editor, issue #278) ---------------------------
 # Panelets sektioner i SAMME raekkefoelge som raekkens kolonner:
 #   Functional Location | Description | StrIndicator | Class |
-#   Class data | Room | Sort field | ABC indicator | ATEX |
+#   Room | Sort field | ABC indicator | ATEX | Class data |
 #   Manufacturer | Warranty
+# (issue #468: Class data efter de kolonner, Rows og Classes deler)
 # og derefter TRM. Class og TRM er reglernes Section; de andre deler
 # Master-felterne op. Status-sektionen (SAP status, Info, User status,
 # System status) vises ikke i panelet, og GIV_EXT/WCM (Section "Ext") vises
@@ -68,8 +69,8 @@ def rules():
 # SharePoint, de kan bare ikke ses eller rettes her.
 PANEL_SECTIONS = [
     ("Main", "Functional location"),
-    ("Class", "Class characteristics"),
     ("Loc", "Location and indicators"),
+    ("Class", "Class characteristics"),
     ("Mfr", "Manufacturer"),
     ("War", "Warranty"),
     ("TRM", "TRM"),
