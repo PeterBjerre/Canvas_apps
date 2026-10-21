@@ -90,6 +90,13 @@
 .PARAMETER Force
     Overskriv IB_AppSections-raekker, der findes i forvejen.
 
+.PARAMETER Application
+    Overskriv kun de IB_AppSections-raekker, der hoerer til disse
+    Applications (fx 'Measuring Point', issue #493) - de andre roeres ikke.
+    En raekke under en af dem, som ikke laengere staar i seedet, saettes
+    til IsActive = Nej (den slettes ikke, saa gamle sager beholder deres
+    Section). -Force overskriver alle raekker og vinder over denne.
+
 .PARAMETER SkipPermissions
     Opret lister og kolonner, men roer ikke rettighederne.
 
@@ -110,6 +117,10 @@
 .EXAMPLE
     .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-konto@<domaene>" -RemoveSharedIssues
 
+.EXAMPLE
+    # Issue #493: Measuring Points Sections fra seedet, aktive.
+    .\Provision-IssueBoard.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -FlowAccount "svc-konto@<domaene>" -Application 'Measuring Point'
+
 .NOTES
     Kraever PnP.PowerShell. ClientId findes i tenanten:
         se MdDefaultClientId i _Common.psm1
@@ -123,6 +134,7 @@ param(
     [string] $FlowAccount,
     [string] $SeedPath,
     [switch] $Force,
+    [string[]] $Application = @(),
     [switch] $SkipPermissions,
     [switch] $RemoveSharedIssues,
     [switch] $WhatIfOnly,
@@ -448,7 +460,7 @@ if ($WhatIfOnly) {
         }
         $key = '{0}|{1}' -f $values.Title, $values.Section
         if ($index.ContainsKey($key)) {
-            if ($Force) {
+            if ($Force -or ($Application -contains $values.Title)) {
                 Set-PnPListItem -List $SECTIONS -Identity $index[$key].Id -Values $values | Out-Null
                 $updated++
             } else {
@@ -461,6 +473,21 @@ if ($WhatIfOnly) {
     }
     $msg = "  {0} tilfoejet, {1} roert ikke, {2} overskrevet" -f $added, $kept, $updated
     Write-Host $msg -ForegroundColor Green
+    # -Application: raekker under de navngivne Applications, som seedet
+    # ikke kender mere, skjules (IsActive = Nej) - de slettes ikke.
+    if ($Application.Count -gt 0) {
+        $seedKeys = @{}
+        foreach ($r in $seed) { $seedKeys[('{0}|{1}' -f $r.Application.Trim(), $r.Section.Trim())] = $true }
+        $hidden = 0
+        foreach ($k in $index.Keys) {
+            $it = $index[$k]
+            if (($Application -contains $it.FieldValues.Title) -and -not $seedKeys.ContainsKey($k) -and $it.FieldValues.IsActive) {
+                Set-PnPListItem -List $SECTIONS -Identity $it.Id -Values @{ IsActive = $false } | Out-Null
+                $hidden++
+            }
+        }
+        Write-Host ("  {0} raekke(r) under {1} findes ikke i seedet og er skjult" -f $hidden, ($Application -join ', ')) -ForegroundColor Green
+    }
 }
 
 # ---------------------------------------------------------------------------
