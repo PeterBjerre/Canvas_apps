@@ -28,6 +28,10 @@ HER
   full_screen()      et sidepanel/overlag, der er hele skaermen paa mobil
   touch()            en knap, der er mindst TOUCH_MIN hoej paa mobil
   sheet_y()          Y for en popup paa mobil: oeverst med lidt luft
+  find()             en kontrol i et byggetrae, ud fra navnet
+  refit()            regn en containers hoejde om efter en mobilhoejde
+  gallery_place()    X/Y/bredde/hoejde i en galleriraekke paa mobil (kort)
+  hide_on_mobile()   skjul en kontrol paa mobil
 """
 import os
 import sys
@@ -158,6 +162,59 @@ def full_screen(panel, desk_x=None, desk_w=None, pad_x=PAD_X):
     panel.props["Y"] = mobile_or("0", panel.props.get("Y", "0"))
     mobile_pad(panel, x=pad_x)
     return panel
+
+
+def find(node, name):
+    """Kontrollen med navnet name i traeet under node (node selv med) -
+    til at efterjustere en kontrol, en faelles bygger har lavet."""
+    if node.name == name:
+        return node
+    for c in node.children or ():
+        hit = find(c, name)
+        if hit is not None:
+            return hit
+    return None
+
+
+def refit(box):
+    """Regn en containers hoejde om af boernene - efter at et barn har
+    faaet en mobilhoejde, EFTER containeren blev bygget (group() regner
+    hoejden ved bygningen). Kun containere uden fast hoejde."""
+    from build_helpers import stack_height, row_height
+    p = box.props
+    gap = p.get("LayoutGap", "0")
+    gap = int(gap) if str(gap).isdigit() else gap
+    pt, pb = p.get("PaddingTop", "0"), p.get("PaddingBottom", "0")
+    pt = int(pt) if str(pt).isdigit() else pt
+    pb = int(pb) if str(pb).isdigit() else pb
+    if "Vertical" in p.get("LayoutDirection", "Vertical"):
+        h = stack_height(box.children, gap, pt, pb)
+    else:
+        h = row_height(box.children, pt, pb, rows=1, gap=gap)
+    p["Height"] = str(h)
+    box.h = h
+    return box
+
+
+def gallery_place(ctrl, x=None, y=None, w=None, h=None):
+    """Placeringen af en kontrol i en galleriraekke PAA EN TELEFON (X, Y,
+    bredde, hoejde i skabelonens koordinater). gen_screen._place laegger
+    dem uden om den udregnede placering, naar raekken foldes ud - saa en
+    tabelraekke kan vaere et kort paa to linjer paa en telefon, mens
+    tablet og desktop er uaendrede. Kun i et galleri."""
+    m = {}
+    for k, v in (("X", x), ("Y", y), ("Width", w), ("Height", h)):
+        if v is not None:
+            m[k] = str(v)
+    ctrl.props["_Mobile"] = m
+    return ctrl
+
+
+def hide_on_mobile(ctrl):
+    """Skjult paa en telefon, ellers som foer."""
+    v = ctrl.props.get("Visible")
+    ctrl.vis = mobile_or("false", v or "true")
+    return ctrl
 
 
 def touch(btn):

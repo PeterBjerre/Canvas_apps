@@ -600,7 +600,23 @@ def _background(c, x, y, w, h, vis):
 
 
 def _place(c, x, y, w, h, vis, out):
-    """Placer c i boksen (x, y, w, h). w/h er None, naar c har sin egen."""
+    """Placer c i boksen (x, y, w, h). w/h er None, naar c har sin egen.
+
+    "_Mobile" (issue #508, tools/mobile.gallery_place): {X, Y, Width,
+    Height} paa en telefon - udtryk i skabelonens koordinater. De lagt
+    UDEN OM den udregnede placering som If(LayoutRank < 2, mobil, som
+    foer), saa en raekke kan staa som et kort paa to linjer paa en telefon,
+    mens tablet og desktop er praecis, som de var."""
+    mob = c.props.pop("_Mobile", None)
+    if mob:
+        if "X" in mob:
+            x = _lay.mobile_or(mob["X"], x)
+        if "Y" in mob:
+            y = _lay.mobile_or(mob["Y"], y)
+        if "Width" in mob:
+            w = _lay.mobile_or(mob["Width"], w if w is not None else _p(c, "Width", "0"))
+        if "Height" in mob:
+            h = _lay.mobile_or(mob["Height"], h if h is not None else _hv(c))
     own_vis = c.props.get("Visible")
     vis_all = _and(vis, own_vis)
     if c.control != "GroupContainer":

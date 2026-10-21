@@ -185,8 +185,11 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
         # Bunden har kun Submit og er vaek i visningen - ingen tom plads.
         footer = group(f"con{prefix}NotesFooter", [ok], direction="Horizontal", gap=8,
                        height=36, justify="End", align_items="Center", visible=edit)
+        # Telefonen (issue #508): Submit i fuld bredde og 44 px hoej.
+        from build_helpers import mobile_footer
+        mobile_footer(footer)
         foot = [footer]
-        foot_h = f"If({edit}, 36 + 12, 0)"
+        foot_h = f"If({edit}, ({footer.h}) + 12, 0)"
     natural = f"{INTRO_H} + 12 + {row_h}"
     room = f"App.Height - 32 - {2 * PAD} - {head.h} - 12 - {foot_h}"
     body_h = f"Min({natural}, Max(120, {room}))"
