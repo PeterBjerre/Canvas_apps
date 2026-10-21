@@ -129,13 +129,13 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0)
+                      =If(LayoutRank < 2, 17 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0), 25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
                       =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =10
+                      =If(LayoutRank < 2, 8, 10)
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -145,11 +145,11 @@ Screens:
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
-                      =24
+                      =If(LayoutRank < 2, 12, 24)
                   PaddingRight: |-
-                      =34
+                      =If(LayoutRank < 2, 12, 34)
                   PaddingTop: |-
-                      =14
+                      =If(LayoutRank < 2, 8, 14)
                   Width: |-
                       =Parent.Width
                 Children:
@@ -232,7 +232,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(LayoutRank >= 2, (Max(40, H.hit)) + 10, 0)) - ((If(LayoutRank < 2, 40, 133)) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 34))) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(LayoutRank >= 2, (Max(40, H.hit)) + 10, 0)) - ((If(LayoutRank < 2, 40, 133)) + 10) - 2)
                             Children:
                               - txtIbTitle:
                                   Control: ModernText
@@ -492,13 +492,13 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0))
+                      =Parent.Height - (If(LayoutRank < 2, 17 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0), 25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0)))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
                       =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =16
+                      =If(LayoutRank < 2, 12, 16)
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -506,13 +506,13 @@ Screens:
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   PaddingBottom: |-
-                      =40
+                      =If(LayoutRank < 2, 24, 40)
                   PaddingLeft: |-
-                      =24
+                      =If(LayoutRank < 2, 12, 24)
                   PaddingRight: |-
-                      =16
+                      =If(LayoutRank < 2, 12, 16)
                   PaddingTop: |-
-                      =16
+                      =If(LayoutRank < 2, 12, 16)
                   Width: |-
                       =Parent.Width
                 Children:
@@ -531,7 +531,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =74 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(varIbLoading, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0 && !varIbLoading, 8 + (112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =74 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(varIbLoading, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0 && !varIbLoading, 8 + (112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -547,9 +547,9 @@ Screens:
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
-                            =18
+                            =If(LayoutRank < 2, 12, 18)
                         PaddingRight: |-
-                            =18
+                            =If(LayoutRank < 2, 12, 18)
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
@@ -574,11 +574,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8
+                                  =(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8
                               LayoutAlignItems: |-
-                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -604,15 +604,15 @@ Screens:
                                     Color: |-
                                         =C.'text-primary'
                                     Default: |-
-                                        ={Value: Switch(varIbScope, "all", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), "mine", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), "assigned", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"))}
+                                        ={Value: Switch(varIbScope, "all", If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), "mine", If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), "assigned", If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "All issues", "All"))}
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =36
                                     Items: |-
-                                        =Filter([If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned")], (Value <> "Assigned to me" && Value <> "Assigned" || IsAdmin))
+                                        =Filter([If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned")], (Value <> "Assigned to me" && Value <> "Assigned" || IsAdmin))
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, If(IsAdmin, 335, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, If(IsAdmin, 335, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     OnChange: |-
                                         =With({ k: Switch(Self.Selected.Value, "All issues", "all", "All", "all", "My issues", "mine", "Mine", "mine", "Assigned to me", "assigned", "Assigned", "assigned", "") },
                                             If(!IsBlank(k) && k <> varIbScope,
@@ -630,7 +630,7 @@ Screens:
                                     Size: |-
                                         =T.body
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, If(IsAdmin, 335, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, If(IsAdmin, 335, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                               - tabIbState:
                                   Control: ModernTabList@1.0.0
                                   Properties:
@@ -649,7 +649,7 @@ Screens:
                                     Items: |-
                                         =["Open", "Closed", "Archived"]
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 234, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 234, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     OnChange: |-
                                         =With({ k: Switch(Self.Selected.Value, "Open", "open", "Closed", "closed", "Archived", "archived", "") },
                                             If(!IsBlank(k) && k <> varIbState,
@@ -667,7 +667,7 @@ Screens:
                                     Size: |-
                                         =T.body
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 234, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 234, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                               - rctIbTbSortGap:
                                   Control: Rectangle
                                   Properties:
@@ -682,15 +682,15 @@ Screens:
                                     Height: |-
                                         =1
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 743)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 743)), 0)
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743
+                                        =((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743
                                     Width: |-
-                                        =Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 743))
+                                        =Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 743))
                               - drpIbSort:
                                   Control: ModernDropdown
                                   Properties:
@@ -721,7 +721,7 @@ Screens:
                                     Items: |-
                                         =["Last updated", "Newest", "Oldest", "Priority", "Status"]
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     OnChange: |-
                                         =Set(varIbSort, Self.Selected.Value)
                                     RadiusBottomLeft: |-
@@ -737,7 +737,7 @@ Screens:
                                     ValidationState: |-
                                         =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
-                                        =Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                         - conIbTbFilters:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -749,11 +749,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6
+                                  =(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6
                               LayoutAlignItems: |-
-                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, LayoutAlignItems.Center, LayoutAlignItems.Start)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, LayoutAlignItems.Center, LayoutAlignItems.Start)
                               LayoutDirection: |-
-                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -790,13 +790,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                                   Children:
                                     - inpIbSearch:
                                         Control: ModernTextInput
@@ -844,7 +844,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Max(0, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)))) - ((20) + 8) - 2)
+                                              =Max(0, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)))) - ((20) + 8) - 2)
                                     - icoIbSearchIcon:
                                         Control: ModernIcon@1.1.0
                                         Properties:
@@ -885,13 +885,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                                   Children:
                                     - drpIbFltApp:
                                         Control: ModernDropdown
@@ -925,7 +925,7 @@ Screens:
                                           Items: |-
                                               =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
                                           LayoutMinWidth: |-
-                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
                                               Set(varIbSection, "");
@@ -943,7 +943,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                     - drpIbFltSection:
                                         Control: ModernDropdown
                                         Properties:
@@ -978,7 +978,7 @@ Screens:
                                           Items: |-
                                               =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
                                           LayoutMinWidth: |-
-                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
                                           RadiusBottomLeft: |-
@@ -994,7 +994,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                               - conIbFltPairB:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -1016,13 +1016,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(339, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, Min(339, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Min(339, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =Min(339, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                                   Children:
                                     - drpIbFltStatus:
                                         Control: ModernDropdown
@@ -1058,7 +1058,7 @@ Screens:
                                           Items: |-
                                               =["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"]
                                           LayoutMinWidth: |-
-                                              =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
                                           RadiusBottomLeft: |-
@@ -1074,7 +1074,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                     - drpIbFltPriority:
                                         Control: ModernDropdown
                                         Properties:
@@ -1107,7 +1107,7 @@ Screens:
                                           Items: |-
                                               =["All priorities", "Urgent", "High", "Normal", "Low"]
                                           LayoutMinWidth: |-
-                                              =Min(153, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(153, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
                                           RadiusBottomLeft: |-
@@ -1123,7 +1123,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(153, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(153, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                         - conIbCountRow:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1187,7 +1187,7 @@ Screens:
                                     Text: |-
                                         =With({ n: galIbList.AllItemsCount }, n & If(n = 1, " issue", " issues"))
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - (If(!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), (111) + 8, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - (If(!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), (111) + 8, 0)) - 2)
                                     Wrap: |-
                                         =false
                               - btnIbClearFlt:
@@ -1349,7 +1349,7 @@ Screens:
                                     Text: |-
                                         ="REQUESTER"
                                     Width: |-
-                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH2:
@@ -1384,7 +1384,7 @@ Screens:
                                     Text: |-
                                         ="TITLE"
                                     Width: |-
-                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH3:
@@ -1419,7 +1419,7 @@ Screens:
                                     Text: |-
                                         ="APPLICATION"
                                     Width: |-
-                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH4:
@@ -1456,7 +1456,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH5:
@@ -1563,7 +1563,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH8:
@@ -1600,7 +1600,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH9:
@@ -1635,7 +1635,7 @@ Screens:
                                     Text: |-
                                         ="UPDATED"
                                     Width: |-
-                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                               - txtIbListH10:
@@ -2364,7 +2364,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))
+                                  =Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 36, (36) + 8 + (36) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, 8 + (1), 0) + 8 + (36))) + 8) + 8 + ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 868, 36, (36) + 8 + (36) + 8 + (36))) + 6) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))
                               Items: |-
                                   =With(
                                       { q: Trim(inpIbSearch.Text) },
@@ -2496,7 +2496,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2537,11 +2537,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - imgIbRowApp:
@@ -2570,7 +2570,7 @@ Screens:
                                     Width: |-
                                         =20
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowApp:
@@ -2605,11 +2605,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
+                                        =((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(!IsBlank(ThisItem.Application), 26, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0 + If(!IsBlank(ThisItem.Application), (20) + 6, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowSection:
@@ -2644,11 +2644,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - imgIbRowPriority:
@@ -2682,7 +2682,7 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - imgIbRowStatus:
@@ -2719,7 +2719,7 @@ Screens:
                                     Width: |-
                                         =116
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - imgIbRowClaude:
@@ -2746,7 +2746,7 @@ Screens:
                                     Width: |-
                                         =14
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (14)) / 2
                               - txtIbRowAssigned:
@@ -2781,11 +2781,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(ThisItem.AssignedEmail = "claude", 18, 0))
+                                        =((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7))) - If(ThisItem.AssignedEmail = "claude", 18, 0))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0 + If(ThisItem.AssignedEmail = "claude", (14) + 4, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + 0 + 0 + If(ThisItem.AssignedEmail = "claude", (14) + 4, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtIbRowReported:
@@ -2820,11 +2820,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
-                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - txtIbRowUpdated:
@@ -2859,11 +2859,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
+                                        =(80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
                               - bdgIbRowNoC:
@@ -2991,7 +2991,7 @@ Screens:
                                     Width: |-
                                         =119
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((52) + 8) - ((119) + 8) - 2)) + 8 + (52) + 8
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((52) + 8) - ((119) + 8) - 2)) + 8 + (52) + 8
                                     Y: |-
                                         =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtIbRowTitleC:
@@ -3028,7 +3028,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank < 3
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40) - 12 - 12
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -3067,7 +3067,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank < 3
                                     Width: |-
-                                        =Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((44) + 8) - 2)
+                                        =Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40) - 12 - 12)) - ((44) + 8) - 2)
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -3092,7 +3092,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40)
                                     X: |-
                                         =0
                                     Y: |-
@@ -3190,7 +3190,7 @@ Screens:
                                     Text: |-
                                         ="Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & If(ThisItem.Archived, "Archived", ThisItem.Status)
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40)
                                     X: |-
                                         =0
                                     Y: |-
@@ -3296,7 +3296,7 @@ Screens:
                                     Width: |-
                                         =Max(40, H.hit)
                                     X: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - Self.Width
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40) - 12 - Self.Width
                                     Y: |-
                                         =88 - Self.Height
                               - btnIbRowAct:
@@ -3389,7 +3389,7 @@ Screens:
                                     Width: |-
                                         =52
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (H.hit)) / 2
                               - btnIbRowAttach:
@@ -3491,7 +3491,7 @@ Screens:
                                     Width: |-
                                         =44
                                     X: |-
-                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + (52) + 8
+                                        =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((106 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((80 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1110, 806)) / If(LayoutRank >= 4, 12, 7)))) + 8 + (52) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2
                               - btnIbRowActC:
@@ -3584,7 +3584,7 @@ Screens:
                                     Width: |-
                                         =52
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((52) + 8) - ((119) + 8) - 2)) + 8 + 0 + 0
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((52) + 8) - ((119) + 8) - 2)) + 8 + 0 + 0
                                     Y: |-
                                         =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (H.hit)) / 2
                         - conIbEmpty:
@@ -4719,17 +4719,17 @@ Screens:
             BorderThickness: |-
                 =0
             Fill: |-
-                =RGBA(0, 0, 0, 0)
+                =If(LayoutRank < 2, C.'overlay', RGBA(0, 0, 0, 0))
             Height: |-
                 =App.Height
             HoverFill: |-
-                =RGBA(0, 0, 0, 0)
+                =If(LayoutRank < 2, C.'overlay', RGBA(0, 0, 0, 0))
             Image: |-
                 =""
             OnSelect: |-
                 =Set(gblNavOpen, false)
             PressedFill: |-
-                =RGBA(0, 0, 0, 0)
+                =If(LayoutRank < 2, C.'overlay', RGBA(0, 0, 0, 0))
             TabIndex: |-
                 =0
             Visible: |-
@@ -4798,7 +4798,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(40, Parent.Height - 42 - (93 + 10 + (Max(36, H.hit))))
+                      =Max(40, Parent.Height - 42 - (1 + 10 + (Max(36, H.hit)) + 10 + (If(LayoutRank < 2, 44, 36)) + 10 + (If(LayoutRank < 2, 44, 36))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -4849,7 +4849,7 @@ Screens:
                       Control: Image
                       Properties:
                         AccessibleLabel: |-
-                            ="Collapse menu"
+                            =If(LayoutRank < 2, "Close menu", "Collapse menu")
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -4875,7 +4875,7 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            ="Collapse menu"
+                            =If(LayoutRank < 2, "Close menu", "Collapse menu")
                         Width: |-
                             =232
                   - imgIbNavHubOpen:
@@ -5347,7 +5347,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =93 + 10 + (Max(36, H.hit))
+                      =1 + 10 + (Max(36, H.hit)) + 10 + (If(LayoutRank < 2, 44, 36)) + 10 + (If(LayoutRank < 2, 44, 36))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -5456,13 +5456,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =If(LayoutRank < 2, 44, 36)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='148' height='36' viewBox='0 0 148 36'><svg x='8' y='6' width='24' height='24' viewBox='0 0 24 24'><defs><clipPath id='fen'><circle cx='12' cy='12' r='11.5'/></clipPath></defs><g clip-path='url(#fen)'><rect width='24' height='24' fill='#1F3A93'/><path d='M0 0L24 24M24 0L0 24' stroke='#FFFFFF' stroke-width='4.4'/><path d='M0 0L24 24M24 0L0 24' stroke='#D7263D' stroke-width='1.6'/><path d='M12 0V24M0 12H24' stroke='#FFFFFF' stroke-width='7'/><path d='M12 0V24M0 12H24' stroke='#D7263D' stroke-width='4'/></g><circle cx='12' cy='12' r='11.5' fill='none' stroke='" & C.'hex-border-default' & "' stroke-opacity='0.9' stroke-width='1'/></svg><text x='42' y='23' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>English</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =If(LayoutRank < 2, ImagePosition.Center, ImagePosition.Fit)
                         OnSelect: |-
                             =false
                         PressedFill: |-
@@ -5487,7 +5487,7 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =If(LayoutRank < 2, 44, 36)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
@@ -5496,7 +5496,7 @@ Screens:
                                 "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
                             ))
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =If(LayoutRank < 2, ImagePosition.Center, ImagePosition.Fit)
                         OnSelect: |-
                             =Set(darkModeEnabled, !darkModeEnabled);
                             If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
@@ -10504,7 +10504,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =180
+                =80 + 12 + (If(LayoutRank < 2, 60, 40)) + 12 + (If(LayoutRank < 2, (44), 36))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -10520,9 +10520,9 @@ Screens:
             PaddingBottom: |-
                 =18
             PaddingLeft: |-
-                =18
+                =If(LayoutRank < 2, 12, 18)
             PaddingRight: |-
-                =18
+                =If(LayoutRank < 2, 12, 18)
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
@@ -10536,7 +10536,7 @@ Screens:
             Visible: |-
                 =IfError(varIbDiscardOn, false)
             Width: |-
-                =Min(460, App.Width - 40)
+                =If(LayoutRank < 2, App.Width - 16, Min(460, App.Width - 40))
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -10605,7 +10605,7 @@ Screens:
                         Text: |-
                             ="Discard unsaved changes?"
                         Width: |-
-                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                            =Max(0, (((If(LayoutRank < 2, App.Width - 16, Min(460, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((44) + 12) - 2)
                         Wrap: |-
                             =false
                   - btnIbDiscardConfirmCancel:
@@ -10669,7 +10669,7 @@ Screens:
                   Font: |-
                       =Font.'Segoe UI'
                   Height: |-
-                      =40
+                      =If(LayoutRank < 2, 60, 40)
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
@@ -10695,11 +10695,11 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36
+                      =If(LayoutRank < 2, (44), 36)
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
+                      =If(LayoutRank < 2, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
                   LayoutDirection: |-
-                      =LayoutDirection.Horizontal
+                      =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
                   LayoutGap: |-
                       =8
                   LayoutJustifyContent: |-
@@ -10721,7 +10721,7 @@ Screens:
                         Align: |-
                             =Align.Center
                         AlignInContainer: |-
-                            =AlignInContainer.Center
+                            =If(LayoutRank < 2, AlignInContainer.Stretch, AlignInContainer.Center)
                         Appearance: |-
                             =ButtonAppearance.Outline
                         BorderColor: |-
@@ -10735,7 +10735,7 @@ Screens:
                         FontWeight: |-
                             =FontWeight.Semibold
                         Height: |-
-                            =36
+                            =If(LayoutRank < 2, 44, 36)
                         Layout: |-
                             =ButtonLayout.TextOnly
                         OnSelect: |-
