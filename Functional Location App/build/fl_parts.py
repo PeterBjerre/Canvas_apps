@@ -169,7 +169,8 @@ def set_row_fx(guid, field, value):
 def set_val_fx(guid, field, value):
     """FL56: vaerdien trimmes, og en tom vaerdi fjerner feltet
     (setSpoolColumnValue, app-functional-location.js:582-606). FL og
-    Description er raekkens egne felter."""
+    Description er raekkens egne felter - og begge store bogstaver
+    (Description: issue #490, som FL)."""
     return f"""With(
     {{ f: {field}, nv: Trim({value}) }},
     Switch(
@@ -177,7 +178,7 @@ def set_val_fx(guid, field, value):
         "FUNCTIONAL LOCATION",
         Patch(colFlRows, LookUp(colFlRows, RowGuid = {guid}), {{ FL: {norm_fl("nv")} }}),
         "DESCRIPTION",
-        Patch(colFlRows, LookUp(colFlRows, RowGuid = {guid}), {{ Description: nv }}),
+        Patch(colFlRows, LookUp(colFlRows, RowGuid = {guid}), {{ Description: Upper(nv) }}),
         RemoveIf(colFlVals, RowGuid = {guid} && Field = f);
         If(!IsBlank(nv), Collect(colFlVals, {{ RowGuid: {guid}, Field: f, Value: nv }}))
     )
@@ -305,10 +306,14 @@ PAIR_MIN = 144
 def table_head(name, spec, gap=GAP, width="Parent.Width"):
     """Kolonneoverskrifterne og stregen under dem (Masterdata Hub's
     moenster, issue #70)."""
+    # En kolonne uden overskrift (Classes' Gap, issue #490) er en tom
+    # container - ingen tom tekst, som en skaermlaeser ville standse ved.
     head = group(name,
                  pin_widths([text_ctrl(f"txt{name[3:]}{n}", f'"{lbl}"', size=11, color=C_MUTED,
                                        weight="Semibold", height=18, width=w, wrap="false",
-                                       visible=vis)
+                                       visible=vis) if lbl else
+                             group(f"con{name[3:]}{n}", [], direction="Horizontal", height=18,
+                                   width=w, visible=vis)
                              for n, lbl, w, vis in spec]),
                  direction="Horizontal", gap=gap, height=18, align_items="Center", width=width)
     return head
@@ -479,7 +484,8 @@ V_SPARE = f"Max(0, ({ROWS_W}) - {V_MIN})"
 # KUN FUNCTIONAL LOCATION OG DESCRIPTION VOKSER - OG KUN TIL ET LOFT
 # (issue #468). De andre kolonner har fast, kompakt bredde; resten af kortet
 # staar tomt til hoejre for tabellen - Actions/Edit staar lige efter den
-# sidste kolonne.
+# sidste kolonne. (Issue #490: over lofterne fylder tabellen nu kortet -
+# se V_REST herunder.)
 #
 # LOFTET ER INDHOLDET, OG FL FAAR PLADSEN FOERST (issue #479). Foer var
 # lofterne 240 og 300 px, og FL og Description delte pladsen 2/5 og 3/5 -
@@ -500,9 +506,21 @@ assert len(DESC_SAMPLE) == 40
 INPUT_CHROME = 2 * (1 + 10 + 2) + 4
 FL_MAX = text_px(FL_SAMPLE, lay.SIZE_INPUT, semibold=False) + INPUT_CHROME
 DESC_MAX = text_px(DESC_SAMPLE, lay.SIZE_INPUT, semibold=False) + INPUT_CHROME
-V_FL_W = f"{FL_MIN} + Min({FL_MAX - FL_MIN}, {V_SPARE})"
+#
+# RESTEN AF KORTET GAAR OGSAA TIL FL OG DESCRIPTION (issue #490). Foer
+# stoppede tabellen ved lofterne, og paa store skaerme stod resten af kortet
+# tomt til hoejre. Nu fylder tabellen kortet: det, der er tilbage, naar
+# begge har deres loft (V_REST), deles mellem FL (FL_SHARE) og Description
+# (resten - den kolonne med mest tekst). De kompakte kolonner har stadig
+# deres faste bredde. Ved 1920 er resten kun ca. 50 px, saa 1080p-layoutet
+# er det samme; under lofterne er reglerne uaendrede, og tabellen scroller
+# kun vandret, naar kortet er smallere end V_MIN.
+FL_SHARE = 0.4
+V_REST = f"Max(0, ({V_SPARE}) - {FL_MAX - FL_MIN + DESC_MAX - DESC_MIN})"
+V_FL_EXTRA = f"RoundDown(({V_REST}) * {FL_SHARE}, 0)"
+V_FL_W = f"{FL_MIN} + Min({FL_MAX - FL_MIN}, {V_SPARE}) + {V_FL_EXTRA}"
 V_DESC_W = (f"{DESC_MIN} + Min({DESC_MAX - DESC_MIN}, "
-            f"Max(0, ({V_SPARE}) - {FL_MAX - FL_MIN}))")
+            f"Max(0, ({V_SPARE}) - {FL_MAX - FL_MIN})) + ({V_REST}) - {V_FL_EXTRA}")
 
 
 V_SPEC = ([("No", "#", 28, V_SHOW_NO),
@@ -605,7 +623,7 @@ def row_cells():
     fl.props["Placeholder"] = f'If({COPIED}, "New copy - enter FL", "")'
     desc = text_input("inpFlRowDesc", "ThisItem.Description", max_length=40, width="140",
                       display_mode=DM_EDIT, label='"Description"',
-                      onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
+                      onchange=set_row_fx("ThisItem.RowGuid", "Description", "Upper(Trim(Self.Text))"))
     desc.props["BorderColor"] = _field_border(
         f"{row}.DescBad", f'{row}.Status <> "draft" && !IsBlank({row}.Description)')
     kks = text_ctrl("txtFlRowKks", 'If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)',
@@ -1072,7 +1090,18 @@ def build_rows():
 C_SHARED = 3 + len(V_SHARED)
 C_ROW_VALS = ("Room", "Sort", "Abc", "Atex")
 assert [n for n, *_ in V_SPEC[:C_SHARED]] == ["No", "Fl", "Desc", "Kks", "Cls", *C_ROW_VALS]
-C_SPEC = V_SPEC[:C_SHARED] + [("Open", "Edit", 72, None)]
+# CLASSES FYLDER OGSAA KORTET, OG ACTIONS STAAR UNDER ROWS' ACTIONS (issue
+# #490). Edit er nu en blyant i en Actions-kolonne med Rows' Actions-bredde
+# (ACT_W). Mellem ATEX og Actions staar en tom kolonne (Gap) paa Rows'
+# Class data..Status (C_MID_W) - saa de to tabeller er lige brede, og
+# blyanten staar lige under Rows' Copy. Er kortet for smalt til hele Rows,
+# krymper Gap foerst, saa Classes kun scroller, naar det er noedvendigt.
+C_MID = [w for n, _l, w in V_FIXED if n in ("ClsData", "Mfr", "War", "Status")]
+C_MID_W = sum(C_MID) + VGAP * (len(C_MID) - 1)
+C_ACT = ("Open", "Actions", ACT_W, None)
+C_BASE_W = spec_width(V_SPEC[:C_SHARED] + [C_ACT])
+C_GAP_W = f"Min({C_MID_W}, Max(0, ({ROWS_W}) - {C_BASE_W} - {VGAP}))"
+C_SPEC = V_SPEC[:C_SHARED] + [("Gap", "", C_GAP_W, None), C_ACT]
 C_W = spec_width(C_SPEC)
 C_GAL_W = f"({C_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 
@@ -1129,7 +1158,7 @@ def build_classes():
     }, children=[tab], h=40, vis=HAS_CLASSES)
 
     note = text_ctrl("txtFlClassNote",
-                     '"Compact view - Edit opens the class data of the row."',
+                     '"Compact view - the Edit pencil opens the class data of the row."',
                      size=12, color=C_MUTED, height=18, wrap="false", visible=HAS_CLASSES)
 
     head = table_head("conFlClsHead", C_SPEC, gap=VGAP, width=C_GAL_W)
@@ -1164,12 +1193,22 @@ def build_classes():
     # (issue #468: Classes' eneste egen kolonne er Edit); raekkens foerste
     # besked staar i Edit's tooltip og paa Status-knappen i Rows.
     info_msg = "Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, \"\")"
+    # Blyanten (issue #490): samme ikonknap som Rows' Copy og Delete -
+    # ACT_BTN bred, IconOnly, klikflade H.hit - i sin egen gruppe, saa den
+    # ikke straekkes til kolonnens bredde.
     open_ = button("btnFlCOpen", '"Edit"',
-                   open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=72, height=30,
+                   open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=ACT_BTN,
+                   height=30, icon="Edit",
                    accessible='"Edit class data of " & ThisItem.FL',
                    tooltip=(f'With({{ m: {info_msg} }}, "Edit class data of " & ThisItem.FL & '
                             'If(IsBlank(m), "", " - " & m))'))
-    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [open_])
+    open_.props["Layout"] = "ButtonLayout.IconOnly"
+    ensure_hit(open_, square=False)
+    c_act = group("conFlCAct", [open_], direction="Horizontal", gap=VGAP,
+                  height=lay.HIT, align_items="Center")
+    # Den tomme kolonne mellem ATEX og Actions (C_GAP_W).
+    gap = group("conFlCGap", [], direction="Horizontal", height=20)
+    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [gap, c_act])
     # Samme raekkehoejde og mellemrum som Rows (issue #468).
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
                         cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W,
@@ -1433,7 +1472,7 @@ def _paste_add_fx():
         "    Collect(\n"
         "        colFlRows,\n"
         "        ForAll(Sequence(CountRows(lines)), { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, "
-        f"FL: {norm_fl(cell.format(i=1))}, Description: Trim({cell.format(i=2)}), "
+        f"FL: {norm_fl(cell.format(i=1))}, Description: Upper(Trim({cell.format(i=2)})), "
         'KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", '
         'IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" })\n'
         "    );\n"
