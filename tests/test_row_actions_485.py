@@ -71,8 +71,10 @@ def test_the_row_icons_have_the_same_order_size_and_icon_on_all_three_pages():
             assert _prop(p, name, "Layout") == "ButtonLayout.IconOnly", name
             assert _prop(p, name, "Icon") == f'"{ICONS[a]}"', name
             assert _prop(p, name, "Width") == "44", name
-            # Hvert ikon har et tooltip med raekkens noegle.
-            assert "ThisItem.ItemKey" in _prop(p, name, "Tooltip"), name
+            # Hvert ikon har et tooltip med handlingen (issue #515); raekkens
+            # noegle staar i AccessibleLabel - den ses i forvejen i raekken.
+            assert _prop(p, name, "Tooltip"), name
+            assert "ThisItem.ItemKey" in _prop(p, name, "AccessibleLabel"), name
 
 
 def test_no_details_and_no_more_menu():
@@ -87,7 +89,7 @@ def test_edit_opens_also_a_read_only_row():
     for p in ORDER:
         # Edit er vejen ind i sidepanelet - ogsaa naar raekken kun kan ses.
         assert _prop(p, f"btn{p}RowOpen", "DisplayMode") == ""
-        assert '"View row "' in _prop(p, f"btn{p}RowOpen", "Tooltip")
+        assert '"View row"' in _prop(p, f"btn{p}RowOpen", "Tooltip")
 
 
 def test_copy_creates_a_new_draft_row_without_unique_values():
