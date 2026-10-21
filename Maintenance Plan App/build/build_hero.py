@@ -4,12 +4,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
                         C_DIVIDER, C_MODAL_BG, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
+import mobile
 import permissions as perm
 from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text_ctrl,
                            ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
                            new_request_label, new_request_widths, ghost, with_fix_count,
-                           SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H, act_status, act_width)
+                           SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H, act_status, act_width,
+                           mobile_pad)
 from build_status import MISSING_NAMES
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
@@ -510,8 +512,10 @@ def _lines_h(text, width, px=7.2, line_h=19):
             f"CountRows(Split(t, Char(10))) - 1) * {line_h} + 2)")
 
 
-MODAL_W = "Min(520, App.Width - 24)"
+# Paa en telefon: hele bredden minus 2 x 8 og 12 px polstring (issue #508).
+MODAL_W = lay.popup_w(520, 24)
 MODAL_PAD = 18
+MODAL_PAD_X = lay.mobile_or(mobile.CARD_PAD, MODAL_PAD)
 
 
 def missing_modal():
@@ -532,7 +536,7 @@ def missing_modal():
                       '"Complete the steps below. The list updates as you fix them.")',
                       size=13, color=f"If(IsEmpty({ALL_MISSING}), {C_VALID_FG}, {C_MUTED})",
                       height=38, wrap="true")
-    text_w = f"{MODAL_W} - {2 * MODAL_PAD} - {lay.SCROLLBAR_W}"
+    text_w = f"({MODAL_W}) - 2 * ({MODAL_PAD_X}) - {lay.SCROLLBAR_W}"
     blocks = []
     for (head, fx, st), name, ref in zip(GROUPS, MISS_TXT, GT):
         h = grow(text_ctrl(f"{name}H", f'"{head}"', size=13, weight="Semibold",
@@ -547,8 +551,10 @@ def missing_modal():
                     accessible=go_txt)
         go.props["Size"] = str(lay.SIZE_SMALL)
         go.props["LayoutMinWidth"] = go.props["Width"]
-        h = group(f"con{name[3:]}Top", [h, go], direction="Horizontal", gap=8, height=30,
-                  align_items="Center")
+        # 44 px paa en telefon (issue #508).
+        mobile.touch(go)
+        h = group(f"con{name[3:]}Top", [h, go], direction="Horizontal", gap=8,
+                  height=lay.mobile_or(mobile.TOUCH, 30), align_items="Center")
         body_fx = f"With(\n    {{ t: {fx} }},\n    If(IsBlank(t), \"\", {bullets('t')})\n)"
         if ITEM_DIRTY in body_fx:
             body_fx = with_dirty(body_fx)
@@ -568,6 +574,7 @@ def missing_modal():
     modal = group("conVhpMissingModal", [head, intro, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(MODAL_PAD,) * 4, width=MODAL_W, drop_shadow="ExtraBold", visible=vis)
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return [backdrop, modal]
@@ -710,6 +717,8 @@ def build_top_bar():
         height=36, accessible='"Start a new blank request"',
         tooltip='"Start a new blank request"'))
     ghost(btnNew)
+    # 44 px paa en telefon (issue #508).
+    mobile.touch(btnNew)
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
     # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
     # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
@@ -717,6 +726,7 @@ def build_top_bar():
                           "Set(varVhpViewOnly, false)",
                           tooltip='"Switch to Edit mode to change or submit the plan"')
     _compact(btnEdit, EDIT_W)
+    mobile.touch(btnEdit)
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
@@ -826,11 +836,12 @@ def build_top_bar():
     btns.props["LayoutMinWidth"] = btns.props["Width"]
     head = group("conVhpHeadLine", [title_bar, steps, btns],
                  # + broedkrummen over titlen (F9) fra Tablet og op.
-                 height=if_below("Tablet", "60", str(STEP_H + 28 + CRUMB_H + 2)),
+                 # Telefonen: 44 px knapper og 2 px luft (issue #508, foer 60).
+                 height=if_below("Tablet", "48", str(STEP_H + 28 + CRUMB_H + 2)),
                  direction="Horizontal", gap=16, align_items="Center", justify="SpaceBetween")
     title_bar.vis = at_least("Tablet")
     head.props["LayoutJustifyContent"] = ("If(%s, LayoutJustifyContent.End, LayoutJustifyContent.SpaceBetween)" % below("Tablet"))
-    spacer = group("conVhpHeadSpace", [], direction="Horizontal", height=if_below("Tablet", "10", "8"))
+    spacer = group("conVhpHeadSpace", [], direction="Horizontal", height=if_below("Tablet", "4", "8"))
     head = group("conVhpHeadStack", [m_steps, head, readiness_line(), spacer], direction="Vertical", gap=0)
     if os.environ.get("VHP_DEBUG_LAYOUT"):
         # Midlertidig diagnose: hver container faar sin egen baggrund.
