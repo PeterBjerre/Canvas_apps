@@ -39,7 +39,7 @@ def test_activity_cell_is_one_button_that_opens_the_activity_tab():
         assert 'Set(varIbTab, "activity")' in btn.props["OnSelect"]
         assert btn.props["OnSelect"] == P.OPEN_ROW_FILES.replace(
             'Set(varIbTab, "files")', 'Set(varIbTab, "activity")').replace(P.LOAD_FILES + ";\n", "")
-        assert btn.props["AccessibleLabel"] and btn.props["Tooltip"] == '"Show activity"'
+        assert btn.props["AccessibleLabel"] and btn.props["Tooltip"] == '"View activity"'
         assert f"icoIbRowAct{suffix}" not in ctrls and f"txtIbRowAct{suffix}" not in ctrls
     # Resten af raekken aabner stadig Description.
     assert 'Set(varIbTab, "details")' in P.OPEN_ROW

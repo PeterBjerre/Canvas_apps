@@ -237,7 +237,10 @@ def _subject_picker(n, avail):
         accessible=label, height=34, size=size,
         color=f"If({has}, {C_INPUT_FG}, {C_MUTED})")
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
-        "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")',
+        # Tooltip som etiketten (issue #515).
+        "Tooltip": f'If({PICK}, "Collapse list", "Expand list")',
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20",
         "Image": (f'"data:image/svg+xml;utf8," & EncodeUrl(If({PICK}, '
                   f'"{_chevron_svg(CHEVRON_UP)}", "{_chevron_svg(CHEVRON_DOWN)}"))'),

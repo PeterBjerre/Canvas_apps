@@ -516,7 +516,7 @@ def row_actions():
     return dp.standard_row_actions(
         docs_fx=(dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
                  + dp.open_active_docs_fx()),
-        docs_n="Coalesce(ThisItem.FileCount, 0)",
+        docs_n="ThisItem.FileCount",
         objects_fx=dobj.open_row_fx(cfg.ROW_EDITOR_TAB_VAR),
         objects_n=ROW_OBJ_N)
 

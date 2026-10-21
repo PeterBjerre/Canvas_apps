@@ -2923,7 +2923,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row") & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -2987,7 +2987,7 @@ Screens:
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
-                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3002,7 +3002,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3264,7 +3264,7 @@ Screens:
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3279,7 +3279,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3318,7 +3318,7 @@ Screens:
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3446,7 +3446,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row") & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3510,7 +3510,7 @@ Screens:
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
-                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row ", "Edit row ") & ThisItem.ItemKey
+                                              =If((varMpViewOnly || ThisItem.Status = "submitted"), "View row", "Edit row")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3525,7 +3525,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3787,7 +3787,7 @@ Screens:
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
-                                              ="Copy " & ThisItem.ItemKey & " to a new draft row"
+                                              ="Copy row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -3802,7 +3802,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row" & " - " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -3841,7 +3841,7 @@ Screens:
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
-                                              ="Delete row " & ThisItem.ItemKey
+                                              ="Delete row"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -5573,6 +5573,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =Max(36, H.hit)
       - conMpMobileBar:
@@ -6514,6 +6516,8 @@ Screens:
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                         Width: |-
                             =104
       - conMpFbBackdrop:
@@ -7252,6 +7256,8 @@ Screens:
                                                           =Set(gblFbPick, !gblFbPick)
                                                       TabIndex: |-
                                                           =0
+                                                      Tooltip: |-
+                                                          =If(gblFbPick, "Collapse list", "Expand list")
                                                       Width: |-
                                                           =H.hit
                               - conMpFbMessageCell:

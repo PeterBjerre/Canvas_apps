@@ -89,6 +89,7 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex as _hex
 import icons
+import action_tips as tips
 import status_chip as sc
 import app_icons
 import layout_tokens as lay
@@ -635,7 +636,9 @@ CLOSE_FORM = ('Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDet
 def build_bar():
     new = button("btnIbNew", '"New issue"', OPEN_FORM, primary=True,
                  width=fit_button_width('"New issue"') + ICON_W, height=36, icon="Add",
-                 accessible='"Report a new issue"')
+                 accessible=tips.NEW_ISSUE)
+    # Under Tablet er knappen kun sit ikon (issue #515).
+    new.props["Tooltip"] = tips.NEW_ISSUE
     icon_on_mobile(new)
     # Refresh er ikke laengere en del af det normale arbejde - hver aendring
     # opdaterer selv det, den roerer (issue #212). Den henter andres
@@ -1098,10 +1101,16 @@ def requester(r):
 REPORTER_FX = requester("{r}")
 
 
+ROW_FILES_TIP = tips.attachments(f"ThisItem.{FILE_COUNT}")
+
+
 def _attach_btn(name, visible, width=ACT_BTN):
     b = button(name, '"Attachments"', OPEN_ROW_FILES, width=width, height=32, icon="Attach",
-               visible=visible, accessible='"Show the attachments on " & ThisItem.TicketNo',
-               tooltip='"Show attachments"')
+               visible=visible,
+               # Antallet er raekkens eget FileCount - det samme tal som
+               # fanen Attachments (issue #515, tools/action_tips.py).
+               accessible=tips.label(ROW_FILES_TIP, "ThisItem.TicketNo"),
+               tooltip=ROW_FILES_TIP)
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["BorderColor"] = C_TRANSPARENT
     # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
@@ -1180,7 +1189,8 @@ def _act_count(suffix, width):
         "OnSelect": OPEN_ROW_ACT,
         "PressedFill": C_ROW_PRESSED,
         "TabIndex": "0",
-        "Tooltip": '"Show activity"',
+        # Tallet staar i boblen - tooltippet siger handlingen (issue #515).
+        "Tooltip": tips.VIEW_ACTIVITY,
         "Visible": ROW_SEE_ACT,
         "Width": str(width),
     }

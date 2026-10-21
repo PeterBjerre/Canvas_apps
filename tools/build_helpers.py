@@ -11,6 +11,7 @@ import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRANSPARENT
 import layout_tokens as lay
+import action_tips as tips
 from layout_tokens import at_least, below, fits, if_below, TWO_COL_MIN
 from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_CARD_BG,
                         C_CARD_BORDER, C_INPUT_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
@@ -1270,6 +1271,8 @@ def theme_button(name="imgThemeToggle", compact=False):
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": toggle_action(),
         "TabIndex": "0",
+        # Hvad et klik goer (issue #515, tools/action_tips.py).
+        "Tooltip": tips.toggle(DARK_VAR, "Switch to light theme", "Switch to dark theme"),
         "Width": width,
     }
     img = Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
@@ -1345,6 +1348,7 @@ def help_toggle(name, on, action, compact=False):
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": action,
         "TabIndex": "0",
+        "Tooltip": tips.toggle(on, "Hide help", "Show help"),
         "Width": width,
     }
     img = Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)

@@ -31,6 +31,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
+import action_tips as tips
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
                            act_fx, act_button, act_status, act_layers, panel_save_text,
@@ -255,6 +256,10 @@ def build_bar():
                        visible="varFlViewOnly && varFlCanEdit",
                        display_mode="If(varFlCanEdit, DisplayMode.Edit, DisplayMode.Disabled)"),
                 icon=True)
+    # Under Desktop er knappen kun sit ikon (_bar_btn) - tooltip som de
+    # andre domaeners Edit (issue #515).
+    edit.props["Tooltip"] = '"Edit this request"'
+    edit.props["AccessibleLabel"] = '"Edit this request"'
     # SAMME RAEKKEFOELGE SOM ALLE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
@@ -568,6 +573,13 @@ def has_vals(guid, fields_expr):
     return f"!IsEmpty(Filter(colFlVals, RowGuid = {guid} && Field in {fields_expr}))"
 
 
+def n_vals(guid, fields_expr):
+    """Antallet af udfyldte felter i popuppen - samme samling som has_vals
+    (colFlVals, i hukommelsen), intet opslag pr. raekke. Tooltippet paa
+    raekkens Class data, Manufacturer og Warranty (issue #515)."""
+    return f"CountRows(Filter(colFlVals, RowGuid = {guid} && Field in {fields_expr}))"
+
+
 def verify_button():
     """HELE valideringen - skjult. Alle aendringer kalder den med
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
@@ -663,26 +675,26 @@ def row_cells():
     }), h=36)
 
     has_cls = "!IsBlank(ThisItem.AssignedClass)"
+    cls_fields = f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"
+    # Tooltippet (issue #515): handlingen og antallet af udfyldte felter -
+    # "Edit class data - 3 fields filled" / "Add class data".
     cls_data = _pop_button(
         "btnFlRowClassData", "Class data", open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'),
-        f"{has_cls} && " + has_vals(
-            "ThisItem.RowGuid",
-            f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"),
+        f"{has_cls} && " + has_vals("ThisItem.RowGuid", cls_fields),
         '"Class data of row " & ThisItem.Pos',
-        (f'If({has_cls}, "Edit the class characteristics and TRM fields of this row", '
+        (f'If({has_cls}, {tips.filled("class data", n_vals("ThisItem.RowGuid", cls_fields), CLS_LOCKED)}, '
          '"Valid FL first - the class is determined by the KKS code of a valid Functional Location.")'),
         f"If({has_cls}, DisplayMode.Edit, DisplayMode.Disabled)")
     pops = [cls_data]
-    for name, kind, fields, tip in (
-            ("btnFlRowMfr", "Manufacturer", MFR_FIELDS,
-             "Manufacturer, Model Number, Manufacturer Part Number and Manufacturer Serial Number"),
-            ("btnFlRowWar", "Warranty", WAR_FIELDS, "Warranty Start and Warranty End")):
+    for name, kind, fields in (("btnFlRowMfr", "Manufacturer", MFR_FIELDS),
+                               ("btnFlRowWar", "Warranty", WAR_FIELDS)):
         has = has_vals("ThisItem.RowGuid", _fields(fields))
+        tip = tips.filled(kind.lower(), n_vals("ThisItem.RowGuid", _fields(fields)), CLS_LOCKED)
         # Som Long Text: laast og tom = deaktiveret; ellers kan den aabnes
         # (i View kun til at laese).
         pops.append(_pop_button(
             name, kind, open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_JUMP[kind]}"'), has,
-            f'"{kind} of row " & ThisItem.Pos', f'"{tip}"',
+            f'"{kind} of row " & ThisItem.Pos', tip,
             f"If(({CLS_LOCKED}) && !({has}), DisplayMode.Disabled, DisplayMode.Edit)"))
 
     status = button(
@@ -700,7 +712,7 @@ def row_cells():
     status.props["Size"] = str(lay.SIZE_SMALL)
 
     delete = button("btnFlRowDelete", '"Delete"', delete_row_fx("ThisItem.RowGuid"), danger=True, width=48, height=30, display_mode=DM_EDIT, icon="Delete",
-                    accessible='"Delete row " & ThisItem.Pos', tooltip='"Delete row " & ThisItem.Pos')
+                    accessible=tips.label(tips.DELETE_ROW, "ThisItem.Pos"), tooltip=tips.DELETE_ROW)
     delete.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(delete, square=False)
     # Copy (issue #467): raekken til en ny, ugemt raekke - foran Delete.
@@ -710,7 +722,7 @@ def row_cells():
                   display_mode=("If(varFlViewOnly || varFlStatus = \"Indsendt\", DisplayMode.View, "
                                 "IsBlank(ThisItem.FL) && IsBlank(ThisItem.Description), "
                                 "DisplayMode.Disabled, DisplayMode.Edit)"),
-                  accessible='"Copy row " & ThisItem.Pos', tooltip='"Copy row " & ThisItem.Pos')
+                  accessible=tips.label(tips.COPY_ROW, "ThisItem.Pos"), tooltip=tips.COPY_ROW)
     copy.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(copy, square=False)
     delete.props["Width"] = str(ACT_BTN)
