@@ -32,7 +32,8 @@ def _eval(expr, width, inset=0):
           .replace("PanelInset", str(inset)))
     return eval(py, {"If": lambda c, a, b: a if c else b, "Max": max, "Min": min,
                      "RoundDown": lambda x, _d: math.floor(x),
-                     "True": True, "False": False})
+                     # true/false: en celle skjult paa en telefon (issue #508).
+                     "True": True, "False": False, "true": True, "false": False})
 
 
 def test_fl_and_description_fit_their_content_at_1080p():

@@ -98,6 +98,10 @@ def test_classes_reuse_the_rows_column_widths():
                                 ("txtFlRowCls", "txtFlCCls"), ("inpFlRowRoom", "txtFlCRoom"),
                                 ("inpFlRowSort", "txtFlCSort"), ("txtFlRowAbc", "txtFlCAbc"),
                                 ("chkFlRowAtex", "txtFlCAtex")):
-        assert T._prop(cls_cell, "X") == T._prop(rows_cell, "X"), cls_cell
+        # Fra Tablet og op (issue #508: paa en telefon er raekkerne kort).
+        from test_fl_columns_1080p import _eval
+        for w in (800, 1366, 1920):
+            assert (_eval(T._desk_all(T._prop(cls_cell, "X")), w)
+                    == _eval(T._desk_all(T._prop(rows_cell, "X")), w)), (cls_cell, w)
     # Smal skaerm: Classes scroller vandret som Rows.
     assert T._prop("conFlClsTable", "LayoutOverflowX") == "LayoutOverflow.Scroll"

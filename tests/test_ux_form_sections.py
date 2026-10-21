@@ -113,7 +113,8 @@ def test_functional_location_has_status_column_and_row_panel():
     props = _properties("ScreenFunctionalLocation.pa.yaml")
     assert "btnFlRowStatus" in props
     assert "conFlEditorPanel" in props
-    assert props["conFlEditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
+    # Hele skaermen paa en telefon (issue #508) - fra Tablet som foer.
+    assert props["conFlEditorPanel"]["Width"] == "=" + lay.mobile_or("App.Width", lay.PANEL_W_AT)
     assert all(f"conFlPanel{section}" in props
                for section in ("Main", "Class", "Loc", "Mfr", "War", "TRM"))
     assert "conFlPanelStatus" not in props and "conFlPanelMaster" not in props

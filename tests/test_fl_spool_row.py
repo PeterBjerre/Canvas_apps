@@ -53,10 +53,57 @@ def _ctrl(ctrl):
     return _find(_TREE[FL], ctrl)
 
 
+def _desk(v):
+    """Issue #508: en vaerdi, der HELT er If(LayoutRank < 2, mobil, ellers),
+    -> ellers-grenen (tablet/desktop, som FL-testene her handler om).
+    Mobilvaerdierne testes i test_mobile_508_fase3.py."""
+    head = "If(LayoutRank < 2, "
+    while v.startswith(head) and v.endswith(")"):
+        depth, commas = 0, []
+        for i in range(2, len(v)):
+            ch = v[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0 and i != len(v) - 1:
+                    return v
+            elif ch == "," and depth == 1:
+                commas.append(i)
+        if len(commas) != 2:
+            return v
+        v = v[commas[1] + 1:-1].strip()
+    return v
+
+
+def _desk_all(v):
+    """Som _desk, men for HVER If(LayoutRank < 2, mobil, ellers) i udtrykket -
+    ogsaa synligheden af en celle, der er skjult paa en telefon, i summen
+    af X. Til at sammenligne to genererede formler fra Tablet og op."""
+    head = "If(LayoutRank < 2, "
+    k = v.find(head)
+    while k >= 0:
+        depth, commas, end = 0, [], None
+        for i in range(k + 2, len(v)):
+            ch = v[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+            elif ch == "," and depth == 1:
+                commas.append(i)
+        v = v[:k] + "(" + v[commas[1] + 1:end].strip() + ")" + v[end + 1:]
+        k = v.find(head)
+    return v
+
+
 def _prop(ctrl, prop):
     hit = _ctrl(ctrl)
     assert hit is not None, ctrl
-    return str(hit["Properties"][prop]).lstrip("=")
+    return _desk(str(hit["Properties"][prop]).lstrip("="))
 
 
 def _children(ctrl):
