@@ -30,8 +30,9 @@ def test_button_is_enabled_in_view():
 def test_popup_is_read_only_in_view():
     c = _controls()
     # Afkrydsningerne kan ikke aendres, og "Use selected" er skjult.
+    # Planens egen Functional Location (Main) er altid laast.
     assert _p(c, "chkVhpObjPick", "DisplayMode").strip() == \
-        f"=If({VIEW}, DisplayMode.View, DisplayMode.Edit)"
+        f"=If({VIEW} || ThisItem.Main, DisplayMode.View, DisplayMode.Edit)"
     assert f"!{VIEW}" in _p(c, "btnVhpObjListUse", "Visible")
     assert VIEW in _p(c, "btnVhpObjListUse", "DisplayMode")
     # Luk er stadig der og roerer ikke planens objekter.

@@ -14,7 +14,7 @@ from conftest import ROOT
 
 SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml")
 
-MODAL_W = "Min(640, App.Width - 40)"
+MODAL_W = "Min(760, App.Width - 40)"
 LIST_W = "(%s) - 36" % MODAL_W
 ROW_W = "(%s) - 2 * 2 - 18" % LIST_W
 
@@ -49,10 +49,19 @@ def test_list_row_and_text_share_one_width():
     assert _prop(row, "Width") == ROW_W, "raekken skal fylde hele listens bredde"
     assert not _prop(row, "Width").endswith("- 40"), "GALLERY_RESERVE maa ikke traekkes fra"
 
+    # Mockup 2026-10-21: afkrydsning, kode, beskrivelse og status i hver
+    # sin kolonne. Beskrivelsen tager resten af raekken.
     chk = _block(text, "chkVhpObjPick")
-    # Teksten er raekken minus den samme polstring i begge sider.
-    assert _prop(chk, "Width") == "Max(0, ((%s) - 8 - 8) - 2)" % ROW_W
+    assert _prop(chk, "Width") == "28"
     assert _prop(chk, "X") == "0 + 8 + 0"
+    code = _block(text, "txtVhpObjCode")
+    assert _prop(code, "X") == "0 + 8 + 0 + (28) + 10"
+    desc = _block(text, "txtVhpObjDesc")
+    assert _prop(desc, "Width").startswith("Max(0, ((%s) - 8 - 8) - " % ROW_W)
+    # Overskriften flugter med raekkerne: 2 + 8 + 28 + 10 fra venstre.
+    cols = _block(text, "conVhpObjListCols")
+    assert _prop(cols, "PaddingLeft") == "48"
+    assert _prop(cols, "PaddingRight") == "28"
 
 
 def test_selection_behavior_unchanged():
@@ -60,5 +69,6 @@ def test_selection_behavior_unchanged():
     chk = _block(text, "chkVhpObjPick")
     assert "Collect(colVhpObjDraft" in chk
     assert "RemoveIf(colVhpObjDraft, Code = ThisItem.Code)" in chk
-    row = _block(text, "rctVhpObjRowBg")
-    assert "C.'state-info-bg'" in _prop(row, "Fill")
+    # Planens egen FL kan hverken til- eller fravaelges.
+    assert "!ThisItem.Main" in chk
+    assert '"Already selected"' in _block(text, "imgVhpObjStatus")

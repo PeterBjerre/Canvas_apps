@@ -8979,7 +8979,7 @@ Screens:
                                                                       Control: Image
                                                                       Properties:
                                                                         AccessibleLabel: |-
-                                                                            ="Object list, " & Text(If(varVhpFlBusy || IsBlank(varVhpFlLast) || (!IsBlank(Upper(Trim(cmbVhpItemFL.SearchText))) && Upper(Trim(cmbVhpItemFL.SearchText)) <> Upper(Trim(varVhpFlLast))), 0, CountRows(colVhpFl))) & " found, " & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & " selected"
+                                                                            ="Object list, " & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & " selected"
                                                                         AlignInContainer: |-
                                                                             =AlignInContainer.Center
                                                                         BorderStyle: |-
@@ -9011,13 +9011,14 @@ Screens:
                                                                             )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || (!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(If(varVhpFlBusy || IsBlank(varVhpFlLast) || (!IsBlank(Upper(Trim(cmbVhpItemFL.SearchText))) && Upper(Trim(cmbVhpItemFL.SearchText)) <> Upper(Trim(varVhpFlLast))), 0, CountRows(colVhpFl))) & ")" & "</text></svg>"))
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
                                                                         ImagePosition: |-
                                                                             =ImagePosition.Fit
                                                                         LayoutMinWidth: |-
                                                                             =If(LayoutRank < 2, 40, 185)
                                                                         OnSelect: |-
-                                                                            =ClearCollect(
+                                                                            =Reset(inpVhpObjListSearch);
+                                                                            ClearCollect(
                                                                                 colVhpObjDraft,
                                                                                 ForAll(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As O, { Code: O.Code, Description: O.Description })
                                                                             );
@@ -20931,7 +20932,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =476 + If(IfError(((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || CountRows(Filter(
+                =628 + If(IfError(((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || CountRows(Filter(
                     colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                 )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
@@ -20966,7 +20967,7 @@ Screens:
             Visible: |-
                 =varVhpObjListOpen
             Width: |-
-                =Min(640, App.Width - 40)
+                =Min(760, App.Width - 40)
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -21035,7 +21036,7 @@ Screens:
                         Text: |-
                             ="Object list"
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                            =Max(0, (((Min(760, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
                         Wrap: |-
                             =false
                   - btnVhpObjListClose:
@@ -21099,7 +21100,7 @@ Screens:
                   Font: |-
                       =Font.'Segoe UI'
                   Height: |-
-                      =18
+                      =20
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
@@ -21109,14 +21110,203 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =T.small
+                      =T.body
                   Text: |-
-                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", (varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
+                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", (varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", Text(CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ))) & " found.")
+                      )) + 1) & " sub-objects found for " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))
                   Wrap: |-
                       =false
+            - inpVhpObjListSearch:
+                Control: ModernTextInput
+                Properties:
+                  AccessibleLabel: |-
+                      ="Search objects"
+                  Appearance: |-
+                      =If((DisplayMode.Edit) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  BorderColor: |-
+                      =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), C.'border-default', If((DisplayMode.Edit) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                  BorderStyle: |-
+                      =BorderStyle.Solid
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =If((DisplayMode.Edit) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                  Default: |-
+                      =""
+                  DisplayMode: |-
+                      =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), DisplayMode.View, If((DisplayMode.Edit) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                  Fill: |-
+                      =If(DisplayMode.Edit = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =36
+                  LayoutMinWidth: |-
+                      =0
+                  Placeholder: |-
+                      ="Search functional location or description"
+                  RadiusBottomLeft: |-
+                      =R.input
+                  RadiusBottomRight: |-
+                      =R.input
+                  RadiusTopLeft: |-
+                      =R.input
+                  RadiusTopRight: |-
+                      =R.input
+                  Size: |-
+                      =If(LayoutRank < 2, 16, 14)
+                  ValidationState: |-
+                      =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                  Width: |-
+                      =Parent.Width
+            - conVhpObjListCols:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =18
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =48
+                  PaddingRight: |-
+                      =28
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =(Min(760, App.Width - 40)) - 36
+                Children:
+                  - txtVhpObjColCode:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Functional Location"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Functional Location"
+                        Width: |-
+                            =200
+                        Wrap: |-
+                            =false
+                  - txtVhpObjColDesc:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Description"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =18
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Description"
+                        Width: |-
+                            =Max(0, (((Min(760, App.Width - 40)) - 18 - 18) - 48 - 28) - ((200) + 10) - ((122) + 10) - 2)
+                        Wrap: |-
+                            =false
+                  - txtVhpObjColStatus:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Status"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Status"
+                        Width: |-
+                            =122
+                        Wrap: |-
+                            =false
             - galVhpItemObjects:
                 Control: Gallery
                 Variant: Vertical
@@ -21136,22 +21326,38 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(306, Max(96, App.Height - 260))
+                      =Min(378, Max(96, App.Height - 340))
                   Items: |-
                       =With(
-                          { c: ForAll(Filter(Filter(
+                          { m: Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation),
+                            q: Trim(inpVhpObjListSearch.Text),
+                            c: ForAll(Filter(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ), !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))) As F, { Code: F.Code, Description: F.Description }) },
+                      ), !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))) As F, { Code: F.Code, Description: F.Description, Main: false }) },
                           With(
-                              { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
-                                          { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "") }) },
-                              Sort(
-                                  ForAll(
-                                      Sequence(CountRows(c) + CountRows(x)),
-                                      If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))
-                                  ),
-                                  Code
+                              { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code) && Code <> m) As O,
+                                          { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, ""), Main: false }) },
+                              With(
+                                  { r: Sort(
+                                      ForAll(
+                                          Sequence(CountRows(c) + CountRows(x)),
+                                          If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))
+                                      ),
+                                      Code
+                                  ) },
+                                  With(
+                                      { k: If(IsBlank(m) || CountRows(r) = 0, 0, 1) },
+                                      Filter(
+                                          ForAll(
+                                              Sequence(k + CountRows(r)),
+                                              If(Value <= k,
+                                                  { Code: m, Description: Coalesce(LookUp(colVhpFl, Code = m).Description, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FlDescription, ""), Main: true },
+                                                  Index(r, Value - k))
+                                          ),
+                                          IsBlank(q) || q in Code || q in Description
+                                      )
+                                  )
                               )
                           )
                       )
@@ -21168,9 +21374,9 @@ Screens:
                   TemplatePadding: |-
                       =2
                   TemplateSize: |-
-                      =32
+                      =40
                   Width: |-
-                      =(Min(640, App.Width - 40)) - 36
+                      =(Min(760, App.Width - 40)) - 36
                   WrapCount: |-
                       =1
                 Children:
@@ -21186,15 +21392,15 @@ Screens:
                         BorderThickness: |-
                             =0
                         Fill: |-
-                            =If(CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0, C.'state-info-bg', RGBA(0, 0, 0, 0))
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
-                            =(32) - 2
+                            =(40) - 2
                         OnSelect: |-
                             =false
                         TabIndex: |-
                             =0
                         Width: |-
-                            =((Min(640, App.Width - 40)) - 36) - 2 * 2 - 18
+                            =((Min(760, App.Width - 40)) - 36) - 2 * 2 - 18
                         X: |-
                             =0
                         Y: |-
@@ -21209,30 +21415,135 @@ Screens:
                         Color: |-
                             =C.'text-primary'
                         Default: |-
-                            =CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0
+                            =ThisItem.Main || CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0
                         DisplayMode: |-
-                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), DisplayMode.View, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || ThisItem.Main, DisplayMode.View, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
-                            =ThisItem.Code & If(IsBlank(ThisItem.Description), "", " - " & ThisItem.Description)
+                            =""
                         OnCheck: |-
                             =If(
-                                !(CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0),
+                                !ThisItem.Main && !(CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0),
                                 Collect(colVhpObjDraft, { Code: ThisItem.Code, Description: ThisItem.Description })
                             )
                         OnUncheck: |-
-                            =RemoveIf(colVhpObjDraft, Code = ThisItem.Code)
+                            =If(!ThisItem.Main, RemoveIf(colVhpObjDraft, Code = ThisItem.Code))
                         Size: |-
                             =T.body
                         Width: |-
-                            =Max(0, ((((Min(640, App.Width - 40)) - 36) - 2 * 2 - 18) - 8 - 8) - 2)
+                            =28
                         X: |-
                             =0 + 8 + 0
                         Y: |-
-                            =0 + 0 + ((((32) - 2) - 0 - 0) - (24)) / 2
+                            =0 + 0 + ((((40) - 2) - 0 - 0) - (24)) / 2
+                  - txtVhpObjCode:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =If(ThisItem.Main, C.'text-muted', C.'text-primary')
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =ThisItem.Code
+                        Width: |-
+                            =200
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10
+                        Y: |-
+                            =0 + 0 + ((((40) - 2) - 0 - 0) - (20)) / 2
+                  - txtVhpObjDesc:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =If(ThisItem.Main, C.'text-muted', C.'text-primary')
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =ThisItem.Description
+                        Width: |-
+                            =Max(0, ((((Min(760, App.Width - 40)) - 36) - 2 * 2 - 18) - 8 - 8) - ((28) + 10) - ((200) + 10) - ((122) + 10) - 2)
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10 + (200) + 10
+                        Y: |-
+                            =0 + 0 + ((((40) - 2) - 0 - 0) - (20)) / 2
+                  - imgVhpObjStatus:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Status: " & Switch(If(ThisItem.Main, "main", CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0, "selected", "available"), "main", "Already selected", "selected", "Selected", "available", "Available", If(ThisItem.Main, "main", CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0, "selected", "available"))
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Height: |-
+                            =22
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                If(ThisItem.Main, "main", CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0, "selected", "available"),
+                                "main", "<svg xmlns='http://www.w3.org/2000/svg' width='122' height='22' viewBox='0 0 122 22'><rect width='122' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5 M5.5 10.5h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Already selected</text></svg>",
+                                "selected", "<svg xmlns='http://www.w3.org/2000/svg' width='122' height='22' viewBox='0 0 122 22'><rect width='79' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Selected</text></svg>",
+                                "available", "<svg xmlns='http://www.w3.org/2000/svg' width='122' height='22' viewBox='0 0 122 22'><rect width='83' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 8v8M8 12h8'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Available</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='122' height='22' viewBox='0 0 122 22'><rect width='122' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5 M5.5 10.5h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Already selected</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =122
+                        X: |-
+                            =0 + 8 + 0 + (28) + 10 + (200) + 10 + (Max(0, ((((Min(760, App.Width - 40)) - 36) - 2 * 2 - 18) - 8 - 8) - ((28) + 10) - ((200) + 10) - ((122) + 10) - 2)) + 10
+                        Y: |-
+                            =0 + 0 + ((((40) - 2) - 0 - 0) - (22)) / 2
             - txtVhpObjEmpty:
                 Control: ModernText
                 Properties:
@@ -21320,7 +21631,7 @@ Screens:
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
-                            =18
+                            =20
                         LayoutMinWidth: |-
                             =0
                         PaddingBottom: |-
@@ -21332,13 +21643,56 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =T.small
+                            =T.body
                         Text: |-
-                            =Text(CountRows(colVhpObjDraft)) & " selected"
+                            =Text(CountRows(colVhpObjDraft)) & " selected" & If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "", " (1 already selected)")
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), (133) + 8, 0)) - 2)
+                            =Max(0, (((Min(760, App.Width - 40)) - 18 - 18)) - ((86) + 8) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), (133) + 8, 0)) - 2)
                         Wrap: |-
                             =false
+                  - btnVhpObjListCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Cancel"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
                   - btnVhpObjListUse:
                       Control: ModernButton
                       Properties:

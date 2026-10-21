@@ -28,7 +28,9 @@ BUTTONS = ("ModernButton", "Classic/Button")
 # Popupper, der bevidst har en Cancel-knap ved siden af Save (issue #429).
 CANCEL_SAVE_POPUPS = {"conMatPoModal",
                       # Slet et item: Cancel og Delete, som issue #457 kraever.
-                      "conVhpItemDelConfirmModal"}
+                      "conVhpItemDelConfirmModal",
+                      # Object list: Cancel og Use selected (mockup 2026-10-21).
+                      "conVhpObjListModal"}
 
 
 def _icon_close(v):
