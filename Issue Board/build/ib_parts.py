@@ -2073,17 +2073,29 @@ DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
 DETAIL_PANEL_W = lay.PANEL_W_AT
 DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
-DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
+# KANTER, DER IKKE KLIPPES (issue #503 - samme aarsag som #492 i
+# tools/feedback_popup.py og SPLIT_PAD i tools/submission_notes.py). En
+# container tegner sin kant paa yderkanten, og foraelderen skjuler sit
+# overloeb (LayoutOverflow.Hide) ved sin indholdskant. Kortene Issue
+# information og Ticket details stod helt ude ved toppens kant (venstre
+# kant skaaret af), og Description-fladerne helt nede ved bunden af deres
+# kolonne (bundkanten skaaret af). Nu har toppen og indholdsfladen EDGE
+# luft til venstre og hoejre (toppen ogsaa over og under), og hver flade i
+# Description har EDGE luft i sin kolonne. Alt i panelet - kortene, fanerne,
+# Activity-linjerne og kommentarfeltet - staar dermed med samme margen.
+EDGE = 2
+# En kants tykkelse - regnes med i en flades hoejde og bredde.
+BORDER = 1
+DET_BODY_W = f"({DETAIL_PANEL_IN} - {2 * EDGE})"
+DET_IN = f"({DET_BODY_W} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 # Kommentarfeltet (issue #411): ikonets afstand til feltets kant.
 SEND_INSET = 4
-# Issue #499: feltet vokser opad med teksten - kompakt mindstehoejde (een
-# linje, og plads til send-ikonet), og en loftshoejde, der foelger den
-# plads, Activity-fanen har: hoejst COMMENT_MAX_H og hoejst 40 % af fanen,
-# saa feeden over altid har det meste. Foerst over loftet faar feltet sin
-# egen scrollbar.
-COMMENT_MAX_H = 176
-COMMENT_MAX_SHARE = 0.4
+# Issue #499 og #503: feltet vokser opad med teksten. Det starter med plads
+# til COMMENT_LINES linjer (to-tre linjeskift uden at aendre hoejde), og det
+# har intet loft: feltet viser altid hele teksten og faar aldrig sin egen
+# scrollbar - bliver det hoejt, scroller Activity-fanen i stedet.
+COMMENT_LINES = 3
 COMMENT_PAD_V = 8
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 # Activity-linjen (issue #475): ikonet til venstre, teksten ved siden af.
@@ -2268,8 +2280,13 @@ BOX_PAD_Y = 8
 BLOCK_ICON = 20
 BLOCK_ICON_GAP = 10
 BLOCK_W = f"({DET_IN} - {BLOCK_ICON} - {BLOCK_ICON_GAP})"
-# Kanten (1 px paa hver side) tages ogsaa fra tekstens bredde.
-BOX_TEXT_W = f"({BLOCK_W} - {2 * BOX_PAD_X} - 2)"
+# Issue #503: fladen staar med EDGE luft i sin kolonne (til venstre, hoejre
+# og forneden), saa hele kanten og de runde hjoerner kan ses.
+BOX_W = f"({BLOCK_W} - {2 * EDGE})"
+# Kanten (BORDER paa hver side) er en del af polstringen - baade i bredden
+# og i hoejden, saa fladen er hoej nok til teksten, luften OG kanten, og
+# teksten staar midt i den.
+BOX_TEXT_W = f"({BOX_W} - {2 * (BOX_PAD_X + BORDER)})"
 BLOCK_TITLE_H = text_min_height(lay.SIZE_INPUT)
 
 
@@ -2368,14 +2385,15 @@ def _text_block(name, label, expr, icon, visible=None):
     img = _in_row(_det_img(f"img{name}Icon", _glyph_uri(icon, "text-muted", BLOCK_ICON),
                            f'"{label}"', BLOCK_ICON))
     lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_INPUT, weight="Semibold",
-                    height=BLOCK_TITLE_H, width=BLOCK_W)
+                    height=BLOCK_TITLE_H, width=BOX_W)
     h = _lines_h(expr, BOX_TEXT_W, px=DET_TEXT_PX, line_h=DET_TEXT_LINE)
     body = text_ctrl(f"txt{name}", expr, size=DET_TEXT_SIZE, height=h, wrap="true",
                      width=BOX_TEXT_W, accessible=f'"{label}: " & Self.Text')
+    py, px = BOX_PAD_Y + BORDER, BOX_PAD_X + BORDER
     box = group(f"con{name}Box", [body], direction="Vertical", gap=0, fill=C_CARD_BG,
-                border_color=C_CARD_BORDER, radius=8, pad=(BOX_PAD_Y, BOX_PAD_X, BOX_PAD_Y, BOX_PAD_X),
-                width=BLOCK_W)
-    col = group(f"con{name}Body", [lab, box], direction="Vertical", gap=6, width=BLOCK_W)
+                border_color=C_CARD_BORDER, radius=8, pad=(py, px, py, px), width=BOX_W)
+    col = group(f"con{name}Body", [lab, box], direction="Vertical", gap=6, width=BLOCK_W,
+                pad=(0, EDGE, EDGE, EDGE))
     col.props["LayoutMinWidth"] = BLOCK_W
     return group(f"con{name}", [img, col], direction="Horizontal", gap=BLOCK_ICON_GAP,
                  align_items="Start", visible=visible)
@@ -2561,8 +2579,8 @@ SECTION_H = text_min_height(lay.SIZE_INPUT)
 # Kortets indre bredde: panelets fulde bredde (toppen scroller ikke, saa
 # den skal ikke give plads til en scrollbar) minus luft og kant (1 px pr.
 # side).
-TOP_IN = DETAIL_PANEL_IN
-CARD_IN = f"({TOP_IN} - {2 * CARD_PAD} - 2)"
+TOP_IN = DET_BODY_W
+CARD_IN = f"({TOP_IN} - {2 * (CARD_PAD + BORDER)})"
 FACT_W = f"(({CARD_IN} - {2 * FACT_GAP}) / 3)"
 FACT_TILES = f"!({NARROW})"
 FACT_TEXT_X = f"If({NARROW}, 0, {DET_TILE + DET_TILE_GAP})"
@@ -2621,7 +2639,7 @@ def _fact_row(name, cells, cell_h):
 
 def _card(name, kids):
     return group(name, kids, direction="Vertical", gap=CARD_GAP, fill=C_CARD_BG,
-                 border_color=C_CARD_BORDER, radius=10, pad=CARD_PAD)
+                 border_color=C_CARD_BORDER, radius=10, pad=CARD_PAD + BORDER)
 
 
 def _info():
@@ -2786,10 +2804,10 @@ def build_detail():
     details = group("conIbDetDetails", blocks, direction="Vertical", gap=12, visible=show_details)
 
     # Toppen og indholdsfladens hoejde (content_h - se STABIL HOEJDE
-    # nederst). Regnes her, saa kommentarfeltets loft (issue #499) kan
-    # foelge den plads, fanerne faar.
+    # nederst). Toppen har EDGE luft hele vejen rundt (issue #503), saa
+    # kortenes og fanernes kanter ikke klippes af toppens kant.
     top = group("conIbDetTop", [meta, peek_note, retest, info, facts, tabs],
-                direction="Vertical", gap=10)
+                direction="Vertical", gap=10, pad=EDGE)
     room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
             f"({top.h}) - {POP_GAP} - 4")
     content_h = f"Max({DET_SAFE_MIN_H}, {room})"
@@ -2906,10 +2924,11 @@ def build_detail():
     text_w = f"{DET_IN} - {ACT_ROW_PAD} - {lay.HIT} - {2 * SEND_INSET} - 4"
     line_h = if_below("Tablet", "22", "20")
     lines_h = _lines_h("inpIbComment.Text", text_w, px=8, line_h=line_h)
-    comment_min = f"Max(40, {lay.HIT} + {2 * SEND_INSET})"
-    comment_max = (f"Max({comment_min}, Min({COMMENT_MAX_H}, "
-                   f"RoundDown(({content_h}) * {COMMENT_MAX_SHARE}, 0)))")
-    comment_h = f"Min({comment_max}, Max({comment_min}, {lines_h} + {2 * COMMENT_PAD_V} + 2))"
+    # Issue #503: mindst COMMENT_LINES linjer, og intet loft - feltet er
+    # altid hoejt nok til hele teksten (ingen scrollbar i feltet).
+    frame = f"{2 * COMMENT_PAD_V} + {2 * BORDER} + 2"
+    comment_min = f"Max({lay.HIT} + {2 * SEND_INSET}, {COMMENT_LINES} * ({line_h}) + 2 + {frame})"
+    comment_h = f"Max({comment_min}, {lines_h} + {frame})"
     comment = text_input("inpIbComment", f'If({POST_FAILED_HERE}, varIbPostText, "")',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
@@ -3038,7 +3057,9 @@ def build_detail():
         p.props["Height"] = "Parent.Height"
         p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
         p.h = "Parent.Height"
-    content = group("conIbDetContent", panels, direction="Vertical", gap=0, height=content_h)
+    # Samme margen til venstre og hoejre som toppen (issue #503).
+    content = group("conIbDetContent", panels, direction="Vertical", gap=0, height=content_h,
+                    pad=(0, EDGE, 0, EDGE))
     return _popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True,
                   side_panel=True)
 
