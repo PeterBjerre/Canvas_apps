@@ -230,7 +230,8 @@ COPIED = f'(IfError({COPIED_VAR}, "") = {ROW_KEY})'
 # alle niveauer.
 POP_MAX_W = 640
 POP_PAD = 16
-POP_W = f"Min({POP_MAX_W}, App.Width - 24)"
+# Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
+POP_W = lay.popup_w(POP_MAX_W, 24)
 GW = f"({POP_W} - {2 * POP_PAD})"
 MAX_ROWS = 5
 INDENT = 28

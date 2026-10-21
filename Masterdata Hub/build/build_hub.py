@@ -17,12 +17,13 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_NEUTRAL_BG, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
-                        C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE)
+                        C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE,
+                        C_OVERLAY, SCROLLBAR_NOT_MOBILE)
 import layout_tokens as lay
 from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown,
                            confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented,
-                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H)
+                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H, mobile_pad)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -37,6 +38,7 @@ import display_text as dt
 import request_index as ri
 import status_chip as sc
 import sap_objects as sap
+import mobile
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -484,8 +486,21 @@ ROW_H = 52
 GAL_ROWS = 14
 ROW_H_C = 112
 GAL_ROWS_C = 7
-ROW_H_M = 62
+# TELEFONEN (issue #508): et kort pr. anmodning - nummer og dato, domaene og
+# tekst, og status med Activity/Notes paa en raekke med klikflader paa 44 px.
+# Listen scroller IKKE inden i siden: galleriet er saa hoejt som dets
+# raekker (hoejst GAL_ROWS_M_MAX), og det er siden, der scroller.
+ROW_H_M = 100
 GAL_ROWS_M = 8
+GAL_ROWS_M_MAX = 100
+ROW_M_PAD_T = 2
+ROW_M_LINE1 = 44         # nummeret - og Notes/Activity (44 x 44) til hoejre
+ROW_M_LINE2 = 18
+ROW_M_LINE3 = 22         # statuschippen
+ROW_M_GAP = 4
+# Notes og Activity staar paa linje 1 (X/Y oven paa raekken).
+ROW_M_ICON_Y = ROW_M_PAD_T
+GAL_H_M = f"Min(galMdRequests.AllItemsCount, {GAL_ROWS_M_MAX}) * {ROW_H_M}"
 STRIP_Y_C = 70
 # R2-079: uden LastActionOn stod der " days ago" i tooltip og skaermlaeser.
 WHEN_FX = ("If(\n    IsBlank(ThisItem.LastActionOn), \"No date\",\n"
@@ -592,6 +607,8 @@ def build_bar():
     # telefon som paa anmodningssiderne. Menuen den aabner er uaendret.
     new = new_request_label(button("btnMdNewRequest", '"New request"',
                                    f"Set(varMdNewMenu, !{MENU_OPEN})", height=38))
+    # 44 px paa en telefon (issue #508) - menuen under den regner med det.
+    mobile.touch(new)
     # "Masterdata Hub" som i sidebaren, og en undertitel uden brugerens
     # e-mail (UX-review B4/F1).
     bar = top_bar("Md", '"Masterdata Hub"', '"Requests for SAP master data"',
@@ -644,6 +661,14 @@ def _menu_item_svg(d, ready):
             f"height='{MENU_ITEM_H}' viewBox='0 0 {w} {MENU_ITEM_H}'>" + body + "</svg>" + '"')
 
 
+# Hvor "New request"-knappen slutter paa en telefon: mobilbjaelken, headerens
+# luft og knappen (mobile.touch: 44 px). Menuen og popoveren staar lige under.
+MOBILE_BELOW_BAR = f"{lay.MOBILE_BAR_H} + {lay.MOBILE_HEADER_PAD_T} + {mobile.TOUCH} + 6"
+# Sloeret bag en lille menu: gennemsigtigt fra Tablet, daempet paa en telefon,
+# hvor menuen er det eneste, man kan bruge, mens den er aaben (issue #508).
+MENU_SCRIM = mobile.mobile_or(C_OVERLAY, C_TRANSPARENT)
+
+
 def build_new_menu():
     """"New request"-menuen: [sloer, menu]. Staar paa skaermen EFTER
     rammen, saa den ligger oven paa listen - se assemble_hub."""
@@ -651,7 +676,7 @@ def build_new_menu():
         "AccessibleLabel": '"Close menu"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Fill": C_TRANSPARENT, "HoverFill": C_TRANSPARENT, "PressedFill": C_TRANSPARENT,
+        "Fill": MENU_SCRIM, "HoverFill": MENU_SCRIM, "PressedFill": MENU_SCRIM,
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": MENU_CLOSE,
@@ -672,9 +697,13 @@ def build_new_menu():
     menu = group("conMdNewMenu", items, direction="Vertical", gap=2, width=MENU_W,
                  fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_MODAL, pad=8,
                  drop_shadow="Bold", visible=MENU_OPEN, align_items="Start")
-    menu.props["X"] = f"App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W}"
+    # Paa en telefon flugter menuen med rammens hoejre margen og staar under
+    # knappen - foer stod den 4 px uden for en 320 px skaerm og oven paa
+    # knappen (issue #508). Fra Tablet og op uaendret.
+    menu.props["X"] = mobile.mobile_or(f"Max({mobile.POP_MARGIN}, App.Width - Self.Width - {mobile.PAD_X})",
+                                       f"App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W}")
     # Lige under bjaelken: dens padding + titel og undertitel (30 + 2 + 20).
-    menu.props["Y"] = if_below("Tablet", str(HEADER_PAD_T + 36 + 6), str(HEADER_PAD_T + 52 + 6))
+    menu.props["Y"] = mobile.mobile_or(MOBILE_BELOW_BAR, str(HEADER_PAD_T + 52 + 6))
     return [scrim, menu]
 
 
@@ -712,7 +741,12 @@ TILE_LINES = if_below("Desktop", "2", "1")
 # tal paa to linjer og "New" til hoejre, saa listen staar hoejere paa
 # skaermen. Telefonen beholder sine smaa fliser (tre pr. raekke, uden New).
 TILE_H = 76
-TILE_H_M = 104
+# Telefonen (issue #508): tre smaa fliser pr. raekke, 76 px hoeje - ikon og
+# tal paa den oeverste linje, navnet under. "filter"-ordet er vaek; en
+# valgt flise har stadig sin kant og toning.
+TILE_H_M = 76
+# Luften under fliserne. Fra Tablet 44 px (som foer); paa en telefon 8.
+TILE_PAD_B_M = 8
 # New er en ikonknap (+): teksten "New" alene er forbudt (issue #243), og
 # "New request" er for bred til flisen. Klikfladen er H.hit (regel 40).
 TILE_NEW_W = 84
@@ -777,18 +811,17 @@ def _tile_face(d, count_expr):
     hm = TILE_ROW_H_M
     words = d["name"].split(" ", 1)
     name_lines = "".join(
-        f"<text x='8' y='{56 + 14 * i}' {SVG_FONT} font-size='11' font-weight='600' "
+        f"<text x='8' y='{46 + 13 * i}' {SVG_FONT} font-size='11' font-weight='600' "
         f"fill='{_hx('text-primary')}'>{wd}</text>" for i, wd in enumerate(words))
-    sub_y = 56 + 14 * len(words) + 4
+    # Telefonen (issue #508): ikon og tal paa een linje, navnet under -
+    # ingen "filter"-tekst. 76 px i alt (TILE_H_M).
     compact = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{hm + STRIPE_H}' "
                f"viewBox='0 -{STRIPE_H} {w} {hm + STRIPE_H}'>"
-               f"<circle cx='24' cy='24' r='14' fill='{c}' fill-opacity='0.12'/>"
-               + _dglyph(d, c, x=15, y=15, size=18) +
-               f"<text x='{w}' dx='-8' y='34' text-anchor='end' {SVG_FONT} font-size='22' "
+               f"<circle cx='20' cy='19' r='12' fill='{c}' fill-opacity='0.12'/>"
+               + _dglyph(d, c, x=12, y=11, size=16) +
+               f"<text x='{w}' dx='-8' y='26' text-anchor='end' {SVG_FONT} font-size='18' "
                f"font-weight='600' fill='{_hx('text-primary')}'>\" & {count_expr} & \"</text>"
-               + name_lines +
-               f"<text x='8' y='{sub_y}' {SVG_FONT} font-size='10' "
-               f"fill='{_hx('text-muted')}'>\" & \"filter\" & \"</text></svg>" + '"')
+               + name_lines + "</svg>" + '"')
     # Stregen foroven er IKKE med her: den er sin egen kontrol over hele flisens bredde.
     full = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h + STRIPE_H}' "
             f"viewBox='0 -{STRIPE_H} {w} {h + STRIPE_H}'>"
@@ -885,14 +918,35 @@ def build_tiles():
         tiles.append(tile)
 
     tile_h = tiles[0].h
-    return group("conMdTiles", tiles, direction="Horizontal", gap=TILE_GAP_X, wrap="true",
-                 justify="Center",
-                 pad=(TILE_PAD_T, 0, TILE_PAD_B, 0),
-                 # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
-                 # have hoejde til een raekke fliser, mens fliserne selv stod i
-                 # tre - og de to nederste raekker blev klippet af.
-                 height=(f"{TILE_PAD_T} + {TILE_LINES} * ({tile_h}) + "
-                         f"({TILE_LINES} - 1) * ({TILE_GAP_X}) + {TILE_PAD_B}"))
+    pad_b = mobile.mobile_or(TILE_PAD_B_M, TILE_PAD_B)
+    g = group("conMdTiles", tiles, direction="Horizontal", gap=TILE_GAP_X, wrap="true",
+              justify="Center",
+              pad=(TILE_PAD_T, 0, TILE_PAD_B, 0),
+              # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
+              # have hoejde til een raekke fliser, mens fliserne selv stod i
+              # tre - og de to nederste raekker blev klippet af.
+              height=(f"{TILE_PAD_T} + {TILE_LINES} * ({tile_h}) + "
+                      f"({TILE_LINES} - 1) * ({TILE_GAP_X}) + {pad_b}"))
+    g.props["PaddingBottom"] = pad_b
+    return g
+
+
+# FLISERNE KAN KLAPPES SAMMEN PAA EN TELEFON (issue #508)
+#
+# Paa en telefon er listen det vigtigste, og fem fliser (to raekker) skubbede
+# den en halv skaerm ned. Fliserne er et domaenefilter med tal - sekundaert
+# paa en lille skaerm, og filteret ses stadig i listen (btnMdActiveDomain).
+# De staar under en "Domains"-overskrift med en chevron og er lukket, til
+# man aabner dem; mens de er lukkede, siger overskriften, hvilket domaene
+# der er valgt. Fra Tablet og op er fliserne, som de var (ingen overskrift).
+TILES_OPEN = "varMdTilesOpen"
+
+
+def build_tiles_section():
+    """[overskrift (kun mobil), fliserne] - se mobile.collapsible."""
+    summary = _domain_switch_on("varMdDomain", lambda d: f'"{d["name"]}"', '"All domains"')
+    return mobile.collapsible("MdTiles", "Domains", [build_tiles()], TILES_OPEN,
+                              default_open=False, summary=summary)
 
 
 # ---------------------------------------------------------------------------
@@ -963,17 +1017,26 @@ def _flag_pill(name, flag, label, field, icon):
 def build_banner():
     """Returned requests of mine: counted in colMdScope, no extra query."""
     n = "CountRows(Filter(colMdScope, Ret))"
+    # Paa en telefon den korte udgave (issue #508) - den lange blev klippet.
     msg = grow(text_ctrl("txtMdRetMsg",
-                         f'Text({n}) & If({n} = 1, " request was", " requests were") & '
-                         '" returned to you for changes"',
-                         size=13, color=C_WARN_FG, weight="Semibold", height=22, wrap="false"))
+                         mobile.mobile_or(
+                             f'Text({n}) & " returned to you"',
+                             f'Text({n}) & If({n} = 1, " request was", " requests were") & '
+                             '" returned to you for changes"'),
+                         size=13, color=C_WARN_FG, weight="Semibold", height=22, wrap="false",
+                         accessible=f'Text({n}) & If({n} = 1, " request was", " requests were") & '
+                                    '" returned to you for changes"'))
     btn = button("btnMdRetShow", 'If(varMdFlag = "ret", "Show all", "Show them")',
                  'Set(varMdFlag, If(varMdFlag = "ret", "", "ret"));\n'
                  'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH,
                  width=fit_button_width('"Show them"') + 8, height=32)
-    return group("conMdRetBanner", [msg, btn], direction="Horizontal", gap=12, height=44,
-                 align_items="Center", fill=C_WARN_BG, radius=lay.RADIUS_INPUT,
-                 pad=(6, 12, 6, 16), visible=f"{n} > 0")
+    ban = group("conMdRetBanner", [msg, btn], direction="Horizontal", gap=12, height=44,
+                align_items="Center", fill=C_WARN_BG, radius=lay.RADIUS_INPUT,
+                pad=(6, 12, 6, 16), visible=f"{n} > 0")
+    # Knappen er en klikflade paa 44 px paa en telefon (TOUCH_MIN).
+    mobile.touch(btn)
+    ban.props["Height"] = ban.h = mobile.mobile_or(mobile.TOUCH + 4, 44)
+    return mobile_pad(ban, top=2, bottom=2, left=12, right=2)
 
 
 def build_filters():
@@ -1170,6 +1233,9 @@ def _mobile_filter():
 # raekke kan aabnes. Knappen er vejen paa touch og med tastatur - en
 # tooltip kan hverken naas med en finger eller klikkes i.
 PEEK_W = 360
+# Paa en telefon er popoveren skaermens bredde minus POP_MARGIN i hver side
+# (issue #508) - de 360 px gik ud over en 320-360 px skaerm.
+PEEK_W_FX = mobile.mobile_or(f"App.Width - {2 * mobile.POP_MARGIN}", str(PEEK_W))
 PEEK_ROW_H = 48
 
 
@@ -1192,7 +1258,7 @@ def build_closed_peek():
         "AccessibleLabel": '"Close preview"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Fill": C_TRANSPARENT, "HoverFill": C_TRANSPARENT, "PressedFill": C_TRANSPARENT,
+        "Fill": MENU_SCRIM, "HoverFill": MENU_SCRIM, "PressedFill": MENU_SCRIM,
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": close,
@@ -1220,11 +1286,11 @@ def build_closed_peek():
     for i, t in enumerate((line1, line2)):
         t.props["X"] = "38"
         t.props["Y"] = str(5 + i * 20)
-        t.props["Width"] = str(PEEK_W - 16 - 38 - 12)
+        t.props["Width"] = f"({PEEK_W_FX}) - {16 + 38 + 12}"
     act = _open_action()
     # Hele raekken er klikbar - det faelles moenster (build_helpers.row_hit).
     hit = row_hit("btnMdPeekOpen", f"{close};\n{act}", f'"Open " & ThisItem.{COL_NO}',
-                  PEEK_W - 16, PEEK_ROW_H, radius=8)
+                  f"({PEEK_W_FX}) - 16", PEEK_ROW_H, radius=8)
     gal = Ctrl("galMdPeek", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Latest closed requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -1235,7 +1301,7 @@ def build_closed_peek():
         "LoadingSpinner": "LoadingSpinner.Controls",
         "Selectable": "false", "ShowScrollbar": "false", "TabIndex": "0",
         "TemplatePadding": "0", "TemplateSize": str(PEEK_ROW_H),
-        "Width": str(PEEK_W - 16), "WrapCount": "1",
+        "Width": f"({PEEK_W_FX}) - 16", "WrapCount": "1",
         # Start, ikke Stretch: saa er bredden praecis den skrevne, og
         # skabelonen regnes uden GALLERY_RESERVE (se VH-planens items).
         "AlignInContainer": "AlignInContainer.Start",
@@ -1244,10 +1310,12 @@ def build_closed_peek():
                       color=C_MUTED, height=20, wrap="false",
                       visible="IsEmpty(galMdPeek.AllItems)")
     card_ = group("conMdPeek", [title, sub, gal, empty], direction="Vertical", gap=6,
-                  width=PEEK_W, fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_MODAL,
+                  width=PEEK_W_FX, fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_MODAL,
                   pad=8, drop_shadow="Bold", visible=PEEK_OPEN, align_items="Stretch")
-    card_.props["X"] = f"Max(8, App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W})"
-    card_.props["Y"] = str(HEADER_PAD_T + 52 + 6)
+    card_.props["X"] = mobile.mobile_or(str(mobile.POP_MARGIN),
+                                        f"Max(8, App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W})")
+    card_.props["Y"] = mobile.mobile_or(f"{lay.MOBILE_BAR_H} + {mobile.POP_MARGIN}",
+                                        str(HEADER_PAD_T + 52 + 6))
     return [scrim, card_]
 
 
@@ -1545,8 +1613,10 @@ def build_list():
     # Tooltip (issue #515). Indeksraekken har intet antal haendelser - et
     # tal her ville vaere et opslag pr. raekke.
     timeline.props["Tooltip"] = tips.VIEW_ACTIVITY
-    timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x)
-    timeline.props["Y"] = if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2")
+    timeline.props["X"] = if_below("Tablet", f"Parent.Width - {ROW_PAD} - {HIT_W}",
+                                   if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x))
+    timeline.props["Y"] = if_below("Tablet", str(ROW_M_ICON_Y),
+                                   if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2"))
     # SAP OBJECT (issue #471): link-ikonet, naar indeksraekken siger, at
     # anmodningen er oprettet i SAP. Ellers er cellen tom. Symbolet staar
     # under overskriftens tekst (klikfladen har luft rundt om det).
@@ -1570,6 +1640,7 @@ def build_list():
         compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C + approval_flow.STRIP_H // 2 - 20),
                  "zone": "(Parent.TemplateWidth - 24) / 4"})
     compact_row, compact_strip = _compact_row(act)
+    mobile_row = _mobile_row()
     c_edit, c_del = _owner_buttons(_open_action("edit"), "C")
     c_close = _close_button("C")
     c_actions = [c_edit, c_del, c_close]
@@ -1594,9 +1665,12 @@ def build_list():
     icons.hit_radius(notes.props)
     ensure_hit(notes)
     notes.props["X"] = if_below(
-        "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W} - 8 - {HIT_W}",
-        if_below("Wide", f"{c_base} - 40", f"{tl_x} + {TL_W} + 12 + 80"))
-    notes.props["Y"] = if_below("Desktop", "8", if_below("Wide", "6", "(Parent.TemplateHeight - 1 - Self.Height) / 2"))
+        "Tablet", f"Parent.Width - {ROW_PAD} - {HIT_W} - 4 - {HIT_W}",
+        if_below(
+            "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W} - 8 - {HIT_W}",
+            if_below("Wide", f"{c_base} - 40", f"{tl_x} + {TL_W} + 12 + 80")))
+    notes.props["Y"] = if_below("Tablet", str(ROW_M_ICON_Y),
+                                if_below("Desktop", "8", if_below("Wide", "6", "(Parent.TemplateHeight - 1 - Self.Height) / 2")))
     notes.props["Visible"] = sn.hub_has_visible("ThisItem")
     notes.vis = notes.props["Visible"]
     zone_w = 40 + 80 + 8 + TL_W + 8
@@ -1615,16 +1689,17 @@ def build_list():
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
-        "Height": if_below("Tablet", str(GAL_ROWS_M * ROW_H_M),
+        "Height": if_below("Tablet", GAL_H_M,
                            if_below("Wide", str(GAL_ROWS_C * ROW_H_C), str(GAL_ROWS * ROW_H))),
         "Items": ITEMS, "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
-        "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
+        "Selectable": "false", "ShowScrollbar": SCROLLBAR_NOT_MOBILE, "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": if_below("Tablet", str(ROW_H_M),
                                  if_below("Wide", str(ROW_H_C), str(ROW_H))),
         "Width": "Parent.Width",
         "WrapCount": "1",
-    }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, notes, sap_btn,
+    }, children=[row, compact_row, mobile_row, compact_strip, rule, hit, *strip, zone, timeline,
+                 notes, sap_btn,
                  *actions, *c_actions], h=GAL_ROWS * ROW_H)
 
     # Tom liste: een saetning og een knap (UX-review F4). Clear filters
@@ -1646,7 +1721,7 @@ def build_list():
     parts = [_active_filter(), head, head_rule, loading, gal, empty]
     gal.h = GAL_ROWS_C * ROW_H_C
     h_compact = card("conMdListCard", parts, gap=8).props["Height"]
-    gal.h = GAL_ROWS_M * ROW_H_M
+    gal.h = GAL_H_M
     h_mobile = card("conMdListCard", parts, gap=8).props["Height"]
     gal.h = GAL_ROWS * ROW_H
     out = card("conMdListCard", parts, gap=8)
@@ -1759,17 +1834,19 @@ def _close_fx(status):
 def build_close_modal():
     """Bekraeftelsen bag luk-ikonet: Deletes popup (confirm_modal) med to
     knapper - "Cancel request" (roed, som Delete) og "Mark created in SAP"."""
-    parts = confirm_modal(
-        "MdClose", CLOSE_OPEN, "Close request",
-        f'"Close " & varMdCloseItem.{COL_NO} & "? It leaves the open list. Only the hub '
-        'entry changes; the request itself is not edited."',
-        "Mark created in SAP", _close_fx(ri.CREATED), "btnMdCloseCreated", icon="CheckmarkCircle")
     cancel = button("btnMdCloseCancelled", '"Cancel request"',
                     f"Set({CLOSE_OPEN}, false);\n{_close_fx(ri.CANCELLED)}", danger=True,
                     width=fit_button_width('"Cancel request"') + ICON_W, height=36, icon="Dismiss")
-    footer = parts[1].children[2]
-    footer.children.insert(0, cancel)
-    return parts
+    # "Cancel request" staar foerst i foden. Den gives til confirm_modal (ikke
+    # sat ind bagefter), saa foden kan staa lodret paa en telefon med den
+    # rigtige hoejde - de to knapper var 350 px brede i en 304 px popup
+    # (issue #508).
+    return confirm_modal(
+        "MdClose", CLOSE_OPEN, "Close request",
+        f'"Close " & varMdCloseItem.{COL_NO} & "? It leaves the open list. Only the hub '
+        'entry changes; the request itself is not edited."',
+        "Mark created in SAP", _close_fx(ri.CREATED), "btnMdCloseCreated", icon="CheckmarkCircle",
+        lead_buttons=[cancel])
 
 
 def build_delete_modal():
@@ -1821,7 +1898,7 @@ def _compact_row(act):
     row = group("conMdRowC", [line1, line2, line3], direction="Vertical", gap=2,
                 height="Parent.TemplateHeight - 1", align_items="Stretch",
                 width=f"Parent.Width - {SCROLLBAR_W}", fill=C_CARD_BG, pad=(8, ROW_PAD, 0, ROW_PAD),
-                visible=below("Wide"))
+                visible=f"{at_least('Tablet')} && {below('Wide')}")
     # Kompakt (tablet) er pillen hele raekkens bredde (strip_hits, zone * 4).
     # Striben er pillen minus pilens plads, og knuderne fordeles over den
     # bredde - centreret mellem pillens venstre kant og pilen (issue #318).
@@ -1835,6 +1912,45 @@ def _compact_row(act):
     strip.props["Visible"] = f"{below('Wide')} && {at_least('Tablet')}"
     strip.vis = strip.props["Visible"]
     return row, strip
+
+
+def _mobile_row():
+    """Kortet paa en telefon (issue #508). Tre linjer, ingen tabel:
+
+        [ikon] EQ-000912                          [Notes] [Activity]
+        Equipment  ·  Pumpe P-101 udskiftes
+        (Status-chip)  21-10-2026  ·  Plant 1234   /  Stuck 6 d  ·  ...
+
+    Hele kortet aabner anmodningen (btnMdRowHit); Activity og Notes er de
+    samme ikoner som paa tablet, med klikflader paa 44 px. Edit, Delete og
+    Close er paa anmodningssiden og fra Desktop i listen - som foer under
+    Desktop. Linjerne ombryder ikke; en lang tekst slutter med "..."."""
+    dom_icon = _image("imgMdRowDomainM", ICON_SMALL, 20, 20, label=DOMAIN_LABEL)
+    no = grow(text_ctrl("txtMdRowNoM", f"ThisItem.{COL_NO}", size=14, weight="Semibold",
+                        height=22, wrap="false"))
+    # Hoejre side af linjen er Notes og Activity (ligger oven paa, med X/Y).
+    line1 = group("conMdRowLineM1", [dom_icon, no], direction="Horizontal", gap=8,
+                  height=ROW_M_LINE1, align_items="Center",
+                  pad=(0, f"(2 * {HIT_W} + 4)", 0, 0))
+    line2 = text_ctrl("txtMdRowTextM",
+                      _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
+                      ' & "  \u00b7  " & ' + SHORT_TEXT,
+                      size=13, height=ROW_M_LINE2, wrap="false")
+    chip = sc.status_chip("imgMdRowStatusM", "ThisItem.Status.Value", sc.REQUEST,
+                          default=("", "Unknown", sc.REQUEST[0][2], "neutral"))
+    meta = (f'If({STUCK}, {STUCK_TXT} & "  \u00b7  ", "") & {WHEN_SHORT} & '
+            f'If(IsBlank(ThisItem.Plant), "", "  \u00b7  Plant " & ThisItem.Plant)')
+    extra = grow(text_ctrl("txtMdRowExtraM", meta, size=12,
+                           color=f"If({STUCK}, {C_WARN_FG}, {C_MUTED})", height=18, wrap="false",
+                           accessible=f'If({STUCK}, {STUCK_TXT} & ", ", "") & "Updated " & '
+                                      f'{WHEN_SHORT} & If(IsBlank(ThisItem.Plant), "", '
+                                      '", plant " & ThisItem.Plant)'))
+    line3 = group("conMdRowLineM3", [chip, extra], direction="Horizontal", gap=8,
+                  height=ROW_M_LINE3, align_items="Center")
+    return group("conMdRowM", [line1, line2, line3], direction="Vertical", gap=ROW_M_GAP,
+                 height="Parent.TemplateHeight - 1", align_items="Stretch",
+                 width="Parent.Width", fill=C_CARD_BG,
+                 pad=(ROW_M_PAD_T, ROW_PAD, 0, ROW_PAD), visible=below("Tablet"))
 
 
 def _active_filter():
@@ -1856,7 +1972,9 @@ def _active_filter():
     chip.props["Color"] = color
     chip.props["BorderColor"] = color
     chip.props["Size"] = "13"
-    return group("conMdActiveFilter", [chip], direction="Horizontal", height=30,
+    # 44 px klikflade paa en telefon (issue #508).
+    mobile.touch(chip)
+    return group("conMdActiveFilter", [chip], direction="Horizontal", height=chip.h,
                  align_items="Center", visible=on)
 
 

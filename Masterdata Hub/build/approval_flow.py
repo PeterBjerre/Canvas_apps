@@ -871,7 +871,8 @@ def strip_hits(act_width, x_expr, compact=None):
 # right-hand columns, so they line up from row to row. Below Tablet there
 # is no room for the timestamp column: it leads the details line instead.
 # ---------------------------------------------------------------------------
-POP_W = f"Min({POP_MAX_W}, App.Width - 24)"
+# Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
+POP_W = lay.popup_w(POP_MAX_W, 24)
 GW = f"({POP_W} - {2 * POP_PAD})"
 TW = f"({GW} - 20)"
 CHIP_W = 92

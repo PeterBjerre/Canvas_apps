@@ -18,7 +18,7 @@ import build_hub
 import approval_flow
 import sap_objects
 import submission_notes as sn
-from build_hub import (build_bar, build_tiles, build_filters, build_banner, build_list, build_new_menu,
+from build_hub import (build_bar, build_tiles_section, build_filters, build_banner, build_list, build_new_menu,
                        build_closed_peek, build_delete_modal, build_close_modal)
 
 
@@ -26,7 +26,9 @@ def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # RAMMEN: bjaelken i en header, der ikke scroller, og resten i en
     # krop, der goer. Se build_helpers.app_frame.
-    root = app_frame("Md", build_bar(), [build_tiles(), build_banner(), build_filters(), build_list()])
+    # Fliserne kan klappes sammen paa en telefon (build_tiles_section, #508).
+    root = app_frame("Md", build_bar(), [*build_tiles_section(), build_banner(), build_filters(),
+                                         build_list()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Md", "hub")
     # "New request"-menuen ligger oven paa rammen, men under den aabne
