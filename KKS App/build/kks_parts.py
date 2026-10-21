@@ -824,6 +824,7 @@ def build_fl_search():
     skaermens boern - altsaa oven paa dem; kun ventespinneren ligger hoejere."""
     from build_helpers import tap_backdrop, popup_head
     from fl_picker import fl_picker
+    from gen_screen import stack_height
     vis = f"IfError({FL_OPEN}, false)"
     close = f"Set({FL_OPEN}, false)"
     backdrop = tap_backdrop("conKksFlBackdrop", vis, close)
@@ -846,27 +847,69 @@ def build_fl_search():
     msg_h = f"Max(1, RoundUp(Len(varKksFlMsg) / {per_line}, 0)) * 18"
     msg = text_ctrl("txtKksFlMsg", "varKksFlMsg", size=12, color=C_MUTED,
                     height=msg_h, wrap="true", visible="!IsBlank(varKksFlMsg)")
-    # Det valgte resultat med en kopier-knap - som KKS-tabellens raekker.
-    sel_text = (f'{FL_PICK} & With({{d: {FL_SEL}}}, If(IsBlank(d.Description), "", '
-                f'" - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, '
-                f'"   (not maintainable)", ""))')
+    # ALLE RESULTATER, hver med sin kopier-knap (issue #514). Foer stod kun
+    # det valgte (foerste) resultat under feltet, selv om beskeden sagde
+    # "6 Functional Locations found". Listen viser hele colKksFl - samme
+    # samling, som beskeden taeller, saa raekkerne og tallet altid er enige.
+    # Det valgte i comboboksen er fremhaevet. colKksFl er en lokal samling
+    # (flowets svar, ParseJSON + ForAll uden FirstN), saa Sum/CountRows er
+    # ikke delegeringsfoelsomme.
     copy_w = hit_size(COPY_W)
-    sel_w = f"({FL_IN_W} - 2 * {ROW_PAD} - {copy_w} - {ROW_GAP})"
-    sel_lines = f"Max(1, RoundUp(Len({sel_text}) / Max(14, RoundDown({sel_w} / 7.5, 0)), 0))"
-    sel = text_ctrl("txtKksFlSelected", sel_text, size=lay.SIZE_BODY, weight="Semibold",
-                    wrap="true", height=f"{sel_lines} * {LINE_H} + 1", width=sel_w)
+    text_w = (f"({FL_IN_W} - 2 * {ROW_PAD} - {copy_w} - {ROW_GAP} - "
+              f"{SCROLLBAR_W} - {GALLERY_RESERVE})")
+    chars = f"Max(14, RoundDown({text_w} / 7.5, 0))"
+
+    def _desc(ref):
+        return (f'{ref}.Description & If(!IsBlank({ref}.Code) && !{ref}.Maintainable, '
+                f'"   (not maintainable)", "")')
+
+    def _desc_h(ref):
+        return f"Max(1, RoundUp(Len({_desc(ref)}) / {chars}, 0)) * {LINE_H} + 1"
+
+    def _row_h(ref):
+        return f"Max({copy_w}, 22 + {_desc_h(ref)}) + 12"
+
+    rh = _row_h("ThisItem")
+    code = text_ctrl("txtKksFlRowCode", "ThisItem.Code", size=lay.SIZE_BODY, weight="Semibold",
+                     height=20, width=text_w)
+    desc = text_ctrl("txtKksFlRowDesc", _desc("ThisItem"), size=lay.SIZE_BODY, wrap="true",
+                     height=_desc_h("ThisItem"), width=text_w)
+    cell = group("conKksFlRowText", [code, desc], direction="Vertical", gap=2, width=text_w)
+    row = group("conKksFlRow", [cell], direction="Horizontal", gap=ROW_GAP, height=rh,
+                width="Parent.TemplateWidth", align_items="Start",
+                fill=f"If(ThisItem.Code = {FL_PICK}, {C_PRIMARY_SOFT}, {C_CARD_BG})",
+                pad=(6, ROW_PAD, 6, ROW_PAD))
+    rule = row_rule("rctKksFlRowRule", 0)
+    rule.props["Y"] = f"({rh}) - 1"
     copy = button("btnKksFlCopy", '""',
-                  f'Copy({FL_PICK});\nNotify("Copied " & {FL_PICK} & " to the clipboard.", '
+                  'Copy(ThisItem.Code);\nNotify("Copied " & ThisItem.Code & " to the clipboard.", '
                   'NotificationType.Success)',
                   width=COPY_W, height=COPY_W, icon="Copy",
-                  accessible=f'"Copy " & {FL_PICK}', tooltip=f'"Copy " & {FL_PICK}')
+                  accessible='"Copy " & ThisItem.Code', tooltip='"Copy " & ThisItem.Code')
     copy.props["Layout"] = "ButtonLayout.IconOnly"
     copy.props["BorderColor"] = C_TRANSPARENT
     ensure_hit(copy)
-    selected = group("conKksFlSelected", [sel, copy], direction="Horizontal", gap=ROW_GAP,
-                     align_items="Start", fill=C_MUTED_BG, border_color=C_DIVIDER, radius=10,
-                     pad=(6, ROW_PAD, 6, ROW_PAD), visible=f"!IsBlank({FL_PICK})")
-    modal = group("conKksFlModal", [head, intro, picker, msg, selected], direction="Vertical",
+    copy.props["X"] = f"Parent.TemplateWidth - {ROW_PAD} - Self.Width"
+    copy.props["Y"] = "6"
+    copy.props["_OnTop"] = "true"
+    # Hoejden: hele listen, saa laenge den kan staa i popuppen; foerst naar
+    # den IKKE kan, faar den sin rest af skaermen og scroller (issue #514).
+    # Resten er skaermen minus popuppens margen (12 + 12), dens polstring
+    # (18 + 18), de andre boern og deres mellemrum.
+    full_h = f"Sum(colKksFl, {_row_h('ThisRecord')})"
+    above = stack_height([head, intro, picker, msg], 12, 18, 18)
+    room = f"Max(120, App.Height - 24 - ({above}) - 12)"
+    vis_list = "CountRows(colKksFl) > 0"
+    gal_h = f"If({vis_list}, Min({full_h}, {room}), 0)"
+    gal = Ctrl("galKksFlRows", "Gallery", variant="VariableHeight", props={
+        "AccessibleLabel": '"Functional Locations found"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
+        "Height": gal_h, "Items": "colKksFl", "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": f"{full_h} > {room}", "TabIndex": "0", "TemplatePadding": "0",
+        "TemplateSize": "42", "Width": "Parent.Width",
+    }, children=[row, rule, copy], h=gal_h, vis=vis_list)
+    modal = group("conKksFlModal", [head, intro, picker, msg, gal], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
                   radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18), width=FL_W,
                   drop_shadow="ExtraBold", visible=vis)

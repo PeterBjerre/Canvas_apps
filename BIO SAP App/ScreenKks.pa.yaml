@@ -9829,7 +9829,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =128 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0) + If(!IsBlank(varKksFlPick), 12 + (12 + (Max((Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1), (H.hit))) * 1 + 0), 0)
+                =128 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0) + If(CountRows(colKksFl) > 0, 12 + (If(CountRows(colKksFl) > 0, Min(Sum(colKksFl, Max(H.hit, 22 + Max(1, RoundUp(Len(ThisRecord.Description & If(!IsBlank(ThisRecord.Code) && !ThisRecord.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1) + 12), Max(120, App.Height - 24 - (128 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0)) - 12)), 0)), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -10409,56 +10409,67 @@ Screens:
                       =!IsBlank(varKksFlMsg)
                   Wrap: |-
                       =true
-            - conKksFlSelected:
-                Control: GroupContainer
-                Variant: AutoLayout
+            - galKksFlRows:
+                Control: Gallery
+                Variant: VariableHeight
                 Properties:
-                  BorderColor: |-
-                      =C.'border-subtle'
-                  BorderThickness: |-
-                      =1
-                  DropShadow: |-
-                      =DropShadow.None
+                  AccessibleLabel: |-
+                      ="Functional Locations found"
+                  BorderStyle: |-
+                      =BorderStyle.None
                   Fill: |-
-                      =C.'bg-muted'
+                      =C.'bg-card'
                   FillPortions: |-
                       =0
                   Height: |-
-                      =12 + (Max((Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1), (H.hit))) * 1 + 0
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Start
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
+                      =If(CountRows(colKksFl) > 0, Min(Sum(colKksFl, Max(H.hit, 22 + Max(1, RoundUp(Len(ThisRecord.Description & If(!IsBlank(ThisRecord.Code) && !ThisRecord.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1) + 12), Max(120, App.Height - 24 - (128 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0)) - 12)), 0)
+                  Items: |-
+                      =colKksFl
                   LayoutMinWidth: |-
                       =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  PaddingBottom: |-
-                      =6
-                  PaddingLeft: |-
-                      =8
-                  PaddingRight: |-
-                      =8
-                  PaddingTop: |-
-                      =6
-                  RadiusBottomLeft: |-
-                      =R.input
-                  RadiusBottomRight: |-
-                      =R.input
-                  RadiusTopLeft: |-
-                      =R.input
-                  RadiusTopRight: |-
-                      =R.input
+                  LoadingSpinner: |-
+                      =LoadingSpinner.None
+                  Selectable: |-
+                      =false
+                  ShowScrollbar: |-
+                      =Sum(colKksFl, Max(H.hit, 22 + Max(1, RoundUp(Len(ThisRecord.Description & If(!IsBlank(ThisRecord.Code) && !ThisRecord.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1) + 12) > Max(120, App.Height - 24 - (128 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0)) - 12)
+                  TabIndex: |-
+                      =0
+                  TemplatePadding: |-
+                      =0
+                  TemplateSize: |-
+                      =42
                   Visible: |-
-                      =!IsBlank(varKksFlPick)
+                      =CountRows(colKksFl) > 0
                   Width: |-
                       =Parent.Width
                 Children:
-                  - txtKksFlSelected:
+                  - rctKksFlRowBg:
+                      Control: Rectangle
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Background"
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =If(ThisItem.Code = varKksFlPick, C.'color-brand-primary-soft', C.'bg-card')
+                        Height: |-
+                            =Max(H.hit, 22 + Max(1, RoundUp(Len(ThisItem.Description & If(!IsBlank(ThisItem.Code) && !ThisItem.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1) + 12
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =((Min(560, App.Width - 24)) - 18 - 18) - 2 * 0 - 0 - 40
+                        X: |-
+                            =0
+                        Y: |-
+                            =0
+                  - txtKksFlRowCode:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
@@ -10476,7 +10487,7 @@ Screens:
                         FontWeight: |-
                             =FontWeight.Semibold
                         Height: |-
-                            =Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1
+                            =20
                         PaddingBottom: |-
                             =0
                         PaddingLeft: |-
@@ -10488,16 +10499,80 @@ Screens:
                         Size: |-
                             =T.body
                         Text: |-
-                            =varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))
+                            =ThisItem.Code
                         Width: |-
-                            =((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8)
+                            =(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40)) - 0 - 0
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0 + 0
+                        Y: |-
+                            =0 + 6 + 0 + 0
+                  - txtKksFlRowDesc:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =Max(1, RoundUp(Len(ThisItem.Description & If(!IsBlank(ThisItem.Code) && !ThisItem.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =ThisItem.Description & If(!IsBlank(ThisItem.Code) && !ThisItem.Maintainable, "   (not maintainable)", "")
+                        Width: |-
+                            =(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40)) - 0 - 0
                         Wrap: |-
                             =true
+                        X: |-
+                            =0 + 8 + 0 + 0
+                        Y: |-
+                            =0 + 6 + 0 + 0 + (20) + 2
+                  - rctKksFlRowRule:
+                      Control: Rectangle
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Row divider"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =C.'border-subtle'
+                        Height: |-
+                            =1
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =(((Min(560, App.Width - 24)) - 18 - 18) - 2 * 0 - 0 - 40)
+                        X: |-
+                            =0
+                        Y: |-
+                            =(Max(H.hit, 22 + Max(1, RoundUp(Len(ThisItem.Description & If(!IsBlank(ThisItem.Code) && !ThisItem.Maintainable, "   (not maintainable)", "")) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8 - 18 - 40) / 7.5, 0)), 0)) * 19 + 1) + 12) - 1
                   - btnKksFlCopy:
                       Control: ModernButton
                       Properties:
                         AccessibleLabel: |-
-                            ="Copy " & varKksFlPick
+                            ="Copy " & ThisItem.Code
                         Align: |-
                             =Align.Center
                         AlignInContainer: |-
@@ -10521,8 +10596,8 @@ Screens:
                         Layout: |-
                             =ButtonLayout.IconOnly
                         OnSelect: |-
-                            =Copy(varKksFlPick);
-                            Set(gblToast, { Text: "Copied " & varKksFlPick & " to the clipboard.", Kind: "Success", At: Now() }); true
+                            =Copy(ThisItem.Code);
+                            Set(gblToast, { Text: "Copied " & ThisItem.Code & " to the clipboard.", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -10536,11 +10611,15 @@ Screens:
                         Text: |-
                             =""
                         Tooltip: |-
-                            ="Copy " & varKksFlPick
+                            ="Copy " & ThisItem.Code
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Width: |-
                             =H.hit
+                        X: |-
+                            =(((Min(560, App.Width - 24)) - 18 - 18) - 2 * 0 - 0 - 40) - 8 - Self.Width
+                        Y: |-
+                            =6
       - imgKksLoading:
           Control: Image
           Properties:
