@@ -73,7 +73,7 @@ def _parts():
 def test_header_order_after_sort_field():
     heads = [_prop(n, "Text").strip('"') for n in _children("conFlRowsHead")]
     # Sentence case (UX-review F1/T7); Functional Location og ATEX er navne.
-    assert heads == ["#", "Functional Location", "Description", "KKS type", "Assigned class",
+    assert heads == ["#", "Functional Location", "Description", "StrIndicator", "Class",
                      "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
                      "Manufacturer", "Warranty", "Status", "Actions"]
 
@@ -83,7 +83,8 @@ def test_row_cells_follow_the_header():
     kids = _children("galFlRows")
     cells = ["txtFlRowNo", "inpFlRowFl", "inpFlRowDesc", "txtFlRowKks", "txtFlRowCls",
              "btnFlRowClassData", "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc",
-             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowStatus", "btnFlRowDelete"]
+             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowStatus", "btnFlRowCopy",
+             "btnFlRowDelete"]
     assert [k for k in kids if k in cells] == cells
     # Ingen Warranty Start/End-kolonner og ingen Validation-kolonne.
     assert "inpFlRowWStart" not in kids and "inpFlRowWEnd" not in kids
@@ -267,9 +268,12 @@ def test_spare_width_is_shared_by_the_columns():
              ("Cls", "txtFlRowCls"), ("ClsData", "btnFlRowClassData"),
              ("Room", "inpFlRowRoom"), ("Sort", "inpFlRowSort"), ("Abc", "txtFlRowAbc"),
              ("Atex", "chkFlRowAtex"), ("Mfr", "btnFlRowMfr"), ("War", "btnFlRowWar"),
-             ("Status", "btnFlRowStatus"), ("Act", "btnFlRowDelete"))
+             ("Status", "btnFlRowStatus"))
     for head, cell in pairs:
         assert _prop(f"txtFlRowsHead{head}", "Width") == _prop(cell, "Width"), head
+    # Actions: Copy og Delete side om side under een overskrift (issue #467).
+    assert _prop("txtFlRowsHeadAct", "Width") == str(p.ACT_W)
+    assert _prop("btnFlRowCopy", "Width") == _prop("btnFlRowDelete", "Width") == str(p.ACT_BTN)
     for n in p.V_GROW:
         assert p.V_SPARE in _prop(f"txtFlRowsHead{n}", "Width"), n
     for n in ("Atex", "Act"):

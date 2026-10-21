@@ -37,7 +37,7 @@ def test_panel_follows_the_row_order_and_labels():
     Location til Warranty, med de samme etiketter."""
     p = _parts()
     row = [l for n, l, _w, _v in p.V_SPEC if n not in ("No", "Status", "Act")]
-    assert row == ["Functional Location", "Description", "KKS type", "Assigned class",
+    assert row == ["Functional Location", "Description", "StrIndicator", "Class",
                    "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
                    "Manufacturer", "Warranty"]
     # Panelet: Master-felterne, med Class data (Class-sektionen) paa sin
@@ -50,7 +50,7 @@ def test_panel_follows_the_row_order_and_labels():
             panel.append(title)
         else:
             panel += [l for _f, k, l in cfg.PANEL_FIELDS if k == key]
-            # KKS type og Assigned class: sektionens sidste linje (#308).
+            # StrIndicator og Class: sektionens sidste linje (#308, #467).
             panel += [l for _f, k, l in cfg.PANEL_FIELDS if k == cfg.PANEL_SUB.get(key)]
     assert panel[:len(row)] == row
     # GIV_EXT/WCM er ikke med i panelet (issue #308).
@@ -59,7 +59,9 @@ def test_panel_follows_the_row_order_and_labels():
     # Hele Manufacturer- og Warranty-gruppen staar samlet.
     assert [f for f, k, _l in cfg.PANEL_FIELDS if k == "Mfr"] == p.MFR_FIELDS
     assert [f for f, k, _l in cfg.PANEL_FIELDS if k == "War"] == p.WAR_FIELDS
-    assert "StrIndicator" not in [l for _f, _k, l in cfg.PANEL_FIELDS]
+    # Issue #467: samme navne i Rows, Classes og panelet.
+    assert "KKS type" not in [l for _f, _k, l in cfg.PANEL_FIELDS]
+    assert "Assigned class" not in [l for _f, _k, l in cfg.PANEL_FIELDS]
 
 
 def test_generated_panel_sections_and_no_status():
@@ -75,7 +77,7 @@ def test_generated_panel_sections_and_no_status():
     # Plads og etiket staar i colFlPane i den samlede app.
     app = open(BIO_APP, encoding="utf-8").read()
     assert "colFlPane = Table(" in app
-    assert '{ Field: "STRINDICATOR", Pane: "Kks", Ord: 3, Label: "KKS type" }' in app
+    assert '{ Field: "STRINDICATOR", Pane: "Kks", Ord: 3, Label: "StrIndicator" }' in app
 
 
 def test_editing_does_not_rebuild_or_close_the_panel():

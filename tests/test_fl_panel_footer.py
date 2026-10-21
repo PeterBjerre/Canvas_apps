@@ -7,7 +7,8 @@ Functional Location-sidepanelet som Materials' (issue #308).
     uden for det, der scroller.
   - GIV_EXT/WCM (Section "Ext") vises ingen steder - kun i visningen;
     reglerne og de gemte vaerdier er uroert.
-  - KKS type og Assigned class staar paa een linje lige foer Class data,
+  - StrIndicator og Class (foer KKS type og Assigned class, #467) staar
+    paa een linje lige foer Class data,
     uden "Derived from/Determined by the KKS code".
   - Dropdowns har samme stil som Materials'.
 
