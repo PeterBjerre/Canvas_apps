@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Sidepanelets Objects-fane - den samme i Materials og Equipment (issue #485).
+Sidepanelets Objects-fane i Materials (issue #485). Equipment og Measuring
+Point har ingen: de sidder paa EEN funktionsplads, der vaelges i formularen.
 
 HVAD FANEN ER
 -------------
 Funktionspladserne, raekken er knyttet til - i SAP de funktionspladser,
-hvis styklister (BOM) materialet eller udstyret skal paa. De gemmes paa
+hvis styklister (BOM) materialet skal paa. De gemmes paa
 raekken som objektlisten (tools/object_list.py):
 
     ObjectList      koderne, sorteret og adskilt af "; "
@@ -40,8 +41,8 @@ Details-fanen:
     fanen aabnes, men soegning og Add er skjult og Remove er slaaet fra
 
 Modulet kender hverken materialer eller udstyr: appen giver mindstelaengden
-for soegningen, det, der skal ske efter en aendring (Equipment holder sit
-FL-felt i takt), og sine egne linjer under listen.
+for soegningen, det, der skal ske efter en aendring, og sine egne linjer
+under listen.
 """
 import os
 import sys
@@ -101,7 +102,7 @@ def open_row_fx(tab_var):
 
 def extra_patch(fl_col=True):
     """Kolonnerne, Save skriver. fl_col=False, naar FL-kolonnen allerede er
-    et felt i formularen (Equipment holder feltet i takt med listen)."""
+    et felt i formularen, som appen selv holder i takt med listen."""
     out = [("ObjectList", ol.codes_fx(OBJECTS)),
            ("ObjectListJson", ol.json_fx(OBJECTS))]
     if fl_col:

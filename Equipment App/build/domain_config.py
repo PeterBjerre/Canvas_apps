@@ -153,11 +153,6 @@ MAX_LEN = {"Manufacturer": 30, "TypeDesignation": 20, "SerialNumber": 30}
 # formularen, i Patch, i kopien eller i admin-loggens diff.
 READ_FIELDS = [
     ("EquipmentNumber", "Equipment number", "text", None),
-    # Objects-fanens funktionspladser (issue #485) - de skrives af
-    # tools/domain_objects.py's extra_patch, ikke som et felt. Den foerste
-    # kode staar ogsaa i FunctionalLocation (feltet herover).
-    ("ObjectList", "Object list", "long", None),
-    ("ObjectListJson", "Object list (json)", "long", None),
 ]
 
 # Plant staar for sig i hovedet - den er obligatorisk og filtreres paa.
@@ -166,5 +161,5 @@ PLANT_LABEL = "Plant"
 # Listens kolonner staar i equipment_parts.SLOTS.
 
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.
-SEARCH_FIELDS = ["Description", "FunctionalLocation", "ObjectList", "SerialNumber",
+SEARCH_FIELDS = ["Description", "FunctionalLocation", "SerialNumber",
                  "EquipmentNumber"]

@@ -2318,7 +2318,7 @@ def docs_tab_body(height=EDITOR_TAB_BODY_H):
     return body
 
 
-def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
+def editor_tabs(form, extras=(), objects=None, documents=(), open_objects=""):
     """Sidepanelets indhold med faner - det faelles moenster for Materials
     og Equipment (issue #430). Fanen huskes i cfg.ROW_EDITOR_TAB_VAR, som
     load_row_fx/clear_form_fx/copy_row_fx saetter til "Details".
@@ -2326,28 +2326,31 @@ def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
     form: appens formular (build_form(panel=True)); dens knapraekke
     (naestsidste barn) udelades - knapperne staar i panelets faste bund.
     extras: appens linjer under felterne. objects/documents: fanernes
-    kontroller. open_objects: det, Objects-fanen goer ud over at vise sig
+    kontroller; objects=None: ingen Objects-fane (Equipment, issue #485 -
+    udstyret har een funktionsplads, i formularen). open_objects: det, Objects-fanen goer ud over at vise sig
     (Materials fylder objektlisten fra raekken). Documents-fanen peger
     dokumentkontrollen paa den aabne raekke (open_active_docs_fx).
 
     Fanerne er altid til at trykke paa - ogsaa i visning. Felterne paa
     dem foelger selv DM_ROW og DOCS_EDIT, saa de er skrivebeskyttede dér."""
     tab = cfg.ROW_EDITOR_TAB_VAR
-    TAB_REOPEN["Objects"] = open_objects
+    TAB_REOPEN["Objects"] = open_objects if objects is not None else ""
     objects_fx = f'Set({tab}, "Objects")' + (f";\n{open_objects}" if open_objects else "")
-    selector = segmented("conDomEditorTabs", [
-        ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
-        ("Objects", "Objects", f'{tab} = "Objects"', objects_fx, None),
-        ("Documents", "Documents", f'{tab} = "Documents"',
-         f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None),
-    ], label="Row details", fit=True)
+    tabs = [("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None)]
+    if objects is not None:
+        tabs.append(("Objects", "Objects", f'{tab} = "Objects"', objects_fx, None))
+    tabs.append(("Documents", "Documents", f'{tab} = "Documents"',
+                 f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None))
+    selector = segmented("conDomEditorTabs", tabs, label="Row details", fit=True)
     details = group("conDomEditorDetails",
                     list(form.children[:-2]) + list(extras) + [form.children[-1]],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
-    objects = group("conDomEditorObjects", list(objects), direction="Vertical", gap=12,
-                    visible=f'{tab} = "Objects"')
     documents = group("conDomEditorDocuments", list(documents), direction="Vertical", gap=12,
                       visible=f'{tab} = "Documents"')
+    if objects is None:
+        return [selector, details, documents]
+    objects = group("conDomEditorObjects", list(objects), direction="Vertical", gap=12,
+                    visible=f'{tab} = "Objects"')
     return [selector, details, objects, documents]
 
 
@@ -2642,8 +2645,9 @@ def _action_button(a, suffix=""):
 #
 #     Edit (blyant)  Documents (papirclips)  Objects (link)  Copy  Delete
 #
-# Documents og Objects kun, hvor appen har dem (Measuring Point har
-# hverken dokumenter eller en Objects-fane). Der er ingen Details-knap -
+# Documents og Objects kun, hvor appen har dem: Objects kun i Materials
+# (Equipment og Measuring Point sidder paa EEN funktionsplads, der vaelges
+# i formularen), og Measuring Point har ingen dokumenter. Der er ingen Details-knap -
 # Edit aabner sidepanelet, ogsaa paa en raekke, der kun kan ses (felterne
 # er saa skrivebeskyttede) - og ingen More-menu: alle handlinger staar
 # direkte i kolonnen. Hvert ikon har et tooltip med raekkens noegle.

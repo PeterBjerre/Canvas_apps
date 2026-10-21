@@ -36,24 +36,20 @@ slettes med ikonet i listens Actions-kolonne, ikke fra formularen.
 
 SIDEPANELETS FANER (issue #430)
 -------------------------------
-I sidepanelet staar formularen under tre faner - samme moenster som
-Materials (domain_parts.editor_tabs):
-    Details    Identification, Location (uden FL), Manufacturer
-    Objects    Funktionspladserne: soegning, Add og listen med Remove -
-               den faelles fane (tools/domain_objects.py, issue #485)
+I sidepanelet staar formularen under to faner - samme moenster som
+Materials (domain_parts.editor_tabs), men uden Objects-fanen:
+    Details    Identification, Location (med FL-soegningen), Manufacturer
     Documents  Warranty from/to, antallet af dokumenter og
                ModernAttachments-kontrollen (Save documents)
 Felterne, variablerne og Patch er de samme - de staar bare paa en anden
 fane. Gem-tjekkene er Notify-beskeder, saa de ses paa alle faner.
 
-FUNKTIONSPLADSERNE (issue #485)
+EEN FUNKTIONSPLADS (issue #485)
 -------------------------------
-Udstyret kan knyttes til flere funktionspladser (deres styklister), som i
-Materials. Listen gemmes som ObjectList/ObjectListJson, og den FOERSTE
-kode staar fortsat i FunctionalLocation - feltet, som listen, soegningen
-og SAP-flowene laeser. Formularens FL-felt holdes i takt med listen ved
-hver Add og Remove, saa kravet "A functional location is required",
-admin-loggen og Reset virker uaendret.
+Udstyr sidder paa EEN funktionsplads - ingen Objects-fane og intet
+Objects-ikon (kun Materials har en objektliste). Funktionspladsen vaelges
+med FL-soegningen i Location-sektionen paa Details og gemmes i
+FunctionalLocation, som paa Measuring Point.
 
 Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
@@ -61,10 +57,7 @@ Provision-EqMatLists.ps1. Cellen Documentation aabner popuppen.
 """
 import domain_config as cfg
 import domain_parts as dp
-import domain_objects as dobj
-import object_list as ol
-from build_helpers import card, text_ctrl
-from gen_screen import C_MUTED
+from build_helpers import card
 
 # SEKTIONERNE (UX-review M2, Equipment-mockuppen): hver sektion er sine
 # egne raekker af fire celler, der ombryder til to og een. FL, TEXT, DOCS
@@ -82,7 +75,8 @@ NOT_IN_GRID = {cfg.FL_FIELD}
 # Sidepanelets faner (issue #430): det, der flyttes fra Details.
 TABBED = bool(getattr(cfg, "ROW_PANEL_ENABLED", False)
               and getattr(cfg, "ROW_EDITOR_TAB_VAR", None))
-OBJECT_KEYS = ["FL"]
+# Ingen Objects-fane (issue #485): FL bliver paa Details.
+OBJECT_KEYS = []
 DOC_KEYS = ["WarrantyStart", "WarrantyEnd", "DOCS"]
 
 
@@ -179,33 +173,17 @@ def _panel_rows(key, keys):
                         cell_width=dp.PANEL_CELL_W)
 
 
-# Formularens FL-felt i takt med Objects-listen: den foerste kode.
-FL_SYNC = f"Set({dp._var(cfg.FL_FIELD)}, {ol.first_fx(dobj.OBJECTS)})"
-
-
-def _primary_line():
-    """Linjen under listen: hvilken funktionsplads udstyret staar med."""
-    first = ol.first_fx(dobj.OBJECTS)
-    return text_ctrl("txtDomObjPrimary",
-                     f'"Functional location on the equipment: " & {first}',
-                     size=12, color=C_MUTED, height=18, wrap="false",
-                     visible=f"{ol.count_fx(dobj.OBJECTS)} > 0")
-
-
 def editor_panel_content(form, extras=()):
-    """Fanerne Details, Objects og Documents (issue #430) - Materials'
-    moenster (domain_parts.editor_tabs). Objects: den faelles fane med
-    funktionspladserne (tools/domain_objects.py, issue #485). Documents:
+    """Fanerne Details og Documents (issue #430) - Materials' moenster
+    (domain_parts.editor_tabs) uden Objects-fanen (issue #485): udstyret
+    har een funktionsplads, og dens soegning staar paa Details. Documents:
     garantien, antallet af dokumenter og ModernAttachments-kontrollen."""
-    objects = [dobj.tab_body(dp.EDITOR_TAB_BODY_H, after=FL_SYNC,
-                             extra=[_primary_line()])]
     warranty = dp.sectioned([("Warranty", "Warranty and documents", None,
                               _panel_rows("Warranty", DOC_KEYS))])
     # Dokumentkontrollen under garantien - samme krop og hoejde som
     # Materials' Documents-fane; panelet scroller, hvis der mangler plads.
     documents = warranty + [dp.docs_tab_body()]
-    return dp.editor_tabs(form, extras, objects=objects, documents=documents,
-                          open_objects=dobj.open_tab_fx())
+    return dp.editor_tabs(form, extras, objects=None, documents=documents)
 
 
 # ---------------------------------------------------------------------------
@@ -224,9 +202,7 @@ EQNO = ("EQUIPMENT NUMBER", "ThisItem.EquipmentNumber", 120)
 DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 130)
 EQTYPE = ("TYPE", "ThisItem.EquipmentCategory", 110)
-# Den foerste funktionsplads og "+n" for resten (issue #485).
-FL_C = ("FUNCTIONAL LOCATION",
-        ol.summary_fx("ThisItem.ObjectList", f"ThisItem.{cfg.FL_FIELD}", empty='""'), 150)
+FL_C = ("FUNCTIONAL LOCATION", f"ThisItem.{cfg.FL_FIELD}", 150)
 # EET fast saet kolonner (issue #204): de samme seks, Compact viste.
 # Compact/All columns er vaek i baade Equipment og Materials - resten af
 # raekkens felter ses i Details.
@@ -239,25 +215,10 @@ def build_rows():
                          "Search FL, equipment no., serial no., description")
 
 
-# Antal funktionspladser paa en gemt raekke - som Materials' ROW_OBJ_N.
-ROW_OBJ_N = ('With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), '
-             '!IsBlank(Trim(Value)))) }, '
-             'If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n))')
-
-dp.configure(
-    # Objects-fanens liste (tools/domain_objects.py, issue #485).
-    clear_extra=dobj.clear_extra(),
-    load_extra=dobj.load_extra(),
-    # FunctionalLocation er et felt (FL_SYNC holder det i takt), saa kun
-    # listens to kolonner skrives ud over felterne.
-    extra_patch=dobj.extra_patch(fl_col=False),
-    extra_diff=dobj.extra_diff(),
-)
-# De faelles raekkeikoner (issue #485): Edit, Documents, Objects, Copy og
-# Delete. Ingen More-menu og ingen Details.
+# De faelles raekkeikoner (issue #485): Edit, Documents, Copy og Delete.
+# Intet Objects-ikon (udstyret har een funktionsplads, i formularen), ingen
+# More-menu og ingen Details.
 dp.configure(row_actions=dp.standard_row_actions(
     docs_fx=((dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
               + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx()),
-    docs_n="Coalesce(ThisItem.FileCount, 0)",
-    objects_fx=dobj.open_row_fx(cfg.ROW_EDITOR_TAB_VAR) if TABBED else None,
-    objects_n=ROW_OBJ_N))
+    docs_n="Coalesce(ThisItem.FileCount, 0)"))
