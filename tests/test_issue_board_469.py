@@ -30,11 +30,10 @@ def test_activity_cell_is_one_button_that_opens_the_activity_tab():
     ctrls = _list()
     for suffix in ("", "C"):
         btn = ctrls[f"btnIbRowAct{suffix}"]
-        assert btn.control == "ModernButton"
-        # Taleboblen foran tallet - ikke den gamle ModernIcon.
-        assert btn.props["Icon"] == '"Comment"'
-        assert btn.props["Layout"] == "ButtonLayout.IconBefore"
-        assert "LookUp(colIbActN, TicketId = ThisItem.Id).N" in btn.props["Text"]
+        # Issue #489: taleboblen med tallet indeni er eet klikbart billede
+        # (tests/test_issue_board_489.py) - ikke den gamle ModernIcon.
+        assert btn.control == "Image"
+        assert "LookUp(colIbActN, TicketId = ThisItem.Id).N" in btn.props["Image"]
         # Samme aabning som papirclipsen - bare fanen Activity.
         assert btn.props["OnSelect"] == P.OPEN_ROW_ACT
         assert 'Set(varIbTab, "activity")' in btn.props["OnSelect"]
