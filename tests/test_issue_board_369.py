@@ -33,7 +33,8 @@ def _under(ctrls, root):
 
 def test_status_stands_alone_under_the_title():
     c = _ctrls()
-    assert [k.name for k in c["conIbDetMeta"].children] == ["bdgIbDetStatus"]
+    # Issue #475: handlingerne staar paa status-linjen, til hoejre.
+    assert [k.name for k in c["conIbDetMeta"].children] == ["bdgIbDetStatus", "conIbDetActions"]
     top = [k.name for k in c["conIbDetTop"].children]
     assert top.index("conIbDetMeta") < top.index("conIbDetInfo") < top.index("conIbDetFacts")
 
@@ -47,8 +48,9 @@ def test_each_value_is_shown_once_in_its_section():
     for n in ("txtIbFactReporter", "txtIbFactAssigned", "txtIbFactSeverity",
               "txtIbFactReported", "txtIbFactUpdated"):
         assert n in facts and n not in info, n
-    assert c["txtIbDetInfoTitle"].props["Text"] == 'Upper("Issue information")'
-    assert c["txtIbDetFactsTitle"].props["Text"] == 'Upper("Ticket details")'
+    # Issue #475: overskrifterne er ikke smaa versaler mere.
+    assert c["txtIbDetInfoTitle"].props["Text"] == '"Issue information"'
+    assert c["txtIbDetFactsTitle"].props["Text"] == '"Ticket details"'
     # Ingen gammel Application/Section-linje ved siden af status.
     for old in ("conIbDetWhere", "conIbDetBadges"):
         assert old not in c, old
@@ -64,7 +66,9 @@ def test_text_blocks_are_compact_boxes_that_follow_the_text():
     c = _ctrls()
     for name in ("IbDetDesc", "IbDetSteps", "IbDetExpected", "IbDetActual"):
         block = c[f"con{name}"]
-        assert [k.name for k in block.children] == [f"txt{name}Label", f"con{name}Box"]
+        # Issue #475: ikonet til venstre, overskriften og fladen ved siden af.
+        assert [k.name for k in block.children] == [f"img{name}Icon", f"con{name}Body"]
+        assert [k.name for k in c[f"con{name}Body"].children] == [f"txt{name}Label", f"con{name}Box"]
         box = c[f"con{name}Box"]
         assert box.props["BorderColor"] == P.C_CARD_BORDER
         assert box.props["RadiusTopLeft"] == "8"
@@ -79,7 +83,7 @@ def test_text_blocks_are_compact_boxes_that_follow_the_text():
 
 def test_yaml_has_the_new_hierarchy():
     y = open(SCREEN, encoding="utf-8").read()
-    pos = [y.index(f"- {n}:") for n in ("bdgIbDetStatus", "conIbDetInfo", "conIbDetFacts",
-                                       "conIbDetActions", "conIbDetTabs", "conIbDetDescBox")]
+    pos = [y.index(f"- {n}:") for n in ("bdgIbDetStatus", "conIbDetActions", "conIbDetInfo",
+                                       "conIbDetFacts", "conIbDetTabs", "conIbDetDescBox")]
     assert pos == sorted(pos)
     assert "- conIbDetWhere:" not in y

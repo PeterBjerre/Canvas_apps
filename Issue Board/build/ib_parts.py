@@ -22,16 +22,17 @@ hentningen.
                    "What happened?", flere detaljer (valgfrit), Submit ->
                    Patch direkte i IB_Tickets (issue #193). Filer laegges
                    paa bagefter: papirclipsen i raekken.
-    En raekke   -> popup i View mode (issue #229): 1) nummer, titel og
-                   Close-ikonet; 2) status som maerke; 3) Issue
-                   information (Application, Section, Priority) og Ticket
-                   details (Requester, Assigned to, Severity, Reported,
-                   Updated) - issue #369; 4) handlingerne som ikoner (Reopen,
-                   Edit, Archive, Delete) - hver kun, naar brugeren maa
-                   (IbCan*); 5) fanerne Description, Activity og
-                   Attachments, centreret; 6) indholdet. Alt til og med
-                   fanerne staar fast; kun indholdet scroller, og det har
-                   samme hoejde for alle tre faner (issue #212).
+    En raekke   -> sidepanel i View mode (issue #229, #475): 1) nummer,
+                   titel, pilene og Close-ikonet; 2) status som maerke og
+                   handlingerne som ikoner til hoejre paa samme linje
+                   (Reopen, Edit, Archive, Delete - hver kun, naar brugeren
+                   maa, IbCan*); 3) kortene Issue information (Application,
+                   Section, Priority) og Ticket details (Requester, Assigned
+                   to, Severity, Reported, Updated) med ikoner - issue #369,
+                   #475; 4) fanerne Description, Activity og Attachments i
+                   fuld bredde; 5) indholdet. Alt til og med fanerne staar
+                   fast; kun indholdet scroller, og det gaar ned til
+                   panelets bund - kommentarfeltet staar nederst (#212, #475).
     Edit        -> samme formular som New issue, udfyldt (Edit mode). En
                    admin faar desuden status, prioritet, tildeling og
                    loesning.
@@ -2025,10 +2026,10 @@ ACT_ROW_PAD = 12
 COMMENT_H = 72
 SEND_INSET = 4
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
-ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
-# Indholdsfladen i sagens popup: mindst saa hoej, naar skaermen tillader det -
-# og aldrig lavere end DET_SAFE_MIN_H (issue #212).
-DET_MIN_H = 200
+# Activity-linjen (issue #475): ikonet til venstre, teksten ved siden af.
+ACT_TEXT_X = ACT_ROW_PAD + 28 + 10
+ACT_BODY_W = f"({ACT_W} - {ACT_TEXT_X} - {ACT_ROW_PAD})"
+# Indholdsfladen i sagens popup: aldrig lavere end DET_SAFE_MIN_H (issue #212).
 DET_SAFE_MIN_H = 160
 
 # Efter enhver aendring gennem flowet (issue #229 - live): KUN den ene
@@ -2193,8 +2194,9 @@ UPLOAD_FILES = act_fx(IB_ACT, "upload", attflows.save_fx(
     extra_fields=f", LastActivityOn: Now(), {FILE_COUNT}: attIbFiles.AttachmentsCount"), left="failed")
 
 
-# Issue #369: indholdet i fanen Description staar hver i sin diskrete
-# flade (tynd kant, runde hjoerner) med etiketten lige over, og teksten
+# Issue #369 og #475: indholdet i fanen Description staar i sektioner -
+# et ikon i en smal kolonne til venstre, overskriften ved siden af og
+# teksten i en diskret flade (tynd kant, runde hjoerner) under den. Teksten
 # er en anelse stoerre end broedteksten. Fladen er lige saa hoej som
 # teksten (_lines_h) plus sin luft - aldrig en fast hoejde.
 DET_TEXT_SIZE = lay.SIZE_BODY + 1
@@ -2202,34 +2204,135 @@ DET_TEXT_LINE = text_min_height(DET_TEXT_SIZE)
 DET_TEXT_PX = 7.8
 BOX_PAD_X = 12
 BOX_PAD_Y = 8
+# Ikonkolonnen foran hver sektion (issue #475).
+BLOCK_ICON = 20
+BLOCK_ICON_GAP = 10
+BLOCK_W = f"({DET_IN} - {BLOCK_ICON} - {BLOCK_ICON_GAP})"
 # Kanten (1 px paa hver side) tages ogsaa fra tekstens bredde.
-BOX_TEXT_W = f"({DET_IN} - {2 * BOX_PAD_X} - 2)"
+BOX_TEXT_W = f"({BLOCK_W} - {2 * BOX_PAD_X} - 2)"
+BLOCK_TITLE_H = text_min_height(lay.SIZE_INPUT)
 
 
-def _text_block(name, label, expr, visible=None):
-    """En etiket og en tekst, der ombrydes, i en diskret flade - laest,
-    ikke redigeret (issue #369)."""
-    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_SMALL, weight="Semibold",
-                    color=C_MUTED, height=18)
+# ---------------------------------------------------------------------------
+# Ikonerne i sidepanelet (issue #475)
+# ---------------------------------------------------------------------------
+# Vores egne stregikoner som SVG i en Image - samme vej som
+# Application-ikonet (tools/app_icons.py) og CLAUDE-gnisten. Ingen
+# ModernIcon (ikke afproevet i Studio). Faktaenes ikoner staar i en svagt
+# tonet firkant som Application-ikonet i listen; sektionernes ikoner i
+# Description er blot stregen.
+_RING = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z"
+I_INFO = _RING + " M12 11v5.5M12 7.6v.01"
+I_PEOPLE = ("M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z M2.5 20a6.5 6.5 0 0 1 13 0 "
+            "M15.5 4.3a3.5 3.5 0 0 1 0 6.4 M17.5 14.2a6.5 6.5 0 0 1 4 5.8")
+# Requester og Assigned to har hver sit personikon (issue #475): rapportoeren
+# er personen; den tildelte er personen med et flueben.
+I_REQUESTER = icons.PERSON
+I_ASSIGNEE = ("M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M3 20.5a7 7 0 0 1 10.6-6 "
+              "M15.5 18.2l2 2 4-4.2")
+I_SECTION = icons.STATUS_DRAFT
+I_PRIORITY = icons.STATUS_AWAITING
+I_SEVERITY = "M5 19.5v-3M10 19.5v-7M15 19.5v-11M20 19.5v-15"
+I_CALENDAR = ("M5 5h14a1.5 1.5 0 0 1 1.5 1.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6.5"
+              "A1.5 1.5 0 0 1 5 5Z M3.5 10h17 M8 3v4M16 3v4")
+I_WARNING = ("M10.3 4.2 2.6 17.5a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z "
+             "M12 9.5V14M12 17.2v.01")
+
+DET_TILE = 28          # ikonet foran et faktum og en Activity-linje
+DET_GLYPH = 16
+DET_TILE_GAP = 10
+HEAD_ICON = 18         # ikonet foran et korts overskrift
+
+
+def _hx(token):
+    return '" & %s & "' % _hex(token)
+
+
+def _svg_uri(svg):
+    return f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")'
+
+
+def _tile_uri(d, token, size=DET_TILE, glyph=DET_GLYPH, width=None):
+    """Ikonet i en tonet firkant (som tools/app_icons.tile_svg) - farverne
+    er token-udtryk, saa de foelger temaet."""
+    c = _hx(token)
+    pad = (size - glyph) / 2
+    rx = round(size / 4)
+    return _svg_uri(
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
+        f"viewBox='0 0 {size} {size}'><rect width='{size}' height='{size}' rx='{rx}' "
+        f"fill='{c}' fill-opacity='{app_icons.TINT:g}'/>"
+        + icons.glyph(d, c, size=glyph, x=pad, y=pad, width=width) + "</svg>")
+
+
+def _glyph_uri(d, token, size):
+    """Kun stregen, i size x size."""
+    return _svg_uri(icons.svg(d, _hx(token), size=size))
+
+
+CLAUDE_TILE = _tile_uri(icons.CLAUDE, icons.CLAUDE_TOKEN, width=2.4)
+
+
+def _det_img(name, image_fx, label, size, visible=None, extra=None):
+    """Et ikon som pynt ved en tekst. App checker kraever alligevel et tab
+    stop og en etiket paa et Image (issue #165) - som Application-ikonet."""
+    props = {
+        "AccessibleLabel": label,
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT,
+        "Height": str(size),
+        "Image": image_fx,
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Width": str(size),
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    props.update(extra or {})
+    return Ctrl(name, "Image", props=props, h=size, vis=visible)
+
+
+def _in_row(ctrl, align="Start"):
+    """Et ikon i en vandret AutoLayout-raekke: krymper ikke."""
+    ctrl.props["AlignInContainer"] = f"AlignInContainer.{align}"
+    ctrl.props["LayoutMinWidth"] = ctrl.props["Width"]
+    return ctrl
+
+
+def _text_block(name, label, expr, icon, visible=None):
+    """En sektion i fanen Description (issue #369, #475): ikonet til
+    venstre, overskriften og teksten i en diskret flade til hoejre - laest,
+    ikke redigeret."""
+    img = _in_row(_det_img(f"img{name}Icon", _glyph_uri(icon, "text-muted", BLOCK_ICON),
+                           f'"{label}"', BLOCK_ICON))
+    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_INPUT, weight="Semibold",
+                    height=BLOCK_TITLE_H, width=BLOCK_W)
     h = _lines_h(expr, BOX_TEXT_W, px=DET_TEXT_PX, line_h=DET_TEXT_LINE)
     body = text_ctrl(f"txt{name}", expr, size=DET_TEXT_SIZE, height=h, wrap="true",
-                     accessible=f'"{label}: " & Self.Text')
+                     width=BOX_TEXT_W, accessible=f'"{label}: " & Self.Text')
     box = group(f"con{name}Box", [body], direction="Vertical", gap=0, fill=C_CARD_BG,
-                border_color=C_CARD_BORDER, radius=8, pad=(BOX_PAD_Y, BOX_PAD_X, BOX_PAD_Y, BOX_PAD_X))
-    return group(f"con{name}", [lab, box], direction="Vertical", gap=4, visible=visible)
+                border_color=C_CARD_BORDER, radius=8, pad=(BOX_PAD_Y, BOX_PAD_X, BOX_PAD_Y, BOX_PAD_X),
+                width=BLOCK_W)
+    col = group(f"con{name}Body", [lab, box], direction="Vertical", gap=6, width=BLOCK_W)
+    col.props["LayoutMinWidth"] = BLOCK_W
+    return group(f"con{name}", [img, col], direction="Horizontal", gap=BLOCK_ICON_GAP,
+                 align_items="Start", visible=visible)
 
 
-TAB_W = 140
-TAB_H = 32
+TAB_H = 36
 
 
 def _tab(name, label_fx, key, accessible, onselect=None):
-    """En fane i popuppens navigation - samme kontakt som filtrenes (_seg):
-    valgt = fyldt i primaerfarven, ellers kant (issue #229)."""
+    """En fane i panelets navigation - samme kontakt som filtrenes (_seg):
+    valgt = fyldt i primaerfarven, ellers kant (issue #229). Issue #475:
+    fanerne deler hele bredden ligeligt (bredden saettes i build_detail)."""
     b = _seg(name, label_fx, f'varIbTab = "{key}"', onselect or f'Set(varIbTab, "{key}")',
-             TAB_W, accessible)
+             140, accessible)
     b.props["Text"] = label_fx
     b.props["Height"] = str(TAB_H)
+    b.props["Size"] = str(lay.SIZE_BODY)
     b.h = TAB_H
     b.props["LayoutMinWidth"] = "0"
     return b
@@ -2318,8 +2421,6 @@ def _actions():
     # (Archive blev skaaret i toppen).
     row.props["PaddingTop"] = str(ACT_PAD)
     row.props["PaddingBottom"] = str(ACT_PAD)
-    row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
-                                         "LayoutJustifyContent.End)")
     return row
 
 
@@ -2360,126 +2461,154 @@ def _files_panel():
     return panel
 
 
-FACT_VAL_H = 20
-FACT_INNER = 2
-FACT_LAB_H = text_min_height(lay.SIZE_MICRO)
-FACT_H = FACT_LAB_H + FACT_INNER + FACT_VAL_H
+# ---------------------------------------------------------------------------
+# Issue information og Ticket details (issue #369, #475)
+# ---------------------------------------------------------------------------
+# To kort under status-raekken. Hvert kort har sin overskrift med et ikon og
+# fakta i tre kolonner: et ikon i en tonet firkant, etiketten og vaerdien
+# ved siden af. Paa en telefon (under Tablet) er der ikke plads til
+# ikonerne i tre kolonner - saa staar kun etiket og vaerdi, og toppen
+# bliver ikke hoejere, end at fanernes indhold stadig har plads.
+#
+# Hvert faktum er en ManualLayout-container med faste X/Y, bredder og
+# hoejder (som kommentarfeltet, issue #411). De lodrette etiket/vaerdi-
+# grupper med strakte tekster var tomme i Play og preview (issue #229) -
+# her har hver tekst sin egen bredde og hoejde.
+CARD_PAD = 12
+CARD_GAP = 10
 FACT_GAP = 12
-# Fem fakta paa een linje, naar popuppen er bred nok; ellers tre og to.
-FACTS_OK = f"({DET_IN}) >= 540"
-FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {FACT_GAP}) / 3)"
-# Issue information (issue #369): Application, Section og Priority - altid
-# tre kolonner, saa de flugter med de tre foerste fakta paa en smal popup.
-INFO_W = f"((({DET_IN}) - 2 * {FACT_GAP}) / 3)"
-SECTION_H = 18
+FACT_LAB_H = text_min_height(lay.SIZE_SMALL)
+FACT_VAL_SIZE = lay.SIZE_INPUT
+FACT_VAL_H = text_min_height(FACT_VAL_SIZE)
+FACT_VAL_LINE = FACT_VAL_H - 1
+FACT_VAL_PX = 8.0
+FACT_H = max(DET_TILE, FACT_LAB_H + FACT_VAL_H)
+SECTION_H = text_min_height(lay.SIZE_INPUT)
+# Kortets indre bredde: panelets fulde bredde (toppen scroller ikke, saa
+# den skal ikke give plads til en scrollbar) minus luft og kant (1 px pr.
+# side).
+TOP_IN = DETAIL_PANEL_IN
+CARD_IN = f"({TOP_IN} - {2 * CARD_PAD} - 2)"
+FACT_W = f"(({CARD_IN} - {2 * FACT_GAP}) / 3)"
+FACT_TILES = f"!({NARROW})"
+FACT_TEXT_X = f"If({NARROW}, 0, {DET_TILE + DET_TILE_GAP})"
+FACT_TEXT_W = f"(({FACT_W}) - {FACT_TEXT_X})"
 
 
-def _section_title(name, title):
-    """En sektions overskrift i sagens popup - som formularernes
-    (domain_parts.form_section): lille, fed, daempet og med versaler."""
-    return text_ctrl(name, f'Upper("{title}")', size=lay.SIZE_MICRO, weight="Semibold",
-                     color=C_MUTED, height=SECTION_H, accessible=f'"{title}"')
+def _section_title(name, title, icon):
+    """Et korts overskrift: ikonet og titlen (issue #475 - stoerre og
+    tydeligere end de smaa versaler foer)."""
+    img = _in_row(_det_img(f"img{name[3:]}Icon", _glyph_uri(icon, "text-primary", HEAD_ICON),
+                           f'"{title}"', HEAD_ICON), align="Center")
+    txt = grow(text_ctrl(name, f'"{title}"', size=lay.SIZE_INPUT, weight="Semibold",
+                         height=SECTION_H))
+    return group(f"con{name[3:]}", [img, txt], direction="Horizontal", gap=8, height=SECTION_H,
+                 align_items="Center")
 
 
-_MID = {"VerticalAlign": "VerticalAlign.Middle", "LayoutMinWidth": "0"}
+def _fact(name, label, value_fx, image_fx, icon_label, *, visible=None, val_h=FACT_VAL_H,
+          cell_h=FACT_H, wrap="false", color=C_TITLE, value=None, extra_kids=()):
+    """Et faktum: [ikon] etiket over vaerdi. value: en faerdig kontrol i
+    vaerdiens sted (prioritetens maerke) - ellers en tekst."""
+    tx = FACT_TEXT_X
+    icon = _det_img(f"img{name}", image_fx, icon_label, DET_TILE, visible=FACT_TILES,
+                    extra={"X": "0", "Y": "0"})
+    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_SMALL, color=C_MUTED,
+                    height=FACT_LAB_H, width=FACT_TEXT_W, visible=visible,
+                    extra={"X": str(tx), "Y": "0", "VerticalAlign": "VerticalAlign.Middle"})
+    kids = [icon, lab]
+    if value is None:
+        val = text_ctrl(f"txt{name}", value_fx, size=FACT_VAL_SIZE, weight="Semibold",
+                        color=color, height=val_h, width=FACT_TEXT_W, wrap=wrap,
+                        accessible=f'"{label}: " & Self.Text', visible=visible,
+                        extra={"X": str(tx), "Y": str(FACT_LAB_H),
+                               "VerticalAlign": ("VerticalAlign.Top" if wrap == "true"
+                                                 else "VerticalAlign.Middle")})
+        kids.append(val)
+    for k in [*([] if value is None else [value]), *extra_kids]:
+        k.props["X"] = str(tx)
+        k.props["Y"] = str(FACT_LAB_H)
+        for p in ("LayoutMinWidth", "AlignInContainer"):
+            k.props.pop(p, None)
+        kids.append(k)
+    return Ctrl(f"con{name}", "GroupContainer", variant="ManualLayout", props={
+        "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+        "FillPortions": "0", "Height": str(cell_h), "LayoutMinWidth": "0",
+        "Width": FACT_W, **({"Visible": visible} if visible else {}),
+    }, children=kids, h=cell_h, vis=visible)
 
 
-def _fact(name, label, value_fx, visible=None, width=FACT_W, height=FACT_VAL_H, wrap="false"):
-    """Etiket og vaerdi (to tekster med egen bredde og hoejde)."""
-    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
-                    color=C_MUTED, height=FACT_LAB_H, width=width, visible=visible,
-                    extra=dict(_MID))
-    extra = dict(_MID)
-    if wrap == "true":
-        extra["VerticalAlign"] = "VerticalAlign.Top"
-    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=height, width=width,
-                    accessible=f'"{label}: " & Self.Text', visible=visible, wrap=wrap,
-                    extra=extra)
-    return lab, val
+def _fact_row(name, cells, cell_h):
+    """Fakta i tre kolonner paa een linje (Reported og Updated i de to
+    foerste)."""
+    return group(name, cells, direction="Horizontal", gap=FACT_GAP, height=str(cell_h),
+                 align_items="Start", width=CARD_IN)
 
 
-def _fact_block(name, labels, values, width, val_h=FACT_VAL_H):
-    """En raekke etiketter over en raekke vaerdier."""
-    labs = group(f"con{name}Labels", labels, direction="Horizontal",
-                 gap=FACT_GAP, height=FACT_LAB_H, width=width, align_items="Start")
-    vals = group(f"con{name}Values", values, direction="Horizontal",
-                 gap=FACT_GAP, height=val_h, width=width, align_items="Start")
-    g = group(f"con{name}", [labs, vals], direction="Vertical", gap=FACT_INNER,
-              height=f"{FACT_LAB_H} + {FACT_INNER} + {val_h}", width=width, align_items="Start")
-    for c in (labs, vals, g):
-        c.props["LayoutMinWidth"] = "0"
-    return g
+def _card(name, kids):
+    return group(name, kids, direction="Vertical", gap=CARD_GAP, fill=C_CARD_BG,
+                 border_color=C_CARD_BORDER, radius=10, pad=CARD_PAD)
 
 
 def _info():
-    """Issue information (issue #369): Application, Section og Priority
-    under en overskrift - prioriteten som sit farvede maerke. En lang
-    Application eller Section ombrydes, og raekken vokser med den."""
-    val_h = (f"Max({CHIP_H}, {_lines_h(SEL + '.Application', INFO_W)}, "
-             f"{_lines_h(SEL + '.Section', INFO_W)})")
-    app_lab, app = _fact("IbDetApp", "Application", f"{SEL}.Application", width=INFO_W,
-                         height=val_h, wrap="true")
-    app.props["FontWeight"] = "FontWeight.Semibold"
-    sec_lab, sec = _fact("IbDetSection", "Section", f"{SEL}.Section", width=INFO_W,
-                         height=val_h, wrap="true")
-    pri_lab = text_ctrl("txtIbDetPriorityLabel", '"Priority"', size=lay.SIZE_MICRO,
-                        weight="Semibold", color=C_MUTED, height=FACT_LAB_H, width=INFO_W,
-                        extra=dict(_MID))
+    """Issue information (issue #369, #475): Application, Section og
+    Priority - hver med sit ikon. Application har sit eget farvede ikon
+    (tools/app_icons.py, som i listen); prioriteten staar som sit maerke.
+    En lang Application eller Section ombrydes, og raekken vokser med den."""
+    def wrap_h(expr):
+        return _lines_h(expr, FACT_TEXT_W, px=FACT_VAL_PX, line_h=FACT_VAL_LINE)
+    val_h = f"Max({FACT_VAL_H}, {wrap_h(SEL + '.Application')}, {wrap_h(SEL + '.Section')})"
+    cell_h = f"Max(If({NARROW}, 0, {DET_TILE}), {FACT_LAB_H} + {val_h})"
+    app = _fact("IbDetApp", "Application", f"{SEL}.Application",
+                app_icons.uri(APP_ICONS, f"{SEL}.Application"),
+                '"Application icon: " & ' + f"{SEL}.Application", val_h=val_h, cell_h=cell_h,
+                wrap="true")
+    sec = _fact("IbDetSection", "Section", f"{SEL}.Section",
+                _tile_uri(I_SECTION, "state-info-fg"), '"Section"', val_h=val_h, cell_h=cell_h,
+                wrap="true")
     pri, _pri_w = _text_chip("bdgIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
                              visible=f"!IsBlank({SEL}.Priority)")
-    no_pri = text_ctrl("txtIbDetPriorityNone", '"Not set"', size=lay.SIZE_BODY, color=C_MUTED,
-                       height=CHIP_H, width=INFO_W, visible=f"IsBlank({SEL}.Priority)",
-                       accessible='"Priority: not set"', extra=dict(_MID))
-    block = _fact_block("IbDetInfoFacts", [app_lab, sec_lab, pri_lab], [app, sec, pri, no_pri],
-                        DET_IN, val_h=val_h)
-    return group("conIbDetInfo", [_section_title("txtIbDetInfoTitle", "Issue information"), block],
-                 direction="Vertical", gap=4)
+    no_pri = text_ctrl("txtIbDetPriorityNone", '"Not set"', size=FACT_VAL_SIZE, color=C_MUTED,
+                       height=CHIP_H, width=FACT_TEXT_W, visible=f"IsBlank({SEL}.Priority)",
+                       accessible='"Priority: not set"',
+                       extra={"VerticalAlign": "VerticalAlign.Middle"})
+    pri_cell = _fact("IbDetPriority", "Priority", None, _tile_uri(I_PRIORITY, "state-warn-fg"),
+                     '"Priority"', cell_h=cell_h, value=pri, extra_kids=[no_pri])
+    # Maerket "Normal"/"Low" er almindelig tekst - samme stoerrelse som de
+    # andre vaerdier.
+    return _card("conIbDetInfo", [_section_title("txtIbDetInfoTitle", "Issue information", I_INFO),
+                                  _fact_row("conIbDetInfoFacts", [app, sec, pri_cell], cell_h)])
 
 
 def _facts():
-    """Metadata om sagen som etiket/vaerdi (issue #229): Requester,
-    Assigned to, Severity, Reported og Updated. Rapportoeren som kort
-    bruger-id (UFFES) - ingen anonymisering (issue #193, #212). Updated
-    kun efter en reel aendring, og sidst, saa der ikke opstaar et hul.
-    Issue #369: under overskriften "Ticket details".
-
-    Bygget som vandrette raekker af tekster med egen bredde og hoejde. De
-    lodrette etiket/vaerdi-grupper med strakte tekster og den dynamiske
-    LayoutDirection viste sig i Studio, men var tomme i Play og preview.
-    Blok 1 (tre fakta) og blok 2 (to) staar paa een linje, naar popuppen
-    er bred nok; ellers brydes blok 2 ned under (LayoutWrap)."""
+    """Ticket details (issue #229, #369, #475): Requester, Assigned to og
+    Severity paa een linje; Reported og Updated under. Rapportoeren som
+    kort bruger-id (UFFES) - ingen anonymisering (issue #193, #212) - og
+    kun EEN gang: et personikon foran, ingen initialer i en avatar ved
+    siden af (issue #475). Requester og Assigned to har hver sit ikon;
+    tildelt CLAUDE viser CLAUDE-gnisten. Updated kun efter en reel
+    aendring."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
 
-    def block(name, facts, n):
-        w = f"{n} * {FACT_W} + {n - 1} * {FACT_GAP}"
-        return _fact_block(name, [f[0] for f in facts], [f[1] for f in facts], w)
-
-    rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
-    asg = _fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
-    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
-    reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
+    rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL),
+                _tile_uri(I_REQUESTER, "state-info-fg"), '"Requester"')
+    is_claude = f'{SEL}.AssignedEmail = "{cfg.CLAUDE_EMAIL}"'
+    asg = _fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"),
+                f"If({is_claude}, {CLAUDE_TILE}, {_tile_uri(I_ASSIGNEE, 'state-violet-fg')})",
+                f'If({is_claude}, "Claude", "Assigned to")',
+                color=f"If(IsBlank({SEL}.Assigned), {C_MUTED}, {C_TITLE})")
+    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"),
+                _tile_uri(I_SEVERITY, "state-info-fg"), '"Severity"')
+    reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})",
+                     _tile_uri(I_CALENDAR, "state-info-fg"), '"Reported"')
     updated = _fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
+                    _tile_uri(I_CALENDAR, "state-info-fg"), '"Updated"',
                     visible="!IsBlank(IbSelUpdatedOn)")
-    a = block("IbFacts1", [rep, asg, sev], 3)
-    b = block("IbFacts2", [reported, updated], 2)
-    g = group("conIbDetFactRows", [a, b], direction="Horizontal", gap=FACT_GAP,
-              height=f"If({FACTS_OK}, {FACT_H}, 2 * {FACT_H} + {FACT_GAP})", align_items="Start")
-    g.props["LayoutWrap"] = "true"
-    g.props["LayoutMinWidth"] = "0"
-    return group("conIbDetFacts", [_section_title("txtIbDetFactsTitle", "Ticket details"), g],
-                 direction="Vertical", gap=4)
-
-
-ROLE_TONE = {"User": "info", "Admin": "violet", "System": "neutral"}
-ROLE_W = 56
-
-
-def _role_tokens(expr):
-    def sw(part):
-        body = ", ".join(f'"{r}", {_t("state-" + c + "-" + part)}' for r, c in ROLE_TONE.items())
-        return f"Switch({expr}, {body}, {_t('state-neutral-' + part)})"
-    return sw("fg"), sw("bg")
+    return _card("conIbDetFacts", [
+        _section_title("txtIbDetFactsTitle", "Ticket details", I_PEOPLE),
+        _fact_row("conIbFacts1", [rep, asg, sev], FACT_H),
+        _fact_row("conIbFacts2", [reported, updated], FACT_H)])
 
 
 def build_detail():
@@ -2506,20 +2635,22 @@ def build_detail():
                  lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {3 * lay.HIT_TOUCH} - 30",
                  close_icon=True, nav=nav)
 
-    # 2. Status som maerke lige under titlen (issue #369). Prioriteten,
-    #    Application og Section staar under Issue information - ikke to
-    #    steder.
+    # 2. Status som maerke lige under titlen (issue #369) og handlingerne
+    #    paa samme linje, til hoejre (issue #475 - som mockuppen: status
+    #    ved sagens hoved, Edit ude til hoejre). Prioriteten, Application
+    #    og Section staar under Issue information - ikke to steder.
     # Maerkerne er tekster med statussens farvepar (som sagsnummeret,
     # _no_badge) - SVG-billederne (sc.status_chip) var tomme i Play her.
     key = f'If({SEL}.Archived, "Archived", {SEL}.Status)'
     chip, _chip_w = _text_chip("bdgIbDetStatus", key, ISSUE_STATUS, '"Status: "')
-    meta = group("conIbDetMeta", [chip], direction="Horizontal", gap=8, height=CHIP_H,
-                 align_items="Start")
-    info = _info()
+    actions = grow(_actions())
+    meta = group("conIbDetMeta", [chip, actions], direction="Horizontal", gap=8,
+                 height=f"If({CAN_ACT}, Max({CHIP_H}, {actions.h}), {CHIP_H})",
+                 align_items="Center")
 
-    # 3. Metadata.  4. Handlingerne (ikoner).
+    # 3. Issue information og Ticket details - hver sit kort (issue #475).
+    info = _info()
     facts = _facts()
-    actions = _actions()
 
     peek_note = text_ctrl("txtIbDetPeek",
                           '"Read only - opened from your new report. Close it to continue '
@@ -2536,8 +2667,8 @@ def build_detail():
                        extra={"Fill": C_WARN_BG, "PaddingLeft": "12", "PaddingRight": "12",
                               "PaddingTop": "8", **lay.radius(10)})
 
-    # 5. Navigationen i indholdet - adskilt fra handlingerne af en streg.
-    rule = group("conIbDetRule", [], direction="Horizontal", height=1, fill=C_DIVIDER)
+    # 4. Navigationen i indholdet: tre faner, der deler panelets bredde
+    #    (issue #475) - ingen streg over dem mere; kortene skiller.
     n_act = "CountRows(Filter(colIbActivity, Kind <> \"Reported\"))"
     tabs = group("conIbDetTabs", [
         _tab("btnIbTabDetails", '"Description"', "details", '"Show the description"'),
@@ -2551,70 +2682,97 @@ def build_detail():
     # Activity (kommentarerne) kun for rapportoeren og admins (issue #193).
     tabs.children[1].props["Visible"] = "IbSeeActivity"
     tabs.children[1].vis = "IbSeeActivity"
-    # Tre faner skal kunne staa paa en telefon: de deler bredden.
+    # Fanerne deler bredden - to, naar Activity ikke vises.
     for t in tabs.children:
-        t.props["Width"] = f"Min({TAB_W}, ({DET_IN} - 16) / 3)"
+        t.props["Width"] = f"({TOP_IN} - 16) / If(IbSeeActivity, 3, 2)"
 
-    # 6. Det valgte indhold.
+    # 5. Det valgte indhold.
     show_details = 'varIbTab = "details"'
     loading_more = text_ctrl("txtIbDetLoading", '"Loading the rest of the issue..."',
                              size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                              visible="varIbSelFullFor <> varIbSelId")
+    # Issue #475: hver sektion med sit ikon - Description, Steps to
+    # reproduce, Expected result og Actual result som i mockuppen.
     blocks = [
-        _text_block("IbDetDesc", "Description", f"{SEL}.Description"),
+        _text_block("IbDetDesc", "Description", f"{SEL}.Description", icons.STATUS_DRAFT),
         loading_more,
-        _text_block("IbDetSteps", "Steps to reproduce", f"{SEL}.Steps",
+        _text_block("IbDetSteps", "Steps to reproduce", f"{SEL}.Steps", icons.LIST,
                     visible=f"!IsBlank({SEL}.Steps)"),
-        _text_block("IbDetExpected", "Expected result", f"{SEL}.Expected",
+        _text_block("IbDetExpected", "Expected result", f"{SEL}.Expected", icons.STATUS_READY,
                     visible=f"!IsBlank({SEL}.Expected)"),
-        _text_block("IbDetActual", "Actual result", f"{SEL}.Actual",
+        _text_block("IbDetActual", "Actual result", f"{SEL}.Actual", I_WARNING,
                     visible=f"!IsBlank({SEL}.Actual)"),
-        _text_block("IbDetOther", "Where it happened", f"{SEL}.Other",
+        _text_block("IbDetOther", "Where it happened", f"{SEL}.Other", icons.NAVIGATION,
                     visible=f"!IsBlank({SEL}.Other)"),
-        _text_block("IbDetRelated", "Related request", f"{SEL}.RelatedNo",
+        _text_block("IbDetRelated", "Related request", f"{SEL}.RelatedNo", icons.LINK,
                     visible=f"!IsBlank({SEL}.RelatedNo)"),
-        _text_block("IbDetResolution", "Resolution", f"{SEL}.Resolution",
+        _text_block("IbDetResolution", "Resolution", f"{SEL}.Resolution", icons.NOTE,
                     visible=f"!IsBlank({SEL}.Resolution)"),
     ]
     details = group("conIbDetDetails", blocks, direction="Vertical", gap=12, visible=show_details)
 
-    # Activity: kommentarer som flader, haendelser med stiplet kant, interne
-    # noter i advarselsfarven - og med teksten "internal note", ikke kun
-    # farve. Ved hver linje et maerke: User, Admin eller System (issue #177).
+    # Activity (issue #475): hver linje er en kompakt flade med et ikon for
+    # HVEM til venstre, forfatteren og typen paa linjen ved siden af,
+    # tidspunktet til hoejre og indholdet under. Interne noter i
+    # advarselsfarven - og med teksten "internal note", ikke kun farve.
+    #   ikonet: dine egne linjer har dine initialer i en rund flade (een
+    #   gang - navnet ved siden af er "You"); andre har personikonet, Issue
+    #   Board (systemet) billetten, og CLAUDE-aktivitet CLAUDE-gnisten.
+    #   Rollen (Admin) staar i typen ("comment  ·  admin") - foer et maerke
+    #   (issue #177).
     tw = "Parent.TemplateWidth"
     body_h = _lines_h("ThisItem.Body", ACT_BODY_W)
-    row_h = f"(30 + {body_h} + 10)"
+    row_h = f"(28 + {body_h} + 10)"
     bg = text_ctrl("txtIbActBg", '""', size=lay.SIZE_MICRO, height=f"{row_h} - 4", width=tw,
                    accessible='"Background"',
-                   fill=(f"If(ThisItem.Internal, {C_WARN_BG}, ThisItem.IsSystem, {C_TRANSPARENT}, "
-                         f"{C_MUTED_BG})"),
-                   extra={"X": "0", "Y": "2", **lay.radius(8),
-                          "BorderColor": f"If(ThisItem.IsSystem, {C_CARD_BORDER}, {C_TRANSPARENT})",
-                          "BorderStyle": "BorderStyle.Dashed",
-                          "BorderThickness": "If(ThisItem.IsSystem, 1, 0)"})
-    rfg, rbg = _role_tokens("ThisItem.Role")
-    # Rollen som ModernBadge (#304) - samme farvepar og maal.
-    role = modern_badge("bdgIbActRole", "ThisItem.Role", color=rfg, fill=rbg, height=20,
-                        width=ROLE_W, radius=10, accessible='"Role: " & Self.Content',
-                        extra={"X": str(ACT_ROW_PAD), "Y": "8"})
-    actor_x = ACT_ROW_PAD + ROLE_W + 8
-    actor = text_ctrl("txtIbActActor",
-                      'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", '
-                      'ThisItem.Kind = "Comment", "  ·  comment", "")',
-                      size=lay.SIZE_BODY, weight="Semibold",
-                      color=(f"If(ThisItem.Internal, {C_WARN_FG}, ThisItem.IsSystem, {C_MUTED}, "
-                             f"{C_TITLE})"), height=20,
-                      width=f"{tw} - {actor_x} - {ACT_ROW_PAD} - 150",
-                      extra={"X": str(actor_x), "Y": "8"})
+                   fill=f"If(ThisItem.Internal, {C_WARN_BG}, {C_MUTED_BG})",
+                   extra={"X": "0", "Y": "2", **lay.radius(8)})
+    is_claude = (f'(ThisItem.Actor = "{cfg.CLAUDE_NAME}" || (ThisItem.Kind = "Assignment" && '
+                 f'ThisItem.Body = "Assigned to {cfg.CLAUDE_NAME}."))')
+    mine = f'(ThisItem.Actor = "You" && !{is_claude})'
+    who = _det_img("imgIbActWho",
+                   f'If({is_claude}, {CLAUDE_TILE}, ThisItem.Role = "System", '
+                   f'{_tile_uri(icons.ISSUE_BOARD, "text-muted")}, '
+                   f'{_tile_uri(I_REQUESTER, "state-info-fg")})',
+                   f'If({is_claude}, "Claude", ThisItem.Role = "System", "Issue Board", "Person")',
+                   DET_TILE, visible=f"!{mine}",
+                   extra={"X": str(ACT_ROW_PAD), "Y": "8"})
+    you = text_ctrl("txtIbActYou", f"Left({_initials('varIbMe')}, 2)", size=lay.SIZE_SMALL,
+                    weight="Semibold", color=_t("state-violet-fg"), height=DET_TILE,
+                    width=DET_TILE, fill=_t("state-violet-bg"), align="Center",
+                    accessible='"You"', visible=mine,
+                    extra={"X": str(ACT_ROW_PAD), "Y": "8",
+                           "VerticalAlign": "VerticalAlign.Middle", **lay.radius(DET_TILE // 2)})
+    when_w = 130
+    meta_w = f"{tw} - {ACT_TEXT_X} - {ACT_ROW_PAD} - {when_w}"
+    # Forfatteren fed, typen almindelig ved siden af. Bredden er regnet af
+    # navnets laengde (versaler i 13 px fed fylder hoejst ~9 px).
+    actor_w = f"Min({meta_w}, Len(ThisItem.Actor) * 9 + 4)"
+    actor = text_ctrl("txtIbActActor", "ThisItem.Actor", size=lay.SIZE_BODY, weight="Semibold",
+                      color=f"If(ThisItem.Internal, {C_WARN_FG}, {C_TITLE})", height=20,
+                      width=actor_w, extra={"X": str(ACT_TEXT_X), "Y": "7"})
+    kind_fx = (
+        '"·  " & If(ThisItem.Internal, "internal note, admins only", '
+        'Switch(ThisItem.Kind, "Reported", "reported", "Comment", "comment", '
+        '"StatusChange", "status change", "Assignment", "assignment", '
+        '"PriorityChange", "priority change", "Attachment", "attachment", '
+        'Lower(ThisItem.Kind))) & '
+        'If(ThisItem.Role = "Admin" && ThisItem.Actor <> "You", "  ·  admin", "")')
+    kind = text_ctrl("txtIbActKind", kind_fx, size=lay.SIZE_SMALL,
+                     color=f"If(ThisItem.Internal, {C_WARN_FG}, {C_MUTED})", height=20,
+                     width=f"Max(0, {meta_w} - ({actor_w}) - 6)",
+                     accessible='"Type: " & Self.Text',
+                     extra={"X": f"{ACT_TEXT_X} + ({actor_w}) + 6", "Y": "7",
+                            "VerticalAlign": "VerticalAlign.Middle"})
     when = text_ctrl("txtIbActWhen", f"Text(ThisItem.At, {DATETIME_FMT})",
-                     size=lay.SIZE_SMALL, color=C_MUTED, height=18, align="Right", width=150,
-                     extra={"X": f"{tw} - {ACT_ROW_PAD} - 150", "Y": "9"})
+                     size=lay.SIZE_SMALL, color=C_MUTED, height=18, align="Right", width=when_w,
+                     extra={"X": f"{tw} - {ACT_ROW_PAD} - {when_w}", "Y": "8"})
     body = text_ctrl("txtIbActBody", "ThisItem.Body", size=lay.SIZE_BODY, wrap="true",
-                     height=body_h, width=f"{tw} - {2 * ACT_ROW_PAD}",
-                     extra={"X": str(ACT_ROW_PAD), "Y": "30"})
-    # Hele feeden i fuld hoejde: fanens flade scroller - ikke galleriet
-    # inden i den (issue #212).
-    act_sum = f"Sum(colIbActivity, {_lines_h('Body', ACT_BODY_W)} + 40)"
+                     height=body_h, width=f"{tw} - {ACT_TEXT_X} - {ACT_ROW_PAD}",
+                     extra={"X": str(ACT_TEXT_X), "Y": "28"})
+    # Hele feeden i fuld hoejde i sin egen scrollende flade (conIbActFeed) -
+    # ikke galleriet inden i den (issue #212).
+    act_sum = f"Sum(colIbActivity, {_lines_h('Body', ACT_BODY_W)} + 38)"
     gal_h = f"Max(40, {act_sum})"
     gal = Ctrl("galIbActivity", "Gallery", variant="VariableHeight", props={
         "AccessibleLabel": '"Activity, oldest first"',
@@ -2623,7 +2781,7 @@ def build_detail():
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "60", "Width": "Parent.Width",
-    }, children=[bg, role, actor, when, body], h=gal_h, vis="!IsEmpty(colIbActivity)")
+    }, children=[bg, who, you, actor, kind, when, body], h=gal_h)
     # Feeden bliver staaende, mens den hentes igen (issue #212) - kun en
     # tom feed viser "Loading". Fejler en genhentning, staar den gamle
     # feed der stadig, med en besked over.
@@ -2750,25 +2908,33 @@ def build_detail():
                               'closed."',
                               size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                               visible=f"{SEL}.Archived")
-    activity = group("conIbDetActivity", [act_state, gal, posted, failed, composer,
+    # Issue #475: feeden scroller i sin egen flade, og kommentarfeltet staar
+    # fast i bunden af panelet under den - feltet, send-ikonet og Internal
+    # note kan altid naas, ogsaa med en lang feed. Feeden faar hoejden,
+    # resten af fanen ikke bruger.
+    rest = [act_state, posted, failed, composer, archived_hint]
+    rest_h = " + ".join(f"If({c.vis}, ({c.h}) + 8, 0)" if c.vis else f"({c.h}) + 8"
+                        for c in rest)
+    feed_h = f"Max(80, Parent.Height - ({rest_h}))"
+    feed = group("conIbActFeed", [gal], direction="Vertical", gap=0, height=feed_h,
+                 overflow_y="Scroll", visible="!IsEmpty(colIbActivity)")
+    activity = group("conIbDetActivity", [act_state, feed, posted, failed, composer,
                                           archived_hint],
                      direction="Vertical", gap=8, visible='IbSeeActivity && varIbTab = "activity"')
 
-    # STABIL HOEJDE (issue #212). Toppen - status, fakta, handlingerne og
-    # fanerne - staar fast; under den EEN indholdsflade med samme hoejde for
-    # alle tre faner: den fane, der kraever mest, bestemmer den (mindst
-    # DET_MIN_H), og den er aldrig hoejere end skaermen tillader. Hver fane
-    # scroller selv, saa hver har sin egen scrollposition.
-    top = group("conIbDetTop", [meta, info, facts, actions, peek_note, retest, rule, tabs],
-                direction="Vertical", gap=8)
+    # STABIL HOEJDE (issue #212). Toppen - status og handlingerne, de to
+    # kort og fanerne - staar fast; under den EEN indholdsflade med samme
+    # hoejde for alle tre faner. Issue #475: fladen gaar helt ned til
+    # panelets bund (panelet er altid skaermens hoejde), saa kommentarfeltet
+    # staar nederst. Hver fane scroller selv, saa hver har sin egen
+    # scrollposition - aldrig lavere end DET_SAFE_MIN_H (issue #212).
+    top = group("conIbDetTop", [meta, peek_note, retest, info, facts, tabs],
+                direction="Vertical", gap=10)
     files = _files_panel()
     panels = [details, activity, files]
-    natural = [stack_height(p.children, 12) for p in panels]
-    natural[1] = f"If(IbSeeActivity, {natural[1]}, 0)"
-    room = (f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
-            f"({top.h}) - {POP_GAP}")
-    content_h = (f"Max({DET_SAFE_MIN_H}, Min({room}, Max({DET_MIN_H}, "
-                 + ", ".join(f"({n})" for n in natural) + ")))")
+    room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
+            f"({top.h}) - {POP_GAP} - 4")
+    content_h = f"Max({DET_SAFE_MIN_H}, {room})"
     for p in panels:
         p.props["Height"] = "Parent.Height"
         p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"

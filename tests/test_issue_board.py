@@ -458,18 +458,17 @@ def test_detail_popup_hierarchy_and_single_close():
         assert b.control == "Image"
         assert b.props["AccessibleLabel"] == label == b.props["Tooltip"]
     assert ctrls["btnIbDetClose"].props["OnSelect"] == "Set(varIbDetailOn, false)"
-    # Status som maerke under titlen; prioritet, Application og Section
-    # under Issue information (issue #369) - ingen lang streng med
-    # skilletegn.
-    assert [k.name for k in ctrls["conIbDetMeta"].children] == ["bdgIbDetStatus"]
+    # Status som maerke under titlen og handlingerne paa samme linje (issue
+    # #475); prioritet, Application og Section under Issue information
+    # (issue #369) - ingen lang streng med skilletegn.
+    assert [k.name for k in ctrls["conIbDetMeta"].children] == ["bdgIbDetStatus", "conIbDetActions"]
     assert "&" not in ctrls["txtIbDetApp"].props["Text"]
     # Fanerne er centreret og har samme stoerrelse.
     assert ctrls["conIbDetTabs"].props["LayoutJustifyContent"] == "LayoutJustifyContent.Center"
     assert len({ctrls[n].props["Width"] for n in ("btnIbTabDetails", "btnIbTabActivity",
                                                    "btnIbTabFiles")}) == 1
     top = [k.name for k in ctrls["conIbDetTop"].children]
-    order = ["conIbDetMeta", "conIbDetInfo", "conIbDetFacts", "conIbDetActions", "conIbDetRule",
-             "conIbDetTabs"]
+    order = ["conIbDetMeta", "conIbDetInfo", "conIbDetFacts", "conIbDetTabs"]
     assert [b for b in top if b in order] == order
     assert "Scroll" not in ctrls["conIbDetTop"].props["LayoutOverflowY"]
     content = ctrls["conIbDetContent"]
@@ -534,10 +533,12 @@ def test_detail_popup_hierarchy_and_single_close():
     assert ctrls["txtIbFactUpdatedLabel"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
 
 
-def test_activity_shows_role_badges():
+def test_activity_shows_role_in_the_type():
     import ib_parts as P
     ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
-    assert ctrls["bdgIbActRole"].props["Content"] == "ThisItem.Role"
+    # Issue #475: rollen staar i typen ved forfatteren - intet maerke mere.
+    assert "bdgIbActRole" not in ctrls
+    assert 'ThisItem.Role = "Admin"' in ctrls["txtIbActKind"].props["Text"]
     assert 'Role: Switch(role, "Admin", "Admin", "System", "System", "User")' in P.LOAD_ACTIVITY
     assert '" (admin)"' not in P.LOAD_ACTIVITY
     # Interne noter kun for admin; Post comment laast, naar feltet er tomt.
