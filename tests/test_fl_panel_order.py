@@ -38,7 +38,7 @@ def test_panel_follows_the_row_order_and_labels():
     p = _parts()
     row = [l for n, l, _w, _v in p.V_SPEC if n not in ("No", "Status", "Act")]
     assert row == ["Functional Location", "Description", "StrIndicator", "Class",
-                   "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
+                   "Room", "Sort field", "ABC indicator", "ATEX", "Class data",
                    "Manufacturer", "Warranty"]
     # Panelet: Master-felterne, med Class data (Class-sektionen) paa sin
     # plads, og Manufacturer/Warranty som deres sektioner.

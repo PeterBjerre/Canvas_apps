@@ -302,45 +302,6 @@ PAIR_MAX = 300
 PAIR_MIN = 144
 
 
-class Cols:
-    """Kolonnebredderne for Classes-tabellen - de SAMME udtryk i
-    overskriften og i raekken, saa de altid flugter (check_layout regel 29).
-
-    #, Functional Location og Description er RAEKKERNES (issue #356):
-    bredde, mellemrum og synlighed kommer fra V_SPEC, saa de samme felter
-    staar lige under hinanden i Rows og Classes. Resten foelger efter:
-      - de to midterste kolonner skjules, naar Info ikke kan faa 160 px ved
-        siden af dem;
-      - Info faar resten, mindst VAL_MIN;
-      - er tabellen bredere end kortet (smal skaerm), scroller den vandret
-        i kortet - som Rows. Intet klippes eller laegges oven i hinanden."""
-
-    def __init__(self, mid, act_w, lead, gap):
-        self.mid = mid                      # [(navn, overskrift, bredde)]
-        self.lead = lead                    # Rows' #, FL og Description
-        self.gap = gap
-        self.act = str(act_w)
-        mid_sum = sum(w + gap for _n, _l, w in mid)
-        # #, FL, Description og mellemrummene efter dem; Info-Open-mellemrum
-        # og Open. Det, der er tilbage, deles af midten og Info.
-        before = " + ".join(f"If({vis}, {w} + {gap}, 0)" if vis is not None
-                            else f"({w}) + {gap}" for _n, _l, w, vis in lead)
-        after = f"{gap} + {act_w}"
-        free = f"({ROWS_W}) - ({before}) - ({after})"
-        self.show_mid = f"({free}) >= {mid_sum} + 160"
-        self.rest = f"Max({VAL_MIN}, ({free}) - If({self.show_mid}, {mid_sum}, 0))"
-        # Tabellens bredde: kortets, eller mere, naar # + FL + Description
-        # + Info-minimum + Open ikke kan staa i det (vandret scroll).
-        self.width = f"Max({ROWS_W}, ({before}) + {VAL_MIN} + {after})"
-
-    def spec(self, rest_name, rest_label, act_name, act_label):
-        """(navn, overskrift, bredde, synlig) i raekkefoelge."""
-        return (list(self.lead)
-                + [(n, l, w, self.show_mid) for n, l, w in self.mid]
-                + [(rest_name, rest_label, self.rest, None),
-                   (act_name, act_label, self.act, None)])
-
-
 def table_head(name, spec, gap=GAP, width="Parent.Width"):
     """Kolonneoverskrifterne og stregen under dem (Masterdata Hub's
     moenster, issue #70)."""
@@ -475,16 +436,25 @@ V_BASE_MAX = 1258 + 12 + 54
 # laegges til V_BASE_MAX, saa Description beholder sit minimum.
 ACT_BTN = 48
 ACT_W = 2 * ACT_BTN + VGAP
-# (navn, overskrift, bredde) efter Description. Delete er et ikon.
-# Class Data staar lige efter Assigned Class (issue #242).
+# (navn, overskrift, bredde) efter Description.
+#
+# EET TABELMOENSTER FOR ROWS OG CLASSES (issue #468). Foerst de FAELLES
+# kolonner - de samme felter i begge tabeller, i samme raekkefoelge og med
+# samme bredder, saa de staar lige under hinanden:
+#   # | Functional Location | Description | StrIndicator | Class | Room |
+#   Sort field | ABC indicator | ATEX
+# og saa hver tabels egne: Rows har Class data, Manufacturer, Warranty,
+# Status og Actions; Classes har Edit (C_SPEC). Class data stod foer lige
+# efter Class (issue #242) - nu efter de faelles kolonner.
 # StrIndicator og Class: samme navne som i Classes og sidepanelet (issue
 # #467 - foer "KKS type" og "Assigned class"). Kun etiketterne er nye.
-V_FIXED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", 96),
-            ("ClsData", "Class data", _pop_w("Class data"))]
-           # Reglernes etiket ("Sort Field") i appens sentence case (F1).
-           + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
-              for n, f, w in ROW_VALS]
-           + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40),
+V_SHARED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", 96)]
+            # Reglernes etiket ("Sort Field") i appens sentence case (F1).
+            + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
+               for n, f, w in ROW_VALS]
+            + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40)])
+V_FIXED = (V_SHARED
+           + [("ClsData", "Class data", _pop_w("Class data")),
               ("Mfr", "Manufacturer", MFR_WAR_W),
               ("War", "Warranty", MFR_WAR_W),
               ("Status", "Status", 80),
@@ -503,31 +473,37 @@ V_SHOW_NO = at_least("Tablet")
 V_BASE = FL_MIN + DESC_MIN + sum(w for _n, _l, w in V_FIXED) + VGAP * (len(V_FIXED) + 1)
 V_MIN = f"(If({V_SHOW_NO}, {28 + VGAP}, 0) + {V_BASE})"
 V_SPARE = f"Max(0, ({ROWS_W}) - {V_MIN})"
-V_W = f"Max({ROWS_W}, {V_MIN})"
-# DEN EKSTRA PLADS DELES AF ALLE KOLONNER, DER KAN BRUGE DEN (issue #242).
-# Foer fik Functional Location og Description hver halvdelen - paa en
-# 1920 px skaerm 421 og 381 px, med et stort tomt felt. Nu faar de hver
-# V_PAIR_SHARE af den (omtrent halvdelen af den gamle bredde), og resten
-# deles ligeligt af kolonnerne i V_GROW. ATEX (afkrydsning) og Actions
-# (ikon) har fast bredde. Andelene summer til 1, saa raekken er stadig
-# praecis V_W bred, og overskrift og raekke bruger de samme bredder.
-V_PAIR_SHARE = "1 / 10"
-V_DESC_SHARE = "3 / 20"
-V_GROW = ("Kks", "Cls", "Room", "Sort", "Abc")
-V_GROW_SHARE = f"3 / {4 * len(V_GROW)}"
-assert set(V_GROW) <= {n for n, _l, _w in V_FIXED}
-
-
-def _v_w(n, w):
-    return f"{w} + ({V_SPARE}) * {V_GROW_SHARE}" if n in V_GROW else w
+# KUN FUNCTIONAL LOCATION OG DESCRIPTION VOKSER - OG KUN TIL ET LOFT
+# (issue #468). Foer delte alle kolonner den ekstra plads, saa tabellen
+# altid fyldte kortet, og Actions stod helt ude til hoejre. Nu har de
+# andre kolonner fast, kompakt bredde; FL og Description faar hver deres
+# andel af pladsen, til de er FL_MAX og DESC_MAX brede (40 tegn). Resten af
+# kortet staar tomt til hoejre for tabellen - Actions/Edit staar lige efter
+# den sidste kolonne.
+FL_MAX = 240
+DESC_MAX = 300
+V_FL_SHARE = "2 / 5"
+V_DESC_SHARE = "3 / 5"
+V_FL_W = f"{FL_MIN} + Min({FL_MAX - FL_MIN}, ({V_SPARE}) * {V_FL_SHARE})"
+V_DESC_W = f"{DESC_MIN} + Min({DESC_MAX - DESC_MIN}, ({V_SPARE}) * {V_DESC_SHARE})"
 
 
 V_SPEC = ([("No", "#", 28, V_SHOW_NO),
-           ("Fl", "Functional Location", f"{FL_MIN} + ({V_SPARE}) * {V_PAIR_SHARE}", None),
-           ("Desc", "Description", f"{DESC_MIN} + ({V_SPARE}) * {V_DESC_SHARE}", None)]
-          + [(n, l, _v_w(n, w), None) for n, l, w in V_FIXED])
+           ("Fl", "Functional Location", V_FL_W, None),
+           ("Desc", "Description", V_DESC_W, None)]
+          + [(n, l, w, None) for n, l, w in V_FIXED])
+
+
+def spec_width(spec, gap=VGAP):
+    """Tabellens bredde: kolonnerne og mellemrummene mellem dem."""
+    parts = [f"If({vis}, ({w}) + {gap}, 0)" if vis is not None else f"({w}) + {gap}"
+             for _n, _l, w, vis in spec]
+    return f"({' + '.join(parts)} - {gap})"
+
+
+V_W = spec_width(V_SPEC)
 V_GAL_W = f"({V_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
-V_WIDE = f"({ROWS_W}) < {V_MIN}"
+V_WIDE = f"({ROWS_W}) < ({V_W})"
 
 ROW_TOP = 40
 # Delete er en ikonknap med klikfladen H.hit (UX-review F6, regel 40):
@@ -705,9 +681,10 @@ def row_cells():
     delete.props["Width"] = str(ACT_BTN)
     actions = group("conFlRowAct", [copy, delete], direction="Horizontal", gap=VGAP,
                     height=lay.HIT, align_items="Center")
-    # Samme raekkefoelge som V_FIXED: Class data lige efter Class.
-    return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex]
-                  + pops[1:] + [status, actions])
+    # Samme raekkefoelge som V_FIXED: de faelles kolonner, saa Class data
+    # (issue #468).
+    return _cells(V_SPEC, [no, fl, desc, kks, cls] + vals + [abc, atex]
+                  + pops + [status, actions])
 
 
 # --- Sidepanelet (raekkens editor, issue #278) -------------------------------
@@ -1069,18 +1046,18 @@ def build_rows():
 # ---------------------------------------------------------------------------
 # Klassefanerne (functional-location.html:77-81, FL28 og FL60)
 # ---------------------------------------------------------------------------
-# #, Functional Location og Description bruger Rows' bredder (V_SPEC) og
-# mellemrum (VGAP), saa kolonnerne flugter med Rows ovenover (issue #356).
-# Room, Sort field, ABC indicator og ATEX staar efter Class, kun til
-# visning - vaerdierne er raekkens (colFlVals) og rettes i Rows eller
-# sidepanelet (issue #467). Overskrifterne er Rows'.
+# CLASSES ER ROWS' FAELLES KOLONNER + EDIT (issue #468): #, Functional
+# Location, Description, StrIndicator, Class, Room, Sort field, ABC
+# indicator og ATEX med Rows' bredder (V_SPEC) og mellemrum (VGAP), saa de
+# staar lige under Rows' kolonner. Her er de kun til visning - de rettes i
+# Rows eller sidepanelet. Edit staar lige efter ATEX. Room, Sort field, ABC
+# indicator og ATEX kom med i issue #467.
+C_SHARED = 3 + len(V_SHARED)
 C_ROW_VALS = ("Room", "Sort", "Abc", "Atex")
-_V_LBL = {n: (l, w) for n, l, w in V_FIXED}
-CCOLS = Cols([("Str", "StrIndicator", 76), ("Cls", "Class", 96)]
-             + [(n, _V_LBL[n][0], _V_LBL[n][1]) for n in C_ROW_VALS], act_w=72,
-             lead=V_SPEC[:3], gap=VGAP)
-C_SPEC = CCOLS.spec("Info", "Info", "Open", "Edit")
-C_GAL_W = f"({CCOLS.width}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
+assert [n for n, *_ in V_SPEC[:C_SHARED]] == ["No", "Fl", "Desc", "Kks", "Cls", *C_ROW_VALS]
+C_SPEC = V_SPEC[:C_SHARED] + [("Open", "Edit", 72, None)]
+C_W = spec_width(C_SPEC)
+C_GAL_W = f"({C_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 
 # Faneindholdet: ALL = alle klasser, sorteret paa klasse og saa FL (renderClassTabs
 # :1661-1664); en klasse = dens raekker sorteret paa FL (:1487).
@@ -1142,45 +1119,47 @@ def build_classes():
     head.props["Visible"] = HAS_CLASSES
     head.vis = HAS_CLASSES
 
-    # FL og Description kan ogsaa rettes her (renderSpoolEditor, :2098).
+    # Alle vaerdier er kun til visning her (issue #468) - de rettes i Rows
+    # eller i sidepanelet (Edit). Samme tekststil som Rows' visningsceller.
     no = text_ctrl("txtFlCNo", "Text(ThisItem.Pos)", size=13, color=C_MUTED, height=20,
                    wrap="false")
-    fl = text_input("inpFlCFl", "ThisItem.FL", max_length=40, width="160",
-                    display_mode=DM_EDIT, label='"Functional Location"',
-                    onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
-    fl.props["BorderColor"] = _field_border("ThisItem.FlBad", "true")
-    desc = text_input("inpFlCDesc", "ThisItem.Description", max_length=40, width="140",
-                      display_mode=DM_EDIT, label='"Description"',
-                      onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
-    desc.props["BorderColor"] = _field_border("ThisItem.DescBad",
-                                              "!IsBlank(ThisItem.Description)")
-    strc = text_ctrl("txtFlCStr", "ThisItem.KksType", size=13, height=20, wrap="false")
-    clsc = text_ctrl("txtFlCCls", "ThisItem.AssignedClass", size=13, weight="Semibold",
-                     height=20, wrap="false")
-    # Raekkens Room, Sort field, ABC indicator og ATEX - kun til visning
-    # (issue #467). Samme felter som Rows' celler (ROW_VALS, chkFlRowAtex).
+    fl = text_ctrl("txtFlCFl", 'If(IsBlank(ThisItem.FL), "-", ThisItem.FL)', size=13,
+                   height=20, wrap="false", accessible='"Functional Location: " & Self.Text')
+    desc = text_ctrl("txtFlCDesc", 'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
+                     size=13, height=20, wrap="false", accessible='"Description: " & Self.Text')
+    strc = text_ctrl("txtFlCStr", 'If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)',
+                     size=13, height=20, wrap="false")
+    clsc = text_ctrl("txtFlCCls", 'If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)',
+                     size=13, weight="Semibold", height=20, wrap="false")
+    # Raekkens Room, Sort field, ABC indicator og ATEX (issue #467). Samme
+    # felter som Rows' celler (ROW_VALS, txtFlRowAbc, chkFlRowAtex).
     ro_vals = []
     for n, f in (("Room", "ROOM"), ("Sort", "SORT FIELD"), ("Abc", "ABC INDIC.")):
         ro_vals.append(text_ctrl(f"txtFlC{n}", f'With({{ v: {_val(f)} }}, If(IsBlank(v), "-", v))',
-                                 size=13, height=20, wrap="false"))
+                                 size=13, weight="Semibold" if n == "Abc" else None,
+                                 height=20, wrap="false"))
     ro_vals.append(text_ctrl("txtFlCAtex", f'If(Upper(Trim({_val("ATEX")})) = "X", "Yes", "-")',
                              size=13, height=20, wrap="false",
                              accessible='"ATEX: " & If(Self.Text = "Yes", "yes", "no")'))
-    info_msg = "Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, \"\")"
-    info = text_ctrl("txtFlCInfo", info_msg, size=13, color=_status_color("ThisItem"),
-                     height=20, wrap="false")
     # Edit aabner raekkens sidepanel med klassens felter - samme panel som
     # Class data i Rows (issue #346). Hver post her ER een raekke
-    # (V.BUCKETS), saa ThisItem.RowGuid er raekken.
+    # (V.BUCKETS), saa ThisItem.RowGuid er raekken. Info-kolonnen er vaek
+    # (issue #468: Classes' eneste egen kolonne er Edit); raekkens foerste
+    # besked staar i Edit's tooltip og paa Status-knappen i Rows.
+    info_msg = "Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, \"\")"
     open_ = button("btnFlCOpen", '"Edit"',
                    open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=72, height=30,
-                   accessible='"Edit class data of " & ThisItem.FL')
-    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [info, open_])
+                   accessible='"Edit class data of " & ThisItem.FL',
+                   tooltip=(f'With({{ m: {info_msg} }}, "Edit class data of " & ThisItem.FL & '
+                            'If(IsBlank(m), "", " - " & m))'))
+    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [open_])
+    # Samme raekkehoejde og mellemrum som Rows (issue #468).
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
-                        cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W)
+                        cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W,
+                        row_h=V_ROW_H, tpl_h=ROW_TOP_F)
     # Vandret scroll, naar tabellen er bredere end kortet - som Rows'
     # conFlTable (issue #356).
-    c_wide = f"({ROWS_W}) < ({CCOLS.width})"
+    c_wide = f"({ROWS_W}) < ({C_W})"
     table = group("conFlClsTable", [head, divider("conFlClsRule", HAS_CLASSES, width=C_GAL_W), gal],
                   direction="Vertical", gap=10, overflow_x="Scroll", align_items="Start",
                   visible=HAS_CLASSES)

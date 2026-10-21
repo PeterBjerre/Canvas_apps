@@ -80,18 +80,23 @@ def test_classes_reuse_the_rows_column_widths():
     p = T._parts()
     rows = {n: w for n, _l, w, _v in p.V_SPEC}
     cls = {n: w for n, _l, w, _v in p.C_SPEC}
-    for n in ("No", "Fl", "Desc"):
+    shared = ["No", "Fl", "Desc", "Kks", "Cls", "Room", "Sort", "Abc", "Atex"]
+    for n in shared:
         assert cls[n] == rows[n], n
-    assert [n for n, *_ in p.C_SPEC][:3] == ["No", "Fl", "Desc"]
+    # Issue #468: de faelles kolonner foerst, saa Edit.
+    assert [n for n, *_ in p.C_SPEC] == shared + ["Open"]
     # Genereret: overskrifter, celler og mellemrum flugter med Rows.
-    for n, cell in (("Fl", "inpFlCFl"), ("Desc", "inpFlCDesc")):
+    for n, cell in (("Fl", "txtFlCFl"), ("Desc", "txtFlCDesc")):
         w = T._prop(f"txtFlRowsHead{n}", "Width")
         assert T._prop(f"txtFlClsHead{n}", "Width") == w
         assert T._prop(cell, "Width") == w
     assert T._prop("conFlClsHead", "LayoutGap") == T._prop("conFlRowsHead", "LayoutGap")
     # Raekkernes celler staar paa samme X (galleriets skabelon er foldet ud).
-    for rows_cell, cls_cell in (("txtFlRowNo", "txtFlCNo"), ("inpFlRowFl", "inpFlCFl"),
-                                ("inpFlRowDesc", "inpFlCDesc")):
+    for rows_cell, cls_cell in (("txtFlRowNo", "txtFlCNo"), ("inpFlRowFl", "txtFlCFl"),
+                                ("inpFlRowDesc", "txtFlCDesc"), ("txtFlRowKks", "txtFlCStr"),
+                                ("txtFlRowCls", "txtFlCCls"), ("inpFlRowRoom", "txtFlCRoom"),
+                                ("inpFlRowSort", "txtFlCSort"), ("txtFlRowAbc", "txtFlCAbc"),
+                                ("chkFlRowAtex", "txtFlCAtex")):
         assert T._prop(cls_cell, "X") == T._prop(rows_cell, "X"), cls_cell
     # Smal skaerm: Classes scroller vandret som Rows.
     assert T._prop("conFlClsTable", "LayoutOverflowX") == "LayoutOverflow.Scroll"
