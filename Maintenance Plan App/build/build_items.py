@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys
+import functools, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_INVALID_FG,
@@ -1027,7 +1027,11 @@ def build_item_editor():
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
         stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})",
         min_len=FL_MIN_LEN, block=(fl_wrong_plant, FL_WRONG_PLANT_MSG),
-        query_map=fl_with_prefix, placeholder=FL_PLACEHOLDER)
+        query_map=fl_with_prefix, placeholder=FL_PLACEHOLDER,
+        # Kun maintainable FL'er (Peter 2026-10-21): en VH-plan paa en
+        # ikke-vedligeholdbar FL giver ikke mening i SAP. Flowet sender
+        # stadig alle - de andre skaerme har brug for dem.
+        searcher=functools.partial(flsearch.search_action, only_maintainable=True))
 
     # For kort soegetekst (issue #144): en kort besked under feltet, saa
     # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser

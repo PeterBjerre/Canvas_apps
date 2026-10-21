@@ -84,15 +84,23 @@ LONG_RESULT = 50
 # roligt en anden apps variabel: praecis den fejl, der er beskrevet ovenfor.
 
 
-def _array_expr(raw_var):
-    """Udtrykket der giver JSON-arrayet fra flow-svaret."""
+def _array_expr(raw_var, only_maintainable=False):
+    """Udtrykket der giver JSON-arrayet fra flow-svaret.
+
+    only_maintainable: kun raekker med maintainable = true. Flowet sender
+    alle FL'er, fordi KKS-opslaget, Equipment, Measuring Point og Material
+    ogsaa skal kunne finde de ikke-vedligeholdbare; kun VH-planen filtrerer
+    (Peter 2026-10-21)."""
     base = f"ParseJSON({raw_var}.{FLOW_OUTPUT})"
     if JSON_ARRAY_PATH:
         base = f"{base}.{JSON_ARRAY_PATH}"
-    return f"Table({base})"
+    table = f"Table({base})"
+    if only_maintainable:
+        table = f"Filter({table}, Boolean(ThisRecord.Value.{JSON_MAINT_FIELD}))"
+    return table
 
 
-def collect_results(target_collection, *, raw_var):
+def collect_results(target_collection, *, raw_var, only_maintainable=False):
     """ClearCollect af flow-svaret ind i en samling til comboboksen.
 
     Display er kode + beskrivelse i eet felt. Comboboksen soeger og viser paa
@@ -103,7 +111,7 @@ def collect_results(target_collection, *, raw_var):
         f"ClearCollect(\n"
         f"    {target_collection},\n"
         f"    ForAll(\n"
-        f"        {_array_expr(raw_var)} As R,\n"
+        f"        {_array_expr(raw_var, only_maintainable)} As R,\n"
         f"        {{\n"
         f"            Code: Text(R.Value.{JSON_CODE_FIELD}),\n"
         f"            Description: Text(R.Value.{JSON_DESC_FIELD}),\n"
@@ -121,7 +129,8 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
                   label="Functional Locations",
                   busy_var=None, query_expr=None, last_var=None, on_start=None,
                   on_found=None, min_len=None, flow_name=FLOW_NAME,
-                  flow_output=FLOW_OUTPUT, collect_fx=None, run_arg="q"):
+                  flow_output=FLOW_OUTPUT, collect_fx=None, run_arg="q",
+                  only_maintainable=False):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     Hvem der kalder den: Search-knappen i FL-vaelgeren
@@ -154,6 +163,10 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     dem. collect_fx(target, raw_var) giver ClearCollect-udtrykket; run_arg
     er argumentet til .Run(). Standard er FL-flowet, uaendret.
 
+    only_maintainable: kun FL'er med maintainable = true kommer i
+    samlingen, og "ingen fundet"-teksterne siger "maintainable". Kun
+    VH-planens Item Editor bruger den.
+
     GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
     ----------------------------------------------------------------
     Ellers kunne man vaelge en raekke fra den forrige soegning, mens den
@@ -161,8 +174,10 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     Notify det - beskeden under feltet findes ikke i alle apps.
     """
     q_src = query_expr if query_expr else f"{query_ctrl}.Text"
-    collect = (collect_fx or (lambda t, raw_var: collect_results(t, raw_var=raw_var)))(
+    collect = (collect_fx or (lambda t, raw_var: collect_results(
+        t, raw_var=raw_var, only_maintainable=only_maintainable)))(
         target_collection, raw_var=raw_var)
+    none_label = f"maintainable {label.lower()}" if only_maintainable else label.lower()
     n_min = min_len or MIN_SEARCH_LEN
     busy_on = f"        Set({busy_var}, true);\n" if busy_var else ""
     busy_off = f";\n        Set({busy_var}, false)" if busy_var else ""
@@ -195,7 +210,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"            );\n"
         f"            If(\n"
         f"                CountRows({target_collection}) = 0,\n"
-        f"                Notify(\"No {label.lower()} found for \" & Upper(q) & \".\", NotificationType.Warning)"
+        f"                Notify(\"No {none_label} found for \" & Upper(q) & \".\", NotificationType.Warning)"
         + (f",\n                    {on_found}\n" if on_found else "\n")
         + f"            );\n"
         f"            Set(\n"
@@ -204,7 +219,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"                    {{ n: CountRows({target_collection}) }},\n"
         f"                    If(\n"
         f"                        n = 0,\n"
-        f"                        \"No {label} found for \" & Upper(q) & \".\",\n"
+        f"                        \"No {none_label if only_maintainable else label} found for \" & Upper(q) & \".\",\n"
         f"                        Text(n) & \" {label} found for \" & Upper(q) & \". \" &\n"
         f"                            If(\n"
         f"                                n > {LONG_RESULT},\n"
