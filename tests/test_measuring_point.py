@@ -161,15 +161,15 @@ def _onselect(ctrl):
 
 
 def test_rows_can_be_copied_without_the_existing_number():
-    assert "btnMpMoreCopy" in _mp()
-    copy = _onselect("btnMpMoreCopy")
-    # Kopien er den samme maaling et andet sted - men ikke det SAMME punkt,
-    # saa et eksisterende nummer foelger ikke med.
-    assert 'Set(varMpFMeasuringPoint, "")' in copy
-    assert "Set(varMpFMeasuringPoint, ThisItem.MeasuringPoint)" not in copy
+    copy = _onselect("btnMpRowCopy")
+    # Kopien er en NY raekke (issue #485) og den samme maaling et andet sted
+    # - men ikke det SAMME punkt, saa et eksisterende nummer foelger ikke med.
+    assert "Patch(MeasuringPointItems, Defaults(MeasuringPointItems)" in copy
+    assert 'MeasuringPoint: "",' in copy
+    assert "MeasuringPoint: src.MeasuringPoint" not in copy
+    assert "CreatedMeasuringPointNo" not in copy.split("ClearCollect(")[0]
     # Karakteristikken foelger med.
-    assert ("Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpMoreRowId).Characteristic)"
-            in copy)
+    assert "Characteristic: src.Characteristic," in copy
     # Og Edit henter stadig nummeret.
     assert ("Set(varMpFMeasuringPoint, ThisItem.MeasuringPoint)"
             in _onselect("btnMpRowOpen"))

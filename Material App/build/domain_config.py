@@ -69,10 +69,10 @@ HUB_URL = env.hub_url()
 # FUNKTIONSPLADSERNE ER IKKE ET FELT I FORMULAREN (issue #228)
 #
 # Her stod FL_FIELD = "FunctionalLocation", og formularen havde FL-soegning,
-# Add og Object List. Nu tilfoejes funktionspladserne paa den GEMTE raekke
-# (Saved Rows -> Objects), og FunctionalLocation er en kolonne, appen
-# laeser og skriver (READ_FIELDS + material_parts' extra_patch) - ikke et
-# felt. Uden FL_FIELD henter og kopierer domain_parts ikke en FL ind i
+# Add og Object List. Nu vaelges funktionspladserne paa sidepanelets
+# Objects-fane (tools/domain_objects.py, issue #485) og gemmes med raekken,
+# og FunctionalLocation er en kolonne, appen laeser og skriver (READ_FIELDS
+# + extra_patch) - ikke et felt. Uden FL_FIELD henter og kopierer domain_parts ikke en FL ind i
 # formularens vaelger, som ikke laengere findes.
 
 # --- felterne ---------------------------------------------------------
@@ -156,7 +156,7 @@ MAX_LEN = {"ManufacturerPartNo": 40, "StorageBin": 10, "StockUnit": 3, "PriceUni
 #   FunctionalLocation  raekkens FOERSTE funktionsplads (issue #228: ikke
 #       laengere et felt - se FL_FIELD ovenfor).
 #   ObjectList/ObjectListJson  raekkens funktionspladser. De skrives af
-#       gem (material_parts.OBJECT_PATCH), ikke af et felt.
+#       gem (domain_objects.extra_patch), ikke af et felt.
 #   ApprovalRequired           fastfrosset ved Submit - et filter, ikke et
 #       resultat. Udfaldet staar i MD_ApprovalLog.
 #   CreatedMaterialNo          materialenummeret fra SAP. Det findes

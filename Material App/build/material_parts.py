@@ -47,12 +47,12 @@ kasserer aendringerne siden popuppen blev aabnet. Teksten bliver staaende
 i formularen, til hele raekken gemmes. Popuppen ligger OVER sidepanelet:
 domain_app.build_screen laegger appens egne popupper efter panelet.
 
-DOKUMENTER OG FUNKTIONSPLADSER HOERER TIL DEN GEMTE RAEKKE
----------------------------------------------------------
-De stod i formularen. Dokumenterne ligger i en mappe, der hedder raekkens
-noegle, og funktionspladserne slaas op og godkendes pr. raekke - begge dele
-kraever en gemt raekke. Nu er de knapper paa raekken i Rows
-(Docs, Objects), og formularen siger, at de findes dér.
+DOKUMENTER OG FUNKTIONSPLADSER STAAR PAA HVER SIN FANE
+-----------------------------------------------------
+Sidepanelet har fanerne Details, Objects og Documents. Dokumenterne ligger
+i en mappe, der hedder raekkens noegle, og kraever en gemt raekke.
+Funktionspladserne (Objects) er en del af formularen og gemmes med raekken
+(tools/domain_objects.py, issue #485) - ogsaa paa en ny raekke.
 
 No BOM Item og Recommended stock er fjernet (issue #228). Kolonnerne staar
 uroert i SharePoint; appen skriver dem ikke laengere.
@@ -69,12 +69,11 @@ import stepper as st
 import admin_log as alog
 import permissions as perm
 import layout_tokens as lay
-from fl_picker import fl_picker
 from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT
-import doc_upload as du
+import domain_objects as dobj
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
                            section_header, tap_backdrop, text_min_height,
-                           fit_button_width, text_px, label_px, popup_head, ICON_W)
+                           fit_button_width, text_px, popup_head, ICON_W)
 from layout_tokens import if_below, fits
 
 CELL_W = dp.CELL_W
@@ -112,52 +111,24 @@ def is_strategic(expr):
 
 STRAT_FORM = is_strategic(dp._var("StrategicPart"))
 
-# OBJECT LIST (issue #204, flyttet til den gemte raekke i #228)
+# OBJECT LIST (issue #204, #228 - formularens egen fane fra #485)
 #
 # Raekkens funktionspladser gemmes paa raekken som ObjectList (koderne),
 # ObjectListJson (kode + beskrivelse) og FunctionalLocation (den foerste
-# kode). Delene staar i tools/object_list.py og er domaeneneutrale.
-#
-# TO SAMLINGER
-#   colDomObjects   formularens. Den holder kun en KOPI's objekter: Copy
-#                   tager dem med til den nye, ugemte raekke, og Save row
-#                   skriver dem paa den. En hentet raekke roerer dem ikke -
-#                   dens objekter staar paa raekken og rettes i popuppen.
-#   colDomObjPop    popuppens - den gemte raekke, popuppen er aabnet for.
-#                   Hver Add og Remove gemmes paa raekken med det samme.
-OBJECTS = "colDomObjects"
-POP = "colDomObjPop"
-OBJ_SCHEMA = ol.schema()
-OBJ_ROW = "varDomObjRowId"
-OBJ_REC = f"LookUp(colDomRows, RowId = {OBJ_ROW})"
-# Det valgte soegeresultat i popuppen.
-PICK = "varDomObjPick"
-FL_MSG = "varDomFlMsg"
+# kode). Objects-fanen er faelles med Equipment og staar i
+# tools/domain_objects.py: listen er formularens samling (colDomObjects),
+# den fyldes, naar raekken hentes, og gemmes med Save - som felterne.
+OBJECTS = dobj.OBJECTS
+OBJ_SCHEMA = dobj.SCHEMA
+# Det valgte soegeresultat paa fanen.
+PICK = dobj.PICK
+FL_MSG = dobj.FL_MSG
 # Mindst 16 tegn foer der kan soeges OG foer der kan tilfoejes (Q11).
 # "SSV13 HFC10AJ010" er praecis 16 - i praksis skal man kende hele koden.
 MIN_FL_LEN = 16
-ADD_READY = f'Len(Trim(Coalesce({PICK}, ""))) >= {MIN_FL_LEN}'
-# Gendannelsen, naar en raekke kopieres: JSON'en foerst, saa den
-# "; "-adskilte liste, og til sidst FL-kolonnen alene (gamle raekker).
-OBJ_RESTORE = ol.restore_fx(
-    OBJECTS, json_src="ThisItem.ObjectListJson", list_src="ThisItem.ObjectList",
-    fl_src="ThisItem.FunctionalLocation")
-# Popuppens liste fra den GEMTE raekke - ved aabning og naar en gemning
-# fejler (saa listen aldrig viser noget, der ikke staar paa raekken).
-POP_RESTORE = ol.restore_fx(
-    POP, json_src=f"{OBJ_REC}.ObjectListJson", list_src=f"{OBJ_REC}.ObjectList",
-    fl_src=f"{OBJ_REC}.FunctionalLocation")
-# Maa popuppens raekke aendres? Samme laas som dokumenterne
-# (domain_parts.DOCS_EDIT): anmodningen kan redigeres, og raekken er ikke
-# indsendt.
-OBJ_EDIT = (f'(!IsBlank({OBJ_ROW}) && !IfError(varDomViewOnly, false) && '
-            f'{OBJ_REC}.Status <> "submitted")')
-DM_OBJ = f"If({OBJ_EDIT}, DisplayMode.Edit, DisplayMode.Disabled)"
-STRAT_POP = is_strategic(f"{OBJ_REC}.StrategicPart")
 
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
-EXTRA_STATE = (f"Set({OBJ_ROW}, Blank());\n"
-               f'Set({PICK}, "");\n'
+EXTRA_STATE = (f"{dobj.STATE};\n"
                f"Set({PO_OPEN}, false);\n"
                f"Set({PO_SAVING}, false)")
 
@@ -329,9 +300,10 @@ def _cell(key, width=CELL_W):
 
 
 # UX-review F2: Save gemmer raekken (som kladde, til kravene er
-# opfyldt); dokumenter og funktionspladser laegges paa den gemte raekke.
-EDITOR_HINT = ("Start with the four key fields and choose Save. Documents and "
-               "functional locations are added on the saved row in the list below.")
+# opfyldt). Funktionspladserne staar paa Objects-fanen og gemmes med
+# raekken; dokumenterne paa Documents-fanen, naar raekken er gemt (#485).
+EDITOR_HINT = ("Start with the four key fields and choose Save. Add functional "
+               "locations on the Objects tab and documents on the Documents tab.")
 
 
 def _editor_head(panel=False):
@@ -366,7 +338,7 @@ def reset_fx():
     return dp.reset_form_fx()
 
 
-# En kopi kan have taget objekter med - det er ogsaa noget at kassere.
+# Funktionspladser paa en ny raekke er ogsaa noget at kassere.
 DIRTY_NEW = (f"CountRows({OBJECTS}) > 0",)
 
 
@@ -407,16 +379,17 @@ def editor_reset():
 
 def editor_panel_content(form, extras=()):
     """Fanerne Details, Objects og Documents - det faelles moenster i
-    domain_parts.editor_tabs (Equipment bruger det samme, issue #430)."""
-    open_objects = (f"Set({OBJ_ROW}, varDomActiveRowId);\nSet({PICK}, \"\");\n"
-                    f"{dp.fl_reset_fx_dom()};\n"
-                    + ol.restore_fx(POP, json_src=f"{dp.ACTIVE}.ObjectListJson",
-                                    list_src=f"{dp.ACTIVE}.ObjectList",
-                                    fl_src=f"{dp.ACTIVE}.FunctionalLocation"))
-    objects_body = _objects_popup()[1].children[1]
-    objects_body.props["Height"] = dp.EDITOR_TAB_BODY_H
+    domain_parts.editor_tabs. Objects-fanen er faelles med Equipment
+    (tools/domain_objects.py, issue #485)."""
+    after = ""
+    if APPROVAL_ON:
+        # En strategisk raekke: slaa systemet og dets ansvarlige op, saa
+        # initialerne staar under listen, mens der vaelges.
+        after = f"If(\n    {STRAT_FORM},\n{_indent(resolve_fx(ol.codes_fx(OBJECTS)), 4)}\n)"
+    objects_body = dobj.tab_body(dp.EDITOR_TAB_BODY_H, min_len=MIN_FL_LEN, after=after,
+                                 extra=([_approver_line()] if APPROVAL_ON else ()))
     return dp.editor_tabs(form, extras, objects=[objects_body],
-                          documents=[dp.docs_tab_body()], open_objects=open_objects)
+                          documents=[dp.docs_tab_body()], open_objects=dobj.open_tab_fx())
 
 
 # ---------------------------------------------------------------------------
@@ -508,146 +481,12 @@ def _po_popup():
     return [back, modal]
 
 
-# ---------------------------------------------------------------------------
-# Functional locations / Object List - popuppen paa den gemte raekke
-# ---------------------------------------------------------------------------
-OBJ_W = "Min(760, App.Width - 32)"
-
-
-def open_objects_fx():
-    """Raekkens Objects-knap: peg popuppen paa DENNE raekke og fyld listen
-    fra raekken, som den er gemt. Soegningen starter forfra."""
-    return (f"Set({OBJ_ROW}, ThisItem.RowId);\n"
-            f'Set({PICK}, "");\n'
-            f"{dp.fl_reset_fx_dom()};\n"
-            + ol.restore_fx(POP, json_src="ThisItem.ObjectListJson",
-                            list_src="ThisItem.ObjectList",
-                            fl_src="ThisItem.FunctionalLocation"))
-
-
-def close_objects_fx():
-    return (f"Set({OBJ_ROW}, Blank());\n"
-            f'Set({PICK}, "");\n'
-            f"{ol.clear_fx(POP)};\n"
-            f"{dp.fl_reset_fx_dom()}")
-
-
-def persist_objects_fx():
-    """Gem popuppens liste paa raekken - med det samme, efter hver Add og
-    Remove, saa intet kan gaa tabt ved Close.
-
-    Kun de tre objektkolonner skrives. Samlingen af raekker opdateres med
-    det, SharePoint svarede, i stedet for at hente alle raekker forfra.
-    Fejler gemningen, vises listen, som den staar paa raekken."""
-    key = f'Coalesce({OBJ_REC}.ItemKey, "")'
-    log = alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
-                     f'"Object list on " & {key} & ": " & '
-                     f'Coalesce(varDomObjSp.ObjectList, "(empty)")', 12)
-    return (
-        "If(\n"
-        # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
-        f"    {dp.AS_ADMIN} && !{perm.IS_ADMIN},\n"
-        f"    {dp.DENIED_OTHER};\n"
-        + _indent(POP_RESTORE, 4) + ";\n"
-        "    false,\n"
-        "    IfError(\n"
-        "        Set(\n"
-        "            varDomObjSp,\n"
-        f"            Patch({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = {OBJ_ROW}), {{\n"
-        f"                ObjectList: {ol.codes_fx(POP)},\n"
-        f"                ObjectListJson: {ol.json_fx(POP)},\n"
-        f"                FunctionalLocation: {ol.first_fx(POP)}\n"
-        "            })\n"
-        "        );\n"
-        f"        UpdateIf(colDomRows, RowId = {OBJ_ROW}, {{\n"
-        '            ObjectList: Coalesce(varDomObjSp.ObjectList, ""),\n'
-        '            ObjectListJson: Coalesce(varDomObjSp.ObjectListJson, ""),\n'
-        '            FunctionalLocation: Coalesce(varDomObjSp.FunctionalLocation, "")\n'
-        "        });\n"
-        f"        If(\n            {dp.AS_ADMIN},\n{log}\n        );\n"
-        "        true,\n"
-        f'        Set({FL_MSG}, "Could not save the object list: " & FirstError.Message);\n'
-        + _indent(POP_RESTORE, 8) + ";\n"
-        "        false\n"
-        "    )\n"
-        ")"
-    )
-
-
-def _add_fx():
-    """Add: laeg det VALGTE resultat i listen og gem den paa raekken.
-    Dubletter og et tomt valg afvises af ol.add_fx - saa gemmes der intet.
-
-    Er raekken strategisk, slaas systemet og dets ansvarlige op med det
-    samme (bag flaget), saa initialerne staar under listen."""
-    desc = f'Coalesce(LookUp(colDomFl, Code = {PICK}).Description, "")'
-    after = persist_objects_fx()
-    if APPROVAL_ON:
-        look = _indent(resolve_fx(ol.codes_fx(POP)), 4)
-        after += f";\nIf(\n    {STRAT_POP},\n{look}\n)"
-    return (f"Set(varDomObjN, {ol.count_fx(POP)});\n"
-            + ol.add_fx(POP, PICK, desc, FL_MSG) + ";\n"
-            f"If(\n    {ol.count_fx(POP)} > varDomObjN,\n"
-            + _indent(after, 4) + "\n)")
-
-
-def _objects_popup():
-    vis = f"!IsBlank({OBJ_ROW})"
-    back = tap_backdrop("conDomObjPopBackdrop", vis,
-                        f"If(!{dp.FL_BUSY_VAR}, {close_objects_fx()})")
-    title = grow(text_ctrl(
-        "txtDomObjPopH",
-        f'"Functional locations · " & Coalesce({OBJ_REC}.ItemKey, "")',
-        size=lay.SIZE_CARD_TITLE, weight="Semibold",
-        height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    # X oeverst til hoejre (issue #343) - ikke mens en soegning koerer.
-    head = popup_head("conDomObjPopHead", title, "btnDomObjPopClose", close_objects_fx(),
-                      accessible='"Close the functional locations"',
-                      mode=f"If({dp.FL_BUSY_VAR}, DisplayMode.Disabled, DisplayMode.Edit)")
-    hint = text_ctrl(
-        "txtDomObjPopHint",
-        f'If({OBJ_EDIT}, "Search with at least {MIN_FL_LEN} characters, pick a result '
-        'and press Add. Each change is saved on the row.", '
-        '"Read only - the row or the request cannot be changed.")',
-        size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
-    # Soegningen er FL-vaelgerens egen (tools/fl_picker.py) - den samme som
-    # stod i formularen, med samme mindstelaengde.
-    picker = fl_picker(
-        "Dom", combo=dp.FL_COMBO, results="colDomFl", raw_var="varDomFlRaw",
-        msg_var=FL_MSG, busy_var=dp.FL_BUSY_VAR, query_var=dp.FL_QUERY_VAR,
-        last_var=dp.FL_LAST_VAR, pick_var=PICK,
-        default_items=f"Filter(colDomFl, Code = {PICK})",
-        display_mode="DisplayMode.Edit", min_len=MIN_FL_LEN,
-        width="Parent.Width", stack_search=True)
-    picker.vis = OBJ_EDIT
-    msg = dp.build_fl_msg()
-    add = ol.add_button(
-        "Dom", _add_fx(),
-        display_mode=f"If({OBJ_EDIT} && {ADD_READY}, DisplayMode.Edit, DisplayMode.Disabled)")
-    add.vis = OBJ_EDIT
-    pnl = ol.panel(
-        "Dom", POP, width="Parent.Width", msg_var=FL_MSG, add=add,
-        display_mode=DM_OBJ,
-        extra=([_approver_line()] if APPROVAL_ON else ()),
-        hint='"No functional locations on this row yet."',
-        on_remove=persist_objects_fx())
-    body = du.capped_body("conDomObjPopBody", [hint, picker, msg, pnl],
-                             f"App.Height - 40 - 36 - {head.h} - 14")
-    modal = group("conDomObjPopModal", [head, body], direction="Vertical", gap=14,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=OBJ_W, drop_shadow="ExtraBold",
-                  visible=vis)
-    modal.props["X"] = dp.MODAL_X
-    modal.props["Y"] = dp.MODAL_Y
-    return [back, modal]
-
-
 def build_popups():
-    """Materials' egne popupper (domain_app.build_screen): objektlisten og
-    indkoebsteksten - [sloer, popup] hver. Reset's bekraeftelse er den
-    faelles (domain_parts.build_reset_confirm, issue #450)."""
-    objects = [] if getattr(cfg, "ROW_PANEL_ENABLED", False) else _objects_popup()
-    return objects + _po_popup()
+    """Materials' egne popupper (domain_app.build_screen): indkoebsteksten
+    - [sloer, popup]. Objektlisten er Objects-fanen i sidepanelet (#485),
+    og Reset's bekraeftelse er den faelles (domain_parts.build_reset_confirm,
+    issue #450)."""
+    return _po_popup()
 
 
 # ---------------------------------------------------------------------------
@@ -670,41 +509,16 @@ ROW_OBJ_N = ('With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, "")
              'If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n))')
 
 
-def _w(name, longest):
-    """Bredden: den afproevede i domain_parts.ROW_BTN (13 pt, klipper ikke),
-    eller tekstens laengste form + den samme luft (label_px + 32)."""
-    return max(dp.ROW_BTN.get(name, 0), label_px(longest, 13) + 32)
-
-
 def row_actions():
-    """Details, Edit, Docs, Objects, Copy og Delete - Delete sidst og kun
-    som ikon. Docs og Objects viser antallet, naar der er noget."""
-    docs_n = "Coalesce(ThisItem.FileCount, 0)"
-    return [
-        dp.RowAction("btnDomRowDetails", '"Details"', dp.details_fx(), _w("btnDomRowDetails", "Details")),
-        dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), _w("btnDomRowOpen", "Edit"),
-                     mode=dp.DM_ROW_EDIT),
-        dp.RowAction("btnDomRowDocs",
-                     f'If({docs_n} > 0, "Docs (" & {docs_n} & ")", "Docs")',
-                     (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
-                      + dp.open_active_docs_fx()), _w("btnDomRowDocs", "Docs (00)"),
-                     label=f'"Documentation for " & ThisItem.ItemKey & ", " & {dt.plural(docs_n, "file")}'),
-        dp.RowAction("btnDomRowObjects",
-                     f'If({ROW_OBJ_N} > 0, "Objects (" & {ROW_OBJ_N} & ")", "Objects")',
-                     (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Objects");\n'
-                      + f"Set({OBJ_ROW}, varDomActiveRowId); Set({PICK}, \"\");\n"
-                      + dp.fl_reset_fx_dom() + ";\n"
-                      + ol.restore_fx(POP, json_src=f"{dp.ACTIVE}.ObjectListJson",
-                                      list_src=f"{dp.ACTIVE}.ObjectList",
-                                      fl_src=f"{dp.ACTIVE}.FunctionalLocation")),
-                     _w("btnDomRowObjects", "Objects (00)"), line=2,
-                     label='"Functional locations for " & ThisItem.ItemKey'),
-        dp.RowAction("btnDomRowCopy", '"Copy"', dp.copy_row_fx(), _w("btnDomRowCopy", "Copy"),
-                     mode=dp.ROW_MODES["btnDomRowCopy"], line=2),
-        dp.RowAction("btnDomRowDelete", '"Delete row"', dp.delete_this_row_fx(),
-                     dp.ROW_BTN["btnDomRowDelete"], mode=dp.DM_ROW_DEL, danger=True,
-                     icon="Delete", icon_only=True, line=2),
-    ]
+    """De faelles raekkeikoner (domain_parts.standard_row_actions, issue
+    #485): Edit, Documents, Objects, Copy og Delete. Antallet af dokumenter
+    og funktionspladser staar i ikonernes tooltip."""
+    return dp.standard_row_actions(
+        docs_fx=(dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
+                 + dp.open_active_docs_fx()),
+        docs_n="Coalesce(ThisItem.FileCount, 0)",
+        objects_fx=dobj.open_row_fx(cfg.ROW_EDITOR_TAB_VAR),
+        objects_n=ROW_OBJ_N)
 
 
 def build_rows():
@@ -827,30 +641,21 @@ def details_rows(row):
 # De saettes ved IMPORT, fordi delene kaldes af tools/domain_app.py, som
 # kun ser modulet - ikke en opsaetningsfunktion.
 # ---------------------------------------------------------------------------
-# Objektkolonnerne, naar formularen gemmer: en NY raekke (en kopi) faar de
-# objekter, kopien tog med; en hentet raekke beholder sine egne - de rettes
-# i popuppen og staar allerede i colDomRows.
-def _obj_patch(new_fx, col):
-    return (f"If(IsBlank(varDomActiveRowId), {new_fx}, "
-            f'Coalesce({dp.ACTIVE}.{col}, ""))')
-
-
 dp.configure(
     # Storage bin foreslaas som "X", naar formularen ryddes.
     field_defaults={"StorageBin": '"X"'},
-    # Formularens objekter er kun en kopis (se OBJECTS): de fyldes ved
-    # Copy og ryddes ellers.
-    clear_extra=(ol.clear_fx(OBJECTS) + f";\nSet({OBJ_ROW}, Blank());\n{ol.clear_fx(POP)}"),
-    load_extra=ol.clear_fx(OBJECTS),
-    copy_extra=OBJ_RESTORE,
+    # Objects-fanens liste (tools/domain_objects.py, issue #485): fyldt fra
+    # raekken, naar den hentes - ogsaa en kopi, der hentes efter Copy - og
+    # ryddet med formularen.
+    clear_extra=dobj.clear_extra(),
+    load_extra=dobj.load_extra(),
     # Gem: koderne, JSON'en og FL-kolonnen som den FOERSTE kode.
     # ApprovalRequired er raekkens eget svar paa "skal den godkendes?".
     # Den skrives ved HVER gemning, ogsaa som kladde: det er data, ikke
     # godkendelse, og flowet filtrerer paa den.
-    extra_patch=[("FunctionalLocation", _obj_patch(ol.first_fx(OBJECTS), "FunctionalLocation")),
-                 ("ObjectList", _obj_patch(ol.codes_fx(OBJECTS), "ObjectList")),
-                 ("ObjectListJson", _obj_patch(ol.json_fx(OBJECTS), "ObjectListJson")),
-                 ("ApprovalRequired", STRAT_FORM)],
+    extra_patch=dobj.extra_patch() + [("ApprovalRequired", STRAT_FORM)],
+    # Objektlisten i admin-loggen og i Reset's "ugemte aendringer".
+    extra_diff=dobj.extra_diff(),
     # Grupperet detaljerude, og materialenummeret under felterne.
     details_groups=DETAILS_GROUPS,
     details_rows=details_rows,
@@ -978,11 +783,11 @@ def after_submit_fx():
 
 
 def _approver_line():
-    """Linjen under objektlisten i popuppen: hvem godkendelsen vil spoerge.
+    """Linjen under objektlisten paa Objects-fanen: hvem godkendelsen vil spoerge.
 
     Kun raekkens EGNE koder - colDomApprovers kan ogsaa holde svaret fra
     Submit-opslaget, som daekker hele indmeldingen."""
-    mine = (f"Filter({APPROVERS} As A, CountRows(Filter({POP}, "
+    mine = (f"Filter({APPROVERS} As A, CountRows(Filter({OBJECTS}, "
             "Upper(Trim(Code)) = Upper(Trim(A.Code)))) > 0)")
     bad = f'Filter({mine}, !IsBlank(Trim(Coalesce(Error, ""))))'
     ok = f'Filter({mine}, !IsBlank(Trim(Coalesce(Approver, ""))))'

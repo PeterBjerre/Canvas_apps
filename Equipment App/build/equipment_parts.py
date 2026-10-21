@@ -36,14 +36,20 @@ slettes med ikonet i listens Actions-kolonne, ikke fra formularen.
 
 SIDEPANELETS FANER (issue #430)
 -------------------------------
-I sidepanelet staar formularen under tre faner - samme moenster som
-Materials (domain_parts.editor_tabs):
-    Details    Identification, Location (uden FL), Manufacturer
-    Objects    Functional location med soegningen (FL-vaelgeren)
+I sidepanelet staar formularen under to faner - samme moenster som
+Materials (domain_parts.editor_tabs), men uden Objects-fanen:
+    Details    Identification, Location (med FL-soegningen), Manufacturer
     Documents  Warranty from/to, antallet af dokumenter og
                ModernAttachments-kontrollen (Save documents)
 Felterne, variablerne og Patch er de samme - de staar bare paa en anden
 fane. Gem-tjekkene er Notify-beskeder, saa de ses paa alle faner.
+
+EEN FUNKTIONSPLADS (issue #485)
+-------------------------------
+Udstyr sidder paa EEN funktionsplads - ingen Objects-fane og intet
+Objects-ikon (kun Materials har en objektliste). Funktionspladsen vaelges
+med FL-soegningen i Location-sektionen paa Details og gemmes i
+FunctionalLocation, som paa Measuring Point.
 
 Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
@@ -69,7 +75,8 @@ NOT_IN_GRID = {cfg.FL_FIELD}
 # Sidepanelets faner (issue #430): det, der flyttes fra Details.
 TABBED = bool(getattr(cfg, "ROW_PANEL_ENABLED", False)
               and getattr(cfg, "ROW_EDITOR_TAB_VAR", None))
-OBJECT_KEYS = ["FL"]
+# Ingen Objects-fane (issue #485): FL bliver paa Details.
+OBJECT_KEYS = []
 DOC_KEYS = ["WarrantyStart", "WarrantyEnd", "DOCS"]
 
 
@@ -167,17 +174,16 @@ def _panel_rows(key, keys):
 
 
 def editor_panel_content(form, extras=()):
-    """Fanerne Details, Objects og Documents (issue #430) - Materials'
-    moenster (domain_parts.editor_tabs). Objects: funktionspladsen og dens
-    soegning. Documents: garantien, antallet af dokumenter og
-    ModernAttachments-kontrollen."""
-    objects = [_cell("FL", dp.PANEL_FORM_W), dp.build_fl_msg()]
+    """Fanerne Details og Documents (issue #430) - Materials' moenster
+    (domain_parts.editor_tabs) uden Objects-fanen (issue #485): udstyret
+    har een funktionsplads, og dens soegning staar paa Details. Documents:
+    garantien, antallet af dokumenter og ModernAttachments-kontrollen."""
     warranty = dp.sectioned([("Warranty", "Warranty and documents", None,
                               _panel_rows("Warranty", DOC_KEYS))])
     # Dokumentkontrollen under garantien - samme krop og hoejde som
     # Materials' Documents-fane; panelet scroller, hvis der mangler plads.
     documents = warranty + [dp.docs_tab_body()]
-    return dp.editor_tabs(form, extras, objects=objects, documents=documents)
+    return dp.editor_tabs(form, extras, objects=None, documents=documents)
 
 
 # ---------------------------------------------------------------------------
@@ -209,17 +215,10 @@ def build_rows():
                          "Search FL, equipment no., serial no., description")
 
 
-dp.configure(row_actions=[
-    # Documents aabner raekken paa Documents-fanen (issue #430) - som
-    # Materials' Docs. Uden faner: dokumentpopuppen.
-    dp.RowAction("btnDomRowDocs",
-                 'If(Coalesce(ThisItem.FileCount, 0) > 0, "Documents (" & ThisItem.FileCount & ")", "Documents")',
-                 (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
-                  + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx(),
-                 126, icon="Document",
-                 label='"Documents for " & ThisItem.ItemKey'),
-    dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), 64,
-                 mode=dp.DM_ROW_EDIT),
-    dp.RowAction("btnDomRowMore", '"More"', "Set(varDomMoreRowId, ThisItem.RowId)",
-                 64, label='"More actions for " & ThisItem.ItemKey', line=2),
-])
+# De faelles raekkeikoner (issue #485): Edit, Documents, Copy og Delete.
+# Intet Objects-ikon (udstyret har een funktionsplads, i formularen), ingen
+# More-menu og ingen Details.
+dp.configure(row_actions=dp.standard_row_actions(
+    docs_fx=((dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
+              + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx()),
+    docs_n="Coalesce(ThisItem.FileCount, 0)"))

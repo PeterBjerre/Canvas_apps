@@ -218,9 +218,14 @@ GAL_ROWS = 8
 #   clear_extra     Power Fx efter clear_form_fx
 #   load_extra      Power Fx efter load_row_fx (brug ThisItem.<kolonne>;
 #                   detaljeruden erstatter "ThisItem." med sit opslag)
-#   copy_extra      Power Fx efter copy_row_fx
+#   copy_extra      Power Fx efter copy_row_fx (efter at kopien er hentet
+#                   ind i formularen, issue #485)
 #   extra_patch     [(kolonne, udtryk)] - skrives med i save_row_fx ud
 #                   over felterne i SECTIONS
+#   extra_diff      [(etiket, gammelt udtryk paa o, nyt udtryk)] - appens
+#                   egne vaerdier, der ikke er et felt (objektlisten, issue
+#                   #485). Med i admin-loggens diff og i "er der ugemte
+#                   aendringer?" paa en hentet raekke
 #   patch_override  {kolonne: udtryk} - et felt fra SECTIONS, der gemmes
 #                   som noget andet end sin egen variabel (Materials
 #                   gemmer FL-kolonnen som den FOERSTE kode i objektlisten)
@@ -250,6 +255,7 @@ HOOKS = {
     "load_extra": "",
     "copy_extra": "",
     "extra_patch": (),
+    "extra_diff": (),
     "patch_override": {},
     "details_groups": None,
     "details_hide": (),
@@ -1017,47 +1023,94 @@ def build_reset_confirm():
 
 
 def copy_row_fx():
-    """Kopier raekken til en NY, ugemt raekke i formularen.
+    """Copy: opret en NY raekke ud fra den valgte (issue #485).
 
-    Den haandskrevne app kopierede til en lokal samling, fordi raekkerne
-    dér kun laa i appen. Her ER en raekke en SharePoint-raekke, saa en
-    kopi, der blev skrevet med det samme, ville lave en halvfaerdig raekke
-    i listen, hver gang nogen kom til at trykke.
+    Foer lagde Copy raekkens vaerdier i formularen med blankt raekke-id, og
+    sidepanelet aabnede med den valgte raekkes oplysninger. Det lignede, at
+    man rettede i originalen, og der kom foerst en ny raekke, naar der blev
+    trykket Save.
 
-    Kopien lander derfor i FORMULAREN med blankt raekke-id: brugeren ser
-    den, kan rette i den, og den findes foerst, naar der trykkes Gem.
+    Nu oprettes kopien MED DET SAMME som sin egen raekke i listen - som en
+    KLADDE (Draft), saa den ikke er klar til indsendelse, foer brugeren har
+    set den igennem. Bagefter hentes den ind i sidepanelet i Edit-tilstand.
+    Originalen roeres ikke.
 
-    Funktionspladsen kopieres MED - modsat VH-plans "Copy item", hvor den
-    ryddes. Dér er pointen som regel det samme udstyr et andet sted; her
-    er det samme sted med et andet materiale."""
-    lines = ['Set(varDomActiveRowId, Blank());',
-             'Set(varDomRowStatus, "draft");',
-             f'Set({REQUIRED}, false);',
-             f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
-             'Set(varDomFPlant, ThisItem.Plant);']
-    if getattr(cfg, "ROW_PANEL_ENABLED", False):
-        lines.append('Set(varDomEditorOpen, true);')
-        lines.append(f'Set({PANEL_SAVE_VAR}, "");')
-    if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
-        lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
-    # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
-    # Measuring Point bruger den til det eksisterende maalepunktsnummer -
-    # to raekker kan ikke vaere det samme punkt (issue #210).
+    Kopien laeses fra LISTEN (LookUp paa ID), ikke fra colDomRows, hvor
+    valg og tal er laest om til tekst - samme greb som Duplicate.
+
+    Det, der IKKE foelger med, er raekkens unikke og genererede vaerdier:
+    ID, RowId, ItemKey og dokumentmappen (de dannes af kopiens eget ID),
+    status (kopien er en kladde), dokumenterne (FileCount), SAP-numre og
+    -svar (READ_FIELDS skrives aldrig) og cfg.COPY_SKIP (Measuring Points
+    eksisterende maalepunktsnummer - to raekker kan ikke vaere samme
+    punkt, issue #210). Kopien hoerer til den aabne anmodning, som en ny
+    raekke ved Save (R2-002).
+
+    Funktionspladserne (objektlisten) foelger med - det er samme sted med
+    et andet materiale eller udstyr."""
     skip = set(getattr(cfg, "COPY_SKIP", ()))
-    for col, _lab, kind, _ch in FIELDS:
-        if col in skip:
-            lines.append(f"Set({_var(col)}, {_blank(kind)});")
+    kinds = {c: k for c, _l, k, _ch in FIELDS}
+    cols = [cfg.C_TEXT, "Plant"] + [c for c, _l, _k, _ch in FIELDS]
+    cols += [c for c, _e in HOOKS["extra_patch"]] + list(EXTRA_PATCH)
+    seen, rec = set(), []
+    for c in cols:
+        if c in seen:
             continue
-        lines.append(f"Set({_var(col)}, ThisItem.{col});")
-    # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
-    # gamle raekkes noegle, og kopien har ingen noegle endnu.
-    if getattr(cfg, "FL_FIELD", None):
-        lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
+        seen.add(c)
+        v = _patch_blank(c, kinds.get(c, "text")) if c in skip else f"src.{c}"
+        rec.append(f"                    {c}: {v},")
+    key = ri.row_key(cfg.PREFIX, "varDomSpRow.ID")
+    copied = "LookUp(colDomRows, RowId = varDomSpRow.ID)"
+    load = load_row_fx().replace("ThisItem.", copied + ".")
     if HOOKS["copy_extra"]:
-        lines.append(HOOKS["copy_extra"] + ";")
-    lines.append('Set(varDomInfo, "Copied to a new row - not saved yet. '
-                 'Documents were not copied.")')
-    return "\n".join(lines)
+        load += ";\n" + HOOKS["copy_extra"].replace("ThisItem.", copied + ".")
+    log = alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                     '"New row " & varDomSpRow.ItemKey & " (copy of " & srcKey & ")"', 12)
+    return (
+        "With(\n"
+        "    { srcId: ThisItem.RowId, srcKey: ThisItem.ItemKey },\n"
+        "    If(\n"
+        # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
+        f"        {AS_ADMIN} && !{perm.IS_ADMIN},\n"
+        f"        {DENIED_OTHER},\n"
+        "        IfError(\n"
+        "            With(\n"
+        f"                {{ src: LookUp({cfg.L_ROWS}, ID = srcId) }},\n"
+        "                Set(\n"
+        "                    varDomSpRow,\n"
+        f"                    Patch({cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        + "\n".join("    " + l for l in rec) + "\n"
+        '                        RowStatus: { Value: "draft" },\n'
+        '                        RequestGuid: Coalesce(varDomRequestGuid, ""),\n'
+        '                        RequestNo: Coalesce(varDomRequestNo, ""),\n'
+        # En admin i en andens anmodning kopierer i EJERENS navn.
+        f"                        RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),\n"
+        f"                        RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)\n"
+        "                    })\n"
+        "                )\n"
+        "            );\n"
+        # Noeglen dannes af kopiens EGET ID - som en ny raekke ved Save.
+        "            Set(\n"
+        "                varDomSpRow,\n"
+        f"                Patch({cfg.L_ROWS}, varDomSpRow, {{\n"
+        "                    RowId: varDomSpRow.ID,\n"
+        f"                    ItemKey: {key},\n"
+        f'                    AttachmentFolder: "{attflows.LIBRARY}/" & {key}\n'
+        "                })\n"
+        "            );\n"
+        f"            If(\n                {AS_ADMIN},\n{log}\n            );\n"
+        + refresh_rows_fx(12) + ";\n"
+        # Kopien aabnes i sidepanelet - i Edit, da den er en kladde.
+        + _indent(load, 12) + ";\n"
+        '            Set(varDomInfo, "Copied " & srcKey & " to the new draft row " & '
+        'varDomSpRow.ItemKey & ". Documents were not copied.");\n'
+        '            Notify("Copied " & srcKey & " to the new draft row " & varDomSpRow.ItemKey & '
+        '". Documents were not copied.", NotificationType.Success),\n'
+        '            Notify("Could not copy the row: " & FirstError.Message, NotificationType.Error)\n'
+        "        )\n"
+        "    )\n"
+        ")"
+    )
 
 
 def delete_this_row_fx():
@@ -1157,6 +1210,8 @@ def _diff_pairs():
              (cfg.PLANT_LABEL, "o.Plant", "varDomFPlant")]
     for col, label, _kind, _ch in FIELDS:
         pairs.append((label, f"o.{col}", _var(col)))
+    # Appens egne vaerdier, der ikke er et felt (issue #485).
+    pairs += list(HOOKS["extra_diff"])
     return pairs
 
 
@@ -2271,7 +2326,7 @@ def docs_tab_body(height=EDITOR_TAB_BODY_H):
     return body
 
 
-def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
+def editor_tabs(form, extras=(), objects=None, documents=(), open_objects=""):
     """Sidepanelets indhold med faner - det faelles moenster for Materials
     og Equipment (issue #430). Fanen huskes i cfg.ROW_EDITOR_TAB_VAR, som
     load_row_fx/clear_form_fx/copy_row_fx saetter til "Details".
@@ -2279,28 +2334,31 @@ def editor_tabs(form, extras=(), objects=(), documents=(), open_objects=""):
     form: appens formular (build_form(panel=True)); dens knapraekke
     (naestsidste barn) udelades - knapperne staar i panelets faste bund.
     extras: appens linjer under felterne. objects/documents: fanernes
-    kontroller. open_objects: det, Objects-fanen goer ud over at vise sig
+    kontroller; objects=None: ingen Objects-fane (Equipment, issue #485 -
+    udstyret har een funktionsplads, i formularen). open_objects: det, Objects-fanen goer ud over at vise sig
     (Materials fylder objektlisten fra raekken). Documents-fanen peger
     dokumentkontrollen paa den aabne raekke (open_active_docs_fx).
 
     Fanerne er altid til at trykke paa - ogsaa i visning. Felterne paa
     dem foelger selv DM_ROW og DOCS_EDIT, saa de er skrivebeskyttede dér."""
     tab = cfg.ROW_EDITOR_TAB_VAR
-    TAB_REOPEN["Objects"] = open_objects
+    TAB_REOPEN["Objects"] = open_objects if objects is not None else ""
     objects_fx = f'Set({tab}, "Objects")' + (f";\n{open_objects}" if open_objects else "")
-    selector = segmented("conDomEditorTabs", [
-        ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
-        ("Objects", "Objects", f'{tab} = "Objects"', objects_fx, None),
-        ("Documents", "Documents", f'{tab} = "Documents"',
-         f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None),
-    ], label="Row details", fit=True)
+    tabs = [("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None)]
+    if objects is not None:
+        tabs.append(("Objects", "Objects", f'{tab} = "Objects"', objects_fx, None))
+    tabs.append(("Documents", "Documents", f'{tab} = "Documents"',
+                 f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None))
+    selector = segmented("conDomEditorTabs", tabs, label="Row details", fit=True)
     details = group("conDomEditorDetails",
                     list(form.children[:-2]) + list(extras) + [form.children[-1]],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
-    objects = group("conDomEditorObjects", list(objects), direction="Vertical", gap=12,
-                    visible=f'{tab} = "Objects"')
     documents = group("conDomEditorDocuments", list(documents), direction="Vertical", gap=12,
                       visible=f'{tab} = "Documents"')
+    if objects is None:
+        return [selector, details, documents]
+    objects = group("conDomEditorObjects", list(objects), direction="Vertical", gap=12,
+                    visible=f'{tab} = "Objects"')
     return [selector, details, objects, documents]
 
 
@@ -2585,6 +2643,64 @@ def _action_button(a, suffix=""):
         if a.icon_only:
             ensure_hit(b)
     return b
+
+
+# ---------------------------------------------------------------------------
+# DE FAELLES RAEKKEIKONER (issue #485)
+#
+# Materials, Equipment og Measuring Point har de SAMME handlinger paa en
+# gemt raekke, i den samme raekkefoelge, som ikoner af samme stoerrelse:
+#
+#     Edit (blyant)  Documents (papirclips)  Objects (link)  Copy  Delete
+#
+# Documents og Objects kun, hvor appen har dem: Objects kun i Materials
+# (Equipment og Measuring Point sidder paa EEN funktionsplads, der vaelges
+# i formularen), og Measuring Point har ingen dokumenter. Der er ingen Details-knap -
+# Edit aabner sidepanelet, ogsaa paa en raekke, der kun kan ses (felterne
+# er saa skrivebeskyttede) - og ingen More-menu: alle handlinger staar
+# direkte i kolonnen. Hvert ikon har et tooltip med raekkens noegle.
+#
+# Papirclipsen er Issue Boards (ib_parts._attach_btn). Ikonerne er
+# Fluent-navne paa den moderne knap (tools/icons.FLUENT).
+# ---------------------------------------------------------------------------
+ROW_ICON_W = lay.HIT_TOUCH
+# Kan raekken kun ses? Samme regel som DM_ROW_EDIT/DM_ROW_DEL.
+ROW_LOCKED = '(varDomViewOnly || ThisItem.Status = "submitted")'
+
+
+def standard_row_actions(docs_fx=None, docs_n=None, objects_fx=None, objects_n=None):
+    """Raekkens ikoner i den faelles raekkefoelge. docs_fx/objects_fx:
+    OnSelect for Documents/Objects (None = appen har ikke handlingen);
+    docs_n/objects_n: antallet, der staar i tooltippet."""
+    key = "ThisItem.ItemKey"
+    acts = [RowAction(
+        "btnDomRowOpen", '"Edit"', load_row_fx(), ROW_ICON_W,
+        icon=icons.FLUENT["edit"], icon_only=True,
+        label=f'If({ROW_LOCKED}, "View row ", "Edit row ") & {key}')]
+    if docs_fx:
+        n = docs_n or "0"
+        acts.append(RowAction(
+            "btnDomRowDocs", '"Documents"', docs_fx, ROW_ICON_W,
+            icon=icons.FLUENT["attach"], icon_only=True,
+            label=f'"Documents for " & {key} & " (" & {dt.plural(n, "file")} & ")"'))
+    if objects_fx:
+        n = objects_n or "0"
+        acts.append(RowAction(
+            "btnDomRowObjects", '"Objects"', objects_fx, ROW_ICON_W,
+            icon=icons.FLUENT["objects"], icon_only=True,
+            label=(f'"Functional locations for " & {key} & " (" & '
+                   f'{dt.plural(n, "functional location")} & ")"')))
+    acts.append(RowAction(
+        "btnDomRowCopy", '"Copy"', copy_row_fx(), ROW_ICON_W,
+        mode=ROW_MODES["btnDomRowCopy"], icon=icons.FLUENT["copy"], icon_only=True,
+        label=f'"Copy " & {key} & " to a new draft row"', line=2))
+    acts.append(RowAction(
+        "btnDomRowDelete", '"Delete row"', delete_this_row_fx(), ROW_ICON_W,
+        mode=DM_ROW_DEL, danger=True, icon=icons.FLUENT["delete"], icon_only=True,
+        label=f'"Delete row " & {key}', line=2))
+    return acts
+
+
 # Galleriets egne 2 x 2 px skabelonpolstring og dets lodrette scrollbar.
 TABLE_AVAIL = f"(({FORM_W}) - 4 - {SCROLLBAR_W})"
 
@@ -2758,6 +2874,7 @@ def build_list(slots, badge_head, search_placeholder):
         row_add.append(button(
             "btnDomToolbarCopy", '"Copy row"', copy_active, icon="Copy",
             width=fit_button_width('"Copy row"') + ICON_W, height=36,
+            tooltip='"Copy the open row to a new draft row"',
             display_mode=("If(varDomViewOnly || IsBlank(varDomActiveRowId), "
                           "DisplayMode.Disabled, DisplayMode.Edit)"),
             visible="!varDomViewOnly"))
