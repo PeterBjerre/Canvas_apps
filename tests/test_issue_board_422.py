@@ -61,13 +61,12 @@ def test_activity_counts_are_one_query_not_one_per_row():
     for suffix in ("", "C"):
         # Issue #469: ikon og tal er een knap (tests/test_issue_board_469.py).
         btn = ctrls[f"btnIbRowAct{suffix}"]
-        assert "colIbActN" in btn.props["Text"] and cfg.L_COMMENTS not in btn.props["Text"]
-        assert btn.props["Icon"] == '"Comment"'
+        assert "colIbActN" in btn.props["Image"] and cfg.L_COMMENTS not in btn.props["Image"]
         # Kun for rapportoeren og admins (som fanen Activity).
         assert btn.props["Visible"] == P.ROW_SEE_ACT
         assert "ThisItem.Reporter = varIbMe" in P.ROW_SEE_ACT
-        # 0 er dempet.
-        assert 'If(Self.Text = "0"' in btn.props["Color"]
+        # 0 er dempet (issue #489: en streg-boble - tests/test_issue_board_489.py).
+        assert "If(n = 0," in btn.props["Image"]
     # Cellen selv skjules aldrig - ellers flytter kolonnerne sig.
     assert "Visible" not in ctrls["conIbRowAct"].props
     text = open(SCREEN, encoding="utf-8").read()
