@@ -81,7 +81,7 @@ def _admin_log():
     row = alog.diff([
         ("Functional location", "O.FL", "n.FL"),
         ("Description", "O.Description", "n.Description"),
-        ("KKS type", "O.KksType", "n.KksType"),
+        ("StrIndicator", "O.KksType", "n.KksType"),
         ("Class", "O.AssignedClass", "n.AssignedClass"),
     ], '"Row " & O.RowNo & " "')
     rows = (
@@ -299,6 +299,8 @@ If(
     Set(varFlStatus, {kept});
     {_admin_log().replace(chr(10), chr(10) + "    ")};
     Clear(colFlDeleted);
+    // Kopierne (Copy, issue #467) er gemt nu - ikke laengere "ny".
+    Clear(colFlCopies);
     Set(varFlInfo, "");
     {ok},
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
@@ -445,6 +447,7 @@ If(
     Set(varFlCanEdit, {perm.may_change("varFlReq.RequesterEmail", "varFlStatus", "varFlMe", resubmit=RESUBMIT)});
     Set(varFlViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varFlCanEdit));
     Clear(colFlDeleted);
+    Clear(colFlCopies);
     ClearCollect(
         colFlLoad,
         ForAll(

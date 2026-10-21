@@ -27,7 +27,7 @@ import fl_save as S
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
-                        C_CARD_BG, C_DIVIDER)
+                        C_CARD_BG, C_DIVIDER, C_INFO_BG)
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
@@ -56,13 +56,14 @@ def norm_fl(expr):
             f"Char(13), \"\"), Char(10), \"\")))")
 
 
-def add_row_fx():
+def add_row_fx(pos="0"):
     """FL63: en ny, tom raekke. Alle felter staar i raekken eller bag
-    dens popup-knapper - der er intet at folde ud (issue #232)."""
+    dens popup-knapper - der er intet at folde ud (issue #232). pos er
+    raekkens nummer (#) - 0, til valideringen regner det."""
     return ("Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, "
             "FL: \"\", Description: \"\", KksType: \"\", AssignedClass: \"\", Status: \"draft\", "
             "FirstIssue: \"\", FirstWarning: \"\", IssueCount: 0, WarningCount: 0, "
-            "Pos: 0, FlBad: false, DescBad: false, Hint: \"\" });\n"
+            f"Pos: {pos}, FlBad: false, DescBad: false, Hint: \"\" }});\n"
             "Set(varFlNextRowNo, varFlNextRowNo + 1)")
 
 
@@ -83,6 +84,27 @@ def capped_add_row_fx():
             "    " + REVERIFY.replace("\n", "\n    ") + "\n)")
 
 
+# EN TOM RAEKKE (issue #467): en raekke uden Functional Location og
+# Description - den samme definition som Paste rows' tomme raekker.
+EMPTY_ROW = "IsBlank(FL) && IsBlank(Description)"
+
+# NY RAEKKE AF SIG SELV (issue #467). Naar den SIDSTE raekke (hoejeste
+# RowNo) er Ready ("valid", btnFlRowStatus), tilfoejes een tom raekke -
+# men kun naar der ikke allerede er en tom raekke, og kun naar anmodningen
+# kan aendres. En tidligere raekke, der bliver Ready, goer intet. Koerer i
+# valideringen (fl_validation.verify_fx, afsnit G2) lige efter, at status
+# er regnet; den nye raekke er tom, saa dens status ("draft") og nummer er
+# allerede de rigtige - der skal ikke valideres igen. Add row er uaendret.
+AUTO_ROW_FX = (
+    "If(\n"
+    '    !varFlViewOnly && varFlStatus <> "Indsendt" &&\n'
+    f"    CountRows(colFlRows) < {MAX_ROWS} &&\n"
+    '    Last(Sort(colFlRows, RowNo)).Status = "valid" &&\n'
+    f"    IsEmpty(Filter(colFlRows, {EMPTY_ROW})),\n"
+    "    " + add_row_fx("CountRows(colFlRows) + 1").replace("\n", "\n    ") + "\n"
+    ")")
+
+
 # FL62: validering er AUTOMATISK (issue #77) - der er ingen Verify-knap.
 # Formlen staar KUN i den skjulte btnFlVerify (build_rows), og hver
 # aendring - ny raekke, rettet felt, slettet raekke, indlaest anmodning -
@@ -100,6 +122,43 @@ RemoveIf(colFlVals, RowGuid = {guid});
 RemoveIf(colFlIssues, RowGuid = {guid});
 If(CountRows(colFlRows) = 0, {add_row_fx()});
 {REVERIFY}"""
+
+
+def copy_row_fx(guid):
+    """COPY (issue #467): raekken guid kopieres til en ny, ugemt raekke -
+    Description og alle raekkens felter (colFlVals: Room, Sort field,
+    ATEX, Manufacturer, Warranty, klassedata ...). IKKE med: RowGuid,
+    RowNo og SpId (genereres), status og beskeder (regnes af
+    valideringen) og Functional Location - den skal vaere unik (FL5), saa
+    kopien faar et tomt felt at skrive den nye i. KKS type og klasse
+    regnes af den. Kopien staar i colFlCopies, til anmodningen er gemt
+    (row_cells markerer den). Staar der en tom raekke, rykkes den ned
+    under kopien, saa den tomme raekke bliver sidst."""
+    return f"""If(
+    CountRows(colFlRows) >= {MAX_ROWS},
+    Notify("{MAX_ROWS_MSG}", NotificationType.Error),
+    With(
+        {{ src: LookUp(colFlRows, RowGuid = {guid}), ng: Text(GUID()),
+           blank: First(Filter(colFlRows, {EMPTY_ROW})) }},
+        ClearCollect(colFlCopyVals,
+            ForAll(Filter(colFlVals, RowGuid = src.RowGuid) As V,
+                {{ RowGuid: ng, Field: V.Field, Value: V.Value }}));
+        Collect(colFlRows, {{ RowGuid: ng, RowNo: varFlNextRowNo, SpId: 0,
+            FL: "", Description: src.Description, KksType: "", AssignedClass: "",
+            Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0,
+            WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }});
+        Collect(colFlVals, colFlCopyVals);
+        Clear(colFlCopyVals);
+        Collect(colFlCopies, {{ RowGuid: ng }});
+        If(!IsBlank(blank.RowGuid),
+            Patch(colFlRows, LookUp(colFlRows, RowGuid = blank.RowGuid), {{ RowNo: varFlNextRowNo + 1 }});
+            Set(varFlNextRowNo, varFlNextRowNo + 2),
+            Set(varFlNextRowNo, varFlNextRowNo + 1));
+        Notify("Row " & src.Pos & " copied to a new row. Enter its Functional Location.",
+            NotificationType.Information)
+    );
+    {REVERIFY.replace(chr(10), chr(10) + "    ")}
+)"""
 
 
 def set_row_fx(guid, field, value):
@@ -410,10 +469,17 @@ FL_MIN = 140
 # og Warranty-knapper maa ikke goere raekken bredere: pladsen tages fra
 # Description's minimum (den kolonne med mest luft over sin overskrift),
 # og Sort Field er 72 px i stedet for 88 (ROW_VALS; overskriften er 56 px).
-V_BASE_MAX = 1258
+V_BASE_MAX = 1258 + 12 + 54
+# Actions: Copy og Delete, hver en ikonknap paa ACT_BTN (issue #467). De
+# 54 px og StrIndicators 12 ekstra (overskriften er bredere end "KKS type")
+# laegges til V_BASE_MAX, saa Description beholder sit minimum.
+ACT_BTN = 48
+ACT_W = 2 * ACT_BTN + VGAP
 # (navn, overskrift, bredde) efter Description. Delete er et ikon.
 # Class Data staar lige efter Assigned Class (issue #242).
-V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
+# StrIndicator og Class: samme navne som i Classes og sidepanelet (issue
+# #467 - foer "KKS type" og "Assigned class"). Kun etiketterne er nye.
+V_FIXED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", 96),
             ("ClsData", "Class data", _pop_w("Class data"))]
            # Reglernes etiket ("Sort Field") i appens sentence case (F1).
            + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
@@ -422,8 +488,8 @@ V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
               ("Mfr", "Manufacturer", MFR_WAR_W),
               ("War", "Warranty", MFR_WAR_W),
               ("Status", "Status", 80),
-              # "Actions" er 47 px i 11 px - knappen er et ikon.
-              ("Act", "Actions", 48)])
+              # Copy og Delete: to ikonknapper (issue #467).
+              ("Act", "Actions", ACT_W)])
 # Description faar det, der er tilbage af V_BASE_MAX - men aldrig mindre end
 # sin overskrift plus feltets padding.
 DESC_MIN = (V_BASE_MAX - FL_MIN - sum(w for _n, _l, w in V_FIXED)
@@ -496,7 +562,7 @@ def verify_button():
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
     skjult knap; den skal bare staa paa samme skaerm."""
     b = button("btnFlVerify", '"Verify"',
-               V.verify_fx(PANEL_REFRESH, after=S.submit_after_verify()),
+               V.verify_fx(PANEL_REFRESH, after=S.submit_after_verify(), grow=AUTO_ROW_FX),
                width=100, visible="false", accessible='"Validate the rows"')
     return b
 
@@ -527,6 +593,11 @@ def _pop_button(name, text, onselect, has, accessible, tooltip, display_mode):
     return mark_done(b, has)
 
 
+# En kopi, der ikke er gemt endnu (Copy, issue #467): colFlCopies toemmes,
+# naar anmodningen er gemt, hentet eller ny.
+COPIED = "ThisItem.RowGuid in colFlCopies.RowGuid"
+
+
 def row_cells():
     """Cellerne i een raekke (issue #232)."""
     row = "ThisItem"
@@ -537,6 +608,8 @@ def row_cells():
                     display_mode=DM_EDIT, label='"Functional Location"',
                     onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
     fl.props["BorderColor"] = _field_border(f"{row}.FlBad", f'{row}.Status <> "draft"')
+    # En kopi (Copy, issue #467) beder om sin nye Functional Location.
+    fl.props["Placeholder"] = f'If({COPIED}, "New copy - enter FL", "")'
     desc = text_input("inpFlRowDesc", "ThisItem.Description", max_length=40, width="140",
                       display_mode=DM_EDIT, label='"Description"',
                       onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
@@ -619,9 +692,22 @@ def row_cells():
                     accessible='"Delete row " & ThisItem.Pos', tooltip='"Delete row " & ThisItem.Pos')
     delete.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(delete, square=False)
-    # Samme raekkefoelge som V_FIXED: Class data lige efter Assigned Class.
+    # Copy (issue #467): raekken til en ny, ugemt raekke - foran Delete.
+    copy = button("btnFlRowCopy", '"Copy"', copy_row_fx("ThisItem.RowGuid"),
+                  width=ACT_BTN, height=30, icon="Copy",
+                  # En tom raekke kopieres ikke - der maa kun vaere een.
+                  display_mode=("If(varFlViewOnly || varFlStatus = \"Indsendt\", DisplayMode.View, "
+                                "IsBlank(ThisItem.FL) && IsBlank(ThisItem.Description), "
+                                "DisplayMode.Disabled, DisplayMode.Edit)"),
+                  accessible='"Copy row " & ThisItem.Pos', tooltip='"Copy row " & ThisItem.Pos')
+    copy.props["Layout"] = "ButtonLayout.IconOnly"
+    ensure_hit(copy, square=False)
+    delete.props["Width"] = str(ACT_BTN)
+    actions = group("conFlRowAct", [copy, delete], direction="Horizontal", gap=VGAP,
+                    height=lay.HIT, align_items="Center")
+    # Samme raekkefoelge som V_FIXED: Class data lige efter Class.
     return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex]
-                  + pops[1:] + [status, delete])
+                  + pops[1:] + [status, actions])
 
 
 # --- Sidepanelet (raekkens editor, issue #278) -------------------------------
@@ -650,7 +736,7 @@ PANEL_CLS = f'Coalesce({PANEL_DR}.AssignedClass, "NO CLASS")'
 
 
 def _panel_row_only():
-    """Assigned class: raekkens klasse, kun til visning."""
+    """Class: raekkens klasse, kun til visning."""
     f = cfg.PANEL_ROW_ONLY
     pane, lbl = next((p, l) for x, p, l in cfg.PANEL_FIELDS if x == f)
     return (f'{{ Column: "{lbl}", Field: "{f}", Editable: false, List: "", MaxLen: 0, '
@@ -763,8 +849,8 @@ def _panel_section(key, title):
     fields = [_panel_grid(key, f'"{title}"', PANEL_COLS)]
     sub = cfg.PANEL_SUB.get(key)
     if sub:
-        # KKS type og Assigned class paa een linje (issue #308).
-        fields.append(_panel_grid(sub, f'"{title} - KKS type and assigned class"', PANEL_SUB_COLS))
+        # StrIndicator og Class paa een linje (issue #308, navne #467).
+        fields.append(_panel_grid(sub, f'"{title} - StrIndicator and class"', PANEL_SUB_COLS))
     has = f'CountRows(Filter(colFlDet, Pane = "{key}")) > 0'
     # Aabnet fra en knap (PANEL_FOCUS): sektionerne, den ikke viser, er
     # foldet sammen.
@@ -961,7 +1047,9 @@ def build_rows():
     head = table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W)
     gal = table_gallery("galFlRows", '"Functional Location rows"',
                         "Sort(colFlRows, RowNo)", "CountRows(colFlRows)", row_cells(), "conFlRow",
-                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F)
+                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F,
+                        # En ny kopi kan ses paa sin baggrund (issue #467).
+                        row_fill=f"If({COPIED}, {C_INFO_BG}, {C_TRANSPARENT})")
     # Vandret scroll, naar tabellen er bredere end kortet (Equipment/
     # Materials' moenster, domain_parts). Start, ikke Stretch - check_layout
     # regel 14. Den vandrette scrollbar tager hoejde, saa den laegges til.
@@ -983,7 +1071,13 @@ def build_rows():
 # ---------------------------------------------------------------------------
 # #, Functional Location og Description bruger Rows' bredder (V_SPEC) og
 # mellemrum (VGAP), saa kolonnerne flugter med Rows ovenover (issue #356).
-CCOLS = Cols([("Str", "StrIndicator", 76), ("Cls", "Class", 96)], act_w=72,
+# Room, Sort field, ABC indicator og ATEX staar efter Class, kun til
+# visning - vaerdierne er raekkens (colFlVals) og rettes i Rows eller
+# sidepanelet (issue #467). Overskrifterne er Rows'.
+C_ROW_VALS = ("Room", "Sort", "Abc", "Atex")
+_V_LBL = {n: (l, w) for n, l, w in V_FIXED}
+CCOLS = Cols([("Str", "StrIndicator", 76), ("Cls", "Class", 96)]
+             + [(n, _V_LBL[n][0], _V_LBL[n][1]) for n in C_ROW_VALS], act_w=72,
              lead=V_SPEC[:3], gap=VGAP)
 C_SPEC = CCOLS.spec("Info", "Info", "Open", "Edit")
 C_GAL_W = f"({CCOLS.width}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
@@ -1063,6 +1157,15 @@ def build_classes():
     strc = text_ctrl("txtFlCStr", "ThisItem.KksType", size=13, height=20, wrap="false")
     clsc = text_ctrl("txtFlCCls", "ThisItem.AssignedClass", size=13, weight="Semibold",
                      height=20, wrap="false")
+    # Raekkens Room, Sort field, ABC indicator og ATEX - kun til visning
+    # (issue #467). Samme felter som Rows' celler (ROW_VALS, chkFlRowAtex).
+    ro_vals = []
+    for n, f in (("Room", "ROOM"), ("Sort", "SORT FIELD"), ("Abc", "ABC INDIC.")):
+        ro_vals.append(text_ctrl(f"txtFlC{n}", f'With({{ v: {_val(f)} }}, If(IsBlank(v), "-", v))',
+                                 size=13, height=20, wrap="false"))
+    ro_vals.append(text_ctrl("txtFlCAtex", f'If(Upper(Trim({_val("ATEX")})) = "X", "Yes", "-")',
+                             size=13, height=20, wrap="false",
+                             accessible='"ATEX: " & If(Self.Text = "Yes", "yes", "no")'))
     info_msg = "Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, \"\")"
     info = text_ctrl("txtFlCInfo", info_msg, size=13, color=_status_color("ThisItem"),
                      height=20, wrap="false")
@@ -1072,7 +1175,7 @@ def build_classes():
     open_ = button("btnFlCOpen", '"Edit"',
                    open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=72, height=30,
                    accessible='"Edit class data of " & ThisItem.FL')
-    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc, info, open_])
+    cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [info, open_])
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
                         cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W)
     # Vandret scroll, naar tabellen er bredere end kortet - som Rows'
@@ -1264,6 +1367,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
 # saa der kun er een liste.
 RESET_FX = """Clear(colFlRows);
 Clear(colFlDeleted);
+Clear(colFlCopies);
 Clear(colFlVals);
 Clear(colFlIssues);
 Clear(colFlIssuesRaw);

@@ -58,7 +58,7 @@ def rules():
 
 # --- sidepanelet (raekkens editor, issue #278) ---------------------------
 # Panelets sektioner i SAMME raekkefoelge som raekkens kolonner:
-#   Functional Location | Description | KKS type | Assigned class |
+#   Functional Location | Description | StrIndicator | Class |
 #   Class data | Room | Sort field | ABC indicator | ATEX |
 #   Manufacturer | Warranty
 # og derefter TRM. Class og TRM er reglernes Section; de andre deler
@@ -76,7 +76,8 @@ PANEL_SECTIONS = [
 ]
 # Reglernes sektioner, som sidepanelet ikke viser.
 HIDDEN_SECTIONS = ("Status", "Ext")
-# KKS type og Assigned class staar paa EEN linje sidst i Functional
+# StrIndicator og Class (issue #467: foer "KKS type" og "Assigned class")
+# staar paa EEN linje sidst i Functional
 # location-sektionen, lige foer Class data (issue #308) - et eget gitter
 # med to kolonner (een paa smalle skaerme), uden egen overskrift.
 PANEL_SUB = {"Main": "Kks"}
@@ -88,8 +89,8 @@ PANEL_SUB = {"Main": "Kks"}
 PANEL_FIELDS = [
     ("FUNCTIONAL LOCATION", "Main", "Functional Location"),
     ("DESCRIPTION", "Main", "Description"),
-    ("STRINDICATOR", "Kks", "KKS type"),
-    ("ASSIGNED CLASS", "Kks", "Assigned class"),
+    ("STRINDICATOR", "Kks", "StrIndicator"),
+    ("ASSIGNED CLASS", "Kks", "Class"),
     ("ROOM", "Loc", "Room"),
     ("SORT FIELD", "Loc", "Sort field"),
     ("ABC INDIC.", "Loc", "ABC indicator"),
