@@ -5579,6 +5579,7 @@ Screens:
                                         Set(varMdSapKey, ThisItem.RequestNo);
                                         Set(varMdSapSp, ThisItem.SourceItemId);
                                         Clear(colMdSapRows);
+                                        Set(varMdSapCopied, "");
                                         Set(varMdSapBusy, true);
                                         Set(varMdSapOpen, true);
                                         Set(varMdSapBase, With({ u: Trim(Coalesce(LookUp(AppSettings, Option.Value = "SapWebGuiBaseUrl" && Environment.Value = "DEV").AppUrl, "")) },
@@ -10676,7 +10677,7 @@ Screens:
                               ValidationState: |-
                                   =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                               Width: |-
-                                  =Min(240, RoundUp(2 * 13 + Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14)), 0))
+                                  =Min(240, RoundUp(2 * 13 + Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14)), 0))
                               X: |-
                                   =ThisItem.Lvl * 28 + 18
                               Y: |-
@@ -10712,19 +10713,87 @@ Screens:
                                   =ThisItem.Desc
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
+                              Visible: |-
+                                  =!(IfError(varMdSapCopied, "") = ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc)
                               Width: |-
-                                  =Max(0, If(!IsBlank(ThisItem.Url), (((Min(640, App.Width - 24) - 32) - 12) - 8) - 44 - 10 - 10, (((Min(640, App.Width - 24) - 32) - 12) - 8)) - (ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 43))
+                                  =Max(0, If(!IsBlank(ThisItem.Url), (((Min(640, App.Width - 24) - 32) - 12) - 8) - 78 - 12, (((Min(640, App.Width - 24) - 32) - 12) - 8)) - (ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15))
                               Wrap: |-
                                   =true
                               X: |-
-                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 43
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15
                               Y: |-
                                   =38 + 4
+                        - txtMdSapCopied:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Copied"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-ok-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =40
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Copied"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(IfError(varMdSapCopied, "") = ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc)
+                              Width: |-
+                                  =Max(0, If(!IsBlank(ThisItem.Url), (((Min(640, App.Width - 24) - 32) - 12) - 8) - 78 - 12, (((Min(640, App.Width - 24) - 32) - 12) - 8)) - (ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15))
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15
+                              Y: |-
+                                  =38 + 4
+                        - rctMdSapNoSep:
+                            Control: Rectangle
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Divider"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =C.'border-subtle'
+                              Height: |-
+                                  =28
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              Width: |-
+                                  =1
+                              X: |-
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38
+                              Y: |-
+                                  =48
                         - btnMdSapCopy:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Copy SAP number"
+                                  =If((IfError(varMdSapCopied, "") = ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc), "Copied", "Copy SAP number")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -10744,12 +10813,12 @@ Screens:
                               Height: |-
                                   =H.hit
                               Icon: |-
-                                  ="Copy"
+                                  =If((IfError(varMdSapCopied, "") = ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc), "Checkmark", "Copy")
                               Layout: |-
                                   =ButtonLayout.IconOnly
                               OnSelect: |-
                                   =Copy(ThisItem.No);
-                                  Set(gblToast, { Text: "Copied " & ThisItem.No & " to the clipboard.", Kind: "Success", At: Now() }); true
+                                  Set(varMdSapCopied, ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc)
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -10763,47 +10832,22 @@ Screens:
                               Text: |-
                                   =""
                               Tooltip: |-
-                                  ="Copy SAP number"
+                                  =If((IfError(varMdSapCopied, "") = ThisItem.Kind & "|" & ThisItem.No & "|" & ThisItem.Desc), "Copied", "Copy SAP number")
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
                                   =H.hit
                               X: |-
-                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 7 - (H.hit - 20) / 2
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 4 - (H.hit - 20) / 2
                               Y: |-
                                   =38 + (48 - Self.Height) / 2
-                        - rctMdSapSep:
-                            Control: Rectangle
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Divider"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Fill: |-
-                                  =C.'border-subtle'
-                              Height: |-
-                                  =28
-                              OnSelect: |-
-                                  =false
-                              TabIndex: |-
-                                  =0
-                              Visible: |-
-                                  =!IsBlank(ThisItem.Url)
-                              Width: |-
-                                  =1
-                              X: |-
-                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - 44 - 10
-                              Y: |-
-                                  =48
                         - imgMdSapLogo:
                             Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Open in SAP"
                               BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
+                                  =C.'border-input'
                               BorderStyle: |-
                                   =BorderStyle.Solid
                               BorderThickness: |-
@@ -10817,11 +10861,11 @@ Screens:
                               Height: |-
                                   =H.hit
                               HoverBorderColor: |-
-                                  =C.'color-brand-primary-soft'
+                                  =C.'color-brand-primary'
                               HoverFill: |-
                                   =C.'row-hover'
                               Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='32' viewBox='0 0 44 32'><path d='M2 6h40L22 26H2Z' fill='" & C.'hex-color-brand-primary' & "'/><text x='4.5' y='20.5' font-family='Arial, Helvetica, sans-serif' font-size='13' font-weight='700' font-style='italic' fill='" & C.'hex-text-on-primary' & "'>SAP</text></svg>")
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='78' height='32' viewBox='0 0 78 32'><path d='M10 6h40L30 26H10Z' fill='" & C.'hex-color-brand-primary' & "'/><text x='12.5' y='20.5' font-family='Arial, Helvetica, sans-serif' font-size='13' font-weight='700' font-style='italic' fill='" & C.'hex-text-on-primary' & "'>SAP</text><path d='M60 10h-5v13h13v-5M62 9h7v7M69 9l-8 8' fill='none' stroke='" & C.'hex-color-brand-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>")
                               ImagePosition: |-
                                   =ImagePosition.Center
                               OnSelect: |-
@@ -10845,9 +10889,9 @@ Screens:
                               Visible: |-
                                   =!IsBlank(ThisItem.Url)
                               Width: |-
-                                  =44
+                                  =78
                               X: |-
-                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - 44
+                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - 78
                               Y: |-
                                   =38 + (48 - Self.Height) / 2
                         - rctMdSapRule:
@@ -10873,6 +10917,29 @@ Screens:
                                   =ThisItem.Lvl * 28
                               Y: |-
                                   =85
+      - tmrMdSapCopied:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =2000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varMdSapCopied, "")
+            Repeat: |-
+                =false
+            Reset: |-
+                =IsBlank(IfError(varMdSapCopied, ""))
+            Start: |-
+                =!IsBlank(IfError(varMdSapCopied, ""))
+            Visible: |-
+                =false
+            Width: |-
+                =1
       - conMdNotesBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
