@@ -10676,16 +10676,55 @@ Screens:
                               ValidationState: |-
                                   =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                               Width: |-
-                                  =Min(200, 28 + 9 * Len(ThisItem.No))
+                                  =Min(240, RoundUp(2 * 13 + Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14)), 0))
                               X: |-
                                   =ThisItem.Lvl * 28 + 18
                               Y: |-
                                   =38 + (48 - 32) / 2
+                        - txtMdSapDesc:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =40
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  =ThisItem.Desc
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =Max(0, If(!IsBlank(ThisItem.Url), (((Min(640, App.Width - 24) - 32) - 12) - 8) - 44 - 10 - 10, (((Min(640, App.Width - 24) - 32) - 12) - 8)) - (ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 43))
+                              Wrap: |-
+                                  =true
+                              X: |-
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 43
+                              Y: |-
+                                  =38 + 4
                         - btnMdSapCopy:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Copy " & ThisItem.Kind & " " & ThisItem.No
+                                  ="Copy SAP number"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -10724,54 +10763,15 @@ Screens:
                               Text: |-
                                   =""
                               Tooltip: |-
-                                  ="Copy " & ThisItem.No
+                                  ="Copy SAP number"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
                                   =H.hit
                               X: |-
-                                  =ThisItem.Lvl * 28 + 18 + Min(200, 28 + 9 * Len(ThisItem.No))
+                                  =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * 0.6 * (If(LayoutRank < 2, 16, 14))) + 7 - (H.hit - 20) / 2
                               Y: |-
                                   =38 + (48 - Self.Height) / 2
-                        - txtMdSapDesc:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =Self.Text
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =40
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =T.body
-                              Text: |-
-                                  =ThisItem.Desc
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =Max(0, If(!IsBlank(ThisItem.Url), (((Min(640, App.Width - 24) - 32) - 12) - 8) - H.hit - 4 - 44 - 10 - 10, (((Min(640, App.Width - 24) - 32) - 12) - 8)) - (ThisItem.Lvl * 28 + 18 + Min(200, 28 + 9 * Len(ThisItem.No)) + H.hit + 10))
-                              Wrap: |-
-                                  =true
-                              X: |-
-                                  =ThisItem.Lvl * 28 + 18 + Min(200, 28 + 9 * Len(ThisItem.No)) + H.hit + 10
-                              Y: |-
-                                  =38 + 4
                         - rctMdSapSep:
                             Control: Rectangle
                             Properties:
@@ -10794,18 +10794,20 @@ Screens:
                               Width: |-
                                   =1
                               X: |-
-                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - H.hit - 4 - 44 - 10
+                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - 44 - 10
                               Y: |-
                                   =48
                         - imgMdSapLogo:
                             Control: Image
                             Properties:
                               AccessibleLabel: |-
-                                  ="Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"
+                                  ="Open in SAP"
+                              BorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
                               BorderStyle: |-
-                                  =BorderStyle.None
+                                  =BorderStyle.Solid
                               BorderThickness: |-
-                                  =0
+                                  =1
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               FocusedBorderColor: |-
@@ -10814,6 +10816,8 @@ Screens:
                                   =2
                               Height: |-
                                   =H.hit
+                              HoverBorderColor: |-
+                                  =C.'color-brand-primary-soft'
                               HoverFill: |-
                                   =C.'row-hover'
                               Image: |-
@@ -10822,8 +10826,10 @@ Screens:
                                   =ImagePosition.Center
                               OnSelect: |-
                                   =Launch(ThisItem.Url)
+                              PressedBorderColor: |-
+                                  =C.'color-brand-primary'
                               PressedFill: |-
-                                  =C.'row-hover'
+                                  =C.'row-pressed'
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -10841,54 +10847,7 @@ Screens:
                               Width: |-
                                   =44
                               X: |-
-                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - H.hit - 4 - 44
-                              Y: |-
-                                  =38 + (48 - Self.Height) / 2
-                        - imgMdSapLink:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FocusedBorderColor: |-
-                                  =C.'color-brand-primary'
-                              FocusedBorderThickness: |-
-                                  =2
-                              Height: |-
-                                  =H.hit
-                              HoverFill: |-
-                                  =C.'row-hover'
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-color-brand-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3.5h6.5V10 M20.5 3.5 11 13 M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10'/></g></svg>")
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Launch(ThisItem.Url)
-                              PressedFill: |-
-                                  =C.'row-hover'
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =0
-                              Tooltip: |-
-                                  ="Open in SAP"
-                              Visible: |-
-                                  =!IsBlank(ThisItem.Url)
-                              Width: |-
-                                  =H.hit
-                              X: |-
-                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - H.hit
+                                  =(((Min(640, App.Width - 24) - 32) - 12) - 8) - 44
                               Y: |-
                                   =38 + (48 - Self.Height) / 2
                         - rctMdSapRule:

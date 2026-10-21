@@ -8,9 +8,12 @@ HVAD BRUGEREN SER
 Kolonnen SAP OBJECT (build_hub.SAP_COL) har et lille link-ikon, naar
 anmodningen er oprettet i SAP. Et tryk aabner en skrivebeskyttet popup med
 de SAP-objekter, anmodningen har oprettet: objekttypen, SAP-nummeret (som
-tekst, der kan markeres og kopieres) og en beskrivelse. Ved siden af
-nummeret staar et link-ikon, der aabner objektet i SAP WebGUI - KUN naar en
-hel, gyldig URL kan dannes.
+tekst, der kan markeres og kopieres), et kopier-ikon lige efter nummeret og
+en beskrivelse. Yderst til hoejre staar SAP-maerket, som er den ENE
+"Open in SAP"-handling (issue #500) - KUN naar en hel, gyldig URL kan
+dannes.
+
+    SAP-nummer -> kopier-ikon -> beskrivelse -> SAP-maerke
 
 INGEN EKSTRA KALD VED START
 ---------------------------
@@ -47,7 +50,8 @@ med EncodeUrl og kommer altid fra raekkens egne vaerdier.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE,
-                        C_TRANSPARENT, C_ROW_HOVER, C_PRIMARY, C_DIVIDER, C_MUTED_BG)
+                        C_TRANSPARENT, C_ROW_HOVER, C_ROW_PRESSED, C_PRIMARY, C_DIVIDER,
+                        C_MUTED_BG)
 from build_helpers import (group, text_ctrl, grow, spinner, close_x, text_input, ensure_hit,
                            button)
 from hub_config import DOMAINS
@@ -229,13 +233,25 @@ NO_X = 18            # nummerets felt, fra niveauets x
 NO_H = 32
 LINK = 32
 SAP_LOGO_W = 44
+# Kopier-ikonet taet ved nummeret (issue #500: ca. 6-8 px). Nummerfeltet er
+# saa bredt som teksten (skoen nedenfor), og kopier-knappen placeres, saa
+# selve symbolet staar COPY_GAP efter tekstens slutning. Fluents tekstfelt
+# har ca. 13 px fra kanten til teksten (1 kant + 10 + 2 polstring); Segoe
+# UI's cifre er 0,55 em og versaler lidt bredere - 0,6 em er et rummeligt
+# gennemsnit. Ikon-knappens symbol er 20 px og staar midt i knappen.
+NO_PAD = 13
+NO_CH = 0.6
+COPY_GAP = 7
+COPY_ICON = 20
+DESC_GAP = 16        # luft fra kopier-symbolet til beskrivelsen
 SB = 12              # plads til galleriets scrollbar
 EDGE = f"({GW} - {SB})"            # bjaelkernes hoejre kant
-RIGHT = f"({EDGE} - 8)"            # link-ikonets hoejre kant - alle niveauer
+RIGHT = f"({EDGE} - 8)"            # SAP-maerkets hoejre kant - alle niveauer
 
-# SAP-maerket ved link-ikonet (mockuppen): SAP-fladen med "SAP" i hvidt.
-# I appens brandfarve (som link-ikonet), saa den foelger temaet - farver
-# staar kun i design_tokens.py.
+# SAP-maerket (mockuppen): SAP-fladen med "SAP" i hvidt. I appens
+# brandfarve, saa den foelger temaet - farver staar kun i design_tokens.py.
+OPEN_LABEL = '"Open in SAP"'
+COPY_LABEL = '"Copy SAP number"'
 def _sap_logo_uri():
     fill = '" & ' + _ref("color-brand-primary") + ' & "'
     ink = '" & ' + _ref("text-on-primary") + ' & "'
@@ -245,13 +261,6 @@ def _sap_logo_uri():
            "<text x='4.5' y='20.5' font-family='Arial, Helvetica, sans-serif' font-size='13' "
            f"font-weight='700' font-style='italic' fill='{ink}'>SAP</text></svg>")
     return '"data:image/svg+xml;utf8," & EncodeUrl("' + svg + '")'
-
-
-def _sap_open_svg():
-    import icons
-    return ('"data:image/svg+xml;utf8," & EncodeUrl("'
-            + icons.svg(icons.OPEN_EXTERNAL, '" & ' + _ref("color-brand-primary") + ' & "', size=18, box=LINK)
-            + '")')
 
 
 def _ref(token):
@@ -297,10 +306,14 @@ def build_popup():
     # Nummeret: et skrivebeskyttet tekstfelt (View), saa det kan markeres
     # og kopieres - en ModernText kan ikke markeres. Uden ramme og fyld
     # (issue #488): det ser ud som almindelig tekst.
-    no_w = "Min(200, 28 + 9 * Len(ThisItem.No))"
-    no = text_input(n("inp", "No"), "ThisItem.No", height=NO_H, width=no_w,
+    no = text_input(n("inp", "No"), "ThisItem.No", height=NO_H, width="0",
                     display_mode="DisplayMode.View",
                     label='ThisItem.Kind & " SAP number " & ThisItem.No')
+    # Feltet er saa bredt som teksten + polstring i begge sider. Skriften
+    # er stoerre paa mobil (input_theme), saa bredden foelger feltets Size.
+    text_w = f"Len(ThisItem.No) * {NO_CH} * ({no.props['Size']})"
+    no_w = f"Min(240, RoundUp(2 * {NO_PAD} + {text_w}, 0))"
+    no.props["Width"] = no_w
     no.props.update({
         # input_theme giver allerede Outline i View (gennemsigtig flade);
         # her fjernes ogsaa kanten.
@@ -308,60 +321,52 @@ def build_popup():
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
         "Color": C_TITLE, "X": f"{x0} + {NO_X}", "Y": f"{line_y} + ({LINE_H} - {NO_H}) / 2",
     })
-    # Kopier-ikonet taet ved nummeret (som KKS-tabellens raekker).
+    # Kopier-ikonet hoerer til nummeret (issue #500): symbolet staar
+    # COPY_GAP efter tekstens slutning - knappens egen luft om symbolet
+    # ((bredde - 20) / 2) traekkes fra, saa afstanden er den samme paa
+    # desktop (32) og touch (44).
     copy = button(n("btn", "Copy"), '""',
                   'Copy(ThisItem.No);\nNotify("Copied " & ThisItem.No & " to the clipboard.", '
                   'NotificationType.Success)',
                   width=LINK, height=LINK, icon="Copy",
-                  accessible='"Copy " & ThisItem.Kind & " " & ThisItem.No',
-                  tooltip='"Copy " & ThisItem.No')
+                  accessible=COPY_LABEL, tooltip=COPY_LABEL)
     copy.props["Layout"] = "ButtonLayout.IconOnly"
     copy.props["BorderColor"] = C_TRANSPARENT
     copy.props["AlignInContainer"] = "AlignInContainer.Start"
     ensure_hit(copy)
-    copy_x = f"{x0} + {NO_X} + {no_w}"
+    copy_w = copy.props["Width"]
+    text_end = f"{x0} + {NO_X} + {NO_PAD} + Min(240 - {2 * NO_PAD}, {text_w})"
+    copy_x = f"{text_end} + {COPY_GAP} - ({copy_w} - {COPY_ICON}) / 2"
     copy.props["X"] = copy_x
     copy.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
-    # Til hoejre: SAP-maerket og link-ikonet sammen, paa samme x i alle
-    # niveauer, og en lodret skillestreg foran dem. Kun naar en hel URL
-    # kunne dannes (url_fx giver "" ellers).
+    # Til hoejre: SAP-maerket er den ENE "Open in SAP"-handling (issue
+    # #500), yderst til hoejre paa samme x i alle niveauer, med en lodret
+    # skillestreg foran. Kun naar en hel URL kunne dannes (url_fx giver ""
+    # ellers). Hover, tryk og tastaturfokus ses som flade og kant.
     has_url = "!IsBlank(ThisItem.Url)"
-    link = Ctrl(n("img", "Link"), "Image", props={
-        "AccessibleLabel": '"Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"',
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Fill": C_TRANSPARENT, "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
-        "Height": str(LINK), "HoverFill": C_ROW_HOVER, "PressedFill": C_ROW_HOVER,
-        "Image": _sap_open_svg(), "ImagePosition": "ImagePosition.Fit",
-        "OnSelect": "Launch(ThisItem.Url)", "TabIndex": "0",
-        "Tooltip": '"Open in SAP"', "Visible": has_url,
-        "Width": str(LINK), "X": "0", "Y": "0",
-        "RadiusTopLeft": "6", "RadiusTopRight": "6", "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
-    }, h=LINK, vis=has_url)
-    # Klikfladen er H.hit (32 paa desktop, 44 paa touch); symbolet staar i midten.
-    ensure_hit(link)
-    link_w = link.props["Width"]
-    link.props["X"] = f"{RIGHT} - {link_w}"
-    link.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
-    logo_x = f"{RIGHT} - {link_w} - 4 - {SAP_LOGO_W}"
     logo = Ctrl(n("img", "Logo"), "Image", props={
-        "AccessibleLabel": '"Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"',
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Fill": C_TRANSPARENT, "Height": str(LINK), "HoverFill": C_ROW_HOVER,
-        "PressedFill": C_ROW_HOVER, "Image": _sap_logo_uri(),
+        "AccessibleLabel": OPEN_LABEL,
+        "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
+        "Fill": C_TRANSPARENT, "Height": str(LINK),
+        "HoverBorderColor": C_PRIMARY_SOFT, "HoverFill": C_ROW_HOVER,
+        "PressedBorderColor": C_PRIMARY, "PressedFill": C_ROW_PRESSED,
+        "Image": _sap_logo_uri(),
         "ImagePosition": "ImagePosition.Center",
-        # Samme handling som link-ikonet.
         "OnSelect": "Launch(ThisItem.Url)", "TabIndex": "0",
         "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
-        "Tooltip": '"Open in SAP"', "Visible": has_url,
-        "Width": str(SAP_LOGO_W), "X": logo_x,
+        "Tooltip": OPEN_LABEL, "Visible": has_url,
+        "Width": str(SAP_LOGO_W), "X": f"{RIGHT} - {SAP_LOGO_W}",
         "Y": f"{line_y} + ({LINE_H} - {LINK}) / 2",
         "RadiusTopLeft": "6", "RadiusTopRight": "6", "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
     }, h=LINK, vis=has_url)
     ensure_hit(logo, square=False)
     logo.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
+    logo_x = logo.props["X"]
     sep_x = f"{logo_x} - 10"
     sep = _line(n("rct", "Sep"), sep_x, line_y + 10, 1, LINE_H - 20, visible=has_url)
-    desc_x = f"{copy_x} + {copy.props['Width']} + 10"
+    # Beskrivelsen efter kopier-symbolet med tydelig luft (DESC_GAP).
+    # Knappens hoejre kant (symbol + dens luft) naar aldrig ind over den.
+    desc_x = f"{text_end} + {COPY_GAP + COPY_ICON + DESC_GAP}"
     desc_end = f"If({has_url}, {sep_x} - 10, {RIGHT})"
     desc = text_ctrl(n("txt", "Desc"), "ThisItem.Desc", size=lay.SIZE_BODY, color=C_TITLE,
                      height=LINE_H - 8, wrap="true", width=f"Max(0, {desc_end} - ({desc_x}))",
@@ -378,7 +383,7 @@ def build_popup():
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Visible": f"!{BUSY} && !IsEmpty({ROWS})",
         "Width": GW, "WrapCount": "1",
-    }, children=[l_v, l_h, bar, guide, no, copy, desc, sep, logo, link, rule], h=MAX_ROWS * ROW_H)
+    }, children=[l_v, l_h, bar, guide, no, desc, copy, sep, logo, rule], h=MAX_ROWS * ROW_H)
 
     title = text_ctrl(n("txt", "Title"), '"SAP objects"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false", width="120")

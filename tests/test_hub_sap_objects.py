@@ -137,7 +137,7 @@ def test_popup_is_read_only_with_the_x_close():
     assert "- btnMdSapClose:" in pop
     no = _block(pop, "inpMdSapNo")
     assert "DisplayMode.View" in no
-    link = _block(pop, "imgMdSapLink")
+    link = _block(pop, "imgMdSapLogo")
     assert "=Launch(ThisItem.Url)" in link and "=!IsBlank(ThisItem.Url)" in link
     # Ingen Patch/Remove i popuppen.
     assert "Patch(" not in pop and "Remove(" not in pop
@@ -176,15 +176,72 @@ def test_popup_rows_follow_the_hierarchy_and_right_icons_line_up():
     # "L"-et foran under-niveauerne.
     for name in ("rctMdSapTreeV", "rctMdSapTreeH"):
         assert _prop(_block(pop, name), "Visible") == "ThisItem.Lvl > 0"
-    # SAP-maerket og link-ikonet: samme x i alle niveauer, samme synlighed.
-    logo, link = _block(pop, "imgMdSapLogo"), _block(pop, "imgMdSapLink")
-    for b in (logo, link):
-        assert "ThisItem.Lvl" not in _prop(b, "X")
-        assert _prop(b, "Visible") == "!IsBlank(ThisItem.Url)"
-        assert _prop(b, "OnSelect") == "Launch(ThisItem.Url)"
+    # SAP-maerket: samme x i alle niveauer, kun med en URL.
+    logo = _block(pop, "imgMdSapLogo")
+    assert "ThisItem.Lvl" not in _prop(logo, "X")
+    assert _prop(logo, "Visible") == "!IsBlank(ThisItem.Url)"
+    assert _prop(logo, "OnSelect") == "Launch(ThisItem.Url)"
     # Nummeret er markerbar tekst uden ramme, med kopier-ikonet lige efter.
     no = _block(pop, "inpMdSapNo")
     assert _prop(no, "BorderThickness") == "0" and "DisplayMode.View" in no
     copy = _block(pop, "btnMdSapCopy")
     assert "Copy(ThisItem.No)" in copy
-    assert _prop(copy, "X").startswith(_prop(no, "X") + " + " + _prop(no, "Width"))
+    assert _prop(copy, "X").startswith(_prop(no, "X") + " + ")
+
+
+# ---------------------------------------------------------------------------
+# Issue #500: een "Open in SAP"-handling (SAP-maerket) yderst til hoejre, og
+# kopier-ikonet taet ved nummeret: nummer -> kopier -> beskrivelse -> SAP.
+# ---------------------------------------------------------------------------
+def _px(expr, no="37013402", lvl=0, rank=3, hit=32, w=1366):
+    """Et X/Width-udtryk fra popuppen som tal (Min/Max/If/RoundUp/Len)."""
+    py = (expr.replace("ThisItem.Lvl", str(lvl)).replace("ThisItem.No", repr(no))
+          .replace("LayoutRank", str(rank)).replace("H.hit", str(hit))
+          .replace("App.Width", str(w)).replace("!IsBlank(ThisItem.Url)", "True"))
+    env = {"Min": min, "Max": max, "Len": len, "If": lambda c, a, b: a if c else b,
+           "RoundUp": lambda v, d: -(-v // 1)}
+    return eval(py, env)
+
+
+def test_only_one_open_in_sap_action_at_the_far_right():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    assert "imgMdSapLink" not in pop
+    assert pop.count("=Launch(ThisItem.Url)") == 1
+    logo = _block(pop, "imgMdSapLogo")
+    assert _prop(logo, "Tooltip") == '"Open in SAP"'
+    assert _prop(logo, "AccessibleLabel") == '"Open in SAP"'
+    # Hover, tryk og tastaturfokus kan ses.
+    for key in ("HoverFill", "PressedFill", "HoverBorderColor", "PressedBorderColor",
+                "FocusedBorderColor"):
+        assert _prop(logo, key), key
+    assert _prop(logo, "HoverFill") != _prop(logo, "PressedFill")
+    assert _prop(logo, "FocusedBorderThickness") == "2" and _prop(logo, "TabIndex") == "0"
+    # Hoejre kant = bjaelkernes hoejre kant - 8, paa alle bredder.
+    for w in (390, 800, 1366):
+        right = _px(so.RIGHT, w=w)
+        assert _px(_prop(logo, "X"), w=w) + so.SAP_LOGO_W == right
+
+
+def test_copy_icon_sits_close_to_the_number_before_the_description():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    no, copy, desc = (_block(pop, k) for k in ("inpMdSapNo", "btnMdSapCopy", "txtMdSapDesc"))
+    assert _prop(copy, "Tooltip") == '"Copy SAP number"'
+    assert _prop(copy, "AccessibleLabel") == '"Copy SAP number"'
+    for number in ("37013402", "PMSSV01", "1"):
+        for rank, hit in ((3, 32), (1, 44)):
+            for lvl in (0, 1, 2):
+                kw = dict(no=number, lvl=lvl, rank=rank, hit=hit)
+                size = 16 if rank < 2 else 14
+                text_end = (_px(_prop(no, "X"), **kw) + so.NO_PAD
+                            + len(number) * so.NO_CH * size)
+                cx, cw = _px(_prop(copy, "X"), **kw), hit
+                icon_left = cx + (cw - so.COPY_ICON) / 2
+                assert 6 <= icon_left - text_end <= 8, (number, rank, lvl)
+                # Feltet daekker teksten; knappen slutter foer beskrivelsen.
+                assert (_px(_prop(no, "X"), **kw) + _px(_prop(no, "Width"), **kw)
+                        >= text_end)
+                dx = _px(_prop(desc, "X"), **kw)
+                assert dx >= cx + cw and dx - (icon_left + so.COPY_ICON) >= 12
+                # Beskrivelsen slutter foer SAP-maerkets skillestreg.
+                assert dx + _px(_prop(desc, "Width"), **kw) <= _px(_prop(
+                    _block(pop, "imgMdSapLogo"), "X"), **kw) - 10
