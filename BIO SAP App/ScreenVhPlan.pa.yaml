@@ -8734,7 +8734,7 @@ Screens:
                                                                                       ClearCollect(
                                                                           colVhpFl,
                                                                           ForAll(
-                                                                              Table(ParseJSON(varVhpFlRaw.functionallocationoutput)) As R,
+                                                                              Filter(Table(ParseJSON(varVhpFlRaw.functionallocationoutput)), Boolean(ThisRecord.Value.maintainable)) As R,
                                                                               {
                                                                                   Code: Text(R.Value.functionKey),
                                                                                   Description: Text(R.Value.description),
@@ -8748,7 +8748,7 @@ Screens:
                                                                                   );
                                                                                   If(
                                                                                       CountRows(colVhpFl) = 0,
-                                                                                      Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                                                      Set(gblToast, { Text: "No maintainable functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                           Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                           Reset(cmbVhpItemFL);
                                                                                           If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && !StartsWith(Code, varVhpFlPick)); UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
@@ -8759,7 +8759,7 @@ Screens:
                                                                                           { n: CountRows(colVhpFl) },
                                                                                           If(
                                                                                               n = 0,
-                                                                                              "No Functional Locations found for " & Upper(q) & ".",
+                                                                                              "No maintainable functional locations found for " & Upper(q) & ".",
                                                                                               Text(n) & " Functional Locations found for " & Upper(q) & ". " &
                                                                                                   If(
                                                                                                       n > 50,
@@ -8889,7 +8889,7 @@ Screens:
                                                                                             ClearCollect(
                                                                                 colVhpFl,
                                                                                 ForAll(
-                                                                                    Table(ParseJSON(varVhpFlRaw.functionallocationoutput)) As R,
+                                                                                    Filter(Table(ParseJSON(varVhpFlRaw.functionallocationoutput)), Boolean(ThisRecord.Value.maintainable)) As R,
                                                                                     {
                                                                                         Code: Text(R.Value.functionKey),
                                                                                         Description: Text(R.Value.description),
@@ -8903,7 +8903,7 @@ Screens:
                                                                                         );
                                                                                         If(
                                                                                             CountRows(colVhpFl) = 0,
-                                                                                            Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                                                            Set(gblToast, { Text: "No maintainable functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                                 Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                                 Reset(cmbVhpItemFL);
                                                                                                 If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(varVhpFlPick) && (varVhpFlPick) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation & "")), RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && !StartsWith(Code, varVhpFlPick)); UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { FunctionalLocation: varVhpFlPick, FlDescription: LookUp(colVhpFl, Code = varVhpFlPick).Description }))
@@ -8914,7 +8914,7 @@ Screens:
                                                                                                 { n: CountRows(colVhpFl) },
                                                                                                 If(
                                                                                                     n = 0,
-                                                                                                    "No Functional Locations found for " & Upper(q) & ".",
+                                                                                                    "No maintainable functional locations found for " & Upper(q) & ".",
                                                                                                     Text(n) & " Functional Locations found for " & Upper(q) & ". " &
                                                                                                         If(
                                                                                                             n > 50,
