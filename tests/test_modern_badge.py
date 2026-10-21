@@ -50,7 +50,6 @@ BADGES = {
         "bdgIbDetNo": ("varIbSel.TicketNo", "C.'color-brand-primary'", "C.'bg-muted'"),
         "bdgIbDetStatus": (None, None, None),
         "bdgIbDetPriority": (None, None, None),
-        "bdgIbActRole": ("ThisItem.Role", None, None),
     },
     "ScreenMdHub.pa.yaml": {
         "bdgMdAprNo": ("varMdAprReq.RequestNo", None, None),
@@ -105,8 +104,9 @@ def test_every_badge_is_modern_badge_with_our_colors():
             for bad in ("Text", "TabIndex", "FontColor", "FontSize", "ThemeColor", "Image"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    # + 1: SAP OBJECT-popuppens nummerbadge (issue #471).
-    assert total == 18
+    # + 1: SAP OBJECT-popuppens nummerbadge (issue #471); - 1: Activity's
+    # rollemaerke (issue #475 - rollen staar nu i typen).
+    assert total == 17
 
 
 def test_old_controls_are_gone():
