@@ -73,8 +73,9 @@ def _parts():
 def test_header_order_after_sort_field():
     heads = [_prop(n, "Text").strip('"') for n in _children("conFlRowsHead")]
     # Sentence case (UX-review F1/T7); Functional Location og ATEX er navne.
+    # Issue #468: de kolonner, Classes deler, foerst - saa Class data.
     assert heads == ["#", "Functional Location", "Description", "StrIndicator", "Class",
-                     "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
+                     "Room", "Sort field", "ABC indicator", "ATEX", "Class data",
                      "Manufacturer", "Warranty", "Status", "Actions"]
 
 
@@ -82,8 +83,8 @@ def test_row_cells_follow_the_header():
     """Raekkens celler (efter udfoldningen i galleriet) i samme raekkefoelge."""
     kids = _children("galFlRows")
     cells = ["txtFlRowNo", "inpFlRowFl", "inpFlRowDesc", "txtFlRowKks", "txtFlRowCls",
-             "btnFlRowClassData", "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc",
-             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowStatus", "btnFlRowCopy",
+             "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc",
+             "chkFlRowAtex", "btnFlRowClassData", "btnFlRowMfr", "btnFlRowWar", "btnFlRowStatus", "btnFlRowCopy",
              "btnFlRowDelete"]
     assert [k for k in kids if k in cells] == cells
     # Ingen Warranty Start/End-kolonner og ingen Validation-kolonne.
@@ -246,23 +247,24 @@ def test_class_data_popup_is_gone():
         assert gone not in text, gone
 
 
-def test_spare_width_is_shared_by_the_columns():
-    """Issue #242: Functional Location og Description faar omtrent den
-    halve desktopbredde, og resten af den ekstra plads deles af de andre
-    kolonner. Overskrift og raekke har samme bredde pr. kolonne."""
-    from fractions import Fraction as F
+def test_only_fl_and_description_grow_and_only_to_a_cap():
+    """Issue #468 (afloeser #242's deling): kun Functional Location og
+    Description faar ekstra plads, og kun til FL_MAX/DESC_MAX. De andre
+    kolonner er kompakte og faste, og tabellen fylder ikke kortet ud -
+    Actions staar lige efter den sidste kolonne."""
     p = _parts()
-    pair = F(p.V_PAIR_SHARE.replace(" ", ""))
-    grow = F(p.V_GROW_SHARE.replace(" ", ""))
-    desc_share = F(p.V_DESC_SHARE.replace(" ", ""))
-    assert pair + desc_share + len(p.V_GROW) * grow == 1
-    # Statuskolonnen er fast bredde; de to foerste felter beholder deres minimum.
-    rows = 1920 - 56 - 64 - 36 - 18 - 40
-    spare = rows - (34 + p.V_BASE)
-    fl = p.FL_MIN + spare * pair
-    desc = p.DESC_MIN + spare * desc_share
-    assert fl >= p.FL_MIN, fl
-    assert desc >= p.DESC_MIN, desc
+    assert p.FL_MAX > p.FL_MIN and p.DESC_MAX > p.DESC_MIN
+    assert f"Min({p.FL_MAX - p.FL_MIN}, " in p.V_FL_W
+    assert f"Min({p.DESC_MAX - p.DESC_MIN}, " in p.V_DESC_W
+    # FL og Description er de bredeste kolonner, naar de har deres loft.
+    rest = [w for n, _l, w in p.V_FIXED]
+    assert p.FL_MAX > max(rest) and p.DESC_MAX > max(rest)
+    for n, _l, w in p.V_FIXED:
+        assert isinstance(w, int), n
+        assert p.V_SPARE not in _prop(f"txtFlRowsHead{n}", "Width"), n
+    # Tabellen er sine kolonner - ikke kortets bredde.
+    assert not p.V_W.startswith("Max(")
+    assert _prop("galFlRows", "Width") == p.V_GAL_W
     # Hver celle i raekken har samme bredde som sin overskrift.
     pairs = (("Fl", "inpFlRowFl"), ("Desc", "inpFlRowDesc"), ("Kks", "txtFlRowKks"),
              ("Cls", "txtFlRowCls"), ("ClsData", "btnFlRowClassData"),
@@ -274,7 +276,3 @@ def test_spare_width_is_shared_by_the_columns():
     # Actions: Copy og Delete side om side under een overskrift (issue #467).
     assert _prop("txtFlRowsHeadAct", "Width") == str(p.ACT_W)
     assert _prop("btnFlRowCopy", "Width") == _prop("btnFlRowDelete", "Width") == str(p.ACT_BTN)
-    for n in p.V_GROW:
-        assert p.V_SPARE in _prop(f"txtFlRowsHead{n}", "Width"), n
-    for n in ("Atex", "Act"):
-        assert "Max(0" not in _prop(f"txtFlRowsHead{n}", "Width"), n

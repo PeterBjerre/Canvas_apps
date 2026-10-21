@@ -126,7 +126,9 @@ def test_kks_type_beside_assigned_class_before_class_data():
     cols = T._prop("galFlPanelKksFields", "WrapCount")
     assert cols.startswith("If((") and cols.endswith(", 2, 1)")
     sections = T._children("conFlEditorSections")
-    assert sections.index("conFlPanelMain") + 1 == sections.index("conFlPanelClass")
+    # Issue #468: Location and indicators foer Class data, som i raekken.
+    assert sections.index("conFlPanelMain") + 1 == sections.index("conFlPanelLoc")
+    assert sections.index("conFlPanelLoc") + 1 == sections.index("conFlPanelClass")
 
 
 def test_dropdowns_use_the_materials_style():
