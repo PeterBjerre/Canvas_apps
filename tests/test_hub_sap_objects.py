@@ -199,7 +199,8 @@ def _px(expr, no="37013402", lvl=0, rank=3, hit=32, w=1366):
           .replace("LayoutRank", str(rank)).replace("H.hit", str(hit))
           .replace("App.Width", str(w)).replace("!IsBlank(ThisItem.Url)", "True"))
     env = {"Min": min, "Max": max, "Len": len, "If": lambda c, a, b: a if c else b,
-           "RoundUp": lambda v, d: -(-v // 1)}
+           "RoundUp": lambda v, d: -(-v // 1),
+           "IsMatch": lambda v, pat: re.fullmatch(pat, v) is not None}
     return eval(py, env)
 
 
@@ -225,23 +226,73 @@ def test_only_one_open_in_sap_action_at_the_far_right():
 def test_copy_icon_sits_close_to_the_number_before_the_description():
     pop = _block(_yaml(), "conMdSapBackdrop")
     no, copy, desc = (_block(pop, k) for k in ("inpMdSapNo", "btnMdSapCopy", "txtMdSapDesc"))
-    assert _prop(copy, "Tooltip") == '"Copy SAP number"'
-    assert _prop(copy, "AccessibleLabel") == '"Copy SAP number"'
+    assert '"Copy SAP number"' in _prop(copy, "Tooltip")
+    assert '"Copy SAP number"' in _prop(copy, "AccessibleLabel")
     for number in ("37013402", "PMSSV01", "1"):
         for rank, hit in ((3, 32), (1, 44)):
             for lvl in (0, 1, 2):
                 kw = dict(no=number, lvl=lvl, rank=rank, hit=hit)
                 size = 16 if rank < 2 else 14
+                ch = so.NO_CH_DIGITS if number.isdigit() else so.NO_CH
                 text_end = (_px(_prop(no, "X"), **kw) + so.NO_PAD
-                            + len(number) * so.NO_CH * size)
+                            + len(number) * ch * size)
                 cx, cw = _px(_prop(copy, "X"), **kw), hit
                 icon_left = cx + (cw - so.COPY_ICON) / 2
-                assert 6 <= icon_left - text_end <= 8, (number, rank, lvl)
+                # Issue #504: kun et mellemrums afstand (ca. 4 px).
+                assert 3 <= icon_left - text_end <= 5, (number, rank, lvl)
                 # Feltet daekker teksten; knappen slutter foer beskrivelsen.
                 assert (_px(_prop(no, "X"), **kw) + _px(_prop(no, "Width"), **kw)
                         >= text_end)
                 dx = _px(_prop(desc, "X"), **kw)
                 assert dx >= cx + cw and dx - (icon_left + so.COPY_ICON) >= 12
-                # Beskrivelsen slutter foer SAP-maerkets skillestreg.
+                # Beskrivelsen slutter foer SAP-knappen.
                 assert dx + _px(_prop(desc, "Width"), **kw) <= _px(_prop(
                     _block(pop, "imgMdSapLogo"), "X"), **kw) - 10
+
+
+# ---------------------------------------------------------------------------
+# Issue #504 (pictures/sap_popup_copy.png): een indrammet Open in SAP-knap
+# uden skillestreg foran, een skillestreg mellem nummer/kopier og
+# beskrivelse, og en kort lokal "Copied"-kvittering.
+# ---------------------------------------------------------------------------
+def test_open_in_sap_is_one_outlined_button_without_a_separator_before_it():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    assert "- rctMdSapSep:" not in pop
+    logo = _block(pop, "imgMdSapLogo")
+    # Rammen ses i hvile (ikke gennemsigtig) - og hele knappen er een Image.
+    assert _prop(logo, "BorderColor") == "C.'border-input'"
+    assert _prop(logo, "BorderThickness") == "1"
+    img = _prop(logo, "Image")
+    assert ">SAP</text>" in img and "M69 9l-8 8" in img
+    assert f"width='{so.SAP_LOGO_W}'" in img
+    assert _prop(logo, "Width") == str(so.SAP_LOGO_W)
+    # Ingen kolonneoverskrift for handlingen.
+    assert "Open in SAP" not in _prop(_block(pop, "txtMdSapKind"), "Text")
+
+
+def test_one_separator_between_number_group_and_description():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    sep, copy, desc = (_block(pop, k) for k in ("rctMdSapNoSep", "btnMdSapCopy", "txtMdSapDesc"))
+    assert _prop(sep, "Visible") is None
+    for number in ("37013402", "PMSSV01"):
+        for rank, hit in ((3, 32), (1, 44)):
+            kw = dict(no=number, rank=rank, hit=hit)
+            sx = _px(_prop(sep, "X"), **kw)
+            assert _px(_prop(copy, "X"), **kw) + hit <= sx < _px(_prop(desc, "X"), **kw)
+
+
+def test_copy_gives_brief_local_feedback():
+    y = _yaml()
+    pop = _block(y, "conMdSapBackdrop")
+    copy = _block(pop, "btnMdSapCopy")
+    assert "Copy(ThisItem.No)" in copy and f"Set({so.COPIED_VAR}, {so.ROW_KEY})" in copy
+    assert "gblToast" not in copy and "Notify(" not in copy
+    assert _prop(copy, "Icon") == f'If({so.COPIED}, "Checkmark", "Copy")'
+    done = _block(pop, "txtMdSapCopied")
+    assert _prop(done, "Text") == '"Copied"' and _prop(done, "Visible") == so.COPIED
+    assert _prop(_block(pop, "txtMdSapDesc"), "Visible") == f"!{so.COPIED}"
+    # Timeren nulstiller kvitteringen, og popuppen starter uden.
+    tmr = _block(y, "tmrMdSapCopied")
+    assert _prop(tmr, "Duration") == str(so.COPIED_MS)
+    assert _prop(tmr, "OnTimerEnd") == f'Set({so.COPIED_VAR}, "")'
+    assert f'Set({so.COPIED_VAR}, "")' in so.open_fx()
