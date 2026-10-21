@@ -114,11 +114,19 @@ _COLLECT = (f"ClearCollect({REQS}, ForAll(FirstN(Sort(Filter('{ri.LIST}', Reques
 OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); Set({BUSY}, false); "
            f"{_COLLECT}; Set({OPEN}, true)")
 
-# Ingen tom "Request:"-linje mere (issue #116): en valgt anmodning saettes
-# ind som en kontekstblok ved afsendelse (CONTEXT_FX).
-TEMPLATE_FX = ('"Hello SAP Maintenance Team," & Char(10) & Char(10) & '
-               'Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & '
-               'Char(10) & User().Email')
+# Beskedfeltet starter tomt (issue #492): ingen faerdig hilsen og
+# signatur mere, kun pladsholderen. Flowet skriver selv afsenderen oeverst
+# i mailen, og Outlook saetter brugerens egen signatur paa.
+MESSAGE_DEFAULT = '""'
+MESSAGE_PLACEHOLDER = '"Describe your question, idea or issue..."'
+
+# KANTER, DER IKKE KLIPPES (issue #492). En container tegner sin kant paa
+# sin yderkant, og foraelderen skjuler sit overloeb (LayoutOverflow.Hide,
+# build_helpers.group) - samme aarsag som SPLIT_PAD i submission_notes.py.
+# Vaelgerens knap og den udfoldede liste stod helt ude ved kanten af
+# cellen/omraadet uden luft, saa venstre kant og bundkanten blev skaaret
+# af. EDGE er luften paa alle fire sider af de to kanter.
+EDGE = 2
 
 # Valget til flowets "Context"-input (issue #194): flowet viser et fast
 # emne i overskriften og - kun for en anmodning - et afsnit med nummer,
@@ -253,8 +261,9 @@ def _subject_picker(n, avail):
     find = text_input(find_name, '""', placeholder='"Search number, title or type"',
                       label='"Search your requests"')
     many = f"CountRows({REQS}) > {SEARCH_MIN}"
+    # Soegefeltets kant faar ogsaa luft til siderne og foroven (issue #492).
     find_wrap = group(n("con", "SubjectFind"), [find], direction="Vertical", gap=0,
-                      pad=(0, 0, 6, 0), visible=many)
+                      pad=(EDGE, EDGE, 6, EDGE), visible=many)
 
     q = f"Trim({find_name}.Text)"
     general = "Table(" + ", ".join(f'{{Label: "{g}"}}' for g in GENERAL) + ")"
@@ -319,7 +328,7 @@ def _subject_picker(n, avail):
     # Listen holder sig inden for den plads, der er under knappen, og
     # scroller resten (issue #205).
     gal_h = (f"Min(Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}, "
-             f"{avail} - 12 - If({many}, 42, 0))")
+             f"{avail} - 12 - If({many}, {find_wrap.h}, 0))")
     gal = Ctrl(gal_name, "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Subjects and your requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -331,20 +340,33 @@ def _subject_picker(n, avail):
         "Width": "Parent.Width", "WrapCount": "1",
     }, children=[head, accent, row_icon, row_text, hit], h=gal_h)
 
-    panel = group(n("con", "SubjectList"), [find_wrap, gal], direction="Vertical", gap=0,
-                  pad=(6, 6, 6, 6), fill=C_MODAL_BG, border_color=C_DIVIDER,
-                  radius=lay.RADIUS_INPUT, visible=PICK)
+    lst = group(n("con", "SubjectList"), [find_wrap, gal], direction="Vertical", gap=0,
+                pad=(6, 6, 6, 6), fill=C_MODAL_BG, border_color=C_DIVIDER,
+                radius=lay.RADIUS_INPUT)
+    # Listen ligger i en gennemsigtig ramme med EDGE luft paa alle sider
+    # (issue #492), saa dens kant og runde hjoerner ikke klippes af
+    # omraadet, og den flugter med knappens kant.
+    panel = group(n("con", "SubjectLayer"), [lst], direction="Vertical", gap=0,
+                  pad=(EDGE, EDGE, EDGE, EDGE), visible=PICK)
 
     lab = text_ctrl(n("txt", "SubjectLabel"), '"Subject or request (optional)"', size=12,
                     color=C_MUTED, weight="Semibold", height=20, wrap="false")
-    cell = group(n("con", "SubjectCell"), [lab, trigger], direction="Vertical", gap=6)
+    # Knappens kant faar EDGE luft til venstre, hoejre og forneden (issue
+    # #492); foroven er der etikettens mellemrum. Etiketten flugter stadig
+    # med "Message" under den.
+    frame = group(n("con", "SubjectFrame"), [trigger], direction="Vertical", gap=0,
+                  pad=(0, EDGE, EDGE, EDGE))
+    cell = group(n("con", "SubjectCell"), [lab, frame], direction="Vertical", gap=6)
     return cell, panel, find_name
 
 
-# Hoejden af cellen "Subject or request": etiket 20 + 6 + knap 36.
-SUBJECT_CELL_H = 62
-# Listen ligger 4 px under knappen.
-LIST_Y = SUBJECT_CELL_H + 4
+# Listens ramme starter lige under cellen: knappen slutter EDGE over
+# cellens bund, og listen EDGE inde i rammen - 2 * EDGE = 4 px luft.
+# Cellens hoejde (etiket 20 + 6 + knap H.control + EDGE) foelger H.control,
+# 44 paa touch. Foer stod her et fast 66, saa listen daekkede knappens
+# bundkant paa tablet og mobil (issue #492).
+def _list_y(cell):
+    return cell.h
 
 
 def _no_flex(ctrl, x, y):
@@ -364,13 +386,16 @@ def build(p):
     n = lambda kind, base: f"{kind}{p}Fb{base}"
 
     # Beskedens hoejde: det faste i popuppen og resten til beskeden. Det
-    # faste er 366: polstring 36, overskrift 44 (titel og X), intro 40, Initials/Email
-    # 62, emnecellen 62, beskedens etiket 26, footer 36 og seks mellemrum
-    # af 12. Vedhaeftningsraekken (36 + 12) er vaek (issue #215), saa
+    # faste er 366 + EDGE: polstring 36, overskrift 44 (titel og X), intro 40,
+    # Initials/Email 62, emnecellen 62 + EDGE (issue #492), beskedens etiket
+    # 26, footer 36 og seks mellemrum af 12. Vedhaeftningsraekken (36 + 12) er vaek (issue #215), saa
     # beskeden faar den plads. Den afhaenger IKKE af, om listen er foldet
     # ud (issue #205), saa popuppen staar stille.
-    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 366)))"
-    # Pladsen under vaelgerens knap: resten af cellen og beskeden.
+    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - {366 + EDGE})))"
+    # Listens hoejde under vaelgerens knap: mellemrummet, beskedens etiket
+    # og beskeden minus 4 px luft over listen. Rammens EDGE i bunden
+    # opvejes af cellens EDGE under knappen, saa rammen slutter praecis ved
+    # formularens bund.
     avail = f"({msg_h}) + {12 + 26 - 4}"
     about, panel, find_name = _subject_picker(n, avail)
     reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Reset({find_name}); "
@@ -397,7 +422,7 @@ def build(p):
         grow(_field(n("con", "EmailCell"), "Email", inpEmail), min_w=0),
     ], direction="Horizontal", gap=12, height=62, align_items="Start")
 
-    inpMessage = text_input(n("inp", "Message"), TEMPLATE_FX, placeholder='"Write your message"',
+    inpMessage = text_input(n("inp", "Message"), MESSAGE_DEFAULT, placeholder=MESSAGE_PLACEHOLDER,
                             max_length=1200, height=220, ttype="Multiline",
                             label='"Message"')
     inpMessage.props["Height"] = msg_h
@@ -411,7 +436,7 @@ def build(p):
     # (avail), og scroller resten.
     form = group(n("con", "Form"), [about, message], direction="Vertical", gap=12)
     _no_flex(form, 0, 0)
-    _no_flex(panel, 0, LIST_Y)
+    _no_flex(panel, 0, _list_y(about))
     area = Ctrl(n("con", "Area"), "GroupContainer", variant="ManualLayout", props={
         "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
         "FillPortions": "0", "Height": str(form.h), "LayoutMinWidth": "0",
@@ -439,11 +464,11 @@ def build(p):
                      width=fit_button_width('"Send"') + ICON_W, height=36, icon="Send",
                      display_mode=blank)
     # "Send via Outlook" (issue #205) - adfaerden fra foer #189: et udkast i
-    # brugerens egen Outlook med emne, anmodning og besked. Hilsenen
-    # skaeres fra, for Outlook saetter brugerens egen signatur paa.
-    top = f'Left({msg}, Find("Kind regards,", {msg} & "Kind regards,") - 1)'
+    # brugerens egen Outlook med emne, anmodning og besked. Outlook saetter
+    # brugerens egen signatur paa. Feltet har ingen faerdig hilsen mere
+    # (issue #492), saa beskeden sendes, som brugeren skrev den.
     send_out = (f'Launch("mailto:{MAILBOX}?subject=" & EncodeUrl({SUBJECT_FX}) & '
-                f'"&body=" & EncodeUrl({OUTLOOK_CONTEXT_FX} & {top}));\n'
+                f'"&body=" & EncodeUrl({OUTLOOK_CONTEXT_FX} & {msg}));\n'
                 f"Set({OPEN}, false);\n{reset};\n"
                 'Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)')
     btnOutlook = button(n("btn", "SendOutlook"), '"Send via Outlook"', send_out,
