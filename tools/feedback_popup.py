@@ -154,16 +154,12 @@ ROW_TEXT_SIZE = lay.SIZE_BODY
 ROW_TEXT_PX = 7     # gennemsnitlig tegnbredde i den stoerrelse (til _fit)
 
 # Den LUKKEDE vaelger (issue #205) har formularfelternes typografi:
-# 14 px, 16 px under Tablet (input_theme). Knappen er en Classic/Button, og
-# en klassisk kontrols Size er i PUNKTER, mens de moderne felters er i
-# pixels - SIZE_BODY (13) blev derfor ca. 17 px, stoerre end felterne
-# omkring den. 1 pt = 4/3 px.
-def _pt(px):
-    v = px * 0.75
-    return str(int(v)) if v == int(v) else str(v)
-
-
-SUBJECT_SIZE = lay.if_below("Tablet", _pt(lay.SIZE_INPUT_MOBILE), _pt(lay.SIZE_INPUT))
+# 14 px, 16 px under Tablet - samme udtryk som input_theme og dermed som
+# soegefeltet i den udfoldede liste. Knappen var en Classic/Button, hvis
+# Size er i PUNKTER, og stoerrelsen blev derfor regnet om (1 pt = 4/3 px).
+# Siden issue #307 er den en ModernButton, hvis Size er i PIXELS - omregningen
+# gav 10,5/12 px, mindre end resten af formularen (issue #507).
+SUBJECT_SIZE = lay.if_below("Tablet", str(lay.SIZE_INPUT_MOBILE), str(lay.SIZE_INPUT))
 SUBJECT_PX = lay.if_below("Tablet", "8.2", "7.2")   # tegnbredde i den stoerrelse (til _fit)
 CHEVRON_DOWN = icons.CHEVRON_DOWN
 CHEVRON_UP = icons.CHEVRON_UP
