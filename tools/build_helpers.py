@@ -542,6 +542,13 @@ def seg_button_width():
     return max(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) for t in SEG_TEXTS) + ICON_W
 
 
+def segmented_width(n):
+    """Skinnens bredde for segmented() med n lige brede segmenter (ikke fit,
+    ikke compact) - det, en celle mindst skal vaere, for at det sidste
+    segment ikke klippes af (issue #477)."""
+    return n * seg_button_width() + (n - 1) * SEG_GAP + 2 * SEG_PAD
+
+
 def segmented(name, options, display_mode=None, label=None, fit=False, compact=False):
     """Segmenteret kontrol: en pilleformet skinne med een knap pr. valg.
 

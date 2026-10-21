@@ -71,14 +71,20 @@ OPS_COLS = [
     ("VENDOR", 110),
     ("COST", 80),
     ("MAT.GRP", 90),
-    ("LONG TEXT", 170),
+    # 1080P (issue #477): Long text, Docs og Action er smallere, saa hele
+    # tabellen staar uden vandret scroll ved 1920 x 1080 - ogsaa med
+    # Packages. Long text-knappen har intet ikon i tabellen (kolonnens
+    # overskrift siger, hvad den er); de groenne kanter viser stadig, om der
+    # er tekst. Se OPS_FIT_MIN_APP_W nedenfor.
+    ("LONG TEXT", 120),
     # Plads til syv smalle pakke-piller (build_strategy.pkg_pills).
     ("PACKAGES", PILLS_W),
     # Knapper, som Details og Docs i Equipments liste (issue #54). De
     # aabner materialerne og dokumenterne for NETOP denne operation.
     ("MATERIALS", 110),
-    ("DOCS", 90),
-    ("ACTION", 64),
+    ("DOCS", 80),
+    # Slet-knappen er Max(40, H.hit) - hoejst 44 px.
+    ("ACTION", 48),
 ]
 
 # ---------------------------------------------------------------------------
@@ -253,15 +259,37 @@ def cost_expr(work):
             f'            {work} * Coalesce(ThisItem.UnitCost, 0),\n'
             f'            ThisItem.Cost\n'
             f'        )')
-OPS_GAP_MIN = 18
-OPS_COLS_W = sum(w for _, w in OPS_COLS)
-OPS_GAP = (f"Max({OPS_GAP_MIN}, Int(({OPS_CW} - 8 - {OPS_COLS_W}) / {len(OPS_COLS) - 1}))")
-OPS_TABLE_W = f"({OPS_COLS_W} + {OPS_GAP} * {len(OPS_COLS) - 1})"
+# PACKAGES KUN VED EN STRATEGIPLAN (issue #477). Uden strategi er der
+# ingen pakker at allokere til, og kolonnen stod med "-" paa hver linje.
+# Nu er cellen skjult - og galleriets udfoldning (gen_screen._place) giver
+# en skjult celle hverken bredde eller mellemrum - og overskriften,
+# kolonnesummen og antallet af mellemrum foelger samme betingelse.
+PKG_COL_ON = IS_STRATEGY
+OPS_GAP_MIN = 12
+OPS_COLS_W_ALL = sum(w for _, w in OPS_COLS)
+OPS_COLS_W_NOPKG = OPS_COLS_W_ALL - dict(OPS_COLS)["PACKAGES"]
+OPS_COLS_W = f"If({PKG_COL_ON}, {OPS_COLS_W_ALL}, {OPS_COLS_W_NOPKG})"
+OPS_N_GAPS = f"If({PKG_COL_ON}, {len(OPS_COLS) - 1}, {len(OPS_COLS) - 2})"
+OPS_GAP = (f"Max({OPS_GAP_MIN}, Int(({OPS_CW} - 8 - {OPS_COLS_W}) / {OPS_N_GAPS}))")
+OPS_TABLE_W = f"({OPS_COLS_W} + {OPS_GAP} * {OPS_N_GAPS})"
+# Den mindste App.Width, hvor hele tabellen (med Packages og mindste
+# mellemrum) staar uden vandret scroll: OPS_CW - 8 >= tabellen. SHELL_W er
+# App.Width - 56 (skinnen) - 64 (SHELL_INSET) uden sidepanel.
+OPS_FIT_MIN_APP_W = (OPS_COLS_W_ALL + OPS_GAP_MIN * (len(OPS_COLS) - 1)
+                     + 8 + 36 + 56 + 64)
+assert OPS_FIT_MIN_APP_W <= 1860, (
+    "Operationstabellen passer ikke ved 1080p (1920 px) med luft til browserens "
+    "kant og scrollbar: kraever App.Width >= %d (issue #477)" % OPS_FIT_MIN_APP_W)
 
 
 def _ops_header_html():
-    cols = " ".join(f"{w}px" for _, w in OPS_COLS)
-    spans = "".join(f"<span>{t}</span>" for t, _ in OPS_COLS)
+    def cols_of(pkg):
+        return " ".join(f"{w}px" for t, w in OPS_COLS if pkg or t != "PACKAGES")
+
+    def spans_of(pkg):
+        return "".join(f"<span>{t}</span>" for t, _ in OPS_COLS if pkg or t != "PACKAGES")
+    cols = f"\" & If({PKG_COL_ON}, \"{cols_of(True)}\", \"{cols_of(False)}\") & \""
+    spans = f"\" & If({PKG_COL_ON}, \"{spans_of(True)}\", \"{spans_of(False)}\") & \""
     # <style>-blokken nulstiller iframe'ens standard body-margin (den er der,
     # selvom kontrollens egen Padding er sat til 0), og det er den margin,
     # der fik HtmlViewer til at vise en (unoedvendig) scrollbar under
@@ -922,10 +950,11 @@ OPM = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = var
 # skal selv vaere kort nok til at staa paa een linje: linjeskift bliver til
 # mellemrum (Trim samler dem), og teksten afkortes med "...".
 #
-# Kolonnen er 170 px. Minus knappens luft (2 x 16), ikonet med mellemrum
-# (ICON_W) og "..." er der ca. 105 px til teksten. 12 tegn i 12 px Segoe UI
-# Semibold er ca. 100 px - ogsaa naar SAP-teksten staar med store bogstaver.
-LT_PREVIEW_CHARS = 12
+# Kolonnen er 120 px (issue #477; foer 170 px med ikon). Minus knappens
+# luft (2 x 16) og "..." er der ca. 76 px til teksten. 9 tegn i 12 px
+# Segoe UI Semibold er ca. 75 px - ogsaa naar SAP-teksten staar med store
+# bogstaver. Hele teksten staar i popuppen.
+LT_PREVIEW_CHARS = 9
 
 
 def longtext_preview(op, chars):
@@ -1455,7 +1484,7 @@ def build_tasklist_section():
             "Reset(inpVhpLongTextBox);\n"
             "Set(varVhpLongTextOpen, true)"
         ),
-        width=w["LONG TEXT"], height=32, icon="DocumentText",
+        width=w["LONG TEXT"], height=32,
         display_mode=("If(varVhpViewOnly && IsBlank(Trim(Coalesce(ThisItem.LongText, \"\"))), "
                       "DisplayMode.Disabled, DisplayMode.Edit)"),
         accessible='"Edit long text for operation " & ThisItem.OperationNo')
@@ -1478,7 +1507,8 @@ def build_tasklist_section():
     galOpPills.props["Visible"] = show_pills
     galOpPills.vis = show_pills
     cellOpPackages = group("conVhpOpPackages", [txtOpPackages, galOpPills], direction="Horizontal",
-                           gap=0, height=32, width=w["PACKAGES"], align_items="Center")
+                           gap=0, height=32, width=w["PACKAGES"], align_items="Center",
+                           visible=PKG_COL_ON)
 
     OP_MATS = ("Filter(colVhpMaterials, ItemId = ThisItem.ItemId && "
                "OperationNo = ThisItem.OperationNo)")
