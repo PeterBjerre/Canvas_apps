@@ -33,7 +33,7 @@ def test_the_summary_names_all_eight_fields_in_field_order():
 def test_the_summary_wraps_and_its_height_follows_the_text():
     y, s = _summary()
     assert "Wrap: |-\n" in s and "=true" in s[s.index("Wrap:"):s.index("Wrap:") + 60]
-    h = s[s.index("Height:"):s.index("Height:") + 300]
+    h = s[s.index("Height:"):s.index("Height:") + 900]
     assert "RoundUp(Len(Self.Text)" in h
     row = _block(y, "conVhpPlanFoldRow", 1200)
     assert "Len(txtVhpPlanFoldSummary.Text)" in row
@@ -87,15 +87,16 @@ def test_summary_width_and_height_leave_room_for_show():
     regnes af den smallere bredde. Raekken er mindst knappens hoejde - ingen
     ekstra raekke. Paa en telefon falder indrykningen bort."""
     y, s = _summary()
-    w = s[s.index(" Width:"):s.index(" Width:") + 200]
+    w = s[s.index(" Width:"):s.index(" Width:") + 600]
     assert "- 96 - 8)" in w
-    h = s[s.index("Height:"):s.index("Height:") + 300]
+    h = s[s.index("Height:"):s.index("Height:") + 900]
     assert "- 96 - 8) - If(LayoutRank < 2, 0, 30))" in h
     pad = s[s.index("PaddingLeft:"):s.index("PaddingLeft:") + 160]
     assert "If(LayoutRank < 2, 0, 30)" in pad
     body = _block(y, "conVhpPlanFoldBody", 2000)
-    bh = body[body.index("Height:"):body.index("Height:") + 400]
-    assert "(36))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
+    bh = body[body.index("Height:"):body.index("Height:") + 1200]
+    # Issue #508: Show er 44 hoej paa en telefon, 36 som foer ellers.
+    assert "(If(LayoutRank < 2, 44, 36)))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
 
 
 def _prop(block, prop):

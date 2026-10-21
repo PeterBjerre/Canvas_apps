@@ -28,10 +28,33 @@ def _block(text, name):
     return rest[:end.start()] if end else rest
 
 
+def _desk(v):
+    """Issue #508: hver If(LayoutRank < 2, mobil, ellers) -> ellers-grenen
+    (tablet/desktop, som denne test handler om). Andet er uaendret."""
+    head = "If(LayoutRank < 2,"
+    k = v.find(head)
+    while k >= 0:
+        depth, comma, end = 0, None, None
+        for i in range(k + len(head), len(v)):
+            ch = v[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                if depth == 0:
+                    end = i
+                    break
+                depth -= 1
+            elif ch == "," and depth == 0 and comma is None:
+                comma = i
+        v = v[:k] + v[comma + 1:end].strip() + v[end + 1:]
+        k = v.find(head)
+    return v
+
+
 def _prop(block, key):
     m = re.search(r"\n\s+%s: \|-\n\s+=(.*)" % key, block)
     assert m, key + " mangler"
-    return m.group(1).strip()
+    return _desk(m.group(1).strip())
 
 
 def test_list_row_and_text_share_one_width():
