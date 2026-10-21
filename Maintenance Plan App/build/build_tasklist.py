@@ -1093,7 +1093,8 @@ def _ops_list_mobile():
                   '"Open operation " & ThisItem.OperationNo', "Parent.TemplateWidth",
                   "Parent.TemplateHeight - 2")
     vis = f"{has_ops} && {below('Tablet')}"
-    gal_h = f"{n_ops} * {row_h}"
+    # + 2: TemplatePadding over foerste raekke (issue #506, se galVhpOps).
+    gal_h = f"{n_ops} * {row_h} + 2"
     gal = Ctrl("galVhpOpsM", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Operations - select one to open it"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
@@ -1544,9 +1545,14 @@ def build_tasklist_section():
     # farvet bjaelke under kolonneoverskrifterne. Nu er galleriet kun
     # synligt, naar der ER raekker, og fyldet er kortets egen flade; saa
     # staar der kun "No operation lines yet..." under overskrifterne.
+    # INGEN INDRE SCROLL (issue #506). Med TemplatePadding 2 fylder n
+    # raekker n x (44 + 2) + 2: der er ogsaa padding over foerste raekke.
+    # Var hoejden kun n x 46, var indholdet 2 px hoejere end galleriet, og
+    # musehjulet over operationerne rullede galleriet et lille hak i stedet
+    # for siden. Nu er galleriet praecis saa hoejt som sit indhold.
     n_ops = "CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))"
     has_ops = f"IfError(!IsBlank(varVhpActiveItemId) && {n_ops} > 0, false)"
-    gal_h = f"{n_ops} * {OPS_ROW_H}"
+    gal_h = f"{n_ops} * {OPS_ROW_H} + 2"
     gallery = Ctrl(
         "galVhpOps", "Gallery", variant="Vertical",
         props={
