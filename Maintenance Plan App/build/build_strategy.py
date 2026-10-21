@@ -469,6 +469,9 @@ def build_strategy_body():
                       height="Parent.TemplateHeight", align_items="Center",
                       width="Parent.TemplateWidth")
 
+    # + 2: TemplatePadding over foerste raekke. Uden den var indholdet 2 px
+    # hoejere end galleriet, og det rullede et hak med musehjulet (#506).
+    rows_h = f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H} + 2"
     rowsGal = Ctrl(
         "galVhpPkgRows", "Gallery", variant="Vertical",
         props={
@@ -476,7 +479,7 @@ def build_strategy_body():
             "BorderStyle": "BorderStyle.None",
             "Fill": C_TRANSPARENT,
             "FillPortions": "0",
-            "Height": f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H}",
+            "Height": rows_h,
             "Items": f"Sort({OPS_ACTIVE}, Value(OperationNo))",
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
@@ -488,7 +491,7 @@ def build_strategy_body():
             "Width": f"{MATRIX_W} + 4",   # + TemplatePadding i begge sider
             "WrapCount": "1",
         },
-        children=[matrixRow], h=f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H}")
+        children=[matrixRow], h=rows_h)
 
     # Matricen har fast bredde (label + een kolonne pr. pakke). Paa smalle
     # skaerme scroller den vandret i stedet for at klippe kolonner af.
