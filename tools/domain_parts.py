@@ -2844,17 +2844,30 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                  visible=below("Desktop"))
 
 
-def build_list(slots, badge_head, search_placeholder):
+# Soegefeltets standardbredde paa listen.
+SEARCH_W = 240
+
+
+def search_width(placeholder):
+    """Saa bredt, at HELE pladsholderen staar (issue #513): teksten i
+    feltets skrift (text_px rammer med vilje for bredt) plus feltets
+    polstring i begge sider - og aldrig smallere end SEARCH_W."""
+    return max(SEARCH_W, text_px(placeholder, lay.SIZE_INPUT) + 32)
+
+
+def build_list(slots, badge_head, search_placeholder, search_w=None):
     """Kortet med de gemte raekker - og indsend under tabellen.
 
     slots: appens pladser (se ovenfor). badge_head: overskriften over
-    statusmaerket ("STATUS" / "VALIDATION")."""
+    statusmaerket ("STATUS" / "VALIDATION"). search_w: soegefeltets
+    bredde (standard SEARCH_W; Materials: search_width, issue #513)."""
     lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
     # Soegning og filtre huskes i SaveData-lageret (UX-review F8). Feltet
     # hedder prefDom* her og prefEq*/prefMat*/prefMp* i BIO SAP.
-    search = text_input("inpDomSearch", tok.pref_get("prefDomSearch"), width="240",
+    search = text_input("inpDomSearch", tok.pref_get("prefDomSearch"),
+                        width=str(search_w or SEARCH_W),
                         placeholder=f'"{search_placeholder}"',
                         label='"Search the rows"',
                         onchange=tok.prefs_save({"prefDomSearch": "Self.Text"}))

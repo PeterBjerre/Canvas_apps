@@ -30,7 +30,9 @@ CANCEL_SAVE_POPUPS = {"conMatPoModal",
                       # Slet et item: Cancel og Delete, som issue #457 kraever.
                       "conVhpItemDelConfirmModal",
                       # Object list: Cancel og Use selected (mockup 2026-10-21).
-                      "conVhpObjListModal"}
+                      "conVhpObjListModal",
+                      # Materials' Object list: Cancel og Apply selection (#513).
+                      "conMatObjListModal"}
 
 
 def _icon_close(v):

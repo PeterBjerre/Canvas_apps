@@ -19,7 +19,8 @@ import material_parts as parts
 
 def main():
     # Materials' eget (issue #204, #485): Objects-fanens liste.
-    cols = [(parts.OBJECTS, parts.OBJ_SCHEMA)]
+    cols = [(parts.OBJECTS, parts.OBJ_SCHEMA), (parts.OBJ_DRAFT, parts.OBJ_SCHEMA),
+            (parts.OBJ_CANDS, parts.OBJ_SCHEMA)]
     state = parts.EXTRA_STATE
     # Systemgodkendelsens svar - kun naar flaget er taendt, saa en app
     # uden godkendelse ikke slaebber en tom samling rundt.

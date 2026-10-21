@@ -98,9 +98,10 @@ def test_summary_shows_the_first_code_and_how_many_more():
 
 
 def test_the_objects_tab_is_saved_with_the_row():
-    # Issue #485: Add og Remove retter kun formularens liste - Save skriver
-    # den paa raekken sammen med resten. Intet Patch paa selve fanen.
-    add = _prop("btnMatObjAdd", "OnSelect")
+    # Issue #485/#513: Object list (Apply selection) og skraldespanden
+    # retter kun formularens liste - Save skriver den paa raekken sammen med
+    # resten. Intet Patch paa selve fanen.
+    add = _prop("btnMatObjListApply", "OnSelect")
     assert "Collect(colMatObjects" in add
     assert "Patch(" not in add
     rem = _prop("btnMatObjRemove", "OnSelect")
@@ -117,11 +118,11 @@ def test_the_objects_tab_opens_the_row_and_is_read_only_when_locked():
     assert open_fx.startswith("Set(varMatActiveRowId, ThisItem.RowId);")
     assert 'Set(varMatEditorTab, "Objects")' in open_fx
     assert "ParseJSON(ThisItem.ObjectListJson)" in open_fx
-    # Soegning og Add kun, naar formularens raekke kan rettes - ogsaa paa en
-    # NY raekke (Create); i visning er Remove slaaet fra.
+    # Soegning og Object list kun, naar formularens raekke kan rettes - ogsaa
+    # paa en NY raekke (Create); i visning er skraldespanden slaaet fra.
     edit = '!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted")'
     assert _prop("conMatFlWrap", "Visible") == edit
-    assert _prop("btnMatObjAdd", "Visible") == edit
+    assert edit in _prop("btnMatObjList", "DisplayMode")
     assert edit in _prop("btnMatObjRemove", "DisplayMode")
 
 
@@ -141,12 +142,12 @@ def test_a_loaded_row_fills_the_list_and_a_copy_is_a_new_row():
     assert "ObjectListJson: src.ObjectListJson," in copy
 
 
-def test_fl_search_and_add_need_sixteen_characters():
+def test_fl_search_needs_sixteen_characters():
     y = _mat()
     assert "At least 16 characters" in y
     assert "Type at least 16 characters before searching." in y
-    # Add er spaerret, indtil der ER valgt en kode paa mindst 16 tegn.
-    assert 'Len(Trim(Coalesce(varMatObjPick, ""))) >= 16' in _prop("btnMatObjAdd", "DisplayMode")
+    assert "Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 16" in \
+        _prop("btnMatFlSearch", "DisplayMode")
 
 
 def test_no_bom_item_and_recommended_stock_are_gone():
