@@ -406,8 +406,13 @@ def rule_2_3(ctx):
         if body.get("Control") != "GroupContainer" or not kids:
             continue
         gap = gap_at(props)
-        pt = float(re.sub(r"[^0-9.]", "", props.get("PaddingTop", "=0")) or 0)
-        pb = float(re.sub(r"[^0-9.]", "", props.get("PaddingBottom", "=0")) or 0)
+        # Polstringen kan vaere en FORMEL (mobilens If(LayoutRank < 2, ...),
+        # issue #508) - saa regnes den ud pr. bredde nedenfor. Her stod kun
+        # cifrene i teksten, og "If(LayoutRank < 2, 8, 14)" blev til 2814.
+        def _pad(key, w):
+            v = props.get(key, "=0")
+            x = evaluate(v, w, 0, 0, 3)
+            return float(x) if x is not None else float(re.sub(r"[^0-9.]", "", v) or 0)
 
         # Et barn med Visible = false udelades af AutoLayout - det fylder
         # hverken hoejde eller gap. Det skal taelles paa samme maade her, som
@@ -436,6 +441,7 @@ def rule_2_3(ctx):
         for w in WIDTHS:
             vertical = is_vertical(props, w)
             gap = gap_at(props, w)
+            pt, pb = _pad("PaddingTop", w), _pad("PaddingBottom", w)
             for ni in ITEM_COUNTS:
                 for no in OP_COUNTS:
                     for npk in PKG_COUNTS:
@@ -1192,6 +1198,18 @@ def rule_23(ctx):
                         + f" + luft {lay.FIT_SLACK} = {inset + lay.FIT_SLACK:.0f} > "
                         f"SHELL_INSET {lay.SHELL_INSET}. SHELL_W ville love "
                         f"mere plads, end der er")
+                # Samme regnskab paa en telefon (issue #508): rammen er
+                # smallere dér, og SHELL_W regner med SHELL_INSET_MOBILE.
+                mw = min(w for w in WIDTHS if lay.rank_for(w) < lay.MOBILE_RANK)
+                mpl = _num(kp.get("PaddingLeft"), mw, 0, 0, 3)
+                mpr = _num(kp.get("PaddingRight"), mw, 0, 0, 3)
+                minset = mpl + mpr + (lay.SCROLLBAR_W if is_body else 0)
+                if minset + lay.FIT_SLACK > lay.SHELL_INSET_MOBILE:
+                    problems.append(
+                        f"[23c] {kn}: paa mobil (App.Width={mw}) er padding "
+                        f"{mpl:.0f} + {mpr:.0f}" + (f" + scrollbar {lay.SCROLLBAR_W}" if is_body else "")
+                        + f" + luft {lay.FIT_SLACK} > SHELL_INSET_MOBILE "
+                        f"{lay.SHELL_INSET_MOBILE}")
 
 def rule_4(ctx):
     """En vandret raekke skal kunne rumme sine boern"""

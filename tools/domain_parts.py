@@ -45,7 +45,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import (Ctrl, SHELL_W, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTED,
+from gen_screen import (Ctrl, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT,
@@ -298,8 +298,10 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # oppe end den foerste, og inputfelter, man ikke kunne finde.
 #
 # Kortets padding er 18 i hver side; det er de 36.
-FORM_W = f"({SHELL_W} - 36)"
-PANEL_FORM_W = f"{lay.PANEL_W_AT} - 2 * 20 - 2 * 20 - {SCROLLBAR_W}"
+# Paa en telefon er kortets og panelets polstring mindre (issue #508) -
+# lay.CARD_INNER_W og lay.PANEL_INNER_W er de samme tal fra Tablet og op.
+FORM_W = lay.CARD_INNER_W
+PANEL_FORM_W = lay.PANEL_INNER_W
 
 # DOKUMENTERNE OG DETALJERNE ER POPUPS
 # ------------------------------------

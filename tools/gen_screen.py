@@ -84,6 +84,11 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from design_tokens import ref as _t, TRANSPARENT
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+import layout_tokens as _lay
+# Et galleri uden scrollbar paa en telefon, hvor det er saa hoejt som sine
+# raekker og siden scroller (issue #508): ShowScrollbar = denne formel.
+SCROLLBAR_NOT_MOBILE = _lay.mobile_or("false", "true")
+MOBILE_GALLERY_RESERVE = 8
 # SHELL_W bruges ikke her, men builderne importerer den herfra. __all__
 # fortaeller pyflakes, at den genudsendes (som i doc_upload.py).
 __all__ = ["SHELL_W"]
@@ -390,13 +395,23 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
         if c.control == "Gallery":
             pad = _p(c, "TemplatePadding", "0")
             size = _p(c, "TemplateSize", "0")
-            sb = SCROLLBAR_W if _p(c, "ShowScrollbar", "false") == "true" else 0
+            ssb = _p(c, "ShowScrollbar", "false")
+            sb = SCROLLBAR_W if ssb == "true" else 0
+            # Ingen scrollbar paa mobil, ellers som foer (issue #508,
+            # SCROLLBAR_NOT_MOBILE). Andre formler giver 0 som altid.
+            if ssb == SCROLLBAR_NOT_MOBILE:
+                sb = f"If({_lay.MOBILE}, 0, {SCROLLBAR_W})"
             if c.variant == "Horizontal":
                 c._tpl_w = size
                 c._tpl_h = f"({_p(c, 'Height')}) - 2 * {pad}"
                 c._tpl_unc = False
             else:
                 res = GALLERY_RESERVE if unc else 0
+                # Uden scrollbar paa mobil (SCROLLBAR_NOT_MOBILE) er der ingen
+                # scrollbar, der kan komme alligevel: reserven er MOBILE_
+                # GALLERY_RESERVE dér. Fra Tablet og op er den den samme.
+                if res and ssb == SCROLLBAR_NOT_MOBILE:
+                    res = f"If({_lay.MOBILE}, {MOBILE_GALLERY_RESERVE}, {GALLERY_RESERVE})"
                 wrap = _p(c, "WrapCount", "1")
                 if cw is None:
                     c._tpl_w = None

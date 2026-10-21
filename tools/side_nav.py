@@ -96,7 +96,7 @@ SCREENS (de fem enkelte apps) er intet aendret.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE, C_MUTED
+from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE, C_MUTED, C_OVERLAY
 from design_tokens import ref_hex, theme_query, TRANSPARENT, FLAG_SVG
 from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H, page_icon
 import layout_tokens as lay
@@ -396,9 +396,10 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
         # det samme sted som ">>", men HELE raekken er klikfeltet (issue
         # #74): hover, fokus og tryk daekker den fulde bredde, som paa de
         # andre punkter i sidebaren.
+        # Paa mobil er panelet en skuffe, og pilen lukker den (issue #508).
+        lab = lay.mobile_or('"Close menu"', '"Collapse menu"')
         toggle = _image(n("NavToggle"), _item_svg(w, ICON_COLLAPSE, None, False),
-                        w, ITEM_H, CLOSE, '"Collapse menu"',
-                        tooltip='"Collapse menu"')
+                        w, ITEM_H, CLOSE, lab, tooltip=lab)
     else:
         toggle = _image(n("NavToggle"), _item_svg(w, ICON_EXPAND, None, False),
                         w, ITEM_H, f"Set({OPEN}, true)", '"Expand menu"',
@@ -429,6 +430,16 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
     foot_kids.append(_message_button(p, suffix, not is_open))
     foot_kids.append(_lang_picker(p, suffix, not is_open))
     foot_kids.append(theme_button(n("Theme"), compact=not is_open))
+    if is_open:
+        # I skuffen paa en telefon er knopperne i foden klikflader paa 44 px
+        # (issue #508); tegningen er den samme og staar midt i fladen.
+        for k in foot_kids[1:]:
+            h = k.props.get("Height")
+            if k.control == "Image" and h is not None and h.isdigit() and int(h) < lay.TOUCH_MIN:
+                k.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, h)
+                k.h = k.props["Height"]
+                k.props["ImagePosition"] = lay.mobile_or(
+                    "ImagePosition.Center", k.props.get("ImagePosition", "ImagePosition.Fit"))
     # Knopperne er THEME_TOGGLE_H brede i den lukkede skinne - venstre
     # polstring saa de staar midt i den. Pillerne i panelet flugter med dem.
     foot = group(f"con{p}NavFoot{suffix}", foot_kids, gap=10, width=w, align_items="Start",
@@ -532,7 +543,10 @@ def side_nav(prefix, current, help_on=None, help_action=None):
 
     # Klik uden for det aabne panel lukker det. Gennemsigtigt: HTML-sidens
     # aabne skinne daemper heller ikke indholdet, den har en skygge.
-    t = TRANSPARENT
+    # PAA MOBIL er panelet en skuffe over hele skaermen (issue #508): sloeret
+    # daemper siden bag den, som popuppernes, saa det er tydeligt, at et tryk
+    # udenfor lukker den. Fra Tablet og op er det gennemsigtigt som foer.
+    t = lay.mobile_or(C_OVERLAY, TRANSPARENT)
     scrim = Ctrl(f"img{p}NavScrim", "Image", props={
         "AccessibleLabel": '"Close menu"',
         "BorderStyle": "BorderStyle.None",

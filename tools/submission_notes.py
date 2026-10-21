@@ -143,7 +143,8 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                paa sloeret lukker ikke (issue #115).
     Returnerer (kontroller, inputA, inputS)."""
     vis = f"IfError({open_var}, false)"
-    pop_w = f"Min({POP_MAX_W}, App.Width - 24)"
+    # Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
+    pop_w = lay.popup_w(POP_MAX_W, 24)
     inner = f"({pop_w} - {2 * PAD})"
     # Sektionernes bredde: raekken minus dens luft paa begge sider.
     pane_area = f"({inner} - {2 * SPLIT_PAD})"

@@ -532,6 +532,7 @@ def bool_toggle(name, default, display_mode=None, tooltip=None, true_text='"Yes"
 SEG_H = 34
 SEG_PAD = 2
 SEG_BTN_H = SEG_H - 2 * SEG_PAD
+SEG_BTN_H_MOBILE = 40    # paa en telefon (issue #508) - skinnen bliver 44
 SEG_GAP = 2
 SEG_SIZE = 13
 # Alle segmenter er lige brede - bredden af den laengste tekst, appen
@@ -588,13 +589,18 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
         b.props["Layout"] = f"If({on}, ButtonLayout.IconBefore, ButtonLayout.TextOnly)"
         b.props["Size"] = str(SEG_SIZE)
         b.props["LayoutMinWidth"] = str(w)
-        b.props.update(lay.radius(SEG_BTN_H // 2))
+        # Klikflade paa touch (issue #508): 40 px hoeje segmenter paa en
+        # telefon (skinnen 44), 30 fra Tablet og op som foer.
+        b.props["Height"] = lay.mobile_or(SEG_BTN_H_MOBILE, SEG_BTN_H)
+        b.h = b.props["Height"]
+        b.props.update(lay.radius(lay.mobile_or(SEG_BTN_H_MOBILE // 2, SEG_BTN_H // 2)))
         kids.append(b)
     gap = 0 if compact else SEG_GAP
     track_w = sum(widths) + (len(kids) - 1) * gap + 2 * SEG_PAD
     return group(name, kids, direction="Horizontal", gap=gap, width=track_w,
                  align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
-                 radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
+                 radius=lay.mobile_or((SEG_BTN_H_MOBILE + 2 * SEG_PAD) // 2, SEG_H // 2),
+                 pad=SEG_PAD, align_in_container="Start")
 
 
 # FANER (issue #303, del af #161) - DEN moderne Tab list fra Microsoft
@@ -967,9 +973,45 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY, always=False):
     }, h="App.Height", vis=vis)
 
 
+def mobile_footer(footer, height=None):
+    """En vandret knapraekke (popuppens fod), der staar LODRET paa en
+    telefon (issue #508): hver knap i fuld bredde og TOUCH_MIN hoej, den
+    primaere nederst (taettest paa tommelfingeren). Fra Tablet og op er
+    raekken uaendret.
+
+    Hoejden er summen af de synlige boern paa mobil - kald den, FOER
+    foraelderen bygges, saa den regner med den rigtige hoejde."""
+    desk_h = footer.props["Height"] if height is None else height
+    kids = footer.children
+    for k in kids:
+        if k.control == "ModernButton":
+            k.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, k.props.get("Height", "36"))
+            k.h = k.props["Height"]
+            k.props["AlignInContainer"] = lay.mobile_or(
+                "AlignInContainer.Stretch",
+                k.props.get("AlignInContainer", "AlignInContainer.SetByContainer"))
+    hs = []
+    for i, k in enumerate(kids):
+        h = lay.TOUCH_MIN if k.control == "ModernButton" else (k.h or 0)
+        g = 0 if i == 0 else 8
+        if k.vis:
+            hs.append(f"If({k.vis}, {g} + {h}, 0)")
+        else:
+            hs.append(f"{g + h}" if isinstance(h, int) else f"{g} + ({h})")
+    mob_h = " + ".join(hs) or "0"
+    footer.props["Height"] = lay.mobile_or(f"({mob_h})", desk_h)
+    footer.h = footer.props["Height"]
+    footer.props["LayoutDirection"] = lay.mobile_or("LayoutDirection.Vertical",
+                                                    "LayoutDirection.Horizontal")
+    footer.props["LayoutAlignItems"] = lay.mobile_or(
+        "LayoutAlignItems.Stretch", footer.props.get("LayoutAlignItems", "LayoutAlignItems.Center"))
+    return footer
+
+
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
                   confirm_name, icon=ICON_SUBMIT, danger=None, act=None,
-                  cancel_text=None, vis_extra=None, msg_height=40, tap_closes=False):
+                  cancel_text=None, vis_extra=None, msg_height=40, tap_closes=False,
+                  lead_buttons=()):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
@@ -991,7 +1033,12 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     lukker uden at goere noget - ligesom X (issue #450). vis_extra: en
     betingelse mere for at popuppen og sloeret vises (fx at der stadig er
     noget at kassere). msg_height: tekstens hoejde. tap_closes: et tryk paa
-    sloeret lukker paa alle skaermbredder (tap_backdrop(always=True))."""
+    sloeret lukker paa alle skaermbredder (tap_backdrop(always=True)).
+
+    lead_buttons: flere knapper i foden foran de andre (hubbens "Cancel
+    request"). De skal gives her - ikke saettes ind bagefter - for paa en
+    telefon staar foden lodret, og dens hoejde regnes af knapperne
+    (mobile_footer, issue #508)."""
     if danger is None:
         danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
@@ -1013,8 +1060,11 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     # Nej'et er X oeverst til hoejre (issue #343), som i appens andre
     # popupper - det lukker uden at goere noget. Navnet er det gamle.
     head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel", close_fx)
+    # Paa en telefon er popuppen smallere, og teksten ombryder til flere
+    # linjer - halvanden gang hoejden, saa den sidste linje ikke klippes.
+    msg_h = lay.mobile_or(-(-msg_height * 3 // 2), msg_height)
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
-                    height=msg_height, wrap="true")
+                    height=msg_h, wrap="true")
     ok = button(confirm_name, f'"{confirm_text}"',
                 run_fx, primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
@@ -1029,12 +1079,15 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
         keep = [button(f"btn{prefix}ConfirmKeep", f'"{cancel_text}"', close_fx,
                        width=fit_button_width(f'"{cancel_text}"'), height=36,
                        tooltip='"Close without changing anything"')]
-    footer = group(f"con{prefix}ConfirmFooter", [*status, *keep, ok], direction="Horizontal", gap=8,
+    footer = group(f"con{prefix}ConfirmFooter", [*status, *lead_buttons, *keep, ok],
+                   direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
+    mobile_footer(footer)
     modal = group(f"con{prefix}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
+                  pad=(18, 18, 18, 18), width=lay.popup_w(460, 40),
                   drop_shadow="ExtraBold", visible=vis)
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return [backdrop, modal]
@@ -1153,8 +1206,9 @@ def text_modal(prefix, open_var, title_fx, body_fx, body_h):
     body = text_ctrl(f"txt{prefix}Body", body_fx, size=13, height=body_h, wrap="true")
     modal = group(f"con{prefix}Modal", [head, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 24)",
+                  pad=(18, 18, 18, 18), width=lay.popup_w(460, 24),
                   drop_shadow="ExtraBold", visible=vis)
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return [backdrop, modal]
@@ -2010,8 +2064,29 @@ def sticky_actions(prefix, buttons, status=()):
     inner_w = f"({SHELL_W})"
     row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH,
                      lead=status)
-    return group(f"con{prefix}Foot", [row], direction="Vertical", gap=0, height=FOOT_H,
+    foot = group(f"con{prefix}Foot", [row], direction="Vertical", gap=0, height=FOOT_H,
                  fill=C_CARD_BG, pad=(8, lay.PAGE_PAD_R, 8, lay.PAGE_PAD_L), visible=on)
+    return mobile_pad(foot, x=lay.MOBILE_PAD_X)
+
+
+def mobile_pad(ctrl, top=None, x=None, bottom=None, left=None, right=None):
+    """Polstringen paa en telefon (issue #508) - de andre tiers beholder den,
+    kontrollen har. x saetter venstre og hoejre paa een gang.
+
+    Kun egenskaberne skrives om. Hoejden regnes IKKE om: aendrer top eller
+    bottom en container, hvis hoejde er summen af boernene, skal kalderen
+    selv give den en mobilhoejde (som app_frame goer med headeren)."""
+    if x is not None:
+        left = x if left is None else left
+        right = x if right is None else right
+    for side, v in (("Top", top), ("Bottom", bottom), ("Left", left), ("Right", right)):
+        if v is None:
+            continue
+        key = "Padding" + side
+        cur = ctrl.props.get(key, "0")
+        if str(cur) != str(v):
+            ctrl.props[key] = lay.mobile_or(v, cur)
+    return ctrl
 
 
 def app_frame(prefix, header, body, body_gap=16, body_pad_b=None, footer=None):
@@ -2046,12 +2121,23 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None, footer=None):
                  gap=lay.HEADER_PAD_B,
                  pad=(lay.HEADER_PAD_T, lay.PAGE_PAD_R + lay.SCROLLBAR_W, 0, lay.PAGE_PAD_L),
                  fill=C_APP_BG)
+    # MOBIL (issue #508): smallere margen og lavere header paa en telefon.
+    # Fra Tablet og op er tallene de samme som foer.
+    head_m = group("con%sHeader" % prefix, hdr_kids, direction="Vertical",
+                   gap=lay.MOBILE_HEADER_PAD_B, pad=(lay.MOBILE_HEADER_PAD_T, 0, 0, 0))
+    head.h = lay.mobile_or(head_m.h, head.h)
+    head.props["Height"] = head.h
+    head.props["LayoutGap"] = lay.mobile_or(lay.MOBILE_HEADER_PAD_B, lay.HEADER_PAD_B)
+    mobile_pad(head, top=lay.MOBILE_HEADER_PAD_T, x=lay.MOBILE_PAD_X)
     pb = lay.BODY_PAD_B if body_pad_b is None else body_pad_b
     foot_h = "" if footer is None else f" - If({footer.props['Visible']}, {FOOT_H}, 0)"
     main = group("con%sBody" % prefix, body, direction="Vertical", gap=body_gap,
                  height="Parent.Height - (%s)%s" % (head.h, foot_h), fill_portions=1,
                  overflow_y="Scroll", fill=C_APP_BG,
                  pad=(lay.BODY_PAD_T, lay.PAGE_PAD_R, pb, lay.PAGE_PAD_L))
+    main.props["LayoutGap"] = lay.mobile_or(min(body_gap, lay.MOBILE_GAP), body_gap)
+    mobile_pad(main, top=lay.MOBILE_BODY_PAD_T, x=lay.MOBILE_PAD_X,
+               bottom=min(pb, lay.MOBILE_BODY_PAD_B))
     # Sidebaren (tools/side_nav.py) staar til venstre. Rammen starter
     # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen. Paa
     # mobil er skinnen skjult, og rammen starter under topbjaelken i stedet
@@ -2603,6 +2689,12 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
+    # MOBIL (issue #508): panelet er allerede hele skaermen under Desktop
+    # (PANEL_W_AT). Paa en telefon er 20 + 20 px polstring i hver side for
+    # meget - formularen faar MOBILE_PAD_X i alt, og overskriften med
+    # Luk/pilene staar fast oeverst som foer.
+    mobile_pad(panel, x=lay.MOBILE_PAD_X)
+    mobile_pad(scroll, x=0)
     return [backdrop, panel]
 
 
@@ -3550,6 +3642,9 @@ def card(name, children, gap=14, visible=None, pad_y=18):
 
     pad_y er kun top og bund. Siderne er altid 18: indholdsbredden regnes
     overalt som SHELL_W - 36."""
-    return group(name, children, direction="Vertical", gap=gap,
-                 fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_CARD,
-                 pad=(pad_y, 18, pad_y, 18), visible=visible)
+    c = group(name, children, direction="Vertical", gap=gap,
+              fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_CARD,
+              pad=(pad_y, 18, pad_y, 18), visible=visible)
+    # Paa en telefon er siderne MOBILE_CARD_PAD (issue #508). SHELL_W - 36
+    # er stadig en nedre graense for indholdet, saa intet bliver for bredt.
+    return mobile_pad(c, x=lay.MOBILE_CARD_PAD)

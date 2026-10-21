@@ -116,8 +116,9 @@ def test_widths():
     til 1024.
 
     Plus et par almindelige skaermbredder, saa listen ogsaa daekker det,
-    brugerne faktisk sidder med."""
-    out = set([420, 1366, 1920])
+    brugerne faktisk sidder med - og 320, den smalleste telefon, appen
+    skal kunne bruges paa (issue #508)."""
+    out = set([320, 420, 1366, 1920])
     for _, w in BREAKPOINTS:
         if w:
             out.add(w - 1)
@@ -240,7 +241,53 @@ INSET = "PanelInset"
 ROOT_W = "Parent.Width - %s - %s" % (NAV_OFFSET, INSET)
 ROOT_H = "Parent.Height - %s" % BAR_OFFSET
 
-SHELL_W = "(App.Width - %s - %d - %s)" % (NAV_OFFSET, SHELL_INSET, INSET)
+# MOBILFUNDAMENTET (issue #508)
+#
+# Paa en telefon (under Tablet, LayoutRank = 1) er 24 + 16 px sidemargen
+# plus en reserveret scrollbar for meget af 320-430 px. Rammen bruger der
+# MOBILE_PAD_X i begge sider, og SHELL_W regner med den mindre ramme. Fra
+# Tablet og op er ALT uaendret: udtrykkene nedenfor giver praecis de gamle
+# tal dér (SHELL_INSET 64, PAGE_PAD_L/R, HEADER_PAD_T/B, BODY_PAD_T/B).
+#
+# Scrollbaren regnes stadig med paa mobil (et smalt Windows-vindue har en
+# klassisk scrollbar), saa SHELL_W er en NEDRE graense paa mobil ogsaa.
+MOBILE_RANK = _RANK["Tablet"]
+MOBILE = "%s < %d" % (RANK, MOBILE_RANK)      # sandt paa en telefon
+MOBILE_PAD_X = 12        # sidemargen i rammen, kortenes og panelernes polstring
+MOBILE_GAP = 12          # mellemrum mellem kort og sektioner
+MOBILE_CARD_PAD = 12     # kortets polstring i siderne (CARD_PAD fra Tablet)
+MOBILE_HEADER_PAD_T = 8
+MOBILE_HEADER_PAD_B = 8
+MOBILE_BODY_PAD_T = 12
+MOBILE_BODY_PAD_B = 24
+MOBILE_POP_MARGIN = 8    # luft om en popup paa mobil (naesten fuld skaerm)
+TOUCH_MIN = 44           # mindste klikflade paa touch (= HIT_TOUCH nedenfor)
+SHELL_INSET_MOBILE = 2 * MOBILE_PAD_X + SCROLLBAR_W + FIT_SLACK
+SHELL_INSET_FX = "If(%s, %d, %d)" % (MOBILE, SHELL_INSET_MOBILE, SHELL_INSET)
+
+SHELL_W = "(App.Width - %s - %s - %s)" % (NAV_OFFSET, SHELL_INSET_FX, INSET)
+
+
+def mobile_or(mobile, other):
+    """If(telefon, mobile, other). Den ene maade at skrive en mobilvaerdi
+    paa: 'other' er den uaendrede vaerdi fra Tablet og op."""
+    return "If(%s, %s, %s)" % (MOBILE, mobile, other)
+
+
+def popup_w(max_w, margin=24):
+    """En popups bredde: Min(max_w, App.Width - margin) fra Tablet og op
+    (som foer), og hele skaermen minus MOBILE_POP_MARGIN i hver side paa en
+    telefon. Indhold, der regner sin bredde af popuppens, skal regne af
+    DETTE udtryk, saa det foelger med."""
+    return mobile_or("App.Width - %d" % (2 * MOBILE_POP_MARGIN),
+                     "Min(%s, App.Width - %s)" % (max_w, margin))
+
+# Indholdsbredden i et kort (build_helpers.card): SHELL_W minus kortets
+# polstring - 18 i hver side fra Tablet, MOBILE_CARD_PAD paa en telefon.
+# Indholdsbredden i et sidepanel (build_helpers.row_editor_panel): panelet
+# minus 2 x 20 (panelet) og 2 x 20 (formularen) og scrollbaren fra Tablet,
+# MOBILE_PAD_X i hver side paa en telefon (issue #508).
+CARD_INNER_W = mobile_or("(%s - %d)" % (SHELL_W, 2 * MOBILE_CARD_PAD), "(%s - 36)" % SHELL_W)
 
 # Top og bund. Bunden i kroppen er stor nok til, at det sidste kort ikke
 # ligger klos op ad kanten, naar man har scrollet helt ned.
@@ -249,6 +296,7 @@ HEADER_PAD_B = 10
 BODY_PAD_T = 16
 BODY_PAD_B = 40
 
+assert SHELL_INSET_MOBILE == 48 and TOUCH_MIN == 44, "mobilrammen er flyttet - ret w508-noterne"
 assert SHELL_INSET == 64, (
     "SHELL_INSET er %d. Tallet indgaar i alle breakpoint-beregninger i de "
     "fire apps og i docs/27 - flyt det kun med vilje." % SHELL_INSET)
@@ -268,6 +316,9 @@ def at_least(name):
 
 # Panelets bredde paa skaermen: en tredjedel fra Desktop og op, ellers hele.
 PANEL_W_AT = "If(%s, %s, App.Width)" % ("%s >= %d" % (RANK, _RANK["Desktop"]), PANEL_W_FX)
+# Sidepanelets indholdsbredde - se CARD_INNER_W ovenfor.
+PANEL_INNER_W = mobile_or("App.Width - %d - %d" % (2 * MOBILE_PAD_X, SCROLLBAR_W),
+                          "%s - 2 * 20 - 2 * 20 - %d" % (PANEL_W_AT, SCROLLBAR_W))
 
 
 def tier_is(name):
