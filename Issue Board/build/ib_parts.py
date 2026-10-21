@@ -2075,9 +2075,16 @@ DETAIL_PANEL_W = lay.PANEL_W_AT
 DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
 DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
-# Kommentarfeltet (issue #411): hoejden og ikonets afstand til feltets kant.
-COMMENT_H = 72
+# Kommentarfeltet (issue #411): ikonets afstand til feltets kant.
 SEND_INSET = 4
+# Issue #499: feltet vokser opad med teksten - kompakt mindstehoejde (een
+# linje, og plads til send-ikonet), og en loftshoejde, der foelger den
+# plads, Activity-fanen har: hoejst COMMENT_MAX_H og hoejst 40 % af fanen,
+# saa feeden over altid har det meste. Foerst over loftet faar feltet sin
+# egen scrollbar.
+COMMENT_MAX_H = 176
+COMMENT_MAX_SHARE = 0.4
+COMMENT_PAD_V = 8
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 # Activity-linjen (issue #475): ikonet til venstre, teksten ved siden af.
 ACT_TEXT_X = ACT_ROW_PAD + 28 + 10
@@ -2413,6 +2420,8 @@ def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, da
 # Handlingsraekken vises, naar mindst een af handlingerne er tilladt.
 CAN_ACT = "IbCanReopen || IbCanEdit || IbCanManage"
 ACT_PAD = 3
+# Raekkens hoejde: den hoejeste knap (klikfladen) plus luften over og under.
+ACT_ROW_H = f"{hit_size(ICON_BTN)} + 2 * {ACT_PAD}"
 
 
 def _actions():
@@ -2465,10 +2474,22 @@ def _actions():
     status = act_status("IbDetAct", IB_ACT, ("reopen", "archive"),
                         spin={"archive": icon_only_when(archive)})
     assert icon_only_when(restore) == "true"
-    row = group("conIbDetActions", [*status, reopen, edit, archive, restore, delete],
+    # Issue #499: Edit, Archive og Delete stod skaaret over i Studio. En
+    # indlejret raekke med Center-justering (raekken OG knapperne) tegnes
+    # forskudt nedad i Studio og klipper knapperne (samme fejl som
+    # editor_footer og top_bar har haft). Nu: raekken er Start-justeret og
+    # staar selv i toppen af sin linje (AlignInContainer.Start), knapperne
+    # er Start-justeret, og polstringen over og under (ACT_PAD) giver plads
+    # til kant og fokusramme - knapperne staar dermed midt i raekken, fordi
+    # raekken er knaphoejden + 2 * ACT_PAD. Ingen skjult overloeb som
+    # loesning: raekken er hoej nok til alt sit indhold.
+    buttons = [reopen, edit, archive, restore, delete]
+    for b in buttons:
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+    row = group("conIbDetActions", [*status, *buttons],
                 direction="Horizontal",
-                gap=4, height=f"{hit_size(ICON_BTN)} + 2 * {ACT_PAD}", align_items="Center",
-                justify="End", visible=CAN_ACT)
+                gap=4, height=ACT_ROW_H, align_items="Start",
+                justify="End", visible=CAN_ACT, align_in_container="Start")
     # Luft over og under knapperne: kanten og fokusrammen tegnes uden for
     # knappen, og en raekke paa praecis knappens hoejde skar dem af
     # (Archive blev skaaret i toppen).
@@ -2764,6 +2785,15 @@ def build_detail():
     ]
     details = group("conIbDetDetails", blocks, direction="Vertical", gap=12, visible=show_details)
 
+    # Toppen og indholdsfladens hoejde (content_h - se STABIL HOEJDE
+    # nederst). Regnes her, saa kommentarfeltets loft (issue #499) kan
+    # foelge den plads, fanerne faar.
+    top = group("conIbDetTop", [meta, peek_note, retest, info, facts, tabs],
+                direction="Vertical", gap=10)
+    room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
+            f"({top.h}) - {POP_GAP} - 4")
+    content_h = f"Max({DET_SAFE_MIN_H}, {room})"
+
     # Activity (issue #475): hver linje er en kompakt flade med et ikon for
     # HVEM til venstre, forfatteren og typen paa linjen ved siden af,
     # tidspunktet til hoejre og indholdet under. Interne noter i
@@ -2864,21 +2894,39 @@ def build_detail():
     # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
     # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
     # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
+    # AUTO-HOEJDE (issue #499): feltet staar nederst i fanen og vokser
+    # OPAD, linje for linje, mens man skriver - feeden over faar resten
+    # (feed_h nedenfor regner med feltets hoejde). Antallet af linjer er
+    # regnet af tekstens laengde og linjeskiftene (_lines_h) med tekst-
+    # bredden INDEN for polstringen, saa teksten aldrig naar ind under
+    # send-ikonet. Hellere lidt luft end en scrollbar for tidligt: tegnet
+    # regnes lidt bredt (8 px) og linjen efter skriftstoerrelsen (16 px
+    # under Tablet, ellers 14). Hoejden staar i boksen (conIbCommentBox) -
+    # feltet fylder boksen.
+    text_w = f"{DET_IN} - {ACT_ROW_PAD} - {lay.HIT} - {2 * SEND_INSET} - 4"
+    line_h = if_below("Tablet", "22", "20")
+    lines_h = _lines_h("inpIbComment.Text", text_w, px=8, line_h=line_h)
+    comment_min = f"Max(40, {lay.HIT} + {2 * SEND_INSET})"
+    comment_max = (f"Max({comment_min}, Min({COMMENT_MAX_H}, "
+                   f"RoundDown(({content_h}) * {COMMENT_MAX_SHARE}, 0)))")
+    comment_h = f"Min({comment_max}, Max({comment_min}, {lines_h} + {2 * COMMENT_PAD_V} + 2))"
     comment = text_input("inpIbComment", f'If({POST_FAILED_HERE}, varIbPostText, "")',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
                                       '"Write a comment for the administrators")'),
-                         max_length=2000, height=COMMENT_H, ttype="Multiline", label='"Comment"',
+                         max_length=2000, height="Parent.Height", ttype="Multiline",
+                         label='"Comment"',
                          display_mode=f"If({POSTING_HERE}, DisplayMode.View, DisplayMode.Edit)")
     # Send-ikonet laases op, mens man skriver - ikke foerst, naar feltet
-    # mister fokus (saa ville det foerste klik paa ikonet gaa tabt).
+    # mister fokus (saa ville det foerste klik paa ikonet gaa tabt). Det er
+    # ogsaa det, der faar feltet til at vokse, mens man skriver.
     comment.props["TriggerOutput"] = "TriggerOutput.Keypress"
     comment.props.pop("LayoutMinWidth", None)
     comment.props.update({
         "X": "0", "Y": "0", "Width": "Parent.Width",
         "PaddingLeft": str(ACT_ROW_PAD),
         "PaddingRight": f"{lay.HIT} + {2 * SEND_INSET}",
-        "PaddingTop": "8", "PaddingBottom": "8",
+        "PaddingTop": str(COMMENT_PAD_V), "PaddingBottom": str(COMMENT_PAD_V),
     })
     send_label = 'If(varIbInternal, "Add internal note", "Post comment")'
     post = button("btnIbPost", send_label, POST, width=lay.HIT, height=lay.HIT, icon="Send",
@@ -2902,11 +2950,14 @@ def build_detail():
         "X": f"Parent.Width - Self.Width - {SEND_INSET}",
         "Y": f"Parent.Height - Self.Height - {SEND_INSET}",
     })
+    # Boksen har hoejden (feltet fylder den); resten af fanen (feed_h)
+    # traekker den samme formel fra - check_layout tillader ingen
+    # kontrol-til-kontrol hoejdereferencer.
     box = Ctrl("conIbCommentBox", "GroupContainer", variant="ManualLayout", props={
         "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
-        "FillPortions": "0", "Height": str(COMMENT_H), "LayoutMinWidth": "0",
+        "FillPortions": "0", "Height": comment_h, "LayoutMinWidth": "0",
         "Width": "Parent.Width",
-    }, children=[comment, post, post_spin], h=COMMENT_H)
+    }, children=[comment, post, post_spin], h=comment_h)
     internal = Ctrl("chkIbInternal", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Internal note - only administrators can see it"',
         "Default": "varIbInternal",
@@ -2981,13 +3032,8 @@ def build_detail():
     # panelets bund (panelet er altid skaermens hoejde), saa kommentarfeltet
     # staar nederst. Hver fane scroller selv, saa hver har sin egen
     # scrollposition - aldrig lavere end DET_SAFE_MIN_H (issue #212).
-    top = group("conIbDetTop", [meta, peek_note, retest, info, facts, tabs],
-                direction="Vertical", gap=10)
     files = _files_panel()
     panels = [details, activity, files]
-    room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
-            f"({top.h}) - {POP_GAP} - 4")
-    content_h = f"Max({DET_SAFE_MIN_H}, {room})"
     for p in panels:
         p.props["Height"] = "Parent.Height"
         p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
