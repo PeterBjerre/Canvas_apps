@@ -276,6 +276,13 @@ STATUS_CREATED = ("M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 
 STATUS_REJECTED = _RING + " M9 9l6 6M15 9l-6 6"
 STATUS_CANCELLED = _RING + " M5.3 5.3l13.4 13.4"
 
+# --- et objekt i VH-planens Object list ----------------------------------
+# Laasen: planens egen Functional Location, som altid er med og ikke kan
+# fravaelges. Plus i cirklen: et ledigt objekt, der kan tilfoejes.
+LOCK = ("M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5 "
+        "M5.5 10.5h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z")
+STATUS_ADD = _RING + " M12 8v8M8 12h8"
+
 # --- godkendelsesforloebet -----------------------------------------------
 # Symbolet INDE I en fyldt knude (hvid streg paa tilstandens farve). Samme
 # tilstand = samme symbol i listens stribe og i popuppens tidslinje.
