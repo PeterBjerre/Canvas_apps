@@ -77,7 +77,7 @@ HENTNING (issue #177)
 from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
-                        C_WARN_FG, C_VALID_FG, C_VALID_BG)
+                        C_WARN_FG, C_VALID_FG, C_VALID_BG, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
                            flow_row, grow, icon_on_mobile, label_row, row_hit, row_rule,
@@ -932,7 +932,6 @@ ROW_PAD = 10         # raekkens luft til venstre og hoejre
 COL_GAP = 8
 ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen FILES og raekken under Desktop
 ACTV_W = 52          # kolonnen ACTIVITY (issue #422): ikonet, tallet og overskriften
-ACTV_PAD = 4         # knappens luft i siderne (issue #469) - ikon og tal skal staa i 52 px
 FILES_W = 44         # kolonnen FILES: papirclipsen med sin klikflade (hit_size, regel 40)
 
 # (noegle, overskrift, mindstebredde, vaegt, kun Wide). Raekkefoelgen er
@@ -1111,32 +1110,86 @@ def _attach_btn(name, visible, width=ACT_BTN):
     return b
 
 
+# Taleboblen (issue #489): tallet staar INDE I boblen - ikke et ikon foran
+# et tal. #469's ModernButton tegnede Fluent-ikonet "Comment" foran
+# teksten, men i cellen saas kun tallet. Nu er boblen en SVG, vi selv
+# tegner: et afrundet felt med en hale nederst til venstre, tallet
+# centreret i feltet. 0 er en dempet streg-boble; over 0 en fyldt boble i
+# primaerfarven med lys tekst. Over 99 staar "99+".
+BUBBLE_W, BUBBLE_H = 32, 26     # boblen med halen
+BUBBLE_BODY_H = 20              # feltet, tallet centreres i (halen under)
+BUBBLE_FONT = 11
+BUBBLE_MAX = 99
+
+
+def _bubble_svg(filled):
+    """Boblens <svg> som Power Fx-streng; tallet er variablen s."""
+    hx = lambda n: '" & %s & "' % _hex(n)
+    w, b, r = BUBBLE_W, BUBBLE_BODY_H, 6
+    d = (f"M{r + 1} 1 H{w - r - 1} A{r} {r} 0 0 1 {w - 1} {r + 1} V{b - r} "
+         f"A{r} {r} 0 0 1 {w - r - 1} {b} H14 L8 {BUBBLE_H - 1} V{b} H{r + 1} "
+         f"A{r} {r} 0 0 1 1 {b - r} V{r + 1} A{r} {r} 0 0 1 {r + 1} 1 Z")
+    if filled:
+        shape = (f"<path d='{d}' fill='{hx('color-brand-primary')}' "
+                 f"stroke='{hx('color-brand-primary')}' stroke-width='1.5' stroke-linejoin='round'/>")
+        ink, weight = hx("text-on-primary"), "600"
+    else:
+        shape = (f"<path d='{d}' fill='none' stroke='{hx('text-muted')}' "
+                 f"stroke-width='1.5' stroke-linejoin='round'/>")
+        ink, weight = hx("text-muted"), "400"
+    # Lodret midte af feltet (b/2) + ca. en tredjedel af skriftens hoejde.
+    base = (b + 1) / 2 + BUBBLE_FONT * 0.36
+    return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{BUBBLE_H}' "
+            f"viewBox='0 0 {w} {BUBBLE_H}'>" + shape +
+            f"<text x='{w / 2:g}' y='{base:.1f}' text-anchor='middle' "
+            f"font-family='Segoe UI, sans-serif' font-size='{BUBBLE_FONT}' font-weight='{weight}' "
+            f"fill='{ink}'>" + '" & s & "' + "</text></svg>" + '"')
+
+
+# Opslaget staar een gang (n); s er teksten i boblen.
+ROW_ACT_IMG = (
+    f"With({{ n: {ROW_ACT_N} }}, With({{ s: If(n > {BUBBLE_MAX}, \"{BUBBLE_MAX}+\", Text(n)) }},\n"
+    '    "data:image/svg+xml;utf8," & EncodeUrl(If(n = 0,\n'
+    f"        {_bubble_svg(False)},\n"
+    f"        {_bubble_svg(True)}))))"
+)
+ROW_ACT_LABEL = (f'With({{ n: {ROW_ACT_N} }}, "Activity: " & n & If(n = 1, " entry", " entries") & '
+                 '". Show the activity on " & ThisItem.TicketNo)')
+
+
 def _act_count(suffix, width):
-    """Activity-taelleren (issue #422, #469): taleboblen og tallet som EEN
-    knap - samme moenster som papirclipsen (_attach_btn): en ModernButton
-    oven paa raekkens klikflade, der aabner sagen direkte paa fanen
-    Activity (OPEN_ROW_ACT). Resten af raekken aabner stadig Description.
-    Hover-, tryk- og fokusfladen er knappens egen og daekker hele
-    handlingen - ikon og tal. Containeren staar altid (cellen flytter
-    aldrig kolonnerne); knappen kun, naar brugeren maa se sagens Activity.
-    0 er dempet. Foer (#422) var det et ModernIcon og en tekst - kun pynt."""
-    b = button(f"btnIbRowAct{suffix}", f"Text({ROW_ACT_N})", OPEN_ROW_ACT, width=width, height=32,
-               icon=fluent("comment"), visible=ROW_SEE_ACT,
-               accessible=('"Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries") & '
-                           '". Show the activity on " & ThisItem.TicketNo'),
-               tooltip='"Show activity"')
-    # Opslaget staar een gang (Text); farve og vaegt laeser Self.Text.
-    b.props["Color"] = f'If(Self.Text = "0", {C_MUTED}, {C_TITLE})'
-    b.props["FontWeight"] = 'If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)'
-    b.props["Size"] = str(lay.SIZE_SMALL)
-    b.props["BorderColor"] = C_TRANSPARENT
-    # Fluent-knappens indre luft er for bred til ikon + tal i cellen.
-    for side in ("Left", "Right"):
-        b.props[f"Padding{side}"] = str(ACTV_PAD)
+    """Activity-taelleren (issue #422, #469, #489): taleboblen med tallet
+    indeni som EEN klikbar flade - et klassisk Image med OnSelect, som
+    ikonknapperne (build_helpers.icon_button). Den ligger oven paa raekkens
+    klikflade og aabner sagen direkte paa fanen Activity (OPEN_ROW_ACT) -
+    samme moenster som papirclipsen (_attach_btn). Resten af raekken aabner
+    stadig Description. Hover (row-hover), tryk (row-pressed) og
+    tastaturfokus (2 px primaerfarve) er billedets egne og daekker hele
+    boblen. Containeren staar altid (cellen flytter aldrig kolonnerne);
+    boblen kun, naar brugeren maa se sagens Activity."""
+    t = C_TRANSPARENT
+    props = {
+        "AccessibleLabel": ROW_ACT_LABEL,
+        "BorderColor": t, "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": t,
+        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
+        "Height": "32",
+        "HoverFill": C_ROW_HOVER,
+        "Image": ROW_ACT_IMG,
+        "ImagePosition": "ImagePosition.Center",
+        "OnSelect": OPEN_ROW_ACT,
+        "PressedFill": C_ROW_PRESSED,
+        "TabIndex": "0",
+        "Tooltip": '"Show activity"',
+        "Visible": ROW_SEE_ACT,
+        "Width": str(width),
+    }
+    icons.hit_radius(props)
+    b = Ctrl(f"btnIbRowAct{suffix}", "Image", props=props, h=32, vis=ROW_SEE_ACT)
     b.props["LayoutMinWidth"] = b.props["Width"]
-    # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
+    # Oven paa raekkens klikflade - klikket er billedets eget (gen_screen).
     b.props["_OnTop"] = "true"
-    ensure_hit(b, square=False)        # H.hit (UX-review F6, regel 40)
+    ensure_hit(b)                      # H.hit (UX-review F6, regel 40)
     return group(f"conIbRowAct{suffix}", [b], direction="Horizontal", height=b.props["Height"],
                  width=width, align_items="Center")
 
