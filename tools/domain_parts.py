@@ -95,6 +95,7 @@ import admin_log as alog
 import permissions as perm
 import request_index as ri
 import display_text as dt
+import action_tips as tips
 import status_chip as sc
 import icons
 import design_tokens as tok
@@ -2618,13 +2619,15 @@ class RowAction:
     danger   destruktiv knap (roed kant)
     icon     Fluent-ikon; icon_only goer knappen til kun ikonet
     label    AccessibleLabel/Tooltip; standard er teksten + raekkens noegle
+    tip      Tooltip, naar det skal vaere kortere end label (issue #515:
+             tooltippet gentager ikke raekkens noegle - tools/action_tips.py)
     line     1 eller 2 - linjen i mobilkortet"""
 
     def __init__(self, name, text, fx, width, mode=None, danger=False, icon=None,
-                 icon_only=False, label=None, line=1):
+                 icon_only=False, label=None, line=1, tip=None):
         self.name, self.text, self.fx, self.width = name, text, fx, width
         self.mode, self.danger, self.icon, self.icon_only = mode, danger, icon, icon_only
-        self.label, self.line = label, line
+        self.label, self.line, self.tip = label, line, tip
 
 
 def _actions_w(acts):
@@ -2634,7 +2637,7 @@ def _actions_w(acts):
 def _action_button(a, suffix=""):
     who = a.label or f'{a.text} & " " & ThisItem.ItemKey'
     b = button(a.name + suffix, a.text, a.fx, danger=a.danger, width=a.width,
-               height=ROW_BTN_H, display_mode=a.mode, accessible=who, tooltip=who)
+               height=ROW_BTN_H, display_mode=a.mode, accessible=who, tooltip=a.tip or who)
     b.props["Size"] = "13"
     if a.icon:
         b.props["Icon"] = f'"{a.icon}"'
@@ -2658,7 +2661,9 @@ def _action_button(a, suffix=""):
 # i formularen), og Measuring Point har ingen dokumenter. Der er ingen Details-knap -
 # Edit aabner sidepanelet, ogsaa paa en raekke, der kun kan ses (felterne
 # er saa skrivebeskyttede) - og ingen More-menu: alle handlinger staar
-# direkte i kolonnen. Hvert ikon har et tooltip med raekkens noegle.
+# direkte i kolonnen. Hvert ikon har et tooltip, der siger handlingen og
+# antallet (issue #515, tools/action_tips.py); AccessibleLabel er det samme
+# med raekkens noegle bagefter.
 #
 # Papirclipsen er Issue Boards (ib_parts._attach_btn). Ikonerne er
 # Fluent-navne paa den moderne knap (tools/icons.FLUENT).
@@ -2671,33 +2676,28 @@ ROW_LOCKED = '(varDomViewOnly || ThisItem.Status = "submitted")'
 def standard_row_actions(docs_fx=None, docs_n=None, objects_fx=None, objects_n=None):
     """Raekkens ikoner i den faelles raekkefoelge. docs_fx/objects_fx:
     OnSelect for Documents/Objects (None = appen har ikke handlingen);
-    docs_n/objects_n: antallet, der staar i tooltippet."""
+    docs_n/objects_n: antallet, der staar i tooltippet - raekkens egne
+    kolonner, det samme tal som sidepanelets fane viser."""
     key = "ThisItem.ItemKey"
-    acts = [RowAction(
-        "btnDomRowOpen", '"Edit"', load_row_fx(), ROW_ICON_W,
-        icon=icons.FLUENT["edit"], icon_only=True,
-        label=f'If({ROW_LOCKED}, "View row ", "Edit row ") & {key}')]
+
+    def act(name, text, fx, tip, **kw):
+        return RowAction(name, text, fx, ROW_ICON_W, icon_only=True, tip=tip,
+                         label=tips.label(tip, key), **kw)
+
+    acts = [act("btnDomRowOpen", '"Edit"', load_row_fx(), tips.edit_row(ROW_LOCKED),
+                icon=icons.FLUENT["edit"])]
     if docs_fx:
-        n = docs_n or "0"
-        acts.append(RowAction(
-            "btnDomRowDocs", '"Documents"', docs_fx, ROW_ICON_W,
-            icon=icons.FLUENT["attach"], icon_only=True,
-            label=f'"Documents for " & {key} & " (" & {dt.plural(n, "file")} & ")"'))
+        acts.append(act("btnDomRowDocs", '"Documents"', docs_fx,
+                        tips.documents(docs_n or "0", ROW_LOCKED),
+                        icon=icons.FLUENT["attach"]))
     if objects_fx:
-        n = objects_n or "0"
-        acts.append(RowAction(
-            "btnDomRowObjects", '"Objects"', objects_fx, ROW_ICON_W,
-            icon=icons.FLUENT["objects"], icon_only=True,
-            label=(f'"Functional locations for " & {key} & " (" & '
-                   f'{dt.plural(n, "functional location")} & ")"')))
-    acts.append(RowAction(
-        "btnDomRowCopy", '"Copy"', copy_row_fx(), ROW_ICON_W,
-        mode=ROW_MODES["btnDomRowCopy"], icon=icons.FLUENT["copy"], icon_only=True,
-        label=f'"Copy " & {key} & " to a new draft row"', line=2))
-    acts.append(RowAction(
-        "btnDomRowDelete", '"Delete row"', delete_this_row_fx(), ROW_ICON_W,
-        mode=DM_ROW_DEL, danger=True, icon=icons.FLUENT["delete"], icon_only=True,
-        label=f'"Delete row " & {key}', line=2))
+        acts.append(act("btnDomRowObjects", '"Objects"', objects_fx,
+                        tips.functional_locations(objects_n or "0"),
+                        icon=icons.FLUENT["objects"]))
+    acts.append(act("btnDomRowCopy", '"Copy"', copy_row_fx(), tips.COPY_ROW,
+                    mode=ROW_MODES["btnDomRowCopy"], icon=icons.FLUENT["copy"], line=2))
+    acts.append(act("btnDomRowDelete", '"Delete row"', delete_this_row_fx(), tips.DELETE_ROW,
+                    mode=DM_ROW_DEL, danger=True, icon=icons.FLUENT["delete"], line=2))
     return acts
 
 

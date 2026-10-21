@@ -221,4 +221,4 @@ def build_rows():
 dp.configure(row_actions=dp.standard_row_actions(
     docs_fx=((dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
               + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx()),
-    docs_n="Coalesce(ThisItem.FileCount, 0)"))
+    docs_n="ThisItem.FileCount"))

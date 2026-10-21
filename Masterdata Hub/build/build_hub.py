@@ -27,6 +27,7 @@ from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
 import icons
+import action_tips as tips
 import approval_flow
 import submission_notes as sn
 import permissions as perm
@@ -1541,6 +1542,9 @@ def build_list():
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     ensure_hit(timeline)
+    # Tooltip (issue #515). Indeksraekken har intet antal haendelser - et
+    # tal her ville vaere et opslag pr. raekke.
+    timeline.props["Tooltip"] = tips.VIEW_ACTIVITY
     timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x)
     timeline.props["Y"] = if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2")
     # SAP OBJECT (issue #471): link-ikonet, naar indeksraekken siger, at
@@ -1691,6 +1695,7 @@ def _owner_buttons(act, suffix):
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",
                   label=f'"Delete " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     ensure_hit(dele)
+    dele.props["Tooltip"] = tips.DELETE_REQUEST          # issue #515
     edit.props["Visible"] = own
     # Delete KUN paa en kladde (UX-review, hub): den roede skraldespand stod
     # paa alle raekker, ogsaa indsendte, og var raekkens staerkeste farve.
