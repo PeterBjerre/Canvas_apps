@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_INVALID_FG,
                         C_INPUT_BG, SHELL_W,
-                        C_TRANSPARENT, C_MODAL_BG,
+                        C_TRANSPARENT, C_MODAL_BG, C_TITLE,
                         C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG, C_WARN_FG)
 from design_tokens import ref_hex
 import layout_tokens as lay
@@ -20,7 +20,8 @@ from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
 from build_helpers import reset_click_fx, reset_confirm
 from gen_screen import lock_section
 import build_help as bh
-from fl_picker import fl_picker, result_count_fx
+from fl_picker import fl_picker
+import status_chip as chip
 import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
@@ -156,19 +157,45 @@ OBJ_TOOLTIP = (
 # ForAll over Sequence i stedet for Ungroup (se tools/fl_picker.items_fx).
 # I View (issue #406) er raekkerne kun de valgte objekter: der kan ikke
 # vaelges nye, saa kandidaterne fra soegningen vises ikke.
+#
+# EEN SAMLET LISTE (mockup 2026-10-21): planens egen Functional Location
+# staar oeverst som "Already selected" (Main = true) - laast, den er altid
+# med og gemmes ikke i objektlisten. Den vises kun, naar der er andre
+# raekker; ellers er listen tom, og tomtilstanden siger hvorfor.
+# Soegefeltet filtrerer paa kode og beskrivelse. Alt er lokale samlinger -
+# intet delegeringsspoergsmaal.
+OBJ_SEARCH = "inpVhpObjListSearch"
+OBJ_MAIN_DESC = ("Coalesce(LookUp(colVhpFl, Code = m).Description, "
+                 "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FlDescription, \"\")")
 OBJ_ROWS_FX = (
     "With(\n"
-    f"    {{ c: ForAll(Filter({OBJ_CANDIDATES}, !varVhpViewOnly) As F, "
-    "{ Code: F.Code, Description: F.Description }) },\n"
+    f"    {{ m: {SEL_FL},\n"
+    f"      q: Trim({OBJ_SEARCH}.Text),\n"
+    f"      c: ForAll(Filter({OBJ_CANDIDATES}, !varVhpViewOnly) As F, "
+    "{ Code: F.Code, Description: F.Description, Main: false }) },\n"
     "    With(\n"
-    f"        {{ x: ForAll(Filter({OBJ_CHOSEN}, !(Code in c.Code)) As O,\n"
-    f"                    {{ Code: O.Code, Description: {obj_desc_fx('O.Code', 'O.Description')} }}) }},\n"
-    "        Sort(\n"
-    "            ForAll(\n"
-    "                Sequence(CountRows(c) + CountRows(x)),\n"
-    "                If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))\n"
-    "            ),\n"
-    "            Code\n"
+    f"        {{ x: ForAll(Filter({OBJ_CHOSEN}, !(Code in c.Code) && Code <> m) As O,\n"
+    f"                    {{ Code: O.Code, Description: {obj_desc_fx('O.Code', 'O.Description')}, Main: false }}) }},\n"
+    "        With(\n"
+    "            { r: Sort(\n"
+    "                ForAll(\n"
+    "                    Sequence(CountRows(c) + CountRows(x)),\n"
+    "                    If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))\n"
+    "                ),\n"
+    "                Code\n"
+    "            ) },\n"
+    "            With(\n"
+    "                { k: If(IsBlank(m) || CountRows(r) = 0, 0, 1) },\n"
+    "                Filter(\n"
+    "                    ForAll(\n"
+    "                        Sequence(k + CountRows(r)),\n"
+    "                        If(Value <= k,\n"
+    f"                            {{ Code: m, Description: {OBJ_MAIN_DESC}, Main: true }},\n"
+    "                            Index(r, Value - k))\n"
+    "                    ),\n"
+    "                    IsBlank(q) || q in Code || q in Description\n"
+    "                )\n"
+    "            )\n"
     "        )\n"
     "    )\n"
     ")"
@@ -865,7 +892,7 @@ EDITOR_COL_W = col_width(EDITOR_CW, EDITOR_COLS)
 FL_W = fits(EDITOR_CW, TWO_COL_MIN, EDITOR_CW, f"(({EDITOR_CW} - 40) / 3) * 2 + 20")
 
 
-def _obj_list_button(n_obj, n_found):
+def _obj_list_button(n_obj):
     """Object list-knappen som et billede med SAMME udseende som en outline-
     knap. Et billede, fordi dets Tooltip er browserens egen: den bryder
     linjerne (Char(10)) og ombryder lange tekster. ModernButtons Fluent-
@@ -875,12 +902,10 @@ def _obj_list_button(n_obj, n_found):
     Text (issue #73) - tilstanden foelger antallet, saa den forsvinder, naar
     valget ryddes.
 
-    Tallet i knappen (issue #454) er n_found: antal resultater i den
-    aktuelle FL-soegning - samme samling og samme tal som beskeden under
-    feltet ("6 Functional Locations found ..." -> "Object list (6)").
-    Det nulstilles af fl_picker.result_count_fx, naar soegeteksten aendres,
-    resultaterne ryddes, eller en ny soegning starter. De VALGTE objekter
-    staar i tooltip'en og i den groenne tilstand (n_obj)."""
+    Tallet i knappen er de VALGTE objekter paa itemet (Peter, mockup
+    2026-10-21: "(X) skal kun vise selected") - ikke planens egen
+    Functional Location og ikke de ledige. Issue #454 viste antallet af
+    soegeresultater; det staar stadig i beskeden under feltet."""
     w, h = fit_button_width('"Object list (000)"') + 28, 34
     done = f"({n_obj} > 0)"
     # I View (issue #406) kan knappen altid bruges paa et item: popup'en
@@ -904,10 +929,9 @@ def _obj_list_button(n_obj, n_found):
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
             + '</svg>"')
     svg = (f'If({below("Tablet")}, ' + _svg(40, 12, None) + ', '
-           + _svg(w, 14, '"Object list (" & Text(' + n_found + ') & ")"') + ')')
+           + _svg(w, 14, '"Object list (" & Text(' + n_obj + ') & ")"') + ')')
     img = Ctrl("imgVhpObjList", "Image", props={
-        "AccessibleLabel": (f'"Object list, " & Text({n_found}) & " found, " & '
-                           f'Text({n_obj}) & " selected"'),
+        "AccessibleLabel": f'"Object list, " & Text({n_obj}) & " selected"',
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
@@ -920,6 +944,7 @@ def _obj_list_button(n_obj, n_found):
         "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": (
+            f"Reset({OBJ_SEARCH});\n"
             "ClearCollect(\n"
             "    colVhpObjDraft,\n"
             f"    ForAll({OBJ_CHOSEN} As O, {{ Code: O.Code, Description: O.Description }})\n"
@@ -982,10 +1007,8 @@ def build_item_editor():
     # konstant i appens EGEN kopi af build_flsearch.py - og det var netop
     # den ene linje, de tre kopier havde glidt fra hinanden paa.
     n_obj = f"CountRows({OBJ_CHOSEN})"
-    # Knappens tal: den aktuelle soegnings resultater (issue #454).
-    n_found = result_count_fx(combo=FL_COMBO, results="colVhpFl",
-                              busy_var=FL_BUSY_VAR, last_var=FL_LAST_VAR)
-    btnObjList = _obj_list_button(n_obj, n_found)
+    # Knappens tal: de valgte objekter (mockup 2026-10-21).
+    btnObjList = _obj_list_button(n_obj)
     btnObjList.props["AlignInContainer"] = "AlignInContainer.Center"
     btnObjList.props["LayoutMinWidth"] = btnObjList.props["Width"]
     flPicker = fl_picker(
@@ -1431,68 +1454,119 @@ def item_reset_confirm():
 ITEM_SAVE_W = fit_button_width("\"Saving...\"", min_w=96) + ICON_W
 
 
-# Object list-popuppens bredde (maks 640, aldrig bredere end skaermen minus
+# Object list-popuppens bredde (maks 760, aldrig bredere end skaermen minus
 # 20 px i hver side), dens polstring og pladsen inden i den. Listen tager
-# hele den indre bredde (issue #385).
-OBJ_MODAL_W = "Min(640, App.Width - 40)"
+# hele den indre bredde (issue #385). 760 (foer 640) giver plads til de tre
+# kolonner i mockuppen (2026-10-21).
+OBJ_MODAL_W = "Min(760, App.Width - 40)"
 OBJ_MODAL_PAD = 18
 OBJ_LIST_W = f"({OBJ_MODAL_W}) - {2 * OBJ_MODAL_PAD}"
 
+# Kolonnerne i Object list (mockup 2026-10-21): afkrydsning, Functional
+# Location, Description og Status. Overskriften og raekkerne bruger de
+# SAMME bredder, saa kolonnerne flugter.
+OBJ_CHK_W = 28
+OBJ_CODE_W = 200
+OBJ_COL_GAP = 10
+# Raekkens polstring i hver side, galleriets TemplatePadding og den plads,
+# gen_screen holder fri til scrollbaren (GALLERY_RESERVE minus 2 x 2).
+OBJ_ROW_PAD = 8
+OBJ_TPL_PAD = 2
+OBJ_SCROLL = 18
+
+# Statuspillerne. "main" er planens egen Functional Location.
+OBJ_STATUS = [
+    ("main", "Already selected", icons.LOCK, "neutral"),
+    ("selected", "Selected", icons.STATUS_READY, "ok"),
+    ("available", "Available", icons.STATUS_ADD, "info"),
+]
+OBJ_STATUS_W = chip.table_width(OBJ_STATUS)
+
 
 def build_object_list_modal():
-    """Object list som popup (issue #54).
+    """Object list som popup (issue #54), efter mockuppen 2026-10-21.
 
     Samme konstruktion som tasklist-pickeren (build_modal.py): en container
     oven paa skaermen med sloeret bagved, centreret, med titel, luk-knap og
     en liste, der selv scroller - siden bagved staar stille.
 
-    Listen er den samme som foer - galleri med ModernCheckbox, filtreret paa
-    den valgte Functional Location - men krydserne skrives i en KLADDE,
-    colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet. Close
-    (eneste luk, issue #237) lukker uden at aendre noget."""
+    EEN samlet liste med soegefelt og kolonnerne Functional Location,
+    Description og Status: planens egen FL ("Already selected", laast),
+    de valgte ("Selected") og de ledige ("Available"). Krydserne skrives i
+    en KLADDE, colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet.
+    Cancel og X lukker uden at aendre noget."""
     title = text_ctrl("txtVhpObjListTitle", "\"Object list\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
+    close_fx = "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)"
     # X oeverst til hoejre (issue #343).
-    headRow = popup_head("conVhpObjListHeadRow", title, "btnVhpObjListClose",
-                         "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)",
+    headRow = popup_head("conVhpObjListHeadRow", title, "btnVhpObjListClose", close_fx,
                          accessible="\"Close object list without changes\"")
 
     # View (issue #406): popup'en viser kun itemets valgte objekter og
-    # siger, at den er skrivebeskyttet.
+    # siger, at den er skrivebeskyttet. Ellers tallet som i mockuppen:
+    # planens egen FL plus objekterne under den - samme tal som beskeden
+    # under feltet ("6 Functional Locations found ...").
     under = text_ctrl(
         "txtVhpObjListFl",
         f"If(IsBlank({SEL_FL}), \"No functional location selected.\", "
         f"varVhpViewOnly, \"Objects linked under \" & {SEL_FL} & \" - read-only.\", "
-        f"\"Sub-objects under \" & {SEL_FL} & \" - \" & Text(CountRows({OBJ_CANDIDATES})) & \" found.\")",
-        size=12, color=C_MUTED, height=18, wrap="false")
+        f"Text(CountRows({OBJ_CANDIDATES}) + 1) & \" sub-objects found for \" & {SEL_FL})",
+        size=13, color=C_MUTED, height=18, wrap="false")
+
+    search = text_input(OBJ_SEARCH, "\"\"",
+                        placeholder="\"Search functional location or description\"",
+                        height=36, label="\"Search objects\"",
+                        # Soegning aendrer intet - den virker ogsaa i View.
+                        display_mode="DisplayMode.Edit")
+
+    # Kolonneoverskrifterne - venstre kant flugter med raekkernes tekst.
+    def head(name, text, width=None):
+        return text_ctrl(name, text, size=12, color=C_MUTED, weight="Semibold",
+                         height=18, wrap="false", width=width)
+    hCode = head("txtVhpObjColCode", "\"Functional Location\"", OBJ_CODE_W)
+    hDesc = head("txtVhpObjColDesc", "\"Description\"")
+    grow(hDesc)
+    hStat = head("txtVhpObjColStatus", "\"Status\"", OBJ_STATUS_W)
+    left = OBJ_TPL_PAD + OBJ_ROW_PAD + OBJ_CHK_W + OBJ_COL_GAP
+    right = OBJ_TPL_PAD + OBJ_SCROLL + OBJ_ROW_PAD
+    colHead = group("conVhpObjListCols", [hCode, hDesc, hStat], direction="Horizontal",
+                    gap=OBJ_COL_GAP, height=18, pad=(0, right, 0, left), align_items="Center",
+                    width=OBJ_LIST_W)
 
     IN_DRAFT = "CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0"
-    # EEN afkrydsning, EEN tekst pr. objekt (issue #72). Foer stod der en
-    # afkrydsning paa 26 px OG en tekst ved siden af - afkrydsningens egen
-    # etiket (platformens standard) blev tegnet oven i teksten, naar raekken
-    # blev valgt. Nu ER teksten afkrydsningens etiket, og der er ikke noget
-    # andet i raekken, der kan overlappe den.
+    # Afkrydsningen har ingen etiket - koden og beskrivelsen staar i deres
+    # egne kolonner. Planens egen FL er krydset af og laast.
     chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select object \" & ThisItem.Code",
-        "Default": IN_DRAFT,
+        "Default": f"ThisItem.Main || {IN_DRAFT}",
         "Height": "24",
-        "Label": "ThisItem.Code & If(IsBlank(ThisItem.Description), \"\", \" - \" & ThisItem.Description)",
+        "Label": "\"\"",
         "OnCheck": ("If(\n"
-                    f"    !({IN_DRAFT}),\n"
+                    f"    !ThisItem.Main && !({IN_DRAFT}),\n"
                     "    Collect(colVhpObjDraft, { Code: ThisItem.Code, Description: ThisItem.Description })\n"
                     ")"),
-        "OnUncheck": "RemoveIf(colVhpObjDraft, Code = ThisItem.Code)",
-        "Width": "0",
+        "OnUncheck": "If(!ThisItem.Main, RemoveIf(colVhpObjDraft, Code = ThisItem.Code))",
+        "Width": str(OBJ_CHK_W),
     }), h=24)
-    grow(chkObj)
-    chkObj.props["DisplayMode"] = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
-    objRowTpl = group("conVhpObjRow", [chkObj], direction="Horizontal",
-                      gap=10, height="Parent.TemplateHeight - 2", pad=(0, 8, 0, 8),
-                      fill=f"If({IN_DRAFT}, {C_INFO_BG}, {C_TRANSPARENT})",
-                      align_items="Center", width="Parent.TemplateWidth")
+    chkObj.props["DisplayMode"] = ("If(varVhpViewOnly || ThisItem.Main, "
+                                   "DisplayMode.View, DisplayMode.Edit)")
+    ink = f"If(ThisItem.Main, {C_MUTED}, {C_TITLE})"
+    txtCode = text_ctrl("txtVhpObjCode", "ThisItem.Code", size=13, color=ink,
+                        height=20, wrap="false", width=OBJ_CODE_W)
+    txtDesc = text_ctrl("txtVhpObjDesc", "ThisItem.Description", size=13, color=ink,
+                        height=20, wrap="false")
+    grow(txtDesc)
+    status = chip.status_chip(
+        "imgVhpObjStatus",
+        f"If(ThisItem.Main, \"main\", {IN_DRAFT}, \"selected\", \"available\")",
+        OBJ_STATUS)
+    objRowTpl = group("conVhpObjRow", [chkObj, txtCode, txtDesc, status], direction="Horizontal",
+                      gap=OBJ_COL_GAP, height="Parent.TemplateHeight - 2",
+                      pad=(0, OBJ_ROW_PAD, 0, OBJ_ROW_PAD),
+                      fill=C_TRANSPARENT, align_items="Center", width="Parent.TemplateWidth")
 
     OBJ_ROWS = 9
-    OBJ_ROW_H = 32
+    OBJ_ROW_H = 40
     galObj = Ctrl(
         "galVhpItemObjects", "Gallery", variant="Vertical",
         props={
@@ -1502,14 +1576,14 @@ def build_object_list_modal():
             "BorderThickness": "1",
             "Fill": C_INPUT_BG,
             "FillPortions": "0",
-            "Height": f"Min({OBJ_ROWS * (OBJ_ROW_H + 2)}, Max(96, App.Height - 260))",
+            "Height": f"Min({OBJ_ROWS * (OBJ_ROW_H + 2)}, Max(96, App.Height - 340))",
             "Items": OBJ_ROWS_FX,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
             "Selectable": "false",
             "ShowScrollbar": "true",
             "TabIndex": "0",
-            "TemplatePadding": "2",
+            "TemplatePadding": str(OBJ_TPL_PAD),
             "TemplateSize": str(OBJ_ROW_H),
             # Issue #385: listens bredde er popuppens INDRE bredde - samme
             # udtryk som popuppens Width minus dens polstring - og ikke
@@ -1541,12 +1615,18 @@ def build_object_list_modal():
         visible=(f"IfError((varVhpViewOnly || CountRows({OBJ_CANDIDATES}) = 0) && "
                  f"CountRows({OBJ_CHOSEN}) = 0, true)"))
 
+    # "3 selected (1 already selected)": de valgte i kladden plus planens
+    # egen FL, som altid er med.
     info = text_ctrl("txtVhpObjListInfo",
-                     "Text(CountRows(colVhpObjDraft)) & \" selected\"",
-                     size=12, color=C_MUTED, height=18, wrap="false")
+                     ("Text(CountRows(colVhpObjDraft)) & \" selected\" & "
+                      f"If(IsBlank({SEL_FL}), \"\", \" (1 already selected)\")"),
+                     size=13, color=C_MUTED, height=18, wrap="false")
     grow(info)
-    # Cancel er fjernet (issue #237): Close oeverst til hoejre er popuppens
-    # eneste luk og kasserer kladden, som Cancel gjorde.
+    # Cancel er tilbage (mockup 2026-10-21) ved siden af "Use selected". Den
+    # goer det samme som X: lukker og kasserer kladden.
+    btnCancel = button(
+        "btnVhpObjListCancel", "\"Cancel\"", close_fx,
+        width=fit_button_width("\"Cancel\""), height=36)
     btnUse = button(
         "btnVhpObjListUse", "\"Use selected\"",
         (
@@ -1561,12 +1641,13 @@ def build_object_list_modal():
         ), primary=True, width=fit_button_width("\"Use selected\""), height=36,
         # Skjult i View (issue #406) - popup'en er kun til at se objekterne.
         display_mode=VIEW_LOCK, visible="!varVhpViewOnly")
-    footer = group("conVhpObjListFooter", [info, btnUse], direction="Horizontal",
+    footer = group("conVhpObjListFooter", [info, btnCancel, btnUse], direction="Horizontal",
                    gap=8, height=36, align_items="Center")
 
-    # Maks 640 bred og aldrig bredere end skaermen minus 20 px i hver side.
+    # Maks 760 bred og aldrig bredere end skaermen minus 20 px i hver side.
     modal = group(
-        "conVhpObjListModal", [headRow, under, galObj, objEmpty, footer], direction="Vertical",
+        "conVhpObjListModal", [headRow, under, search, colHead, galObj, objEmpty, footer],
+        direction="Vertical",
         gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(OBJ_MODAL_PAD,) * 4, width=OBJ_MODAL_W, drop_shadow="ExtraBold",
         visible="varVhpObjListOpen")

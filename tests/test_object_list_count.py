@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Issue #454: Object list-knappens tal er antallet af resultater i den
-aktuelle FL-soegning - laest af SAMME samling som beskeden under feltet
-("6 Functional Locations found ..." -> "Object list (6)") - og det
-nulstilles, naar soegeteksten aendres, resultaterne ryddes, eller en ny
-soegning starter.
+Issue #454: soegningens resultattal (beskeden under feltet, "6 Functional
+Locations found ...") laeses af samme samling og nulstilles, naar
+soegeteksten aendres, resultaterne ryddes, eller en ny soegning starter.
+
+Mockup 2026-10-21: Object list-knappens tal er kun de VALGTE objekter.
 
     python3 -m pytest tests/test_object_list_count.py
 """
@@ -45,13 +45,15 @@ def test_count_resets():
     assert "!IsBlank(" in COUNT and "!Upper" not in COUNT
 
 
-def test_button_shows_the_search_count():
+def test_button_shows_only_the_selected_objects():
+    # Mockup 2026-10-21: "(X) skal kun vise selected" - tallet er de valgte
+    # objekter paa itemet, ikke soegeresultaterne (issue #454) og ikke
+    # planens egen Functional Location.
     img = _p("imgVhpObjList", "Image")
-    assert '"Object list (" & Text(' + COUNT + ') & ")"' in img
-    # Det gamle tal (de valgte objekter) staar ikke laengere i knappen.
-    assert ('"Object list (" & Text(CountRows(Filter(colVhpItemObjects, '
-            'ItemId = varVhpActiveItemId)))') not in img
+    chosen = "CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))"
+    assert '"Object list (" & Text(' + chosen + ') & ")"' in img
+    assert '"Object list (" & Text(' + COUNT not in img
     label = _p("imgVhpObjList", "AccessibleLabel")
-    assert COUNT in label and '" found, "' in label and '" selected"' in label
+    assert chosen in label and '" selected"' in label and '" found, "' not in label
     # Tooltip'en viser stadig de valgte objekter.
     assert '"Selected:"' in _p("imgVhpObjList", "Tooltip")
