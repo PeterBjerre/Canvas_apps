@@ -439,7 +439,7 @@ TABS = f"""ClearCollect(
 If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab, "ALL"))"""
 
 
-def verify_fx(panel_fx, after=None):
+def verify_fx(panel_fx, after=None, grow=None):
     """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
     aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77).
 
@@ -449,7 +449,9 @@ def verify_fx(panel_fx, after=None):
     andre). Foer regnede afsnit H panelets samling om med Manufacturer/
     Warranty-felterne efter HVER aendring - saa forsvandt alle andre felter
     fra panelet, mens man skrev. after koerer til sidst - Submit
-    (fl_save.submit_after_verify) laeser resultatet dér."""
+    (fl_save.submit_after_verify) laeser resultatet dér. grow (afsnit G2)
+    tilfoejer en tom raekke, naar den sidste raekke er Ready
+    (fl_parts.AUTO_ROW_FX, issue #467)."""
     return ";\n\n".join([
         "// A. Dubletterne een gang (FL5)\n" + DUPS,
         "// B. Syntaks, klasse og raekkebeskeder (FL4-FL24)\n" + calc_rows(),
@@ -458,6 +460,8 @@ def verify_fx(panel_fx, after=None):
         "// E. Status, foerste besked og galleriets kolonner (FL25, FL26)\n" + status_fx(),
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
+    ] + (["// G2. Ny tom raekke, naar den sidste er Ready (issue #467)\n" + grow]
+         if grow else []) + [
         "// H. Sidepanelet (issue #278): nye felter KUN ved en ny klasse.\n" + panel_fx,
         "// I. Faerdig. varFlStale styrer Submit (FL68).\n"
         "Set(varFlStale, false)",

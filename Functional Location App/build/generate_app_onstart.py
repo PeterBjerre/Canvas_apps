@@ -208,6 +208,10 @@ COLLECTIONS = [
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
     ("colFlDeleted", {"RowGuid": '""'}),
+    # Kopier, der ikke er gemt endnu (Copy, issue #467), og Copy's
+    # mellemregning af raekkens felter (fl_parts.copy_row_fx).
+    ("colFlCopies", {"RowGuid": '""'}),
+    ("colFlCopyVals", {"RowGuid": '""', "Field": '""', "Value": '""'}),
     # Klassefanerne (FL28).
     ("colFlTabs", {"Key": '""', "Label": '""'}),
     # Gem: raekkerne i SharePoint paa RowGuid, og hvad der fejlede.
