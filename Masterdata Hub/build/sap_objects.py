@@ -47,8 +47,9 @@ med EncodeUrl og kommer altid fra raekkens egne vaerdier.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE,
-                        C_TRANSPARENT, C_ROW_HOVER, C_PRIMARY, C_DIVIDER)
-from build_helpers import group, text_ctrl, grow, spinner, close_x, text_input, ensure_hit
+                        C_TRANSPARENT, C_ROW_HOVER, C_PRIMARY, C_DIVIDER, C_MUTED_BG)
+from build_helpers import (group, text_ctrl, grow, spinner, close_x, text_input, ensure_hit,
+                           button)
 from hub_config import DOMAINS
 import layout_tokens as lay
 import request_index as ri
@@ -207,17 +208,43 @@ HINT_FX = ("Switch(" + R + ".Domain.Value, " +
            ", ".join(f'"{k}", "{v}"' for k, v in HINT.items()) + ', "")')
 EMPTY_TEXT = '"No SAP numbers have been recorded for this request yet."'
 
-# Maal.
+# Maal (issue #488, mockuppen pictures/sap_popup.png). Hvert objekt er
+# een galleriraekke: en graa sektionsbjaelke med objekttypen og under den
+# raekken med nummeret. Bjaelke og raekke rykkes ind pr. niveau (plan 0,
+# item 1, opgaveliste 2), og et lille "L" foran bjaelken viser, at den
+# hoerer under raekken ovenover. Ikonerne til hoejre staar paa SAMME x i
+# alle niveauer.
 POP_MAX_W = 640
 POP_PAD = 16
 POP_W = f"Min({POP_MAX_W}, App.Width - 24)"
 GW = f"({POP_W} - {2 * POP_PAD})"
-ROW_H = 64
-MAX_ROWS = 7
-INDENT = 24
-NO_W = 132
-LINK = 32
+MAX_ROWS = 5
+INDENT = 28
+BAR_Y = 6            # luft over bjaelken - ogsaa mellem to niveauer
+BAR_H = 32
+LINE_H = 48          # raekken med nummeret
+ROW_H = BAR_Y + BAR_H + LINE_H
+GUIDE = 12           # den lodrette streg foran nummeret, fra niveauets x
+NO_X = 18            # nummerets felt, fra niveauets x
 NO_H = 32
+LINK = 32
+SAP_LOGO_W = 44
+SB = 12              # plads til galleriets scrollbar
+EDGE = f"({GW} - {SB})"            # bjaelkernes hoejre kant
+RIGHT = f"({EDGE} - 8)"            # link-ikonets hoejre kant - alle niveauer
+
+# SAP-maerket ved link-ikonet (mockuppen): SAP-fladen med "SAP" i hvidt.
+# I appens brandfarve (som link-ikonet), saa den foelger temaet - farver
+# staar kun i design_tokens.py.
+def _sap_logo_uri():
+    fill = '" & ' + _ref("color-brand-primary") + ' & "'
+    ink = '" & ' + _ref("text-on-primary") + ' & "'
+    svg = (f"<svg xmlns='http://www.w3.org/2000/svg' width='{SAP_LOGO_W}' height='{LINK}' "
+           f"viewBox='0 0 {SAP_LOGO_W} {LINK}'>"
+           f"<path d='M2 6h40L22 26H2Z' fill='{fill}'/>"
+           "<text x='4.5' y='20.5' font-family='Arial, Helvetica, sans-serif' font-size='13' "
+           f"font-weight='700' font-style='italic' fill='{ink}'>SAP</text></svg>")
+    return '"data:image/svg+xml;utf8," & EncodeUrl("' + svg + '")'
 
 
 def _sap_open_svg():
@@ -232,25 +259,73 @@ def _ref(token):
     return ref_hex(token)
 
 
+def _line(name, x, y, w, h, visible=None, label="Divider"):
+    """En tynd streg (hierarkiets "L", stregen foran nummeret, skillestreger).
+    En Rectangle - en tom tekst kan ikke vaere lavere end een tekstlinje."""
+    props = {
+        "AccessibleLabel": f'"{label}"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": C_DIVIDER, "Height": str(h), "OnSelect": "false", "TabIndex": "0",
+        "Width": str(w), "X": str(x), "Y": str(y),
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(name, "Rectangle", props=props, h=h, vis=visible)
+
+
 def build_popup():
     n = lambda kind, base: f"{kind}MdSap{base}"
     x0 = f"ThisItem.Lvl * {INDENT}"
-    # Hierarkiet: en tynd streg foran item og opgaveliste.
-    guide = text_ctrl(n("txt", "Guide"), '""', size=lay.SIZE_MICRO, height=ROW_H - 16, width=2,
-                      fill=C_DIVIDER, accessible='"Hierarchy"', visible="ThisItem.Lvl > 0",
-                      extra={"X": f"{x0} - {INDENT // 2}", "Y": "8"})
-    kind = text_ctrl(n("txt", "Kind"), "ThisItem.Kind", size=lay.SIZE_SMALL, weight="Semibold",
-                     color=C_MUTED, height=17, wrap="false", width=f"{GW} - 20 - ({x0})",
-                     extra={"X": x0, "Y": "6"})
+    line_y = BAR_Y + BAR_H
+    # Hierarkiet: et "L" fra forrige niveaus streg ind til bjaelken.
+    up_x = f"(ThisItem.Lvl - 1) * {INDENT} + {GUIDE}"
+    l_v = _line(n("rct", "TreeV"), up_x, 0, 1, BAR_Y + BAR_H // 2, visible="ThisItem.Lvl > 0",
+                label="Hierarchy")
+    l_h = _line(n("rct", "TreeH"), up_x, BAR_Y + BAR_H // 2, INDENT - GUIDE - 4,
+                1, visible="ThisItem.Lvl > 0", label="Hierarchy")
+    # Den graa sektionsbjaelke med objekttypen. Een tekst med fyld og runde
+    # hjoerner - en container i et galleri flades ud og mister sin X.
+    bar = text_ctrl(n("txt", "Kind"), "ThisItem.Kind", size=lay.SIZE_BODY, weight="Semibold",
+                    color=C_TITLE, height=BAR_H, wrap="false", fill=C_MUTED_BG,
+                    width=f"Max(0, {EDGE} - ({x0}))",
+                    extra={"X": x0, "Y": str(BAR_Y), "PaddingLeft": "12", "PaddingRight": "12",
+                           "VerticalAlign": "VerticalAlign.Middle",
+                           "RadiusTopLeft": "6", "RadiusTopRight": "6",
+                           "RadiusBottomLeft": "6", "RadiusBottomRight": "6"})
+    # Den lodrette streg foran nummeret - under bjaelkens venstre kant.
+    guide = _line(n("rct", "Guide"), f"{x0} + {GUIDE}", line_y + 8, 1, LINE_H - 16,
+                  label="Hierarchy")
     # Nummeret: et skrivebeskyttet tekstfelt (View), saa det kan markeres
-    # og kopieres - en ModernText kan ikke markeres.
-    no = text_input(n("inp", "No"), "ThisItem.No", height=NO_H, width=str(NO_W),
+    # og kopieres - en ModernText kan ikke markeres. Uden ramme og fyld
+    # (issue #488): det ser ud som almindelig tekst.
+    no_w = "Min(200, 28 + 9 * Len(ThisItem.No))"
+    no = text_input(n("inp", "No"), "ThisItem.No", height=NO_H, width=no_w,
                     display_mode="DisplayMode.View",
                     label='ThisItem.Kind & " SAP number " & ThisItem.No')
-    no.props["X"] = x0
-    no.props["Y"] = "25"
-    no.props["Color"] = C_TITLE
-    # Link-ikonet: kun naar en hel URL kunne dannes (url_fx giver "" ellers).
+    no.props.update({
+        # input_theme giver allerede Outline i View (gennemsigtig flade);
+        # her fjernes ogsaa kanten.
+        "BorderColor": C_TRANSPARENT,
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
+        "Color": C_TITLE, "X": f"{x0} + {NO_X}", "Y": f"{line_y} + ({LINE_H} - {NO_H}) / 2",
+    })
+    # Kopier-ikonet taet ved nummeret (som KKS-tabellens raekker).
+    copy = button(n("btn", "Copy"), '""',
+                  'Copy(ThisItem.No);\nNotify("Copied " & ThisItem.No & " to the clipboard.", '
+                  'NotificationType.Success)',
+                  width=LINK, height=LINK, icon="Copy",
+                  accessible='"Copy " & ThisItem.Kind & " " & ThisItem.No',
+                  tooltip='"Copy " & ThisItem.No')
+    copy.props["Layout"] = "ButtonLayout.IconOnly"
+    copy.props["BorderColor"] = C_TRANSPARENT
+    copy.props["AlignInContainer"] = "AlignInContainer.Start"
+    ensure_hit(copy)
+    copy_x = f"{x0} + {NO_X} + {no_w}"
+    copy.props["X"] = copy_x
+    copy.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
+    # Til hoejre: SAP-maerket og link-ikonet sammen, paa samme x i alle
+    # niveauer, og en lodret skillestreg foran dem. Kun naar en hel URL
+    # kunne dannes (url_fx giver "" ellers).
+    has_url = "!IsBlank(ThisItem.Url)"
     link = Ctrl(n("img", "Link"), "Image", props={
         "AccessibleLabel": '"Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"',
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
@@ -258,19 +333,41 @@ def build_popup():
         "Height": str(LINK), "HoverFill": C_ROW_HOVER, "PressedFill": C_ROW_HOVER,
         "Image": _sap_open_svg(), "ImagePosition": "ImagePosition.Fit",
         "OnSelect": "Launch(ThisItem.Url)", "TabIndex": "0",
-        "Tooltip": '"Open in SAP"', "Visible": "!IsBlank(ThisItem.Url)",
-        "Width": str(LINK), "X": f"{x0} + {NO_W} + 4", "Y": "25",
+        "Tooltip": '"Open in SAP"', "Visible": has_url,
+        "Width": str(LINK), "X": "0", "Y": "0",
         "RadiusTopLeft": "6", "RadiusTopRight": "6", "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
-    }, h=LINK)
+    }, h=LINK, vis=has_url)
     # Klikfladen er H.hit (32 paa desktop, 44 paa touch); symbolet staar i midten.
     ensure_hit(link)
-    link.props["Y"] = f"25 + ({NO_H} - Self.Height) / 2"
-    desc_x = f"{x0} + {NO_W} + 4 + {link.props['Width']} + 8"
-    desc = text_ctrl(n("txt", "Desc"), "ThisItem.Desc", size=lay.SIZE_SMALL, color=C_TITLE,
-                     height=NO_H, wrap="true", width=f"Max(0, {GW} - 20 - ({desc_x}))",
-                     extra={"X": desc_x, "Y": "25"})
-    rule = text_ctrl(n("txt", "Rule"), '""', size=lay.SIZE_MICRO, height=1, width=f"{GW} - 20",
-                     fill=C_DIVIDER, accessible='"Divider"', extra={"X": "0", "Y": str(ROW_H - 1)})
+    link_w = link.props["Width"]
+    link.props["X"] = f"{RIGHT} - {link_w}"
+    link.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
+    logo_x = f"{RIGHT} - {link_w} - 4 - {SAP_LOGO_W}"
+    logo = Ctrl(n("img", "Logo"), "Image", props={
+        "AccessibleLabel": '"Open " & ThisItem.Kind & " " & ThisItem.No & " in SAP"',
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": C_TRANSPARENT, "Height": str(LINK), "HoverFill": C_ROW_HOVER,
+        "PressedFill": C_ROW_HOVER, "Image": _sap_logo_uri(),
+        "ImagePosition": "ImagePosition.Center",
+        # Samme handling som link-ikonet.
+        "OnSelect": "Launch(ThisItem.Url)", "TabIndex": "0",
+        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
+        "Tooltip": '"Open in SAP"', "Visible": has_url,
+        "Width": str(SAP_LOGO_W), "X": logo_x,
+        "Y": f"{line_y} + ({LINE_H} - {LINK}) / 2",
+        "RadiusTopLeft": "6", "RadiusTopRight": "6", "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
+    }, h=LINK, vis=has_url)
+    ensure_hit(logo, square=False)
+    logo.props["Y"] = f"{line_y} + ({LINE_H} - Self.Height) / 2"
+    sep_x = f"{logo_x} - 10"
+    sep = _line(n("rct", "Sep"), sep_x, line_y + 10, 1, LINE_H - 20, visible=has_url)
+    desc_x = f"{copy_x} + {copy.props['Width']} + 10"
+    desc_end = f"If({has_url}, {sep_x} - 10, {RIGHT})"
+    desc = text_ctrl(n("txt", "Desc"), "ThisItem.Desc", size=lay.SIZE_BODY, color=C_TITLE,
+                     height=LINE_H - 8, wrap="true", width=f"Max(0, {desc_end} - ({desc_x}))",
+                     extra={"X": desc_x, "Y": f"{line_y} + 4",
+                            "VerticalAlign": "VerticalAlign.Middle"})
+    rule = _line(n("rct", "Rule"), x0, ROW_H - 1, f"Max(0, {EDGE} - ({x0}))", 1)
     gh = f"Min(CountRows({ROWS}), {MAX_ROWS}) * {ROW_H}"
     gal = Ctrl(n("gal", "Rows"), "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"SAP objects"',
@@ -281,7 +378,7 @@ def build_popup():
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Visible": f"!{BUSY} && !IsEmpty({ROWS})",
         "Width": GW, "WrapCount": "1",
-    }, children=[guide, kind, no, link, desc, rule], h=MAX_ROWS * ROW_H)
+    }, children=[l_v, l_h, bar, guide, no, copy, desc, sep, logo, link, rule], h=MAX_ROWS * ROW_H)
 
     title = text_ctrl(n("txt", "Title"), '"SAP objects"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false", width="120")
@@ -300,7 +397,10 @@ def build_popup():
     spin = spinner(n("spn", "Spinner"), BUSY, '"Loading SAP objects"', width=GW, height=80)
     empty = text_ctrl(n("txt", "Empty"), EMPTY_TEXT, size=lay.SIZE_BODY, color=C_MUTED, height=40,
                       wrap="true", visible=f"!{BUSY} && IsEmpty({ROWS})")
-    modal = group(n("con", "Modal"), [head, sub, hint, spin, empty, gal], direction="Vertical", gap=8,
+    # Mockuppens Close-knap nederst er udeladt: popupper lukkes kun med X'et
+    # (tests/test_popup_close.py).
+    modal = group(n("con", "Modal"), [head, sub, hint, spin, empty, gal], direction="Vertical",
+                  gap=8,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=POP_W, drop_shadow="ExtraBold",
                   align_in_container="Center")

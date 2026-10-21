@@ -64,11 +64,11 @@ def test_header_and_icon_only_in_closed_and_icon_from_index_row():
     y = _yaml()
     i = [k for k, _w in bh.COLS].index(bh.SAP_COL)
     head = _block(y, f"txtMdH{i}")
-    assert '="SAP OBJECT"' in head and bh.CLOSED in head
+    assert '="SAP OBJECT"' in head and bh.SAP_SHOWN in head
     icon = _block(y, "imgMdRowSap")
     assert '="View SAP objects"' in icon
     vis = re.search(r"Visible: \|-\n\s+=(.*)\n", icon).group(1)
-    assert bh.CLOSED in vis and "ThisItem.SapObjectNo" in vis and '"OprettetISAP"' in vis
+    assert bh.SAP_SHOWN in vis and "ThisItem.SapObjectNo" in vis and '"OprettetISAP"' in vis
     # Intet opslag pr. raekke - kun indeksraekkens egne felter.
     assert "LookUp(" not in vis and "Filter(" not in vis
 
@@ -141,3 +141,50 @@ def test_popup_is_read_only_with_the_x_close():
     assert "=Launch(ThisItem.Url)" in link and "=!IsBlank(ThisItem.Url)" in link
     # Ingen Patch/Remove i popuppen.
     assert "Patch(" not in pop and "Remove(" not in pop
+
+
+# ---------------------------------------------------------------------------
+# Issue #488: kolonnen ogsaa i All, og popuppen som mockuppen
+# (pictures/sap_popup.png).
+# ---------------------------------------------------------------------------
+def _prop(block, key):
+    m = re.search(rf"\n\s+{key}: \|-\n\s+=(.*)\n", block)
+    return m.group(1) if m else None
+
+
+def test_column_shows_in_closed_and_all_but_not_open():
+    def shown(mode):
+        return eval(bh.SAP_SHOWN.replace("varMdStatusMode", repr(mode))
+                    .replace("||", " or ").replace(" = ", " == "))
+    assert shown("done") and shown("all") and not shown("open")
+    y = _yaml()
+    i = [k for k, _w in bh.COLS].index(bh.SAP_COL)
+    assert bh.SAP_SHOWN in _prop(_block(y, f"txtMdH{i}"), "Visible")
+    # Ikonet kun for anmodninger med SAP-objekter - ellers er cellen tom.
+    vis = _prop(_block(y, "imgMdRowSap"), "Visible")
+    assert bh.SAP_SHOWN in vis and so.HAS_SAP in vis
+    assert bh.SAP_SHOWN in _prop(_block(y, "txtMdRowSap"), "Visible")
+
+
+def test_popup_rows_follow_the_hierarchy_and_right_icons_line_up():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    lvl = f"ThisItem.Lvl * {so.INDENT}"
+    # Bjaelken med objekttypen og nummeret rykkes ind pr. niveau.
+    assert _prop(_block(pop, "txtMdSapKind"), "X") == lvl
+    assert _prop(_block(pop, "inpMdSapNo"), "X").startswith(lvl)
+    assert _prop(_block(pop, "txtMdSapKind"), "Text") == "ThisItem.Kind"
+    # "L"-et foran under-niveauerne.
+    for name in ("rctMdSapTreeV", "rctMdSapTreeH"):
+        assert _prop(_block(pop, name), "Visible") == "ThisItem.Lvl > 0"
+    # SAP-maerket og link-ikonet: samme x i alle niveauer, samme synlighed.
+    logo, link = _block(pop, "imgMdSapLogo"), _block(pop, "imgMdSapLink")
+    for b in (logo, link):
+        assert "ThisItem.Lvl" not in _prop(b, "X")
+        assert _prop(b, "Visible") == "!IsBlank(ThisItem.Url)"
+        assert _prop(b, "OnSelect") == "Launch(ThisItem.Url)"
+    # Nummeret er markerbar tekst uden ramme, med kopier-ikonet lige efter.
+    no = _block(pop, "inpMdSapNo")
+    assert _prop(no, "BorderThickness") == "0" and "DisplayMode.View" in no
+    copy = _block(pop, "btnMdSapCopy")
+    assert "Copy(ThisItem.No)" in copy
+    assert _prop(copy, "X").startswith(_prop(no, "X") + " + " + _prop(no, "Width"))

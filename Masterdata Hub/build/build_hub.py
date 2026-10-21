@@ -398,10 +398,10 @@ DOM_TEXT = 156
 # anden linje. Teksten (TEXT) faar den plads, der blev fri. Requester
 # skjules i "My requests" - det er altid brugeren selv.
 #
-# SAP OBJECT (issue #471) staar mellem Status og Updated, KUN i Closed
-# (varMdStatusMode = "done"). Den har en fast bredde og ingen vaegt, og
+# SAP OBJECT (issue #471, #488) staar mellem Status og Updated, i Closed
+# og All (varMdStatusMode = "done"/"all"). Den har en fast bredde og ingen vaegt, og
 # pladsen tages fra TEXT alene - alle andre kolonner har samme bredde som
-# foer, og i Open/All er tabellen uaendret (se CLOSED nedenfor).
+# foer, og i Open er tabellen uaendret (se SAP_SHOWN nedenfor).
 SAP_COL = "SAP OBJECT"
 SAP_W = 80
 COLS = [("REQUEST", 176), ("TEXT", 150), ("PLANT", 72), ("REQUESTER", 72),
@@ -448,16 +448,18 @@ MINE = 'varMdView = "mine"'
 _REQ_W = CWF["REQUESTER"]
 CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W} + {GAP}, 0))"
 CWF["REQUESTER"] = f"If({MINE}, 0, {_REQ_W})"
-# SAP OBJECT (issue #471): kun i Closed. Saa er TEXT kolonnens bredde plus
-# mellemrummet smallere, og kolonnen staar paa pladsen mellem Status og
-# Updated. Updated og Actions staar paa samme x som i Open/All; summen af
-# bredderne er den samme.
-CLOSED = 'varMdStatusMode = "done"'
-CWF["TEXT"] = f"({CWF['TEXT']} - If({CLOSED}, {SAP_W + GAP}, 0))"
-CWF[SAP_COL] = f"If({CLOSED}, {SAP_W}, 0)"
+# SAP OBJECT (issue #471, #488): i Closed OG All. Saa er TEXT kolonnens
+# bredde plus mellemrummet smallere, og kolonnen staar paa pladsen mellem
+# Status og Updated - samme x, bredde og overskrift i begge visninger.
+# Updated og Actions staar paa samme x som i Open; summen af bredderne er
+# den samme. I All er cellen tom for anmodninger uden SAP-objekter
+# (sap.HAS_SAP paa ikonet).
+SAP_SHOWN = '(varMdStatusMode = "done" || varMdStatusMode = "all")'
+CWF["TEXT"] = f"({CWF['TEXT']} - If({SAP_SHOWN}, {SAP_W + GAP}, 0))"
+CWF[SAP_COL] = f"If({SAP_SHOWN}, {SAP_W}, 0)"
 # Mellemrummet EFTER hver kolonne, som containeren faktisk tegner det.
 COL_GAP = {k: (f"If({MINE}, 0, {GAP})" if k == "REQUESTER" else
-               f"If({CLOSED}, {GAP}, 0)" if k == SAP_COL else str(GAP)) for k in CW}
+               f"If({SAP_SHOWN}, {GAP}, 0)" if k == SAP_COL else str(GAP)) for k in CW}
 
 
 def col_x(key):
@@ -1441,7 +1443,7 @@ def build_list():
                    text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold",
                              color=C_MUTED, height=20, wrap="false",
                              width=CWF[t], visible=(f"!({MINE})" if t == "REQUESTER" else
-                                                    CLOSED if t == SAP_COL else None)))
+                                                    SAP_SHOWN if t == SAP_COL else None)))
                   for i, (t, _w) in enumerate(COLS)],
                  direction="Horizontal", gap=GAP, height=30, align_items="Center",
                  pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1500,11 +1502,11 @@ def build_list():
                      wrap="false", color=C_MUTED, extra={"PaddingLeft": str(HEAD_PAD)},
                      accessible=f'"Updated " & Self.Text & ", " & Lower({WHEN_FX})')
 
-    # SAP OBJECT (issue #471): pladsen i raekken - kun i Closed. Selve
+    # SAP OBJECT (issue #471, #488): pladsen i raekken - i Closed og All. Selve
     # ikonet (imgMdRowSap) ligger oven paa raekkens klikflade og staar paa
     # kolonnens x, som Activity og Edit.
     sap_cell = text_ctrl("txtMdRowSap", '""', size=12, height=20, width=CWF[SAP_COL],
-                         accessible='"SAP objects"', visible=CLOSED)
+                         accessible='"SAP objects"', visible=SAP_SHOWN)
 
     act = _open_action()
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
@@ -1550,7 +1552,7 @@ def build_list():
     sap_btn.props["Tooltip"] = f'"{sap.TIP}"'
     sap_btn.props["X"] = f"{col_x(SAP_COL)} - {(TL_W - ACTION_GLYPH) // 2}"
     sap_btn.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
-    sap_btn.props["Visible"] = f"{at_least('Wide')} && {CLOSED} && {sap.HAS_SAP}"
+    sap_btn.props["Visible"] = f"{at_least('Wide')} && {SAP_SHOWN} && {sap.HAS_SAP}"
     sap_btn.vis = sap_btn.props["Visible"]
     icons.hit_radius(sap_btn.props)
     # Luk (R2-021) staar paa Deletes plads: de to vises aldrig paa samme

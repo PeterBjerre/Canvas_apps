@@ -35,7 +35,7 @@ def _eval(expr, view, width=1920, rank=4, inset=0, closed=False):
     py = (expr.replace("App.Width", str(width)).replace("LayoutRank", str(rank))
           .replace("PanelInset", str(inset))
           .replace('varMdView = "mine"', "True" if view == "mine" else "False")
-          .replace(bh.CLOSED, "True" if closed else "False"))
+          .replace(bh.SAP_SHOWN, "True" if closed else "False"))
     return eval(py, {"If": lambda c, a, b: a if c else b, "Max": max, "True": True, "False": False})
 
 
