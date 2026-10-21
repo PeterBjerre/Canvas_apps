@@ -25,7 +25,6 @@ Screens:
               Set(varKksL1, "ALL");
               Set(varKksL2, "");
               Set(varKksL3, "");
-              Set(varKksQuery, "");
               Set(varKksDetailCode, "");
               Set(varKksDetailText, "");
               Set(varKksDetailOn, false);
@@ -395,7 +394,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =68 + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) < 619 || LayoutRank < 2, 12 + (32), 0) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2 && varKksL1 <> "ALL", 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2), 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0))
+                            =68 + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) < 619 || LayoutRank < 2, 12 + (32), 0) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2 && varKksL1 <> "ALL", 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2), 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (Max(36, H.hit) + 4))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -487,9 +486,7 @@ Screens:
                                         =Set(varKksKey, "function");
                                         Set(varKksL1, "ALL");
                                         Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
+                                        Set(varKksL3, "")
                                     RadiusBottomLeft: |-
                                         =R.card
                                     RadiusBottomRight: |-
@@ -539,9 +536,7 @@ Screens:
                                         =Set(varKksKey, "aggregate");
                                         Set(varKksL1, "ALL");
                                         Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
+                                        Set(varKksL3, "")
                                     RadiusBottomLeft: |-
                                         =R.card
                                     RadiusBottomRight: |-
@@ -591,9 +586,7 @@ Screens:
                                         =Set(varKksKey, "component");
                                         Set(varKksL1, "ALL");
                                         Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
+                                        Set(varKksL3, "")
                                     RadiusBottomLeft: |-
                                         =R.card
                                     RadiusBottomRight: |-
@@ -649,12 +642,16 @@ Screens:
                                         =AlignInContainer.Center
                                     Appearance: |-
                                         =ButtonAppearance.Outline
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =C.'color-brand-primary-soft'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
                                         =C.'state-info-fg'
+                                    DisplayMode: |-
+                                        =DisplayMode.Edit
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -681,6 +678,8 @@ Screens:
                                         =T.small
                                     Text: |-
                                         ="Search Functional Locations"
+                                    Tooltip: |-
+                                        ="Search Functional Locations in SAP"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
@@ -698,12 +697,16 @@ Screens:
                                   =AlignInContainer.Center
                               Appearance: |-
                                   =ButtonAppearance.Outline
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
                               BorderColor: |-
                                   =C.'color-brand-primary-soft'
                               BorderThickness: |-
                                   =1
                               Color: |-
                                   =C.'state-info-fg'
+                              DisplayMode: |-
+                                  =DisplayMode.Edit
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -728,6 +731,8 @@ Screens:
                                   =T.small
                               Text: |-
                                   ="Search Functional Locations"
+                              Tooltip: |-
+                                  ="Search Functional Locations in SAP"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
@@ -5136,7 +5141,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0)
+                                  =0 + (Max(36, H.hit) + 4)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -5205,7 +5210,7 @@ Screens:
                                           Color: |-
                                               =C.'input-fg'
                                           Default: |-
-                                              =varKksQuery
+                                              =""
                                           Fill: |-
                                               =C.'input-bg'
                                           FillPortions: |-
@@ -5229,7 +5234,7 @@ Screens:
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           TriggerOutput: |-
-                                              =TriggerOutput.Keypress
+                                              =TriggerOutput.Delayed
                                           ValidationState: |-
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
@@ -5264,8 +5269,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =Max(36, H.hit)
                                           OnSelect: |-
-                                              =Set(varKksQuery, "");
-                                              Reset(inpKksFind)
+                                              =Reset(inpKksFind)
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -5305,27 +5309,6 @@ Screens:
                                               =20
                                           Width: |-
                                               =20
-                              - tmrKksFindApply:
-                                  Control: Timer
-                                  Properties:
-                                    AutoPause: |-
-                                        =false
-                                    AutoStart: |-
-                                        =false
-                                    Duration: |-
-                                        =350
-                                    Height: |-
-                                        =1
-                                    OnTimerEnd: |-
-                                        =Set(varKksQuery, With({ _t: Trim(inpKksFind.Text) }, If(Len(_t) >= 2, _t, "")))
-                                    Repeat: |-
-                                        =false
-                                    Start: |-
-                                        =With({ _t: Trim(inpKksFind.Text) }, If(Len(_t) >= 2, _t, "")) <> Coalesce(varKksQuery, "")
-                                    Visible: |-
-                                        =false
-                                    Width: |-
-                                        =1
                   - conKksResultsCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -5939,7 +5922,6 @@ Screens:
                                                     Set(varKksL1, l1);
                                                     Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2 || !StartsWith(c, l1), "", Left(c, 2)));
                                                     Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3 || !StartsWith(c, l1), "", Left(c, 3)));
-                                                    Set(varKksQuery, "");
                                                     Reset(inpKksFind)
                                                 )
                                             )

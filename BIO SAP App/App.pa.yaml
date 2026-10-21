@@ -2302,7 +2302,13 @@ App:
 
       colKksBase = If(varKksL1 = "ALL", colKksScope, Filter(colKksScope, L1 = varKksL1));
 
-      colKksBaseQ = If(IsBlank(varKksQuery), colKksBase, Filter(colKksBase, varKksQuery in Code || varKksQuery in Description));
+      // Soegningen (issue #478): feltets tekst, mens man skriver - ingen timer og
+      // ingen variabel imellem. Lower paa begge sider: uafhaengig af store og
+      // smaa bogstaver, ogsaa Æ/æ, Ø/ø og Å/å. Kode OG beskrivelse; det valgte
+      // noegleomraade og bogstav (colKksBase) gaelder stadig.
+      KksQuery = With({ _t: Trim(inpKksFind.Text) }, If(Len(_t) >= 1, _t, ""));
+
+      colKksBaseQ = If(IsBlank(KksQuery), colKksBase, With({ _q: Lower(KksQuery) }, Filter(colKksBase, _q in Lower(Code) || _q in Lower(Description))));
 
       // Bogstaverne (issue #164): kun de bogstaver, der har mindst een gruppe
       // (niveau 2) i den valgte noegletype - regnet af samme betingelse som
@@ -2319,11 +2325,11 @@ App:
 
       colKksL3Rows = If(!KksHasL3 || IsBlank(varKksL3), colKksL2Rows, Filter(colKksL2Rows, P3 = varKksL3));
 
-      colKksResults = If(varKksL1 = "ALL" && IsBlank(varKksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
+      colKksResults = If(varKksL1 = "ALL" && IsBlank(KksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
 
-      KksNote2 = If(varKksL1 = "ALL", "", CountRows(colKksL2Keys) = 0, If(IsBlank(varKksQuery), "No groups under this letter.", "No groups match the search."), "");
+      KksNote2 = If(varKksL1 = "ALL", "", CountRows(colKksL2Keys) = 0, If(IsBlank(KksQuery), "No groups under this letter.", "No groups match the search."), "");
 
-      KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "", IsBlank(varKksL2), "", CountRows(colKksL3Keys) = 0, If(IsBlank(varKksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
+      KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "", IsBlank(varKksL2), "", CountRows(colKksL3Keys) = 0, If(IsBlank(KksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
 
       KksHeadL1 = If(varKksL1 = "ALL", "", Coalesce(LookUp(colKksScope, L1 = "HOME" && Upper(Code) = varKksL1, Description), LookUp(colKksBase, Upper(Code) = varKksL1, Description), LookUp(colKksBase, Len(P2) = 2 && Upper(Code) = P2 && StartsWith(P2, varKksL1), Description), ""));
 
@@ -2331,7 +2337,7 @@ App:
 
       KksHeadL3 = If(IsBlank(varKksL3), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL3, Description), ""));
 
-      KksTitle = Switch(varKksKey, "function", "Function", "aggregate", "Aggregate", "component", "Component", "") & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & Upper(Left(Lower(KksHeadL1), 1)) & Mid(Lower(KksHeadL1), 2), "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & Upper(Left(Lower(KksHeadL2), 1)) & Mid(Lower(KksHeadL2), 2), "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & Upper(Left(Lower(KksHeadL3), 1)) & Mid(Lower(KksHeadL3), 2), ""))) & If(IsBlank(varKksQuery), "", " - search results") & " · " & Text(CountRows(colKksResults)) & If(CountRows(colKksResults) = 1, " code", " codes");
+      KksTitle = Switch(varKksKey, "function", "Function", "aggregate", "Aggregate", "component", "Component", "") & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & Upper(Left(Lower(KksHeadL1), 1)) & Mid(Lower(KksHeadL1), 2), "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & Upper(Left(Lower(KksHeadL2), 1)) & Mid(Lower(KksHeadL2), 2), "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & Upper(Left(Lower(KksHeadL3), 1)) & Mid(Lower(KksHeadL3), 2), ""))) & If(IsBlank(KksQuery), "", " - search results") & " · " & Text(CountRows(colKksResults)) & If(CountRows(colKksResults) = 1, " code", " codes");
 
       // Issue Board (Issue Board/build/ib_parts.py). Samlingerne hentes i
       // skaermens OnVisible; alt herunder regnes i hukommelsen.

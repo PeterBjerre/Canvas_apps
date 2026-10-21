@@ -69,7 +69,8 @@ def test_tabs_keep_their_function_and_selected_state():
     for name, key in zip(KEYS, ("function", "aggregate", "component")):
         p = dict(_kids(row))[name]["Properties"]
         assert p["OnSelect"].strip().startswith(f'=Set(varKksKey, "{key}");')
-        assert "Reset(inpKksFind)" in p["OnSelect"]
+        # Issue #478: soegeteksten bliver staaende og gaelder i den nye type.
+        assert "Reset(inpKksFind)" not in p["OnSelect"]
         assert p["Appearance"].strip() == (f'=If(varKksKey = "{key}", '
                                            'ButtonAppearance.Primary, ButtonAppearance.Outline)')
         assert "Visible" not in p
