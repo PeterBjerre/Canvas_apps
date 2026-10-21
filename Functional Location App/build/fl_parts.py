@@ -448,7 +448,10 @@ ACT_W = 2 * ACT_BTN + VGAP
 # efter Class (issue #242) - nu efter de faelles kolonner.
 # StrIndicator og Class: samme navne som i Classes og sidepanelet (issue
 # #467 - foer "KKS type" og "Assigned class"). Kun etiketterne er nye.
-V_SHARED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", 96)]
+# Class er saa bred som det laengste klassenavn ("NO CLASS", 13 px semibold)
+# og ikke bredere (issue #479 - foer 96 px).
+CLS_W = max(text_px("Class", 11), *(text_px(c, 13) for c in V.R["classes"])) + 4
+V_SHARED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", CLS_W)]
             # Reglernes etiket ("Sort Field") i appens sentence case (F1).
             + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
                for n, f, w in ROW_VALS]
@@ -460,32 +463,46 @@ V_FIXED = (V_SHARED
               ("Status", "Status", 80),
               # Copy og Delete: to ikonknapper (issue #467).
               ("Act", "Actions", ACT_W)])
-# Description faar det, der er tilbage af V_BASE_MAX - men aldrig mindre end
-# sin overskrift plus feltets padding.
-DESC_MIN = (V_BASE_MAX - FL_MIN - sum(w for _n, _l, w in V_FIXED)
-            - VGAP * (len(V_FIXED) + 1))
-assert DESC_MIN >= text_px("Description", 11) + 24, DESC_MIN
+# Description er mindst sin overskrift plus feltets padding (issue #479 -
+# foer fik den resten af V_BASE_MAX, saa en smallere kolonne ikke gav FL og
+# Description mere plads).
+DESC_MIN = text_px("Description", 11) + 24
 V_SHOW_NO = at_least("Tablet")
 # Raekkens mindste bredde: # (fra Tablet), FL, Description, resten og
 # mellemrummene. Er kortet smallere, scroller TABELLEN vandret i kortet
 # (som Equipment/Materials' raekker) - intet skjules, klippes eller
 # laegges oven i hinanden.
 V_BASE = FL_MIN + DESC_MIN + sum(w for _n, _l, w in V_FIXED) + VGAP * (len(V_FIXED) + 1)
+assert V_BASE <= V_BASE_MAX, V_BASE
 V_MIN = f"(If({V_SHOW_NO}, {28 + VGAP}, 0) + {V_BASE})"
 V_SPARE = f"Max(0, ({ROWS_W}) - {V_MIN})"
 # KUN FUNCTIONAL LOCATION OG DESCRIPTION VOKSER - OG KUN TIL ET LOFT
-# (issue #468). Foer delte alle kolonner den ekstra plads, saa tabellen
-# altid fyldte kortet, og Actions stod helt ude til hoejre. Nu har de
-# andre kolonner fast, kompakt bredde; FL og Description faar hver deres
-# andel af pladsen, til de er FL_MAX og DESC_MAX brede (40 tegn). Resten af
-# kortet staar tomt til hoejre for tabellen - Actions/Edit staar lige efter
-# den sidste kolonne.
-FL_MAX = 240
-DESC_MAX = 300
-V_FL_SHARE = "2 / 5"
-V_DESC_SHARE = "3 / 5"
-V_FL_W = f"{FL_MIN} + Min({FL_MAX - FL_MIN}, ({V_SPARE}) * {V_FL_SHARE})"
-V_DESC_W = f"{DESC_MIN} + Min({DESC_MAX - DESC_MIN}, ({V_SPARE}) * {V_DESC_SHARE})"
+# (issue #468). De andre kolonner har fast, kompakt bredde; resten af kortet
+# staar tomt til hoejre for tabellen - Actions/Edit staar lige efter den
+# sidste kolonne.
+#
+# LOFTET ER INDHOLDET, OG FL FAAR PLADSEN FOERST (issue #479). Foer var
+# lofterne 240 og 300 px, og FL og Description delte pladsen 2/5 og 3/5 -
+# saa FL naaede foerst sit loft ved ca. 1820 px, og en 40 tegns Description
+# blev klippet selv ved 1920. Nu:
+#   - FL_MAX er den laengste FL (FL_SAMPLE) i feltets skrift plus feltets
+#     kant og padding, DESC_MAX en Description paa 40 tegn (DESC_SAMPLE).
+#   - FL faar den ekstra plads foerst, til den er FL_MAX; saa Description.
+#     Er vinduet smallere, klippes Description altsaa foer FL.
+# Ved 1920 (1080p) har begge deres loft, og tabellen er smallere end kortet
+# - ingen vandret scroll. Tallene regnes af fontens maal (text_px, et skoen
+# der rammer lidt for bredt), ikke af een skaermbredde.
+FL_SAMPLE = "SSV13 HFC10AP001 -M01"
+DESC_SAMPLE = "Smoereoliepumpe Kulmoelle 10, Pumpemotor"
+assert len(DESC_SAMPLE) == 40
+# Fluents tekstfelt (medium): 1 px kant, 10 px padding og 2 px om selve
+# feltet i hver side - og 4 px luft, saa teksten aldrig staar paa pixlen.
+INPUT_CHROME = 2 * (1 + 10 + 2) + 4
+FL_MAX = text_px(FL_SAMPLE, lay.SIZE_INPUT, semibold=False) + INPUT_CHROME
+DESC_MAX = text_px(DESC_SAMPLE, lay.SIZE_INPUT, semibold=False) + INPUT_CHROME
+V_FL_W = f"{FL_MIN} + Min({FL_MAX - FL_MIN}, {V_SPARE})"
+V_DESC_W = (f"{DESC_MIN} + Min({DESC_MAX - DESC_MIN}, "
+            f"Max(0, ({V_SPARE}) - {FL_MAX - FL_MIN}))")
 
 
 V_SPEC = ([("No", "#", 28, V_SHOW_NO),
