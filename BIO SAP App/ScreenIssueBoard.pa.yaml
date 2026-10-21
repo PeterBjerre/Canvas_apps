@@ -3298,30 +3298,33 @@ Screens:
                                     Y: |-
                                         =88 - Self.Height
                               - btnIbRowAct:
-                                  Control: ModernButton
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries") & ". Show the activity on " & ThisItem.TicketNo
-                                    Align: |-
-                                        =Align.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
+                                        =With({ n: Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0) }, "Activity: " & n & If(n = 1, " entry", " entries") & ". Show the activity on " & ThisItem.TicketNo)
                                     BorderColor: |-
                                         =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
                                     BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(Self.Text = "0", C.'text-muted', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
                                         =H.hit
-                                    Icon: |-
-                                        ="Comment"
-                                    Layout: |-
-                                        =ButtonLayout.IconBefore
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    Image: |-
+                                        =With({ n: Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0) }, With({ s: If(n > 99, "99+", Text(n)) },
+                                            "data:image/svg+xml;utf8," & EncodeUrl(If(n = 0,
+                                                "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='26' viewBox='0 0 32 26'><path d='M7 1 H25 A6 6 0 0 1 31 7 V14 A6 6 0 0 1 25 20 H14 L8 25 V20 H7 A6 6 0 0 1 1 14 V7 A6 6 0 0 1 7 1 Z' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.5' stroke-linejoin='round'/><text x='16' y='14.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='400' fill='" & C.'hex-text-muted' & "'>" & s & "</text></svg>",
+                                                "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='26' viewBox='0 0 32 26'><path d='M7 1 H25 A6 6 0 0 1 31 7 V14 A6 6 0 0 1 25 20 H14 L8 25 V20 H7 A6 6 0 0 1 1 14 V7 A6 6 0 0 1 7 1 Z' fill='" & C.'hex-color-brand-primary' & "' stroke='" & C.'hex-color-brand-primary' & "' stroke-width='1.5' stroke-linejoin='round'/><text x='16' y='14.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-on-primary' & "'>" & s & "</text></svg>"))))
+                                    ImagePosition: |-
+                                        =ImagePosition.Center
                                     OnSelect: |-
                                         =Set(varIbSel, ThisItem);
                                         Set(varIbSelId, varIbSel.Id);
@@ -3365,26 +3368,20 @@ Screens:
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
-                                    PaddingLeft: |-
-                                        =4
-                                    PaddingRight: |-
-                                        =4
+                                    PressedFill: |-
+                                        =C.'row-pressed'
                                     RadiusBottomLeft: |-
-                                        =R.input
+                                        =6
                                     RadiusBottomRight: |-
-                                        =R.input
+                                        =6
                                     RadiusTopLeft: |-
-                                        =R.input
+                                        =6
                                     RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =Text(Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0))
+                                        =6
+                                    TabIndex: |-
+                                        =0
                                     Tooltip: |-
                                         ="Show activity"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =(LayoutRank >= 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
                                     Width: |-
@@ -3496,30 +3493,33 @@ Screens:
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2
                               - btnIbRowActC:
-                                  Control: ModernButton
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Activity: " & Self.Text & If(Self.Text = "1", " entry", " entries") & ". Show the activity on " & ThisItem.TicketNo
-                                    Align: |-
-                                        =Align.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
+                                        =With({ n: Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0) }, "Activity: " & n & If(n = 1, " entry", " entries") & ". Show the activity on " & ThisItem.TicketNo)
                                     BorderColor: |-
                                         =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
                                     BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(Self.Text = "0", C.'text-muted', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =If(Self.Text = "0", FontWeight.Normal, FontWeight.Semibold)
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
                                         =H.hit
-                                    Icon: |-
-                                        ="Comment"
-                                    Layout: |-
-                                        =ButtonLayout.IconBefore
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    Image: |-
+                                        =With({ n: Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0) }, With({ s: If(n > 99, "99+", Text(n)) },
+                                            "data:image/svg+xml;utf8," & EncodeUrl(If(n = 0,
+                                                "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='26' viewBox='0 0 32 26'><path d='M7 1 H25 A6 6 0 0 1 31 7 V14 A6 6 0 0 1 25 20 H14 L8 25 V20 H7 A6 6 0 0 1 1 14 V7 A6 6 0 0 1 7 1 Z' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.5' stroke-linejoin='round'/><text x='16' y='14.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='400' fill='" & C.'hex-text-muted' & "'>" & s & "</text></svg>",
+                                                "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='26' viewBox='0 0 32 26'><path d='M7 1 H25 A6 6 0 0 1 31 7 V14 A6 6 0 0 1 25 20 H14 L8 25 V20 H7 A6 6 0 0 1 1 14 V7 A6 6 0 0 1 7 1 Z' fill='" & C.'hex-color-brand-primary' & "' stroke='" & C.'hex-color-brand-primary' & "' stroke-width='1.5' stroke-linejoin='round'/><text x='16' y='14.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-on-primary' & "'>" & s & "</text></svg>"))))
+                                    ImagePosition: |-
+                                        =ImagePosition.Center
                                     OnSelect: |-
                                         =Set(varIbSel, ThisItem);
                                         Set(varIbSelId, varIbSel.Id);
@@ -3563,26 +3563,20 @@ Screens:
                                             Set(varIbSelFullFor, varIbSelId);
                                             UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
-                                    PaddingLeft: |-
-                                        =4
-                                    PaddingRight: |-
-                                        =4
+                                    PressedFill: |-
+                                        =C.'row-pressed'
                                     RadiusBottomLeft: |-
-                                        =R.input
+                                        =6
                                     RadiusBottomRight: |-
-                                        =R.input
+                                        =6
                                     RadiusTopLeft: |-
-                                        =R.input
+                                        =6
                                     RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =Text(Coalesce(LookUp(colIbActN, TicketId = ThisItem.Id).N, 0))
+                                        =6
+                                    TabIndex: |-
+                                        =0
                                     Tooltip: |-
                                         ="Show activity"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =(LayoutRank < 3) && ((ThisItem.Reporter = varIbMe || IsAdmin) && Coalesce(varIbActNOk, false))
                                     Width: |-
