@@ -34,12 +34,13 @@ def test_row_preview_is_single_line_and_truncated():
     txt = _prop(b, "Text")
     assert "Char(10)" in txt and "Char(13)" in txt
     assert '"Add text..."' in txt
-    assert 'If(Len(lt) > 12, Left(lt, 12) & "...", lt)' in txt
+    assert 'If(Len(lt) > 9, Left(lt, 9) & "...", lt)' in txt
     assert "=T.small" in _prop(b, "Size")
-    # Kolonnebredde, hoejde, ikon og klik er uaendret.
-    assert "=170" in _prop(b, "Width")
+    # Issue #477: kolonnen er 120 px (foer 170) og knappen uden ikon, saa
+    # tabellen passer ved 1080p. Hoejde og klik er uaendret.
+    assert "=120" in _prop(b, "Width")
     assert "=32" in _prop(b, "Height")
-    assert "DocumentText" in _prop(b, "Icon")
+    assert "TextOnly" in _prop(b, "Layout")
     assert "Set(varVhpLongTextOpen, true)" in _prop(b, "OnSelect")
 
 
