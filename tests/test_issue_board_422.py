@@ -59,15 +59,15 @@ def test_activity_counts_are_one_query_not_one_per_row():
     # Raekken slaar op i hukommelsen - aldrig i SharePoint-listen.
     ctrls = _list()
     for suffix in ("", "C"):
-        txt = ctrls[f"txtIbRowAct{suffix}"]
-        ico = ctrls[f"icoIbRowAct{suffix}"]
-        assert "colIbActN" in txt.props["Text"] and cfg.L_COMMENTS not in txt.props["Text"]
-        assert ico.props["Icon"] == '"Comment"'
+        # Issue #469: ikon og tal er een knap (tests/test_issue_board_469.py).
+        btn = ctrls[f"btnIbRowAct{suffix}"]
+        assert "colIbActN" in btn.props["Text"] and cfg.L_COMMENTS not in btn.props["Text"]
+        assert btn.props["Icon"] == '"Comment"'
         # Kun for rapportoeren og admins (som fanen Activity).
-        assert txt.props["Visible"] == ico.props["Visible"] == P.ROW_SEE_ACT
+        assert btn.props["Visible"] == P.ROW_SEE_ACT
         assert "ThisItem.Reporter = varIbMe" in P.ROW_SEE_ACT
         # 0 er dempet.
-        assert 'If(Self.Text = "0"' in txt.props["Color"]
+        assert 'If(Self.Text = "0"' in btn.props["Color"]
     # Cellen selv skjules aldrig - ellers flytter kolonnerne sig.
     assert "Visible" not in ctrls["conIbRowAct"].props
     text = open(SCREEN, encoding="utf-8").read()
