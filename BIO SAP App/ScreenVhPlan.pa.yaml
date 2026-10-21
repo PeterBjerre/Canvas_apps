@@ -1132,7 +1132,9 @@ Screens:
                                                       TasklistName: "",
                                                       Status: "draft",
                                                       SpId: 0,
-                                                      ItemGuid: Text(GUID())
+                                                      ItemGuid: Text(GUID()),
+                                                      SystemNo: "",
+                                                      SystemFL: ""
                                                   });
                                               Clear(colVhpFl);
                                               With(
@@ -5700,7 +5702,8 @@ Screens:
                                                               OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,
                                                               NonFlowUserStatus: src.NonFlowUserStatus,
                                                               TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft",
-                                                              SpId: 0, ItemGuid: Text(GUID())
+                                                              SpId: 0, ItemGuid: Text(GUID()),
+                                                              SystemNo: If(keepFl, src.SystemNo, ""), SystemFL: If(keepFl, src.SystemFL, "")
                                                           }
                                                       );
                                                       Collect(
@@ -5834,7 +5837,7 @@ Screens:
                                                           ItemId: varVhpNextItemId, ShortText: "", FunctionalLocation: "", FlDescription: "",
                                                           MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
                                                           OrstedResponsible: "", Initials: Upper(First(Split(varVhpMe, "@")).Value), LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "",
-                                                          Status: "draft", SpId: 0, ItemGuid: Text(GUID())
+                                                          Status: "draft", SpId: 0, ItemGuid: Text(GUID()), SystemNo: "", SystemFL: ""
                                                       }
                                                   );
                                                   Set(varVhpActiveItemId, varVhpNextItemId);
@@ -6134,7 +6137,7 @@ Screens:
                                           Size: |-
                                               =T.small
                                           Text: |-
-                                              ="FL: " & If(IsBlank(ThisItem.FunctionalLocation), "No FL", ThisItem.FunctionalLocation)
+                                              ="FL: " & If(IsBlank(ThisItem.FunctionalLocation), "No FL", ThisItem.FunctionalLocation) & If(!IsBlank(Trim(ThisItem.FunctionalLocation)) && Upper(Trim(ThisItem.SystemFL)) = Upper(Trim(ThisItem.FunctionalLocation)), " | " & If(IsBlank(ThisItem.SystemNo), "No system", "System " & ThisItem.SystemNo), "")
                                           Width: |-
                                               =(Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((20) + 10) - ((84) + 10) - 2)) - 0 - 0
                                           Wrap: |-
@@ -23102,7 +23105,9 @@ Screens:
                                     TasklistName: "",
                                     Status: "draft",
                                     SpId: 0,
-                                    ItemGuid: Text(GUID())
+                                    ItemGuid: Text(GUID()),
+                                    SystemNo: "",
+                                    SystemFL: ""
                                 });
                             Clear(colVhpFl);
                             With(
@@ -27677,7 +27682,7 @@ Screens:
                             Clear(colVhpMaterials);
                             Clear(colVhpAttachments);
                             Clear(colVhpSectionLocks);
-                            If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0, ItemGuid: "" }));
+                            If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0, ItemGuid: "", SystemNo: "", SystemFL: "" }));
                 
                             If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", FileCount: 0, FileNames: "", SpId: 0 }));
                 
@@ -27857,7 +27862,9 @@ Screens:
                                     TasklistName: "",
                                     Status: "draft",
                                     SpId: 0,
-                                    ItemGuid: Text(GUID())
+                                    ItemGuid: Text(GUID()),
+                                    SystemNo: "",
+                                    SystemFL: ""
                                 }),
                 
                                 Set(varVhpRequestGuid, gblVhpReqId);
@@ -27894,7 +27901,9 @@ Screens:
                                                 TasklistName: "",
                                                 Status: "draft",
                                                 SpId: 0,
-                                                ItemGuid: Text(GUID())
+                                                ItemGuid: Text(GUID()),
+                                                SystemNo: "",
+                                                SystemFL: ""
                                             }),
                 
                                             IfError(
@@ -27970,7 +27979,9 @@ Screens:
                                                             TasklistName: "",
                                                             Status: "valid",
                                                             SpId: IT.ID,
-                                                            ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))
+                                                            ItemGuid: Coalesce(IT.ItemGuid, Text(GUID())),
+                                                            SystemNo: Coalesce(IT.SystemNo, ""),
+                                                            SystemFL: Coalesce(IT.SystemFL, "")
                                                         }
                                                     )
                                                 ),
