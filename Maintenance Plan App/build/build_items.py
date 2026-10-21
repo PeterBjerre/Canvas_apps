@@ -1031,7 +1031,10 @@ def build_item_editor():
         # Kun maintainable FL'er (Peter 2026-10-21): en VH-plan paa en
         # ikke-vedligeholdbar FL giver ikke mening i SAP. Flowet sender
         # stadig alle - de andre skaerme har brug for dem.
-        searcher=functools.partial(flsearch.search_action, only_maintainable=True))
+        searcher=functools.partial(flsearch.search_action, only_maintainable=True,
+                                   # Issue #505: kun "<n> Functional Locations
+                                   # found for <q>." - ikke "Select one ...".
+                                   select_hint=False))
 
     # For kort soegetekst (issue #144): en kort besked under feltet, saa
     # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser

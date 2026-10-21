@@ -130,7 +130,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
                   busy_var=None, query_expr=None, last_var=None, on_start=None,
                   on_found=None, min_len=None, flow_name=FLOW_NAME,
                   flow_output=FLOW_OUTPUT, collect_fx=None, run_arg="q",
-                  only_maintainable=False):
+                  only_maintainable=False, select_hint=True):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     Hvem der kalder den: Search-knappen i FL-vaelgeren
@@ -166,6 +166,12 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     only_maintainable: kun FL'er med maintainable = true kommer i
     samlingen, og "ingen fundet"-teksterne siger "maintainable". Kun
     VH-planens Item Editor bruger den.
+
+    select_hint: med False faar "fundet"-beskeden ikke "Select one from
+    the list below." paa - den slutter efter "... found for <q>." (issue
+    #505, VH-planens Item Editor). Tallet og soegeteksten er stadig
+    dynamiske, og raadet om at soege smallere (over LONG_RESULT traef)
+    staar der stadig. Standard True: de andre skaerme er uaendrede.
 
     GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
     ----------------------------------------------------------------
@@ -220,13 +226,22 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"                    If(\n"
         f"                        n = 0,\n"
         f"                        \"No {none_label if only_maintainable else label} found for \" & Upper(q) & \".\",\n"
-        f"                        Text(n) & \" {label} found for \" & Upper(q) & \". \" &\n"
-        f"                            If(\n"
-        f"                                n > {LONG_RESULT},\n"
-        f"                                \"The list is long - type more characters to narrow it.\",\n"
-        f"                                \"Select one from the list below.\"\n"
-        f"                            )\n"
-        f"                    )\n"
+        + (f"                        Text(n) & \" {label} found for \" & Upper(q) & \". \" &\n"
+           f"                            If(\n"
+           f"                                n > {LONG_RESULT},\n"
+           f"                                \"The list is long - type more characters to narrow it.\",\n"
+           f"                                \"Select one from the list below.\"\n"
+           f"                            )\n"
+           if select_hint else
+           # Issue #505: kun "<n> ... found for <q>." - raadet om at
+           # soege smallere beholdes ved lange svar.
+           f"                        Text(n) & \" {label} found for \" & Upper(q) & \".\" &\n"
+           f"                            If(\n"
+           f"                                n > {LONG_RESULT},\n"
+           f"                                \" The list is long - type more characters to narrow it.\",\n"
+           f"                                \"\"\n"
+           f"                            )\n")
+        + f"                    )\n"
         f"                )\n"
         f"            ),\n"
         f"            Clear({target_collection});\n"
