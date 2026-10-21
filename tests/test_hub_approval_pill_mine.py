@@ -29,11 +29,13 @@ import build_hub as bh  # noqa: E402
 SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenMdHub.pa.yaml")
 
 
-def _eval(expr, view, width=1920, rank=4, inset=0):
-    """Et af builderens Power Fx-udtryk som tal."""
+def _eval(expr, view, width=1920, rank=4, inset=0, closed=False):
+    """Et af builderens Power Fx-udtryk som tal. closed: hubbens Closed-
+    visning (varMdStatusMode = "done"), hvor SAP OBJECT vises (#471)."""
     py = (expr.replace("App.Width", str(width)).replace("LayoutRank", str(rank))
           .replace("PanelInset", str(inset))
-          .replace('varMdView = "mine"', "True" if view == "mine" else "False"))
+          .replace('varMdView = "mine"', "True" if view == "mine" else "False")
+          .replace(bh.CLOSED, "True" if closed else "False"))
     return eval(py, {"If": lambda c, a, b: a if c else b, "Max": max, "True": True, "False": False})
 
 
@@ -43,6 +45,8 @@ def _layout(view, **kw):
     x, xs = bh.ROW_PAD, {}
     for k, _w in bh.COLS:
         if k == "REQUESTER" and view == "mine":
+            continue
+        if k == bh.SAP_COL and not kw.get("closed"):
             continue
         xs[k] = x
         x += _eval(bh.CWF[k], view, **kw) + bh.GAP

@@ -55,6 +55,8 @@ BADGES = {
     "ScreenMdHub.pa.yaml": {
         "bdgMdAprNo": ("varMdAprReq.RequestNo", None, None),
         "bdgMdAprChip": ("ThisItem.Label", None, None),
+        # SAP OBJECT-popuppen (issue #471) - samme nummerbadge som Approval flow.
+        "bdgMdSapNo": ("varMdSapReq.RequestNo", None, None),
     },
 }
 OLD_NAMES = ("txtVhpPlanHeadBadge", "txtVhpOpsHeadBadge", "txtIbRowNo", "txtIbDetNo",
@@ -103,7 +105,8 @@ def test_every_badge_is_modern_badge_with_our_colors():
             for bad in ("Text", "TabIndex", "FontColor", "FontSize", "ThemeColor", "Image"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 17
+    # + 1: SAP OBJECT-popuppens nummerbadge (issue #471).
+    assert total == 18
 
 
 def test_old_controls_are_gone():

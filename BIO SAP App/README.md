@@ -149,7 +149,7 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    først"). Det er foreningsmængden af de fem appers:
 
    *SharePoint-lister (26):* `AppSettings` (VH-planens omkostningsgrænse,
-   R2-082), `CallHorizonMatrix`, `EquipmentItems`,
+   R2-082, og hubbens SAP WebGUI-adresse, #471), `CallHorizonMatrix`, `EquipmentItems`,
    `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_ApprovalLog`,
    `MD_Approver`, `MD_FLKey`, `MD_HelpText`, `MD_KksFunctionKey`,
    `MD_RequestIndex`, `MD_StandardTaskOperations`, `MD_Strategy`,

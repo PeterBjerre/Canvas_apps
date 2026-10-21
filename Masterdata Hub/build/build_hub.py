@@ -35,6 +35,7 @@ import admin_log as alog
 import display_text as dt
 import request_index as ri
 import status_chip as sc
+import sap_objects as sap
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -396,9 +397,18 @@ DOM_TEXT = 156
 # Nu er det EEN kolonne, REQUEST: ikonet, nummeret og domaenets navn som
 # anden linje. Teksten (TEXT) faar den plads, der blev fri. Requester
 # skjules i "My requests" - det er altid brugeren selv.
+#
+# SAP OBJECT (issue #471) staar mellem Status og Updated, KUN i Closed
+# (varMdStatusMode = "done"). Den har en fast bredde og ingen vaegt, og
+# pladsen tages fra TEXT alene - alle andre kolonner har samme bredde som
+# foer, og i Open/All er tabellen uaendret (se CLOSED nedenfor).
+SAP_COL = "SAP OBJECT"
+SAP_W = 80
 COLS = [("REQUEST", 176), ("TEXT", 150), ("PLANT", 72), ("REQUESTER", 72),
-        ("APPROVAL", 270), ("STATUS", 140), ("UPDATED", 84), ("ACTIONS", 156)]
+        ("APPROVAL", 270), ("STATUS", 140), (SAP_COL, SAP_W), ("UPDATED", 84), ("ACTIONS", 156)]
 CW = dict(COLS)
+# Kolonnerne, der deler den frie bredde - alle undtagen SAP OBJECT.
+_GROWN = [(k, w) for k, w in COLS if k != SAP_COL]
 # Godkendelsespillen er kolonnens mindstebredde; striben i den regnes af
 # pillens bredde (approval_flow.PILL_W, issue #318).
 if CW["APPROVAL"] != approval_flow.PILL_W:
@@ -409,7 +419,7 @@ TL_W = 32
 HIT_W = lay.HIT
 GAP = 16
 ROW_PAD = 12
-FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
+FIXED = sum(w for _, w in _GROWN) + GAP * (len(_GROWN) - 1) + 2 * ROW_PAD
 # Bruges BAADE i listehovedet og i galleriets raekke. REGNET AF DEN BREDDE,
 # LISTEN HAR - ikke af Parent.Width, som er raekkens Width-EGENSKAB og
 # hverken traekker kortets padding, galleriets TemplatePadding eller dets
@@ -418,11 +428,11 @@ AVAIL = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
 FREE = f"Max(0, {AVAIL} - {FIXED})"
 GROW_UNITS = {"REQUEST": 1, "TEXT": 5, "PLANT": 1, "REQUESTER": 1,
               "APPROVAL": 2, "STATUS": 2, "UPDATED": 1, "ACTIONS": 1}
-if set(GROW_UNITS) != set(CW):
-    raise SystemExit("build_hub: GROW_UNITS skal have en vaegt for hver kolonne")
+if set(GROW_UNITS) != set(CW) - {SAP_COL}:
+    raise SystemExit("build_hub: GROW_UNITS skal have en vaegt for hver kolonne (undtagen SAP OBJECT)")
 UNIT = f"({FREE} / {sum(GROW_UNITS.values())})"
 CWF = {k: (f"({CW[k]} + {UNIT})" if GROW_UNITS[k] == 1 else f"({CW[k]} + {GROW_UNITS[k]} * {UNIT})")
-       for k in CW}
+       for k in GROW_UNITS}
 # REQUESTER er altid brugeren selv i "My requests" - saa er kolonnen 0 bred
 # og skjult, og TEXT faar dens plads. Summen af bredderne er den samme.
 #
@@ -438,8 +448,16 @@ MINE = 'varMdView = "mine"'
 _REQ_W = CWF["REQUESTER"]
 CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W} + {GAP}, 0))"
 CWF["REQUESTER"] = f"If({MINE}, 0, {_REQ_W})"
+# SAP OBJECT (issue #471): kun i Closed. Saa er TEXT kolonnens bredde plus
+# mellemrummet smallere, og kolonnen staar paa pladsen mellem Status og
+# Updated. Updated og Actions staar paa samme x som i Open/All; summen af
+# bredderne er den samme.
+CLOSED = 'varMdStatusMode = "done"'
+CWF["TEXT"] = f"({CWF['TEXT']} - If({CLOSED}, {SAP_W + GAP}, 0))"
+CWF[SAP_COL] = f"If({CLOSED}, {SAP_W}, 0)"
 # Mellemrummet EFTER hver kolonne, som containeren faktisk tegner det.
-COL_GAP = {k: (f"If({MINE}, 0, {GAP})" if k == "REQUESTER" else str(GAP)) for k in CW}
+COL_GAP = {k: (f"If({MINE}, 0, {GAP})" if k == "REQUESTER" else
+               f"If({CLOSED}, {GAP}, 0)" if k == SAP_COL else str(GAP)) for k in CW}
 
 
 def col_x(key):
@@ -1395,6 +1413,8 @@ def _icon_rows():
                                         opacity=icons.DISABLED_OPACITY, **act))),
         ("delete", _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), **act))),
         ("close", _svg_uri(_icon_svg(icons.ARCHIVE, _hx("text-muted"), **act))),
+        # SAP OBJECT (issue #471): kaedeleddet i brandfarven - et link.
+        ("sap", _svg_uri(_icon_svg(icons.LINK, _hx("color-brand-primary"), **act))),
     ]
     return rows
 
@@ -1420,7 +1440,8 @@ def build_list():
                  [(_sort_head(i, t, CWF[t]) if t in SORT_COLS else
                    text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold",
                              color=C_MUTED, height=20, wrap="false",
-                             width=CWF[t], visible=(f"!({MINE})" if t == "REQUESTER" else None)))
+                             width=CWF[t], visible=(f"!({MINE})" if t == "REQUESTER" else
+                                                    CLOSED if t == SAP_COL else None)))
                   for i, (t, _w) in enumerate(COLS)],
                  direction="Horizontal", gap=GAP, height=30, align_items="Center",
                  pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1479,12 +1500,18 @@ def build_list():
                      wrap="false", color=C_MUTED, extra={"PaddingLeft": str(HEAD_PAD)},
                      accessible=f'"Updated " & Self.Text & ", " & Lower({WHEN_FX})')
 
+    # SAP OBJECT (issue #471): pladsen i raekken - kun i Closed. Selve
+    # ikonet (imgMdRowSap) ligger oven paa raekkens klikflade og staar paa
+    # kolonnens x, som Activity og Edit.
+    sap_cell = text_ctrl("txtMdRowSap", '""', size=12, height=20, width=CWF[SAP_COL],
+                         accessible='"SAP objects"', visible=CLOSED)
+
     act = _open_action()
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
     close_btn = _close_button("")
     actions = [edit_btn, del_btn, close_btn]
 
-    row = group("conMdRow", [dom, main, plant, req, approval, stat, when],
+    row = group("conMdRow", [dom, main, plant, req, approval, stat, sap_cell, when],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
                 pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1514,6 +1541,18 @@ def build_list():
     ensure_hit(timeline)
     timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x)
     timeline.props["Y"] = if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2")
+    # SAP OBJECT (issue #471): link-ikonet, naar indeksraekken siger, at
+    # anmodningen er oprettet i SAP. Ellers er cellen tom. Symbolet staar
+    # under overskriftens tekst (klikfladen har luft rundt om det).
+    sap_btn = _image("imgMdRowSap", icon('"sap"'), TL_W, TL_W, onselect=sap.open_fx(),
+                     label=f'"View SAP objects for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+    ensure_hit(sap_btn)
+    sap_btn.props["Tooltip"] = f'"{sap.TIP}"'
+    sap_btn.props["X"] = f"{col_x(SAP_COL)} - {(TL_W - ACTION_GLYPH) // 2}"
+    sap_btn.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
+    sap_btn.props["Visible"] = f"{at_least('Wide')} && {CLOSED} && {sap.HAS_SAP}"
+    sap_btn.vis = sap_btn.props["Visible"]
+    icons.hit_radius(sap_btn.props)
     # Luk (R2-021) staar paa Deletes plads: de to vises aldrig paa samme
     # raekke (Delete: Kladde/AfventerInfo; Luk: indsendt).
     for i, b in enumerate(actions):
@@ -1579,7 +1618,8 @@ def build_list():
                                  if_below("Wide", str(ROW_H_C), str(ROW_H))),
         "Width": "Parent.Width",
         "WrapCount": "1",
-    }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, notes, *actions, *c_actions], h=GAL_ROWS * ROW_H)
+    }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, notes, sap_btn,
+                 *actions, *c_actions], h=GAL_ROWS * ROW_H)
 
     # Tom liste: een saetning og een knap (UX-review F4). Clear filters
     # nulstiller domaenet, flaget og soegningen og viser de aabne igen.

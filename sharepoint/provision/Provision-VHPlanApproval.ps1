@@ -28,6 +28,11 @@
     MD_Approver             alle godkendere: system 1-16, vaerk, COST
     MD_ApprovalLog          revisionsspor og hukommelse pr. item
     AppSettings             Option CostApprovalThresholdDkk = 300000
+    AppSettings             Option SapWebGuiBaseUrl (issue #471): valget
+                            oprettes altid; raekken kun med
+                            -SapWebGuiBaseUrl. Hubbens SAP OBJECT-popup
+                            laeser AppUrl paa raekken og bygger links til
+                            SAP WebGUI. Vaerten staar ALDRIG i repoet.
 
     NOTERNE VED SUBMIT (issue #115, tools/submission_notes.py)
     MaintenancePlans
@@ -74,6 +79,12 @@
     DEV, TEST eller PROD. Bestemmer, hvilken AppSettings-raekke graensen
     skrives til.
 
+.PARAMETER SapWebGuiBaseUrl
+    Valgfri. Jeres SAP WebGUI-adresse, fx https://<vaert>:<port> (eller
+    hele stien til .../webgui). Skrives i AppUrl paa AppSettings-raekken
+    Option = SapWebGuiBaseUrl for -Environment. Uden parameteren roeres
+    raekken ikke; uden raekke viser hubben SAP-numrene uden link.
+
 .PARAMETER SeedPath
     Standard: ..\seed\MD_Approver.csv
 
@@ -102,6 +113,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [Parameter(Mandatory = $true)][ValidateSet('DEV', 'TEST', 'PROD')][string] $Environment,
     [string] $SeedPath,
+    [string] $SapWebGuiBaseUrl,
     [switch] $Force,
     [switch] $SkipBackfill,
     [switch] $WhatIfOnly,
@@ -125,6 +137,7 @@ $STAGES    = 'System', 'Cost', 'Quality', 'Done'
 $RETURNED  = 'Returned'
 $THRESHOLD_OPTION = 'CostApprovalThresholdDkk'
 $THRESHOLD_VALUE  = 300000
+$WEBGUI_OPTION    = 'SapWebGuiBaseUrl'
 
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
@@ -342,7 +355,7 @@ Write-Host "`n=== $SETTINGS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
 # Option er en Choice-kolonne, saa vaerdien skal findes som valg, foer
 # raekken kan skrives.
-Set-ChoiceOrder $SETTINGS 'Option' @('RunningNoPlan', 'PowerApps', 'RunningNoItem', 'RunningNoTask', $THRESHOLD_OPTION)
+Set-ChoiceOrder $SETTINGS 'Option' @('RunningNoPlan', 'PowerApps', 'RunningNoItem', 'RunningNoTask', $THRESHOLD_OPTION, $WEBGUI_OPTION)
 if ($WhatIfOnly) {
     Write-Host "  ? ville saette $THRESHOLD_OPTION = $THRESHOLD_VALUE for $Environment" -ForegroundColor Yellow
 } else {
@@ -362,6 +375,35 @@ if ($WhatIfOnly) {
         } | Out-Null
         Write-Host "  + $THRESHOLD_OPTION = $THRESHOLD_VALUE for $Environment" -ForegroundColor Green
     }
+}
+
+# SAP WebGUI-adressen (issue #471). Kun naar den er givet - vaerten skal
+# ikke staa i repoet, og en tom raekke er det samme som ingen raekke.
+if ($SapWebGuiBaseUrl) {
+    $url = $SapWebGuiBaseUrl.Trim().TrimEnd('/')
+    if ($url -notmatch '^https://') { throw "-SapWebGuiBaseUrl skal starte med https://" }
+    if ($WhatIfOnly) {
+        Write-Host "  ? ville saette $WEBGUI_OPTION (AppUrl) for $Environment" -ForegroundColor Yellow
+    } else {
+        $row = Get-PnPListItem -List $SETTINGS -PageSize 500 | Where-Object {
+            $_.FieldValues.Option -eq $WEBGUI_OPTION -and $_.FieldValues.Environment -eq $Environment
+        } | Select-Object -First 1
+        $values = @{
+            Option      = $WEBGUI_OPTION
+            Environment = $Environment
+            AppUrl      = "$url, SAP WebGUI"
+            Notes       = 'SAP WebGUI-adressen til hubbens SAP OBJECT-links (issue #471).'
+        }
+        if ($row) {
+            Set-PnPListItem -List $SETTINGS -Identity $row.Id -Values $values | Out-Null
+            Write-Host "  ~ $WEBGUI_OPTION opdateret for $Environment" -ForegroundColor Green
+        } else {
+            Add-PnPListItem -List $SETTINGS -Values $values | Out-Null
+            Write-Host "  + $WEBGUI_OPTION for $Environment" -ForegroundColor Green
+        }
+    }
+} else {
+    Write-Host "  = $WEBGUI_OPTION roeres ikke (ingen -SapWebGuiBaseUrl)" -ForegroundColor DarkGray
 }
 
 # ---------------------------------------------------------------------------
