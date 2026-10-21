@@ -120,6 +120,9 @@ STRAT_FORM = is_strategic(dp._var("StrategicPart"))
 # den fyldes, naar raekken hentes, og gemmes med Save - som felterne.
 OBJECTS = dobj.OBJECTS
 OBJ_SCHEMA = dobj.SCHEMA
+# Object list-popuppens kladde og kandidater (issue #513) - samme skema.
+OBJ_DRAFT = dobj.DRAFT
+OBJ_CANDS = dobj.CANDS
 # Det valgte soegeresultat paa fanen.
 PICK = dobj.PICK
 FL_MSG = dobj.FL_MSG
@@ -377,16 +380,21 @@ def editor_reset():
     return dp.reset_button(DIRTY_NEW)
 
 
+def _objects_after():
+    """Det, der sker efter en aendring af objektlisten (Apply selection i
+    Object list og skraldespanden). En strategisk raekke: slaa systemet og
+    dets ansvarlige op, saa initialerne staar under listen, mens der
+    vaelges."""
+    if not APPROVAL_ON:
+        return ""
+    return f"If(\n    {STRAT_FORM},\n{_indent(resolve_fx(ol.codes_fx(OBJECTS)), 4)}\n)"
+
+
 def editor_panel_content(form, extras=()):
     """Fanerne Details, Objects og Documents - det faelles moenster i
     domain_parts.editor_tabs. Objects-fanen er faelles med Equipment
     (tools/domain_objects.py, issue #485)."""
-    after = ""
-    if APPROVAL_ON:
-        # En strategisk raekke: slaa systemet og dets ansvarlige op, saa
-        # initialerne staar under listen, mens der vaelges.
-        after = f"If(\n    {STRAT_FORM},\n{_indent(resolve_fx(ol.codes_fx(OBJECTS)), 4)}\n)"
-    objects_body = dobj.tab_body(dp.EDITOR_TAB_BODY_H, min_len=MIN_FL_LEN, after=after,
+    objects_body = dobj.tab_body(dp.EDITOR_TAB_BODY_H, min_len=MIN_FL_LEN, after=_objects_after(),
                                  extra=([_approver_line()] if APPROVAL_ON else ()))
     return dp.editor_tabs(form, extras, objects=[objects_body],
                           documents=[dp.docs_tab_body()], open_objects=dobj.open_tab_fx())
@@ -483,10 +491,11 @@ def _po_popup():
 
 def build_popups():
     """Materials' egne popupper (domain_app.build_screen): indkoebsteksten
-    - [sloer, popup]. Objektlisten er Objects-fanen i sidepanelet (#485),
-    og Reset's bekraeftelse er den faelles (domain_parts.build_reset_confirm,
-    issue #450)."""
-    return _po_popup()
+    og Objects-fanens Object list (issue #513) - [sloer, popup] hver.
+    Objektlisten er Objects-fanen i sidepanelet (#485), og Reset's
+    bekraeftelse er den faelles (domain_parts.build_reset_confirm, issue
+    #450)."""
+    return _po_popup() + dobj.build_popup(_objects_after())
 
 
 # ---------------------------------------------------------------------------
@@ -521,8 +530,14 @@ def row_actions():
         objects_n=ROW_OBJ_N)
 
 
+# Soegefeltet paa listen er saa bredt, at hele pladsholderen staar (issue
+# #513) - foer 240 px, og teksten endte med "...".
+SEARCH_PLACEHOLDER = "Search FL, supplier, part no., material"
+
+
 def build_rows():
-    return dp.build_list(SLOTS, "STATUS", "Search FL, supplier, part no., material")
+    return dp.build_list(SLOTS, "STATUS", SEARCH_PLACEHOLDER,
+                         search_w=dp.search_width(SEARCH_PLACEHOLDER))
 
 
 # ---------------------------------------------------------------------------

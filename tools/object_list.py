@@ -38,14 +38,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT)
-from build_helpers import (group, text_ctrl, button, grow, fit_button_width,
-                           label_px)
+from build_helpers import (group, text_ctrl, button, grow, label_px)
+import icons as _icons
 
 # Adskilleren i ObjectList - den samme som MaintenanceItems bruger.
 SEP = "; "
-ROW_H = 32
-MAX_ROWS = 5
-REMOVE_W = 76
+# Raekken er saa hoej som skraldespandens klikflade (issue #513).
+ROW_H = 44
+REMOVE_W = 44
 # Koden er saa bred som den laengste, der findes ("SSV13 HFC10AJ010" og
 # lidt luft); beskrivelsen tager resten af raekken.
 CODE_W = 170
@@ -203,16 +203,25 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
     # on_remove: det, der skal ske EFTER fjernelsen (Materials gemmer
     # listen paa raekken med det samme, issue #228).
     rem_fx = remove_fx(coll, msg_var) + (f";\n{on_remove}" if on_remove else "")
-    rem = button(f"btn{prefix}ObjRemove", '"Remove"', rem_fx,
-                 width=REMOVE_W, height=ROW_H - 2, display_mode=display_mode,
-                 accessible='"Remove " & ThisItem.Code',
-                 tooltip='"Remove " & ThisItem.Code')
-    rem.props["Size"] = "12"
+    # SKRALDESPAND, IKKE "Remove" (issue #513): et kompakt ikon pr. raekke.
+    # Det fjerner KUN denne funktionsplads fra listen - aldrig raekken.
+    rem = button(f"btn{prefix}ObjRemove", '"Remove object"', rem_fx,
+                 width=REMOVE_W, height=REMOVE_W, display_mode=display_mode,
+                 icon=f'"{_icons.FLUENT["delete"]}"',
+                 accessible='"Remove object " & ThisItem.Code',
+                 tooltip='"Remove object"')
+    rem.props["Layout"] = "ButtonLayout.IconOnly"
+    rem.props["BorderColor"] = C_TRANSPARENT
     rem.props["LayoutMinWidth"] = str(REMOVE_W)
     row = group(f"con{prefix}ObjRow", [code, desc, rem], direction="Horizontal",
-                gap=8, height=ROW_H - 2, align_items="Center",
+                gap=8, height=ROW_H, align_items="Center",
                 width="Parent.TemplateWidth")
-    gal_h = f"Max(Min({count_fx(coll)}, {MAX_ROWS}), 1) * {ROW_H}"
+    # INGEN SCROLLBAR I LISTEN (issue #513). Listen er saa hoej som ALLE
+    # dens raekker - foer var den hoejst MAX_ROWS raekker og 1 px
+    # TemplatePadding for lav, saa den fik sin egen lille scrollbar allerede
+    # ved faa objekter. Nu er der EEN scroll: fanens krop (capped_body),
+    # og den scroller kun, naar listen reelt er hoejere end panelet.
+    gal_h = f"Max({count_fx(coll)}, 1) * {ROW_H}"
     gal = Ctrl(f"gal{prefix}Objects", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Functional locations on this row"',
         "BorderStyle": "BorderStyle.None",
@@ -223,9 +232,9 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
-        "ShowScrollbar": "true",
+        "ShowScrollbar": "false",
         "TabIndex": "0",
-        "TemplatePadding": "1",
+        "TemplatePadding": "0",
         "TemplateSize": str(ROW_H),
         "Width": "Parent.Width",
         "WrapCount": "1",
@@ -238,14 +247,3 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
                 direction="Vertical", gap=4, width=width, align_items="Stretch")
     return box
 
-
-def add_button(prefix, fx, *, display_mode, height=36):
-    """Add - knappen ved siden af Search. Den laegger DET VALGTE resultat i
-    listen; selve soegningen er FL-vaelgerens egen (tools/fl_picker.py)."""
-    b = button(f"btn{prefix}ObjAdd", '"Add"', fx,
-               width=fit_button_width('"Add"'), height=height,
-               display_mode=display_mode,
-               accessible='"Add the selected functional location to the object list"',
-               tooltip='"Add the selected functional location to the object list"')
-    b.props["LayoutMinWidth"] = b.props["Width"]
-    return b

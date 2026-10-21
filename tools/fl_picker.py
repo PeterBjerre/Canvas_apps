@@ -384,9 +384,14 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         narrow = stk
         sum_w = " + ".join([str(SEARCH_W)] + [f"({t.props['Width']})" for t in trail]) \
             + f" + {8 * len(trail)}"
+        # Er raekkens bredde Parent.Width (Materials' Objects-fane, issue
+        # #513), kan comboboksens rest ikke regnes ud af en bredde, der
+        # afhaenger af foraelderen. Knapperne er da altid deres egen sum
+        # bred - stablet staar de til venstre (AlignInContainer.Start).
+        act_w = sum_w if "Parent." in str(width) else f"If({narrow}, {width}, {sum_w})"
         actions = group(f"con{prefix}{kind}Actions", [btn, busy, *trail], direction="Horizontal",
                         gap=8, height=HEIGHT, align_items="Center", justify="Start",
-                        width=f"If({narrow}, {width}, {sum_w})")
+                        width=act_w)
         actions.props["LayoutMinWidth"] = f"If({narrow}, 0, {sum_w})"
         actions.props["AlignInContainer"] = "AlignInContainer.Start"
         cmb.props["AlignInContainer"] = "AlignInContainer.Start"
