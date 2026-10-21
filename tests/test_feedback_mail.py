@@ -143,7 +143,8 @@ def test_send_uses_the_flow_and_outlook_is_a_separate_draft():
     assert "'BioSap-SendFeedbackMail'" not in out
     # Emne, anmodning og besked kommer med - URL-kodet (UTF-8, ogsaa ae/oe/aa).
     assert "EncodeUrl(%s)" % fb.SUBJECT_FX in out
-    assert "EncodeUrl(%s & Left(inpKksFbMessage.Text" % fb.OUTLOOK_CONTEXT_FX in out
+    # Issue #492: ingen faerdig hilsen at skaere fra - beskeden, som den er.
+    assert "EncodeUrl(%s & inpKksFbMessage.Text))" % fb.OUTLOOK_CONTEXT_FX in out
     # Begge knapper spaerres paa samme maade: tom besked eller kald i gang.
     assert (_prop(kks, "btnKksFbSendOutlook", "DisplayMode")
             == _prop(kks, "btnKksFbSend", "DisplayMode"))
