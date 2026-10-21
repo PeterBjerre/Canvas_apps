@@ -50,7 +50,7 @@ def test_equipment_sections_follow_the_mockup():
     # garantien paa Documents-fanen (issue #430) - efter Details.
     assert y.index("txtEqSecLoc:") < y.index("conEqRoomCoordinates:") < y.index("txtEqSecMfr:")
     assert y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("conEqEditorObjects:")
-    assert (y.index("conEqEditorObjects:") < y.index("conEqFl:")
+    assert (y.index("conEqEditorObjects:") < y.index("conEqObjTabBody:")
             < y.index("conEqEditorDocuments:") < y.index("txtEqSecWarranty:"))
 
 
@@ -103,7 +103,7 @@ def test_material_editor_exposes_the_three_requested_tabs():
         assert name in props
     assert props["conMatEditorObjects"]["Visible"] == '=varMatEditorTab = "Objects"'
     assert props["conMatEditorDocuments"]["Visible"] == '=varMatEditorTab = "Documents"'
-    assert "conMatObjPopBody" in props and "conMatAttBody" in props
+    assert "conMatObjTabBody" in props and "conMatAttBody" in props
     assert "conMatObjPopModal" not in props and "conMatAttModal" not in props
 
 
@@ -123,7 +123,8 @@ def test_issue_board_details_use_a_side_panel_without_losing_tabs():
     assert all(name in props for name in ("btnIbTabDetails", "btnIbTabActivity", "btnIbTabFiles"))
 
 
-def test_equipment_and_measuring_point_have_documents_and_more_actions():
+def test_equipment_and_measuring_point_show_all_actions_without_a_more_menu():
+    # Issue #485: alle handlinger staar direkte i Actions - ingen More-menu.
     for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
                           ("ScreenMeasuringPoint.pa.yaml", "Mp")):
         props = _properties(screen)
@@ -132,7 +133,8 @@ def test_equipment_and_measuring_point_have_documents_and_more_actions():
             assert f"btn{prefix}RowDocs" not in props
         else:
             assert f"btn{prefix}RowDocs" in props
-            assert "FileCount" in props[f"btn{prefix}RowDocs"]["Text"]
-        assert f"btn{prefix}RowMore" in props
-        assert f"con{prefix}RowMoreMenu" in props
-        assert f"btn{prefix}MoreCopy" in props and f"btn{prefix}MoreDelete" in props
+            assert "FileCount" in props[f"btn{prefix}RowDocs"]["Tooltip"]
+        for gone in (f"btn{prefix}RowMore", f"con{prefix}RowMoreMenu",
+                     f"btn{prefix}MoreCopy", f"btn{prefix}MoreDelete"):
+            assert gone not in props, gone
+        assert f"btn{prefix}RowCopy" in props and f"btn{prefix}RowDelete" in props

@@ -125,8 +125,8 @@ def test_footer_stays_outside_the_tabs():
 
 
 def test_read_only_in_view_mode():
-    fl = _find(EQ, "cmbEqFl")
-    assert "varEqViewOnly" in _prop(fl, "DisplayMode")
+    # FL-soegningen paa Objects-fanen er skjult i visning (issue #485).
+    assert "varEqViewOnly" in _prop(_find(EQ, "conEqFlWrap"), "Visible")
     for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd"):
         assert "varEqViewOnly" in _prop(_find(EQ, name), "DisplayMode"), name
     assert "DisplayMode.Edit" not in _prop(_find(EQ, "inpEqDocsInfo"), "DisplayMode").split(",")[-1]

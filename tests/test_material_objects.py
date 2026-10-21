@@ -97,44 +97,48 @@ def test_summary_shows_the_first_code_and_how_many_more():
     assert fx.count("ThisItem.ObjectList") == 1
 
 
-def test_the_popup_saves_the_object_list_on_its_own_row():
+def test_the_objects_tab_is_saved_with_the_row():
+    # Issue #485: Add og Remove retter kun formularens liste - Save skriver
+    # den paa raekken sammen med resten. Intet Patch paa selve fanen.
     add = _prop("btnMatObjAdd", "OnSelect")
-    # Gemt som koder, som JSON og med den foerste kode i FL-kolonnen - paa
-    # DEN raekke, popuppen er aabnet for.
-    assert "LookUp(MaterialItems, ID = varMatObjRowId)" in add
-    assert 'ObjectList: Concat(Sort(colMatObjPop, Code), Code, "; ")' in add
-    assert "ObjectListJson: JSON(ForAll(Sort(colMatObjPop, Code)" in add
-    assert 'FunctionalLocation: Coalesce(First(Sort(colMatObjPop, Code)).Code, "")' in add
-    # Kun naar der faktisk blev tilfoejet (en dublet gemmer intet).
-    assert "CountRows(colMatObjPop) > varMatObjN" in add
-    # Remove gemmer ogsaa med det samme.
+    assert "Collect(colMatObjects" in add
+    assert "Patch(" not in add
     rem = _prop("btnMatObjRemove", "OnSelect")
-    assert rem.startswith("RemoveIf(colMatObjPop, Code = ThisItem.Code)")
-    assert "LookUp(MaterialItems, ID = varMatObjRowId)" in rem
+    assert rem.startswith("RemoveIf(colMatObjects, Code = ThisItem.Code)")
+    assert "Patch(" not in rem
+    save = _prop("btnMatSave", "OnSelect")
+    assert 'ObjectList: Concat(Sort(colMatObjects, Code), Code, "; ")' in save
+    assert "ObjectListJson: JSON(ForAll(Sort(colMatObjects, Code)" in save
+    assert 'FunctionalLocation: Coalesce(First(Sort(colMatObjects, Code)).Code, "")' in save
 
 
-def test_the_objects_tab_opens_on_the_saved_row_and_is_read_only_when_locked():
+def test_the_objects_tab_opens_the_row_and_is_read_only_when_locked():
     open_fx = _prop("btnMatRowObjects", "OnSelect")
     assert open_fx.startswith("Set(varMatActiveRowId, ThisItem.RowId);")
     assert 'Set(varMatEditorTab, "Objects")' in open_fx
-    assert "Set(varMatObjRowId, varMatActiveRowId)" in open_fx
-    assert "ParseJSON(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson)" in open_fx
-    # Soegning, Add og Remove kun, naar raekken og anmodningen kan rettes.
-    edit = ('(!IsBlank(varMatObjRowId) && !IfError(varMatViewOnly, false) && '
-            'LookUp(colMatRows, RowId = varMatObjRowId).Status <> "submitted")')
+    assert "ParseJSON(ThisItem.ObjectListJson)" in open_fx
+    # Soegning og Add kun, naar formularens raekke kan rettes - ogsaa paa en
+    # NY raekke (Create); i visning er Remove slaaet fra.
+    edit = '!(IfError(varMatViewOnly, false) || varMatRowStatus = "submitted")'
     assert _prop("conMatFlWrap", "Visible") == edit
     assert _prop("btnMatObjAdd", "Visible") == edit
     assert edit in _prop("btnMatObjRemove", "DisplayMode")
 
 
-def test_a_copy_keeps_its_objects_and_a_loaded_row_keeps_its_own():
-    y = _mat()
+def test_switching_to_the_objects_tab_keeps_the_unsaved_selection():
+    tab = _prop("conMatEditorTabsObjects", "OnSelect")
+    assert 'Set(varMatEditorTab, "Objects")' in tab
+    # Fanen henter IKKE raekken igen - saa et valg, der ikke er gemt, bliver.
+    assert "colMatObjects" not in tab
+
+
+def test_a_loaded_row_fills_the_list_and_a_copy_is_a_new_row():
+    assert "ParseJSON(ThisItem.ObjectListJson)" in _prop("btnMatRowOpen", "OnSelect")
     copy = _prop("btnMatRowCopy", "OnSelect")
-    assert "ParseJSON(ThisItem.ObjectListJson)" in copy
-    # En NY raekke (kopien) faar kopiens objekter; en hentet beholder sine.
-    assert ('ObjectList: If(IsBlank(varMatActiveRowId), Concat(Sort(colMatObjects, Code), '
-            'Code, "; "), Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectList, ""))') in y
-    assert "Clear(colMatObjects)" in _prop("btnMatRowOpen", "OnSelect")
+    # Kopien er en NY raekke i listen, og objekterne foelger med fra kilden.
+    assert "Patch(MaterialItems, Defaults(MaterialItems)" in copy
+    assert "ObjectList: src.ObjectList," in copy
+    assert "ObjectListJson: src.ObjectListJson," in copy
 
 
 def test_fl_search_and_add_need_sixteen_characters():
@@ -294,11 +298,12 @@ def test_details_popup_is_replaced_by_the_side_panel():
     assert "inpMatDetCreatedNo" in y
 
 
-def test_row_actions_are_details_edit_docs_objects_copy_and_delete_last():
+def test_row_actions_are_edit_docs_objects_copy_and_delete_last():
     # Galleriets skabelon er fladet ud (X/Y), saa raekkefoelgen er
-    # kontrollernes raekkefoelge i filen.
+    # kontrollernes raekkefoelge i filen. Ingen Details (issue #485).
     y = _mat()
-    desk = ["btnMatRowDetails", "btnMatRowOpen", "btnMatRowDocs", "btnMatRowObjects",
+    assert "btnMatRowDetails" not in y
+    desk = ["btnMatRowOpen", "btnMatRowDocs", "btnMatRowObjects",
             "btnMatRowCopy", "btnMatRowDelete"]
     for names in (desk, [n + "C" for n in desk]):
         pos = [y.index("- %s:" % n) for n in names]
@@ -306,18 +311,19 @@ def test_row_actions_are_details_edit_docs_objects_copy_and_delete_last():
     # Delete er destruktiv, kun et ikon og bag bekraeftelsen.
     assert _prop("btnMatRowDelete", "Layout") == "ButtonLayout.IconOnly"
     assert "Set(varMatConfirmDelete, true)" in _prop("btnMatRowDelete", "OnSelect")
-    # Docs vaelger raekken og aabner Documents-fanen med antallet.
+    # Docs vaelger raekken og aabner Documents-fanen; antallet staar i tooltippet.
     docs = _prop("btnMatRowDocs", "OnSelect")
     assert docs.startswith("Set(varMatActiveRowId, ThisItem.RowId);")
     assert 'Set(varMatEditorTab, "Documents")' in docs
     assert "Set(varMatDocsId, varMatActiveRowId)" in docs
-    assert "ThisItem.FileCount" in _prop("btnMatRowDocs", "Text")
-    assert "ThisItem.ObjectList" in _prop("btnMatRowObjects", "Text")
+    assert "ThisItem.FileCount" in _prop("btnMatRowDocs", "Tooltip")
+    assert "ThisItem.ObjectList" in _prop("btnMatRowObjects", "Tooltip")
 
 
-def test_equipment_keeps_its_own_row_actions():
-    # Equipment uses the panel's Documents action and explicit More menu.
+def test_equipment_has_the_same_row_actions():
     eq = open(EQ, encoding="utf-8").read()
-    assert "btnEqRowMore" in eq and "btnEqMoreCopy" in eq and "btnEqMoreDelete" in eq
-    assert "btnEqRowDocs" in eq and "Documents (" in eq
-    assert "btnEqRowObjects" not in eq
+    for gone in ("btnEqRowMore", "btnEqMoreCopy", "btnEqMoreDelete", "btnEqRowDetails"):
+        assert gone not in eq, gone
+    for name in ("btnEqRowOpen", "btnEqRowDocs", "btnEqRowObjects", "btnEqRowCopy",
+                 "btnEqRowDelete"):
+        assert "- %s:" % name in eq, name
