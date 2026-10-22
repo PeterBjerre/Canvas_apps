@@ -301,6 +301,8 @@ If(
     Clear(colFlDeleted);
     // Kopierne (Copy, issue #467) er gemt nu - ikke laengere "ny".
     Clear(colFlCopies);
+    // Alt er gemt nu - ogsaa fra sidepanelets Save (issue #533).
+    Set(varFlDirty, false);
     Set(varFlInfo, "");
     {ok},
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
@@ -448,6 +450,9 @@ If(
     Set(varFlViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varFlCanEdit));
     Clear(colFlDeleted);
     Clear(colFlCopies);
+    // Issue #533: aabnes med Classes lukket og intet ugemt.
+    Set(varFlClassesOpen, false);
+    Set(varFlDirty, false);
     ClearCollect(
         colFlLoad,
         ForAll(

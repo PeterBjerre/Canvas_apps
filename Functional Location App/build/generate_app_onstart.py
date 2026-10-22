@@ -271,6 +271,12 @@ Set(varFlPanelDelAsk, false);
 Set(varFlPanelResetAsk, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
+// Ugemte aendringer siden sidste gem (issue #533) - og som de stod, da
+// sidepanelet blev aabnet (Cancel/Reset saetter den tilbage).
+Set(varFlDirty, false);
+Set(varFlDirtyAtOpen, false);
+// Classes er lukket, til brugeren aabner den (issue #533).
+Set(varFlClassesOpen, false);
 // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
 Set(varFlSubmitAsk, false);
 // Knappernes ventetilstand (issue #420): tom = ingen handling, ingen besked.

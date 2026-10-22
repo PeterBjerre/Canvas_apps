@@ -73,7 +73,7 @@ def _and_vis(ctrl, cond):
 
 
 def chevron_toggle(name, title, var, default_open=False, on_select_extra=None,
-                   open_expr=None):
+                   open_expr=None, everywhere=False):
     """Chevronknappen: 44 x 44 (TOUCH), kun paa mobil. Ned = lukket, op =
     aaben. Skaermlaeseren faar "Expand <title>" / "Collapse <title>".
     open_expr: et eget udtryk for "aaben" (standard state(var, default_open))
@@ -96,12 +96,13 @@ def chevron_toggle(name, title, var, default_open=False, on_select_extra=None,
     btn.props["Tooltip"] = lab
     btn.props["LayoutMinWidth"] = btn.props["Width"]
     btn.props["AlignInContainer"] = "AlignInContainer.Center"
-    _and_vis(btn, MOBILE)
+    if not everywhere:
+        _and_vis(btn, MOBILE)
     return btn
 
 
 def collapsible(prefix, title, children, var, default_open=False, summary=None,
-                size=None, open_expr=None):
+                size=None, open_expr=None, everywhere=False):
     """En sektion, der kan klappes sammen PAA MOBIL. Returnerer en LISTE:
 
         [overskrift (kun mobil), *children]
@@ -114,7 +115,11 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     Power Fx-tekst, der vises, mens sektionen er lukket) og chevronen.
     Boernene vises kun, mens sektionen er aaben. var er en global variabel
     (Set); blank = default_open, saa der skal intet i OnStart. open_expr:
-    se chevron_toggle (fase 3, FL-sidepanelets sektioner)."""
+    se chevron_toggle (fase 3, FL-sidepanelets sektioner).
+
+    everywhere=True: sektionen kan klappes sammen paa ALLE skaermbredder
+    (FL's Classes, issue #533) - overskriften og chevronen ses overalt, og
+    boernene kun, mens sektionen er aaben."""
     from build_helpers import text_ctrl, group, grow, label_px
     from gen_screen import C_TITLE, C_MUTED
     size = size or lay.SIZE_INPUT
@@ -138,10 +143,13 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     else:
         kids.append(grow(group("con%sFoldGap" % prefix, [], direction="Horizontal", height=0)))
     kids.append(chevron_toggle("btn%sFold" % prefix, title, var, default_open,
-                               open_expr=open_expr))
+                               open_expr=open_expr, everywhere=everywhere))
     head = group("con%sFold" % prefix, kids, direction="Horizontal", gap=8,
-                 height=TOUCH, align_items="Center", visible=MOBILE)
-    vis = ("(%s || %s)" % (NOT_MOBILE, open_expr)) if open_expr else shown(var, default_open)
+                 height=TOUCH, align_items="Center", visible=None if everywhere else MOBILE)
+    if everywhere:
+        vis = open_expr or state(var, default_open)
+    else:
+        vis = ("(%s || %s)" % (NOT_MOBILE, open_expr)) if open_expr else shown(var, default_open)
     for c in children:
         _and_vis(c, vis)
     return [head, *children]
