@@ -30,6 +30,9 @@ FLOWS = sorted(glob.glob(os.path.join(SRC, "Workflows", "*.json")))
 EV_DIR = os.path.join(SRC, "environmentvariabledefinitions")
 REDACTED = "***REDACTED***"
 API_KEY = "BioSap-WOC-ApiKey (orsted_BioSapWocApiKey)"
+# Testflowet BioSap-Test-DevApis kalder DEV-gatewayen med sine egne noegler.
+DEV_API_KEYS = ("BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)",
+                "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)")
 
 
 def _load(path):
@@ -70,11 +73,11 @@ def test_api_key_and_client_secret_come_from_environment_variables():
     for path in FLOWS:
         for where, value in _strings(_load(path)):
             if where and where[-1] == "x-apikey":
-                assert value == "@parameters('%s')" % API_KEY, path
+                assert value in ["@parameters('%s')" % k for k in (API_KEY,) + DEV_API_KEYS], path
                 seen += 1
             if "client_secret=" in value:
                 assert re.search(r"client_secret=@\{parameters\('[^']+'\)\}", value), path
-    assert seen == 2
+    assert seen == 4
 
 
 def test_flow_environment_variables_are_defined_in_the_solution():
@@ -92,7 +95,8 @@ def test_environment_variable_defaults_are_empty_or_redacted():
         text = open(xml, encoding="utf-8-sig").read()
         for value in re.findall(r"<defaultvalue>(.*?)</defaultvalue>", text, re.S):
             assert value == REDACTED, xml
-    for name in ("orsted_BioSapWOCClientSecret", "orsted_BioSapWocApiKey"):
+    for name in ("orsted_BioSapWOCClientSecret", "orsted_BioSapWocApiKey",
+                 "orsted_BioSapWoeDevApiKey", "orsted_BioSapInventoryDevApiKey"):
         text = open(os.path.join(EV_DIR, name, "environmentvariabledefinition.xml"),
                     encoding="utf-8-sig").read()
         assert "<defaultvalue>" not in text, name
