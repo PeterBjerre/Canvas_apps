@@ -32,8 +32,9 @@ import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 import action_tips as tips
+import display_text as dt
 import mobile
-from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
+from build_helpers import (C_INPUT_BORDER, label_px, ACT_NOTE_SIZE, act_running, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
                            act_fx, act_button, act_status, act_layers, panel_save_text,
                            confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
@@ -115,11 +116,29 @@ AUTO_ROW_FX = (
 # den koster ingen kald til SharePoint eller flows.
 REVERIFY = "Set(varFlStale, true);\nSelect(btnFlVerify)"
 
+# UGEMTE AENDRINGER (issue #533). varFlDirty er sand, naar der er rettet
+# noget, som et gem vil skrive, siden anmodningen sidst blev gemt eller
+# aabnet. Den saettes KUN af brugerens rettelser - og kun naar vaerdien
+# faktisk aendres (et felt, der skriver samme vaerdi igen, fx naar en
+# kontrol tegnes paa ny, goer intet). Gem (S.save_fx) nulstiller den,
+# naar gemmet lykkedes; fejler gemmet, bliver den staaende - og vaerdierne
+# med. En tom raekke (Add row, den automatiske nederst) gemmes ikke og
+# taeller derfor ikke. Vises i headeren ("Unsaved changes") og i Rows'
+# taeller (UNSAVED_NOTE).
+DIRTY = "varFlDirty"
+MARK_DIRTY = f"Set({DIRTY}, true)"
+# Kun naar anmodningen kan aendres - en laast anmodning har intet at gemme.
+UNSAVED = f'(Coalesce({DIRTY}, false) && !varFlViewOnly && varFlStatus <> "Indsendt")'
+
 
 def delete_row_fx(guid):
     """Raekken guid fjernes lokalt; Save draft sletter den i SharePoint
     (colFlDeleted, fl_save trin 3). Den sidste raekke afloeses af en tom."""
-    return f"""Collect(colFlDeleted, {{ RowGuid: {guid} }});
+    # Issue #533: ugemt, naar raekken havde indhold eller staar i SharePoint.
+    return f"""With({{ dr: LookUp(colFlRows, RowGuid = {guid}) }},
+    If(dr.SpId <> 0 || !(IsBlank(dr.FL) && IsBlank(dr.Description)), {MARK_DIRTY})
+);
+Collect(colFlDeleted, {{ RowGuid: {guid} }});
 Remove(colFlRows, LookUp(colFlRows, RowGuid = {guid}));
 RemoveIf(colFlVals, RowGuid = {guid});
 RemoveIf(colFlIssues, RowGuid = {guid});
@@ -153,6 +172,7 @@ def copy_row_fx(guid):
         Collect(colFlVals, colFlCopyVals);
         Clear(colFlCopyVals);
         Collect(colFlCopies, {{ RowGuid: ng }});
+        {MARK_DIRTY};
         If(!IsBlank(blank.RowGuid),
             Patch(colFlRows, LookUp(colFlRows, RowGuid = blank.RowGuid), {{ RowNo: varFlNextRowNo + 1 }});
             Set(varFlNextRowNo, varFlNextRowNo + 2),
@@ -165,7 +185,10 @@ def copy_row_fx(guid):
 
 
 def set_row_fx(guid, field, value):
-    return (f"Patch(colFlRows, LookUp(colFlRows, RowGuid = {guid}), {{ {field}: {value} }});\n"
+    return (f"With({{ nv: {value} }},\n"
+            f"    If(Coalesce(LookUp(colFlRows, RowGuid = {guid}).{field}, \"\") <> Coalesce(nv, \"\"), "
+            f"{MARK_DIRTY});\n"
+            f"    Patch(colFlRows, LookUp(colFlRows, RowGuid = {guid}), {{ {field}: nv }})\n);\n"
             + REVERIFY)
 
 
@@ -174,8 +197,14 @@ def set_val_fx(guid, field, value):
     (setSpoolColumnValue, app-functional-location.js:582-606). FL og
     Description er raekkens egne felter - og begge store bogstaver
     (Description: issue #490, som FL)."""
+    # Issue #533: ugemt, kun naar vaerdien faktisk aendres (MARK_DIRTY).
+    old = (f'Switch(f, "FUNCTIONAL LOCATION", LookUp(colFlRows, RowGuid = {guid}).FL, '
+           f'"DESCRIPTION", LookUp(colFlRows, RowGuid = {guid}).Description, '
+           f'LookUp(colFlVals, RowGuid = {guid} && Field = f).Value)')
+    new = f'Switch(f, "FUNCTIONAL LOCATION", {norm_fl("nv")}, "DESCRIPTION", Upper(nv), nv)'
     return f"""With(
     {{ f: {field}, nv: Trim({value}) }},
+    If(Coalesce({old}, "") <> Coalesce({new}, ""), {MARK_DIRTY});
     Switch(
         f,
         "FUNCTIONAL LOCATION",
@@ -244,7 +273,10 @@ def build_bar():
     Tallene er renderMetrics (FL66)."""
     save = _fit(button("btnFlSaveDraft", '"Save draft"', SAVE_DRAFT_FX,
                        icon=ICON_SAVE, display_mode=SAVE_DM), icon=True)
-    save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
+    # Issue #533: Save draft gemmer HELE anmodningen (S.save_fx) - det samme
+    # gem som sidepanelets Save. Tooltippet siger, om der er noget ugemt.
+    save.props["Tooltip"] = (f'If({UNSAVED}, "Unsaved changes. ", "") & '
+                             '"Saves the complete request and puts it on the landing page as Draft - '
                              'it can still be edited."')
     # Submit spoerger foerst (build_submit_confirm, issue #54) - eller siger,
     # hvorfor den er blokeret (S.submit_click_fx, issue #277).
@@ -270,6 +302,18 @@ def build_bar():
     # knapperne er deres ikon alene (_bar_btn), staar hjulet ved dem.
     status = act_status("FlAct", ACT, ("save", "submit"),
                         spin={"save": NARROW, "submit": NARROW if ICON_SUBMIT else None})
+    # "Unsaved changes" foran Save draft (issue #533) - fra Desktop, hvor
+    # der er plads; under Desktop staar det i Rows' taeller (build_rows).
+    # Ikke mens et gem koerer (knappen siger det selv).
+    unsaved_txt = "Unsaved changes"
+    unsaved_w = label_px(unsaved_txt, ACT_NOTE_SIZE) + 4
+    unsaved = text_ctrl("txtFlUnsaved", f'"{unsaved_txt}"', size=ACT_NOTE_SIZE, weight="Semibold",
+                        color=C_WARN_FG, height=20, width=unsaved_w, wrap="false",
+                        visible=(f"{at_least('Desktop')} && {UNSAVED} && "
+                                 f"!({act_running(ACT)})"))
+    unsaved.props["LayoutMinWidth"] = str(unsaved_w)
+    unsaved.props["AlignInContainer"] = "AlignInContainer.Center"
+    status = [unsaved, *status]
     actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit, *status])
     # Ingen bundbjaelke paa FL (issue #392): Save draft og Submit staar i
     # headeren paa alle skaermbredder.
@@ -976,6 +1020,8 @@ PANEL_RESTORE = f"""With(
         Collect(colFlVals, colFlPanelSnapVals)
     )
 );
+// Issue #533: raekken er som ved aabningen, og varFlDirty ogsaa.
+Set({DIRTY}, Coalesce(varFlDirtyAtOpen, true));
 {REVERIFY}"""
 PANEL_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 PANEL_DM = f"If({PANEL_LOCKED}, DisplayMode.Disabled, DisplayMode.Edit)"
@@ -995,6 +1041,7 @@ def open_row_panel_fx(guid, jump='""'):
             f"{PANEL_FILL};\n"
             f"{PANEL_SNAP};\n"
             f'Set({PANEL_SAVE}, "");\n'
+            f"Set(varFlDirtyAtOpen, Coalesce({DIRTY}, false));\n"
             "Set(varFlPanelOpen, true)")
 
 
@@ -1220,11 +1267,14 @@ def _panel_footer():
     cancel = button("btnFlEditorCancel", '"Cancel"',
                     f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n);\n"
                     f"{CLOSE_PANEL_FX}",
-                    width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
+                    width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH,
+                    tooltip='"Undo the changes made to this row since it was opened and close the panel"')
     save = button("btnFlEditorSave", '"Save"', PANEL_SAVE_FX,
                   primary=True, width=PANEL_SAVE_W, height=lay.HIT_TOUCH,
                   display_mode=panel_save_mode(PANEL_SAVE, SAVE_DM), icon='"Save"',
-                  tooltip='"Save the request with this row and close the panel"')
+                  # Issue #533: et RIGTIGT gem af hele anmodningen (S.save_fx) - det
+                  # samme som Save draft, saa den skal ikke gemmes igen bagefter.
+                  tooltip='"Saves the complete request (same as Save draft) and closes the panel"')
     save.props["AccessibleLabel"] = "Self.Text"
     panel_save_text(save, PANEL_SAVE)
     return editor_footer("Fl", delete, reset, cancel, save)
@@ -1249,8 +1299,11 @@ def build_rows():
     # kortet hed "Validation".
     title = text_ctrl("txtFlRowsH", '"Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false", width=text_px("Rows", lay.SIZE_CARD_TITLE))
+    # Issue #533: "Unsaved changes" ogsaa her, saa det ses paa alle
+    # skaermbredder (headeren viser det kun fra Desktop).
     count = grow(text_ctrl("txtFlRowsCount",
-                           f'Text({S.READY}) & " of " & Text(CountRows(colFlRows)) & " valid"',
+                           f'Text({S.READY}) & " of " & Text(CountRows(colFlRows)) & " valid" & '
+                           f'If({UNSAVED}, "  \u00b7  Unsaved changes", "")',
                            size=13, color=C_MUTED, height=20, wrap="false"))
     add = _fit(button("btnFlAddRow", '"Add row"', capped_add_row_fx(),
                       display_mode=DM_EDIT, icon="Add", primary=True), icon=True)
@@ -1363,14 +1416,25 @@ TAB_H_M = 42
 C_ROW_H_M = 76
 C_ROWS_MAX = 50
 CLASSES_OPEN = "varFlClassesOpen"
+# CLASSES ER KLAPPET SAMMEN SOM STANDARD - PAA ALLE SKAERMBREDDER (issue
+# #533). Rows er arbejdsfladen; Classes er en anden visning af de SAMME
+# raekker (V.BUCKETS), og med op til 100 raekker fyldte den meget. Lukket
+# viser overskriften en opsummering, regnet af raekkerne:
+#   Classes  . 100 Functional Locations . 8 classes
+# Functional Locations: raekker, der ikke er tomme (EMPTY_ROW - den tomme
+# raekke nederst taeller ikke). Classes: de klasser, Classes-listen viser
+# (V.BUCKETS - samme som fanerne). Tilstanden (CLASSES_OPEN) saettes kun af
+# chevronen: rettelser, faner, gem og indsend roerer den ikke. Den
+# nulstilles (lukket), naar en anden anmodning aabnes (RESET_FX, S.load_fx).
+CLASSES_FLS = f"CountRows(Filter(colFlRows, !({EMPTY_ROW})))"
+CLASSES_N = f"CountRows(Distinct({V.BUCKETS}, AssignedClass))"
+CLASSES_SUMMARY = ("IfError(" + dt.plural(CLASSES_FLS, "Functional Location") + ' & "  \u00b7  " & '
+                   + dt.plural(CLASSES_N, "class", "classes") + ', "")')
 
 
 def build_classes():
     """Uden klassificerede raekker er kortet KUN titlen og een linje - ingen
     tom fanebjaelke, overskrift eller tom raekke (issue #77)."""
-    title = text_ctrl("txtFlClassesH", '"Classes"', size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
-                      wrap="false")
-
     tab = button("btnFlTab", "ThisItem.Label", "Set(varFlTab, ThisItem.Key)", width=130,
                  height=lay.mobile_or(TAB_H_M, 34))
     sel = "varFlTab = ThisItem.Key"
@@ -1515,18 +1579,19 @@ def build_classes():
                       '"No classified rows yet - a row appears here once its Functional Location is valid."',
                       size=13, color=C_MUTED, height=20, wrap="false",
                       visible=f"!({HAS_CLASSES})")
-    # Telefonen: Classes er en anden visning af de samme raekker - sekundaer,
-    # saa kortet er klappet sammen (chevron) med antallet som opsummering.
-    # Titlen staar i chevronlinjen dér; fra Tablet er kortet som foer.
-    mobile.hide_on_mobile(title)
+    # Classes er klappet sammen som standard paa alle skaermbredder (issue
+    # #533, CLASSES_OPEN ovenfor) - med den chevron, telefonen allerede
+    # brugte (mobile.collapsible). Titlen staar i chevronlinjen.
     fold = mobile.collapsible(
         "FlClasses", "Classes", [tabs, note, table, empty], CLASSES_OPEN,
-        summary=(f'IfError(If(CountRows({V.BUCKETS}) = 0, "None yet", '
-                 f'Text(CountRows({V.BUCKETS})) & " classified"), "")'),
-        size=lay.SIZE_CARD_TITLE)
-    return card("conFlClassesCard",
-                [title, *fold],
-                gap=10)
+        summary=CLASSES_SUMMARY, size=lay.SIZE_CARD_TITLE, everywhere=True)
+    # Fra Tablet staar opsummeringen lige efter titlen ("Classes . 100 ...");
+    # paa telefonen som foer til hoejre for den.
+    summary = fold[0].children[1]
+    assert summary.name == "txtFlClassesFoldSummary", summary.name
+    summary.props["Text"] = lay.mobile_or(CLASSES_SUMMARY, '"\u00b7  " & ' + CLASSES_SUMMARY)
+    summary.props["Align"] = lay.mobile_or("Align.Right", "Align.Left")
+    return card("conFlClassesCard", fold, gap=10)
 
 
 # ---------------------------------------------------------------------------
@@ -1724,7 +1789,11 @@ Clear(colFlIssuesRaw);
 Clear(colFlTabs);
 Clear(colFlDet);
 Clear(colFlPanelSnap);
-Clear(colFlPanelSnapVals)"""
+Clear(colFlPanelSnapVals);
+// Issue #533: en anden anmodning aabnes med Classes lukket og uden
+// "Unsaved changes".
+Set(varFlClassesOpen, false);
+Set(varFlDirty, false)"""
 
 NEW_FX = RESET_FX + """;
 Set(varFlAct, "");
@@ -1750,8 +1819,10 @@ def build_submit_confirm():
     [sloer, popup, spinner] - SIDST i skaermens boern."""
     return confirm_modal(
         "Fl", "varFlConfirmSubmit", "Submit request?",
-        '"A JSON snapshot is frozen and the rows are locked."',
-        "Submit", SUBMIT_FX, "btnFlSubmitConfirm") + delete_modal(
+        # Issue #533: Submit gemmer og indsender i een handling (S.submit_fx) -
+        # Save draft foerst er ikke noedvendigt.
+        '"The request is saved and submitted in one step. A JSON snapshot is frozen and the rows are locked."',
+        "Submit", SUBMIT_FX, "btnFlSubmitConfirm", msg_height=60) + delete_modal(
         "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
         # Mens der gemmes: Save draft/Submit viser det selv (issue #420) -
         # et gennemsigtigt lag, intet sloer og ingen bjaelke.
@@ -1795,6 +1866,7 @@ def _paste_add_fx():
         '    Notify(Text(CountRows(lines)) & " rows added. Check the messages on each row.", '
         "NotificationType.Success);\n"
         '    Set(varFlPasteOpen, false);\n    Set(varFlPasteText, "");\n'
+        f"    {MARK_DIRTY};\n"
         "    " + REVERIFY.replace("\n", "\n    ") + "\n"
         ")\n)")
 
