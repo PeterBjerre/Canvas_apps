@@ -1583,14 +1583,16 @@ def build_classes():
                       visible=f"!({HAS_CLASSES})")
     # Classes er klappet sammen som standard paa alle skaermbredder (issue
     # #533, CLASSES_OPEN ovenfor) - med den chevron, telefonen allerede
-    # brugte (mobile.collapsible). Titlen staar i chevronlinjen.
+    # brugte (mobile.collapsible). Titlen staar i chevronlinjen. Chevronen
+    # staar fast yderst til hoejre, og hele linjen klapper ud og sammen
+    # (issue #548, mobile.fold_head).
     fold = mobile.collapsible(
         "FlClasses", "Classes", [tabs, note, table, empty], CLASSES_OPEN,
         summary=CLASSES_SUMMARY, size=lay.SIZE_CARD_TITLE, everywhere=True)
     # Fra Tablet staar opsummeringen lige efter titlen ("Classes . 100 ...");
     # paa telefonen som foer til hoejre for den.
-    summary = fold[0].children[1]
-    assert summary.name == "txtFlClassesFoldSummary", summary.name
+    summary = mobile.find(fold[0], "txtFlClassesFoldSummary")
+    assert summary is not None
     summary.props["Text"] = lay.mobile_or(CLASSES_SUMMARY, '"\u00b7  " & ' + CLASSES_SUMMARY)
     summary.props["Align"] = lay.mobile_or("Align.Right", "Align.Left")
     return card("conFlClassesCard", fold, gap=10)

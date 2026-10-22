@@ -2422,13 +2422,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =24 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (26), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false)), 10 + (24), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
+                            =24 + (44) + If(If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false), 10 + (24), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * (If(LayoutRank < 2, 136, 88))) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (0 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), 0) + If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), 10 + (24 + 2 + (0 + (Max((Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - 96 - 8) - If(LayoutRank < 2, 0, 30)) / 7.5, 0)), 0)) * 20 + 2), (If(LayoutRank < 2, 44, 36)))) * 1 + 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (If(LayoutRank < 2, If(true, (0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0)) + 8, 0) + If(LayoutRank < 2, 44, 36), Max(If(true, 0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0), 0), If(LayoutRank < 2, 44, 36)))), 0)
+                            )) = 0, 4 + (32), 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (0 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), 0) + If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), 10 + (Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)) / 7.5, 0)), 0)) * 20 + 2), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (If(LayoutRank < 2, If(true, (0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0)) + 8, 0) + If(LayoutRank < 2, 44, 36), Max(If(true, 0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0), 0), If(LayoutRank < 2, 44, 36)))), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -2460,9 +2460,9 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conVhpPlanHead:
+                        - conVhpPlanHeadFold:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
                               BorderStyle: |-
                                   =BorderStyle.None
@@ -2471,62 +2471,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =26
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =If(LayoutRank < 2, 8, 12)
+                                  =44
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Visible: |-
-                                  =!(varVhpPlanLocked && !IfError(varVhpPlanShow, false))
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - txtVhpPlanHeadTitle:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Plan header"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =111
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.cardTitle
-                                    Text: |-
-                                        ="Plan header"
-                                    Width: |-
-                                        =111
-                                    Wrap: |-
-                                        =false
-                              - conVhpLegend:
+                              - conVhpPlanHead:
                                   Control: GroupContainer
                                   Variant: AutoLayout
                                   Properties:
@@ -2534,38 +2485,55 @@ Screens:
                                         =BorderStyle.None
                                     DropShadow: |-
                                         =DropShadow.None
-                                    FillPortions: |-
-                                        =0
                                     Height: |-
-                                        =20
+                                        =44
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
                                         =LayoutDirection.Horizontal
                                     LayoutGap: |-
-                                        =3
-                                    LayoutMinWidth: |-
-                                        =0
+                                        =If(LayoutRank < 2, 8, 12)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
-                                    Visible: |-
-                                        =If(LayoutRank < 2, false, true)
                                     Width: |-
-                                        =83
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                                   Children:
-                                    - txtVhpLegendStar:
+                                    - icoVhpPlanHeadStatus:
+                                        Control: ModernIcon@1.1.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(VhpPlanValid, "Plan header: valid", "Needs attention")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Height: |-
+                                              =20
+                                          Icon: |-
+                                              =If(VhpPlanValid, "CheckmarkCircle", "ErrorCircle")
+                                          IconColor: |-
+                                              =If(VhpPlanValid, C.'state-ok-fg', C.'state-error-fg')
+                                          IconStyle: |-
+                                              =IconStyle.Outline
+                                          Visible: |-
+                                              =IfError(VhpPlanValid, false)
+                                          Width: |-
+                                              =20
+                                    - txtVhpPlanHeadTitle:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="*"
+                                              ="Plan header"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =C.'state-error-fg'
+                                              =C.'text-primary'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -2573,7 +2541,9 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =20
+                                              =26
+                                          LayoutMinWidth: |-
+                                              =111
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -2583,184 +2553,301 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =T.body
+                                              =T.cardTitle
                                           Text: |-
-                                              ="*"
+                                              ="Plan header"
                                           Width: |-
-                                              =10
+                                              =111
                                           Wrap: |-
                                               =false
-                                    - txtVhpLegendText:
-                                        Control: ModernText
+                                    - conVhpLegend:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =3
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Visible: |-
+                                              =If(LayoutRank < 2, false, !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)))
+                                          Width: |-
+                                              =83
+                                        Children:
+                                          - txtVhpLegendStar:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="*"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'state-error-fg'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    ="*"
+                                                Width: |-
+                                                    =10
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpLegendText:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Required"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    ="Required"
+                                                Width: |-
+                                                    =70
+                                                Wrap: |-
+                                                    =false
+                                    - conVhpPlanHeadGap:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =0
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)))) - (If(IfError(VhpPlanValid, false), (20) + If(LayoutRank < 2, 8, 12), 0)) - ((111) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, !(varVhpPlanLocked && !IfError(varVhpPlanShow, false))), (83) + If(LayoutRank < 2, 8, 12), 0)) - (If(If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false)), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + If(LayoutRank < 2, 8, 12), 0)) - (If(varVhpPlanLocked, (44) + If(LayoutRank < 2, 8, 12), 0)) - 2)
+                                    - bdgVhpPlanHeadCost:
+                                        Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Required"
+                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =C.'text-muted'
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
+                                          Content: |-
+                                              ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                           Fill: |-
-                                              =RGBA(0, 0, 0, 0)
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
                                           Height: |-
-                                              =20
+                                              =24
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
-                                              =0
+                                              =10
                                           PaddingRight: |-
-                                              =0
+                                              =10
                                           PaddingTop: |-
                                               =0
+                                          RadiusBottomLeft: |-
+                                              =12
+                                          RadiusBottomRight: |-
+                                              =12
+                                          RadiusTopLeft: |-
+                                              =12
+                                          RadiusTopRight: |-
+                                              =12
+                                          Shape: |-
+                                              =BadgeShape.Circular
                                           Size: |-
-                                              =T.body
-                                          Text: |-
-                                              ="Required"
+                                              =T.small
+                                          Tooltip: |-
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false))
                                           Width: |-
-                                              =70
-                                          Wrap: |-
-                                              =false
-                              - conVhpPlanHeadGap:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                                              =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
+                                    - btnVhpPlanFold:
+                                        Control: Image
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "Collapse Plan header", "Expand Plan header")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          DisabledFill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Height: |-
+                                              =44
+                                          HoverFill: |-
+                                              =C.'row-hover'
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
+                                          ImagePosition: |-
+                                              =ImagePosition.Center
+                                          LayoutMinWidth: |-
+                                              =44
+                                          OnSelect: |-
+                                              =Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))
+                                          PressedFill: |-
+                                              =C.'row-pressed'
+                                          RadiusBottomLeft: |-
+                                              =6
+                                          RadiusBottomRight: |-
+                                              =6
+                                          RadiusTopLeft: |-
+                                              =6
+                                          RadiusTopRight: |-
+                                              =6
+                                          TabIndex: |-
+                                              =0
+                                          Tooltip: |-
+                                              =If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "Collapse Plan header", "Expand Plan header")
+                                          Visible: |-
+                                              =varVhpPlanLocked
+                                          Width: |-
+                                              =44
+                              - btnVhpPlanHeadFoldHit:
+                                  Control: Classic/Button
                                   Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =0
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((111) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, true), (83) + If(LayoutRank < 2, 8, 12), 0)) - (If(If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false)), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + If(LayoutRank < 2, 8, 12), 0)) - (If((VhpPlanValid), (72) + If(LayoutRank < 2, 8, 12), 0)) - 2)
-                              - bdgVhpPlanHeadCost:
-                                  Control: ModernBadge@1.0.0
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =BadgeAppearance.Filled
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                        =BorderStyle.Solid
                                     BorderThickness: |-
-                                        =0
+                                        =2
                                     Color: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
-                                    Content: |-
-                                        ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =24
-                                    Intent: |-
-                                        =BadgeIntent.Neutral
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =10
-                                    PaddingRight: |-
-                                        =10
-                                    PaddingTop: |-
-                                        =0
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    OnSelect: |-
+                                        =Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))
+                                    PressedBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedFill: |-
+                                        =C.'row-pressed'
                                     RadiusBottomLeft: |-
-                                        =12
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =12
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =12
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =12
-                                    Shape: |-
-                                        =BadgeShape.Circular
-                                    Size: |-
-                                        =T.small
+                                        =R.input
+                                    TabIndex: |-
+                                        =0
+                                    Text: |-
+                                        =If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "Collapse Plan header", "Expand Plan header")
                                     Tooltip: |-
-                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "Collapse Plan header", "Expand Plan header"))
                                     Visible: |-
-                                        =If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false))
+                                        =varVhpPlanLocked
                                     Width: |-
-                                        =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
-                              - bdgVhpPlanHeadBadge:
-                                  Control: ModernBadge@1.0.0
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(VhpPlanValid, "Step 1: valid", "Step 1: not complete yet")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =BadgeAppearance.Filled
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
+                                        =Parent.Width
+                                    X: |-
                                         =0
-                                    Color: |-
-                                        =If(VhpPlanValid, C.'state-ok-fg', C.'text-muted')
-                                    Content: |-
-                                        =If(VhpPlanValid, "Valid", "")
-                                    Fill: |-
-                                        =If(VhpPlanValid, C.'state-ok-bg', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =22
-                                    Intent: |-
-                                        =BadgeIntent.Neutral
-                                    PaddingBottom: |-
+                                    Y: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =10
-                                    PaddingRight: |-
-                                        =10
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Shape: |-
-                                        =BadgeShape.Circular
-                                    Size: |-
-                                        =T.micro
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Visible: |-
-                                        =(VhpPlanValid)
-                                    Width: |-
-                                        =72
                         - bdgVhpPlanHeadCostPhone:
                             Control: ModernBadge@1.0.0
                             Properties:
@@ -2815,7 +2902,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
-                                  =!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false))
+                                  =If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false)
                               Width: |-
                                   =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
                         - conVhpPlanHelp:
@@ -4916,284 +5003,43 @@ Screens:
                                               =IfError(varVhpShowHints, false)
                                           Wrap: |-
                                               =true
-                        - conVhpPlanFoldRow:
-                            Control: GroupContainer
-                            Variant: AutoLayout
+                        - txtVhpPlanFoldSummary:
+                            Control: ModernText
                             Properties:
+                              AccessibleLabel: |-
+                                  ="Plan header summary: " & Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
+                              BorderThickness: |-
                                   =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
                               Height: |-
-                                  =24 + 2 + (0 + (Max((Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - 96 - 8) - If(LayoutRank < 2, 0, 30)) / 7.5, 0)), 0)) * 20 + 2), (If(LayoutRank < 2, 44, 36)))) * 1 + 0)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =2
+                                  =Max(1, RoundUp(Len(Self.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)) / 7.5, 0)), 0)) * 20 + 2
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Plan type " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "") & "  ·  " & "Status " & Coalesce(drpVhpStatus.Selected.Value, "-") & "  ·  " & "Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & "Plan text " & Coalesce(Trim(inpVhpPlanText.Text), "-") & "  ·  " & "Sort field " & Coalesce(drpVhpSortField.Selected.Value, "-") & "  ·  " & "Cycle " & If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle)) & "  ·  " & "Unit " & Coalesce(drpVhpUnit.Selected.Value, "-") & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy"))
                               Visible: |-
                                   =varVhpPlanLocked && !IfError(varVhpPlanShow, false)
                               Width: |-
-                                  =Parent.Width
-                            Children:
-                              - conVhpPlanFoldTop:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =24
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =10
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - icoVhpPlanFoldStatus:
-                                        Control: ModernIcon@1.1.0
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(VhpPlanValid, "Complete", "Needs attention")
-                                          Height: |-
-                                              =20
-                                          Icon: |-
-                                              =If(VhpPlanValid, "CheckmarkCircle", "ErrorCircle")
-                                          IconColor: |-
-                                              =If(VhpPlanValid, C.'state-ok-fg', C.'state-error-fg')
-                                          IconStyle: |-
-                                              =IconStyle.Outline
-                                          Width: |-
-                                              =20
-                                    - txtVhpPlanFoldTitle:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Plan header"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FillPortions: |-
-                                              =0
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =24
-                                          LayoutMinWidth: |-
-                                              =94
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Plan header"
-                                          Width: |-
-                                              =Max(94, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)))) - ((20) + 10) - (If(IfError(Sum(colVhpOperations, Cost) > 0, false), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + 10, 0)) - 2)
-                                          Wrap: |-
-                                              =false
-                                    - bdgVhpPlanFoldCost:
-                                        Control: ModernBadge@1.0.0
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =BadgeAppearance.Filled
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
-                                          Content: |-
-                                              ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
-                                          Fill: |-
-                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =24
-                                          Intent: |-
-                                              =BadgeIntent.Neutral
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =10
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =12
-                                          RadiusBottomRight: |-
-                                              =12
-                                          RadiusTopLeft: |-
-                                              =12
-                                          RadiusTopRight: |-
-                                              =12
-                                          Shape: |-
-                                              =BadgeShape.Circular
-                                          Size: |-
-                                              =T.small
-                                          Tooltip: |-
-                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =IfError(Sum(colVhpOperations, Cost) > 0, false)
-                                          Width: |-
-                                              =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
-                              - conVhpPlanFoldBody:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =0 + (Max((Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - 96 - 8) - If(LayoutRank < 2, 0, 30)) / 7.5, 0)), 0)) * 20 + 2), (If(LayoutRank < 2, 44, 36)))) * 1 + 0
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutJustifyContent: |-
-                                        =LayoutJustifyContent.SpaceBetween
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - txtVhpPlanFoldSummary:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Plan header summary: " & Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =Max(1, RoundUp(Len(Self.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - 96 - 8) - If(LayoutRank < 2, 0, 30)) / 7.5, 0)), 0)) * 20 + 2
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =If(LayoutRank < 2, 0, 30)
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              ="Plan type " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "") & "  ·  " & "Status " & Coalesce(drpVhpStatus.Selected.Value, "-") & "  ·  " & "Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & "Plan text " & Coalesce(Trim(inpVhpPlanText.Text), "-") & "  ·  " & "Sort field " & Coalesce(drpVhpSortField.Selected.Value, "-") & "  ·  " & "Cycle " & If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle)) & "  ·  " & "Unit " & Coalesce(drpVhpUnit.Selected.Value, "-") & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy"))
-                                          Width: |-
-                                              =(If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - 96 - 8)
-                                          Wrap: |-
-                                              =true
-                                    - btnVhpPlanShow:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Show the plan header fields"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Subtle
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =If(LayoutRank < 2, 44, 36)
-                                          Icon: |-
-                                              ="ChevronDown"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =96
-                                          OnSelect: |-
-                                              =Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Show"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =96
+                                  =(If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)))
+                              Wrap: |-
+                                  =true
                         - conVhpPlanFooter:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -5252,7 +5098,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), (96) + (77) + (126) + 16)) - 8 - 2))
+                                        =Max(0, If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)) - (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), (77) + (126) + 8)) - 8 - 2))
                                   Children:
                                     - txtVhpPlanMeta:
                                         Control: ModernText
@@ -5316,57 +5162,8 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), (96) + (77) + (126) + 16)
+                                        =If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), (77) + (126) + 8)
                                   Children:
-                                    - btnVhpPlanHide:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), "Show the plan header fields", "Hide the plan header fields")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Subtle
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =If(LayoutRank < 2, 44, 36)
-                                          Icon: |-
-                                              =If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), "ChevronDown", "ChevronUp")
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 0, 96)
-                                          OnSelect: |-
-                                              =Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              =If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), "Show", "Hide")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false))
-                                          Width: |-
-                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)), 96)
                                     - btnVhpPlanReset:
                                         Control: ModernButton
                                         Properties:
@@ -5434,7 +5231,7 @@ Screens:
                                           Visible: |-
                                               =!varVhpViewOnly
                                           Width: |-
-                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)), 77)
+                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)), 77)
                                     - btnVhpPlanSave:
                                         Control: ModernButton
                                         Properties:
@@ -5525,7 +5322,7 @@ Screens:
                                           Visible: |-
                                               =!varVhpViewOnly
                                           Width: |-
-                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(varVhpPlanLocked && !(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 1, 0) + If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)), 126)
+                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(!varVhpViewOnly, 1, 0) + If(!varVhpViewOnly, 1, 0)), 126)
                   - conVhpItemsSplit:
                       Control: GroupContainer
                       Variant: AutoLayout
