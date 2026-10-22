@@ -49,6 +49,12 @@ BADGES = {
                                     "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
         # Task list and operations: Valid-maerket er afloest af det groenne
         # flueben foran titlen (issue #529, tests/test_cost_summary_529.py).
+        # Itemets Total item cost (Item) og Duration (Task list) - issue #545,
+        # tests/test_item_cost_header_545.py. Altid de normale farver.
+        "bdgVhpEditorCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpEditorCostPhone": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpOpsDuration": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpOpsDurationPhone": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
     },
     "ScreenIssueBoard.pa.yaml": {
         "bdgIbRowNo": ("ThisItem.TicketNo", "C.'color-brand-primary'", "C.'bg-muted'"),
@@ -115,8 +121,9 @@ def test_every_badge_is_modern_badge_with_our_colors():
     # rollemaerke (issue #475 - rollen staar nu i typen); - 1: Task list and
     # operations' Valid-maerke (issue #529 - nu et flueben foran titlen);
     # + 2: planens Total cost udfoldet og paa telefonen (issue #529);
-    # - 2: Items- og Item-sektionens Valid-badge (issue #530 - flueben).
-    assert total == 16
+    # - 2: Items- og Item-sektionens Valid-badge (issue #530 - flueben);
+    # + 4: Total item cost og Duration, hver ogsaa paa telefonen (issue #545).
+    assert total == 20
 
 
 def test_old_controls_are_gone():

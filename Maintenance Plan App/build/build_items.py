@@ -27,6 +27,9 @@ import status_chip as chip
 import build_flsearch as flsearch
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
+from build_tasklist import ITEM_COST_TEXT, ITEM_COST_ON, ITEM_COST_TIP, badge_w
+from build_helpers import modern_badge
+from gen_screen import C_NEUTRAL_BG
 import build_status as st
 
 from build_help import HINTS_ON
@@ -981,6 +984,29 @@ def items_valid_fx():
 
 EDITOR_OK_SIZE = 20
 
+# TOTAL ITEM COST (issue #545): summen af det valgte items operationer, i
+# Item-sektionens overskrift oeverst til hoejre - dér, hvor Valid-maerket
+# stod (#530 fjernede det; fluebenet foer "Item" viser stadig, at itemet er
+# gyldigt). Altid de normale farver: advarslen om omkostningsgodkendelse
+# hoerer til PLANEN og staar kun paa planens Total cost i Plan header.
+ITEM_COST_W = badge_w(ITEM_COST_TEXT)
+ITEM_COST_H = 24
+
+
+def item_cost_badge(name, visible):
+    """Maerket "Total item cost: 1,192 DKK" - saa bredt som teksten med
+    10 px luft i hver side (som planens Total cost-maerke). Tooltip (hover
+    og fokus) forklarer tallet; ModernBadge har Tooltip efter Learn
+    (check_layout regel 16e)."""
+    return modern_badge(
+        name, ITEM_COST_TEXT, color=C_TITLE, fill=C_NEUTRAL_BG,
+        width=ITEM_COST_W, height=ITEM_COST_H, size=12, pad=(10, 10),
+        accessible=f'{ITEM_COST_TEXT} & ". " & {ITEM_COST_TIP}',
+        visible=visible,
+        extra={"AlignInContainer": "AlignInContainer.Center",
+               "LayoutMinWidth": ITEM_COST_W,
+               "Tooltip": ITEM_COST_TIP})
+
 
 def build_item_editor():
     # STATUS (issue #530): et flueben foer titlen for det AKTIVE item i
@@ -1004,13 +1030,23 @@ def build_item_editor():
     # ("Invalid": paakraevede felter mangler, efter Save er forsoegt)
     # bevares som det roede udraabstegn; ellers er ikonet skjult.
     attention = f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))"
-    header = section_header("conVhpEditorHead", "Item", None, extra_left=[which])
+    # Total item cost (issue #545) til hoejre fra Tablet og op; telefonen har
+    # det paa sin egen linje lige under overskriften (costPhone), ligesom
+    # planens Total cost (build_plan_header).
+    cost = item_cost_badge("bdgVhpEditorCost", lay.mobile_or("false", ITEM_COST_ON))
+    costPhone = item_cost_badge("bdgVhpEditorCostPhone", lay.mobile_or(ITEM_COST_ON, "false"))
+    costPhone.props["AlignInContainer"] = "AlignInContainer.Start"
+    header = section_header("conVhpEditorHead", "Item", None, extra_left=[which],
+                            extra_right=[cost])
     # Telefonen (issue #508): "1 · kort tekst" faar resten af linjen efter
     # fluebenet og titlen (foer fast 260 px - linjen blev 411 px bred).
     mobile_head(header)
     title_w = header.children[0].props["Width"]
+    # Fra Tablet og op giver "1 · kort tekst" plads til maerket (hoejst 260).
     which.props["Width"] = lay.mobile_or(
-        f"Max(0, ({EDITOR_CW}) - {EDITOR_OK_SIZE} - {title_w} - 3 * 8)", "260")
+        f"Max(0, ({EDITOR_CW}) - {EDITOR_OK_SIZE} - {title_w} - 3 * 8)",
+        f"Max(0, Min(260, ({EDITOR_CW}) - {EDITOR_OK_SIZE} - {title_w} - "
+        f"If({ITEM_COST_ON}, {ITEM_COST_W}, 0) - 4 * 12))")
     okIcon = status_icon("icoVhpEditorStatus", ACTIVE_ITEM_OK, size=EDITOR_OK_SIZE,
                          label_ok="Item is valid", label_bad="Item is invalid")
     okIcon.props["Visible"] = f"({ACTIVE_ITEM_OK}) || {attention}"
@@ -1423,7 +1459,7 @@ def build_item_editor():
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
-    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow],
+    body = group("conVhpEditorBody", [header, costPhone, helpPanel, fieldsGrid, flRow],
                  direction="Vertical", gap=14)
     editor = card("conVhpEditorCard", [body, footer])
     editor.props["LayoutJustifyContent"] = "LayoutJustifyContent.SpaceBetween"
