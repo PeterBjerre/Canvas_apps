@@ -3782,19 +3782,19 @@ Screens:
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
                                     Appearance: |-
-                                        =If(varFlTab = ThisItem.Key, ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                        =ButtonAppearance.Outline
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =C.'border-input'
+                                        =If(varFlTab = ThisItem.Key, C.'seg-on-border', C.'border-default')
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If(varFlTab = ThisItem.Key, C.'text-on-primary', C.'text-primary')
+                                        =If(varFlTab = ThisItem.Key, C.'seg-on-fg', C.'text-muted')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
-                                        =FontWeight.Semibold
+                                        =If(varFlTab = ThisItem.Key, FontWeight.Semibold, FontWeight.Normal)
                                     Height: |-
                                         =If(LayoutRank < 2, 42, 34)
                                     Layout: |-
@@ -3802,13 +3802,13 @@ Screens:
                                     OnSelect: |-
                                         =Set(varFlTab, ThisItem.Key)
                                     RadiusBottomLeft: |-
-                                        =R.input
+                                        =If(LayoutRank < 2, 8, 6)
                                     RadiusBottomRight: |-
-                                        =R.input
+                                        =If(LayoutRank < 2, 8, 6)
                                     RadiusTopLeft: |-
-                                        =R.input
+                                        =If(LayoutRank < 2, 8, 6)
                                     RadiusTopRight: |-
-                                        =R.input
+                                        =If(LayoutRank < 2, 8, 6)
                                     Size: |-
                                         =T.input
                                     Text: |-

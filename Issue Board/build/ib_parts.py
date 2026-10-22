@@ -79,7 +79,7 @@ from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_CARD_BG, C_CARD_BO
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG, C_VALID_FG, C_VALID_BG, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
-                           fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
+                           fit_button_width, group, icon_button, SEG_H, seg_style, tab_list, tabs_w,
                            flow_row, grow, icon_on_mobile, label_row, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
@@ -678,14 +678,13 @@ CARD_W = f"({SHELL_W} - 2 * {lay.CARD_PAD})"
 
 
 def _seg(name, label, selected, onselect, width, accessible):
-    """Et segment i en fane-raekke: valgt = fyldt, ikke valgt = kant."""
+    """Et segment i en fane-raekke - det faelles udtryk for segmenter og
+    faner (build_helpers.seg_style, issue #526): valgt = lyseblaa kant og
+    moerkeblaa, halvfed tekst; ikke valgt = diskret kant og daempet tekst
+    (fanerne staar ikke i en skinne)."""
     b = button(name, label if label.startswith("If(") else f'"{label}"', onselect, width=width,
                height=SEG_H, accessible=accessible)
-    b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-    b.props["BasePaletteColor"] = C_PRIMARY
-    b.props["BorderColor"] = f"If({selected}, {C_PRIMARY}, {C_CARD_BORDER})"
-    b.props["BorderThickness"] = "1"
-    b.props["Color"] = f"If({selected}, {_t('text-on-primary')}, {C_TITLE})"
+    seg_style(b, selected, icon=False, standalone=True)
     b.props["Size"] = str(lay.SIZE_SMALL)
     b.props["LayoutMinWidth"] = b.props["Width"]
     return b
@@ -2563,7 +2562,7 @@ TAB_H = 36
 
 def _tab(name, label_fx, key, accessible, onselect=None):
     """En fane i panelets navigation - samme kontakt som filtrenes (_seg):
-    valgt = fyldt i primaerfarven, ellers kant (issue #229). Issue #475:
+    det faelles segment-udtryk (build_helpers.seg_style, issue #526). Issue #475:
     fanerne deler hele bredden ligeligt (bredden saettes i build_detail)."""
     b = _seg(name, label_fx, f'varIbTab = "{key}"', onselect or f'Set(varIbTab, "{key}")',
              140, accessible)

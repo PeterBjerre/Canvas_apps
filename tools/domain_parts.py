@@ -2368,8 +2368,9 @@ PHONE_TAB_TEXT = {"Documents": "Docs"}
 def _phone_tabs(selector):
     """Fanerne paa en telefon (issue #508): skinnen er hele panelets bredde,
     og fanerne deler den ligeligt - foer var Materials' tre 382 px brede og
-    stak ud over en 360 px skaerm. Uden flueben (den valgte er udfyldt og
-    halvfed) og med den korte tekst, saa ingen tekst klippes ved 320 px."""
+    stak ud over en 360 px skaerm. Uden flueben (den valgte har den
+    lyseblaa kant og moerkeblaa, halvfed tekst - build_helpers.seg_style)
+    og med den korte tekst, saa ingen tekst klippes ved 320 px."""
     from build_helpers import SEG_PAD, SEG_GAP
     tabs = selector.children
     n = len(tabs)

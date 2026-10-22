@@ -20,6 +20,7 @@ from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_
                         C_VALID_BG, C_INVALID_BG,
                         C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT, C_OVERLAY,
                         C_MODAL_BG, C_ROW_HOVER, C_ROW_PRESSED, C_NEUTRAL_BG, C_MUTED_BG,
+                        C_SEG_TRACK_BG, C_SEG_ON_FG, C_SEG_ON_BORDER,
                         FONT, SHELL_W)
 
 def concurrent(*formulas, indent=0):
@@ -556,19 +557,88 @@ def segmented_width(n):
     return n * seg_button_width() + (n - 1) * SEG_GAP + 2 * SEG_PAD
 
 
+# DET FAELLES UDTRYK FOR SEGMENTER OG FANER (issue #526)
+#
+# Alle segmenterede vaelgere (Open/Closed/All, My requests/All requests,
+# No/Yes, Details/Objects/Documents ...) og knap-fanerne (Issue Boards
+# Description/Activity/Attachments, KKS' Function/Aggregate/Component) faar
+# deres farver, kant og hjoerner HER - et sted. Foer havde hubben, Issue
+# Board, KKS og build_helpers hver sin kopi af "valgt = fyldt i
+# primaerfarven".
+#
+#   skinnen          naesten hvid, let gennemsigtig flade (seg-track-bg) med
+#                    en diskret kant (border-default) og bloedt rundede
+#                    hjoerner - ikke en kapsel.
+#   valgt segment    lyseblaa kant (seg-on-border), moerkeblaa, halvfed tekst
+#                    (seg-on-fg) og - hvor der er plads - fluebenet. Ikke
+#                    farven alene: kant, tekst, vaegt og flueben siger det.
+#   ikke valgt       stille: ingen kant, daempet tekst paa skinnen.
+#
+# HVORFOR INGEN TONET FLADE OG SKYGGE PAA DET VALGTE SEGMENT
+# ModernButton har intet Fill (check_layout regel 16k), og Primary +
+# en lys BasePaletteColor tegnede fladen naesten sort (pakke-pillerne,
+# build_strategy, og temakontakten, help_toggle). En container om hver
+# knap kunne give fyld og skygge, men indlejrede knapper i containere er
+# netop det, Studio har tegnet forskudt (KKS #345, Issue Board #244).
+# Derfor er alle segmenter Outline (ingen fyld fra Fluent-temaet, saa
+# moerk tilstand virker - regel 21), og markeringen er kant + tekst +
+# flueben. Hover, tryk og fokusring er knappens egne (Fluent, ud fra
+# BasePaletteColor), ens for alle segmenter; deaktiveret er Fluents
+# graa udgave.
+SEG_RADIUS = 8               # skinnen
+SEG_RADIUS_MOBILE = 10       # skinnen paa en telefon (44 px hoej)
+SEG_BTN_RADIUS = SEG_RADIUS - SEG_PAD
+SEG_BTN_RADIUS_MOBILE = SEG_RADIUS_MOBILE - SEG_PAD
+
+
+def seg_style(b, on, *, icon=True, standalone=False, radius=None):
+    """Giv knappen b segmentets udseende. on: Power Fx for "valgt".
+
+    icon=False: intet flueben (faner, hvor teksten skal have pladsen).
+    standalone=True: knappen staar IKKE i en skinne (KKS' og Issue Boards
+    faner) - saa faar de ikke valgte en diskret kant, ellers ville de
+    vaere tekst uden afgraensning. radius: hjoernerne (tal eller Power Fx);
+    standard er segmentets i skinnen.
+
+    Kun egenskaber, ModernButton allerede bruger. Appearance er Outline i
+    begge tilstande, saa intet fyld kommer fra Fluent-temaet."""
+    b.props["Appearance"] = "ButtonAppearance.Outline"
+    b.props["BasePaletteColor"] = C_PRIMARY
+    idle_border = C_CARD_BORDER if standalone else C_TRANSPARENT
+    b.props["BorderColor"] = f"If({on}, {C_SEG_ON_BORDER}, {idle_border})"
+    b.props["BorderThickness"] = "1"
+    b.props["Color"] = f"If({on}, {C_SEG_ON_FG}, {C_MUTED})"
+    b.props["FontWeight"] = f"If({on}, FontWeight.Semibold, FontWeight.Normal)"
+    if icon:
+        b.props["Icon"] = f'If({on}, "Checkmark", "")'
+        b.props["Layout"] = f"If({on}, ButtonLayout.IconBefore, ButtonLayout.TextOnly)"
+    if radius is None:
+        radius = lay.mobile_or(SEG_BTN_RADIUS_MOBILE, SEG_BTN_RADIUS)
+    b.props.update(lay.radius(radius))
+    return b
+
+
+def seg_track(name, kids, width, gap=SEG_GAP, height=None):
+    """Skinnen om segmenterne - seg_style's flade. Fast, vandret raekke
+    (ingen formel-retning), knapperne direkte i den."""
+    return group(name, kids, direction="Horizontal", gap=gap, width=width, height=height,
+                 align_items="Center", fill=C_SEG_TRACK_BG, border_color=C_CARD_BORDER,
+                 radius=lay.mobile_or(SEG_RADIUS_MOBILE, SEG_RADIUS),
+                 pad=SEG_PAD, align_in_container="Start")
+
+
 def segmented(name, options, display_mode=None, label=None, fit=False, compact=False):
-    """Segmenteret kontrol: en pilleformet skinne med een knap pr. valg.
+    """Segmenteret kontrol: en skinne med een knap pr. valg.
 
     options: liste af (suffix, tekst, on, onselect, tooltip) - tekst er en
     ren tekst ("Yes"), on et Power Fx-udtryk for "valgt", onselect det, et
     klik goer, og tooltip en Power Fx-tekst eller None.
 
-    Det valgte segment er UDFYLDT (primaerfarven), har hvid, halvfed tekst,
-    primaer kant OG et flueben foran teksten - saa det ikke kun er farven,
-    der siger det. De andre er kant-loese outline-knapper med daempet tekst
-    paa skinnens neutrale flade: synlige og klikbare, men uden samme vaegt.
-    Hover, fokus og deaktiveret er ModernButtons egne, ens for alle
-    segmenter. Knapperne er almindelige knapper, saa Tab/Enter/mellemrum
+    Udseendet er seg_style/seg_track (issue #526): det valgte segment har
+    lyseblaa kant, moerkeblaa halvfed tekst og et flueben foran teksten -
+    saa det ikke kun er farven, der siger det. De andre er kantloese med
+    daempet tekst paa skinnens lyse flade: synlige og klikbare, men uden
+    samme vaegt. Knapperne er almindelige knapper, saa Tab/Enter/mellemrum
     virker, og hver har sin AccessibleLabel med "selected".
 
     fit=True: hvert segment er lige bredt som sin tekst (+ flueben) - til
@@ -584,28 +654,17 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
         acc = f'"{(label + ": ") if label else ""}{text}" & If({on}, ", selected", "")'
         b = button(f"{name}{suffix}", f'"{text}"', onselect, width=w, height=SEG_BTN_H,
                    display_mode=display_mode, accessible=acc, tooltip=tooltip)
-        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-        b.props["BasePaletteColor"] = C_PRIMARY
-        b.props["BorderColor"] = f"If({on}, {C_PRIMARY}, {C_TRANSPARENT})"
-        b.props["BorderThickness"] = "1"
-        b.props["Color"] = f"If({on}, {C_WHITE}, {C_MUTED})"
-        b.props["FontWeight"] = f"If({on}, FontWeight.Semibold, FontWeight.Normal)"
-        b.props["Icon"] = f'If({on}, "Checkmark", "")'
-        b.props["Layout"] = f"If({on}, ButtonLayout.IconBefore, ButtonLayout.TextOnly)"
+        seg_style(b, on)
         b.props["Size"] = str(SEG_SIZE)
         b.props["LayoutMinWidth"] = str(w)
         # Klikflade paa touch (issue #508): 40 px hoeje segmenter paa en
         # telefon (skinnen 44), 30 fra Tablet og op som foer.
         b.props["Height"] = lay.mobile_or(SEG_BTN_H_MOBILE, SEG_BTN_H)
         b.h = b.props["Height"]
-        b.props.update(lay.radius(lay.mobile_or(SEG_BTN_H_MOBILE // 2, SEG_BTN_H // 2)))
         kids.append(b)
     gap = 0 if compact else SEG_GAP
     track_w = sum(widths) + (len(kids) - 1) * gap + 2 * SEG_PAD
-    return group(name, kids, direction="Horizontal", gap=gap, width=track_w,
-                 align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
-                 radius=lay.mobile_or((SEG_BTN_H_MOBILE + 2 * SEG_PAD) // 2, SEG_H // 2),
-                 pad=SEG_PAD, align_in_container="Start")
+    return seg_track(name, kids, track_w, gap=gap)
 
 
 # FANER (issue #303, del af #161) - DEN moderne Tab list fra Microsoft
