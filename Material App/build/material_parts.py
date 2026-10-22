@@ -69,6 +69,7 @@ import stepper as st
 import admin_log as alog
 import permissions as perm
 import layout_tokens as lay
+import mobile
 from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT
 import domain_objects as dobj
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
@@ -486,6 +487,8 @@ def _po_popup():
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = dp.MODAL_X
     modal.props["Y"] = dp.MODAL_Y
+    # Paa en telefon: (naesten) hele bredden, oeverst (issue #508).
+    mobile.mobile_popup(modal, top=True)
     return [back, modal]
 
 
@@ -680,6 +683,10 @@ dp.configure(
 # Raekkens knapper bygges af hent/kopier/detaljer OVENFOR - derfor efter
 # den foerste configure.
 dp.configure(row_actions=row_actions())
+# Paa en telefon (issue #508): producent/leverandoer og pris/klassifikation
+# er klappet sammen - ingen af dem har et kraevet felt. En pris, der ikke
+# er et tal, holder sin sektion aaben.
+dp.configure(mobile_folds={"Mfr": (None, None), "Price": (PRICE_BAD, None)})
 
 
 # ---------------------------------------------------------------------------
