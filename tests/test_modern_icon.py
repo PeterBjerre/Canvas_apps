@@ -38,9 +38,11 @@ ICONS = {
         "icoKksFindIcon": ('"Search"', "C.'text-muted'", "20", None),
     },
     "ScreenVhPlan.pa.yaml": {
-        "icoVhpPlanFoldStatus": ('If(VhpPlanValid, "CheckmarkCircle", "ErrorCircle")',
+        # Plan header (issue #548): fluebenet foran titlen, foldet og
+        # udfoldet, kun naar planhovedet er gyldigt.
+        "icoVhpPlanHeadStatus": ('If(VhpPlanValid, "CheckmarkCircle", "ErrorCircle")',
                                  "If(VhpPlanValid, C.'state-ok-fg', C.'state-error-fg')",
-                                 "20", None),
+                                 "20", "IfError(VhpPlanValid, false)"),
         "icoVhpItemCardStatus": (None, None, "20", None),
         # Issue #530: Item-sektionens flueben i stedet for Valid-badget.
         "icoVhpEditorStatus": ('If(VhpActiveItemValid, "CheckmarkCircle", "ErrorCircle")',

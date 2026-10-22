@@ -24,6 +24,7 @@ HER
 ---
   collapsible()      en sektion, der kan klappes sammen paa mobil (chevron)
   chevron_toggle()   kun chevronknappen - til en eksisterende overskrift
+  fold_head()        hele overskriften klikbar (et klik-lag over raekken)
   mobile_popup()     en popup i (naesten) fuld bredde paa mobil
   full_screen()      et sidepanel/overlag, der er hele skaermen paa mobil
   touch()            en knap, der er mindst TOUCH_MIN hoej paa mobil
@@ -128,6 +129,7 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     t.props["Width"] = str(label_px(title, size) + 4)
     t.props["LayoutMinWidth"] = t.props["Width"]
     kids = [t]
+    is_open = open_expr or state(var, default_open)
     if summary:
         # To linjer (fase 6): ved 320 px er der ofte kun ca. 110 px til
         # opsummeringen ved siden af titlen og chevronen.
@@ -137,22 +139,71 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
         s.props["Height"] = mobile_or(TOUCH - 8, 20)
         s.h = s.props["Height"]
         s.props["Wrap"] = mobile_or("true", "false")
-        s.vis = "!%s" % (open_expr or state(var, default_open))
+        s.vis = "!%s" % is_open
         s.props["Visible"] = s.vis
         kids.append(s)
     else:
         kids.append(grow(group("con%sFoldGap" % prefix, [], direction="Horizontal", height=0)))
-    kids.append(chevron_toggle("btn%sFold" % prefix, title, var, default_open,
-                               open_expr=open_expr, everywhere=everywhere))
+    # CHEVRONEN STAAR FAST YDERST TIL HOEJRE (issue #548): en skjult kontrol
+    # fylder intet i en auto-layout-raekke, saa naar opsummeringen (der
+    # fylder resten) blev skjult ved aabning, rykkede chevronen ind ved
+    # siden af titlen. SpaceBetween skubber den ud til hoejre kant, naar
+    # intet fylder resten - saa den staar samme sted, aaben og lukket.
+    chev = chevron_toggle("btn%sFold" % prefix, title, var, default_open,
+                          open_expr=open_expr, everywhere=everywhere)
+    kids.append(chev)
     head = group("con%sFold" % prefix, kids, direction="Horizontal", gap=8,
-                 height=TOUCH, align_items="Center", visible=None if everywhere else MOBILE)
+                 height=TOUCH, align_items="Center", justify="SpaceBetween",
+                 visible=None if everywhere else MOBILE)
     if everywhere:
-        vis = open_expr or state(var, default_open)
+        # HELE OVERSKRIFTEN ER KLIKBAR (issue #548) - paa alle bredder.
+        head = fold_head("con%sFoldHead" % prefix, head, chev.props["OnSelect"],
+                         chev.props["AccessibleLabel"])
+        vis = is_open
     else:
         vis = ("(%s || %s)" % (NOT_MOBILE, open_expr)) if open_expr else shown(var, default_open)
     for c in children:
         _and_vis(c, vis)
     return [head, *children]
+
+
+def fold_head(name, row, onselect, label, visible=None, tooltip=None):
+    """HELE OVERSKRIFTEN KLAPPER UD OG SAMMEN (issue #548) - det faelles
+    moenster for FL's Classes og VH-planens Plan header.
+
+    row er overskriftens vandrette raekke (titel ... chevron yderst til
+    hoejre). Den laegges i en ManualLayout-container med et gennemsigtigt
+    klik-lag (build_helpers.row_hit) OVEN PAA, saa et klik paa titlen, en
+    opsummering, et maerke eller chevronen goer det samme som chevronen
+    (onselect). Laget har raekkens hover-, tryk- og fokustilstande, og
+    skaermlaeseren faar label ("Expand ..."/"Collapse ...") i lagets Text.
+    Chevronen bliver staaende som det synlige tegn paa, at overskriften
+    kan klappes ud og sammen.
+
+    visible: hvornaar laget er der (fx kun naar sektionen KAN foldes).
+    tooltip: lagets Tooltip - standard label. Laget ligger over raekken, saa
+    et maerkes eget tooltip (fx Total cost) skal staa her.
+
+    Raekken beholder sin hoejde (row.h), og containeren faar den samme."""
+    from build_helpers import row_hit
+    from gen_screen import Ctrl
+    h = row.h
+    for k in ("FillPortions", "LayoutMinWidth", "AlignInContainer"):
+        row.props.pop(k, None)
+    row.props["X"] = "0"
+    row.props["Y"] = "0"
+    row.props["Width"] = "Parent.Width"
+    hit = row_hit("btn%sHit" % name[3:], onselect, label, "Parent.Width",
+                  "Parent.Height", radius=lay.RADIUS_INPUT)
+    hit.props["Tooltip"] = tooltip or label
+    if visible is not None:
+        hit.props["Visible"] = visible
+        hit.vis = visible
+    return Ctrl(name, "GroupContainer", variant="ManualLayout", props={
+        "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+        "FillPortions": "0", "Height": str(h), "LayoutMinWidth": "0",
+        "Width": "Parent.Width",
+    }, children=[row, hit], h=h)
 
 
 def mobile_popup(modal, max_w=None, margin=24, top=None):

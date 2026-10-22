@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, row_height, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG, C_WARN_FG, C_WARN_BG)
-import icons
 import build_help as bh
 import build_status as st
 import layout_tokens as lay
 import mobile
 from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
-                           themed_dropdown, field_cell, col_width, card, grow,
+                           themed_dropdown, field_cell, col_width, card,
                            row_n, text_px, fit_button_width, ICON_W, date_picker, modern_badge)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
@@ -274,19 +273,17 @@ PLAN_SUMMARY = " & ".join([
 # 7.5 px pr. tegn er rummeligt for 13 px Segoe UI, saa der hellere er en
 # linje luft for meget, end at den sidste vaerdi bliver klippet.
 #
-# SHOW STAAR VED RESUMEET (issue #292): Show-knappen (med chevron) staar
-# hoejrestillet i SAMME raekke som resumeet, lodret centreret paa det - ikke
-# oppe i titelraekken. Resumeet faar derfor kortets bredde minus knappen og
-# raekkens gap, og hoejden regnes af den smallere bredde. Ingen ekstra
-# raekke: er resumeet een linje, er raekken knappens hoejde (36).
-# Under Tablet (telefon) bliver knappen i raekken; resumeet mister i stedet
-# indrykningen under titlen, saa teksten faar de 30 px tilbage.
-SUMMARY_INDENT = 30          # statusikonet (20) + raekkens gap (10)
+# INGEN SHOW/HIDE (issue #548): Show-knappen ved resumeet (issue #292) og
+# Hide i foden er fjernet. Chevronen yderst til hoejre i overskriften er det
+# eneste tegn paa, at planhovedet kan foldes, og hele overskriften klapper
+# ud og sammen (mobile.fold_head). Resumeet har derfor kortets fulde bredde.
+# Indrykket under titlen, naar fluebenet staar foran den; under Tablet
+# (telefon) ingen indrykning, saa teksten faar pladsen.
+SUMMARY_INDENT = 32          # statusikonet (20) + overskriftens gap (12)
 SUMMARY_LINE_H = 20          # 13 px * 1.5
-SHOW_W = fit_button_width('"Hide"') + ICON_W
-SHOW_GAP = 8
-SUMMARY_W = f"({PLAN_CW} - {SHOW_W} - {SHOW_GAP})"
-SUMMARY_PAD = f"If({lay.below('Tablet')}, 0, {SUMMARY_INDENT})"
+SUMMARY_W = f"({PLAN_CW})"
+SUMMARY_PAD = (f"If({lay.below('Tablet')} || !IfError(VhpPlanValid, false), 0, "
+               f"{SUMMARY_INDENT})")
 
 
 def summary_height(text_ref):
@@ -370,46 +367,20 @@ def plan_cost_badge(name, visible):
                "Tooltip": f'If({COST_OVER_ON}, {COST_OVER_TEXT}, "")'})
 
 
-FOLD_H = 24                  # titelraekken: ikon og titel (Show staar nu ved resumeet)
-
-
-def plan_fold_row(fold, toggle_set, show):
-    """Det foldede planhoved (UX-review M5): flueben og titel i den
-    oeverste linje, og under den alle otte vaerdier som een ombrudt tekst
-    (issue #287) med Show hoejrestillet i samme raekke, lodret centreret
-    paa teksten (issue #292). Vises kun, naar planen er gemt og foldet."""
-    ok = status_icon("icoVhpPlanFoldStatus", "VhpPlanValid")
-    title_w = text_px("Plan header", lay.SIZE_BODY + 1) + 2
-    title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
-                      height=24, width=title_w, accessible='"Plan header"')
-    grow(title, title_w)
-    # Planens samlede omkostning (Peter 2026-10-19): omkostningsgodkendelsen
-    # gaelder hele planen, saa summen af alle items' operationer staar
-    # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
-    # Et ModernBadge (som Valid-maerkerne): en gruppe med to tekster blev
-    # tegnet som en tom pille i Studio (Peter 2026-10-19).
-    #
-    # KUN NAAR DER ER EN SUM (issue #421): uden operationer - eller med en
-    # sum paa 0 - stod der et tomt maerke over Show-knappen. Nu er det
-    # skjult, og en skjult kontrol fylder intet i en auto-layout-raekke.
-    # Over graensen: advarselsfarver og advarslen som tooltip (issue #529).
-    cost = plan_cost_badge("bdgVhpPlanFoldCost", FOLD_COST_ON)
-    top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
-                height=FOLD_H, align_items="Center")
-    # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og
-    # med den hoejde, teksten skal bruge - paa desktop, tablet og telefon.
-    # Bredden er kortets minus Show (issue #292). Kortets hoejde foelger med
-    # (stack_height), saa det, der staar under kortet, flytter sig.
+def plan_fold_summary(fold):
+    """Det foldede planhoved (UX-review M5, issue #287): alle otte vaerdier
+    som een ombrudt tekst under overskriften. Overskriften (flueben, titel,
+    Total cost og chevron) er den samme, foldet og udfoldet (issue #548) -
+    kun resumeet kommer til, naar planhovedet er foldet. Kortets hoejde
+    foelger med (stack_height), saa det, der staar under kortet, flytter
+    sig."""
     summary = text_ctrl("txtVhpPlanFoldSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
                         height=summary_height("Self.Text"), width=SUMMARY_W, wrap="true",
                         accessible='"Plan header summary: " & Self.Text',
-                        extra={"PaddingLeft": SUMMARY_PAD, "LayoutMinWidth": "0"})
+                        extra={"PaddingLeft": SUMMARY_PAD, "LayoutMinWidth": "0"},
+                        visible=fold)
     summary.h = summary_height("txtVhpPlanFoldSummary.Text")
-    show.props["AlignInContainer"] = "AlignInContainer.Center"
-    body = group("conVhpPlanFoldBody", [summary, show], direction="Horizontal", gap=SHOW_GAP,
-                 align_items="Center", justify="SpaceBetween")
-    return group("conVhpPlanFoldRow", [top, body], direction="Vertical", gap=2,
-                 align_items="Stretch", visible=fold)
+    return summary
 
 
 # PLANT STYRER MED DET SAMME (issue #453). Et nyt valg i Plant gaelder fra
@@ -452,21 +423,55 @@ PLANT_ONCHANGE = (
 
 
 def build_plan_header():
+    # Foldet: planen er gemt (laast), og Show er ikke slaaet til.
+    fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
+    toggle_set = f"Set({SHOW_VAR}, !IfError({SHOW_VAR}, false))"
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
     legend = required_legend()
-    # PLANENS TOTAL COST OGSAA UDFOLDET (issue #529): samme maerke som i den
-    # foldede linje, hoejrestillet foran Valid-maerket. Over graensen i
+    legend.props["Visible"] = f"!({fold})"
+    legend.vis = legend.props["Visible"]
+    # PLANENS TOTAL COST (issue #529): hoejrestillet i overskriften - foldet
+    # og udfoldet, nu i den SAMME overskrift (issue #548). Over graensen i
     # advarselsfarverne med advarslen som tooltip (plan_cost_badge).
     costHead = plan_cost_badge("bdgVhpPlanHeadCost", FOLD_COST_ON)
-    header = section_header("conVhpPlanHead", "Plan header", "Step 1", valid_fx="VhpPlanValid",
-                            extra_left=[legend], extra_right=[costHead])
+    # EEN OVERSKRIFT, FOLDET OG UDFOLDET (issue #548): flueben, titel, Total
+    # cost og chevronen yderst til hoejre. Chevronen staar samme sted i
+    # begge tilstande og skifter kun retning (ned = foldet, op = udfoldet).
+    # Den er der kun, naar planhovedet KAN foldes (gemt og laast) - som
+    # Show/Hide foer. Show/Hide-teksten er vaek.
+    chev = mobile.chevron_toggle("btnVhpPlanFold", "Plan header", SHOW_VAR,
+                                 open_expr=f"!({fold})", everywhere=True)
+    chev.props["OnSelect"] = toggle_set
+    chev.props["Visible"] = "varVhpPlanLocked"
+    chev.vis = chev.props["Visible"]
+    # INTET VALID-MAERKE (issue #548): det groenne flueben foran titlen er
+    # valideringens eneste tegn - som i Task list and operations (#529).
+    header = section_header("conVhpPlanHead", "Plan header", None,
+                            extra_left=[legend], extra_right=[costHead, chev])
     # Telefonen: stjernerne ved felterne bliver; forklaringen "* Required"
     # skjules, saa titel og badge kan staa paa een linje (issue #508).
     # Total cost-maerket (op til ~200 px) er der heller ikke plads til ved
     # titlen og Valid i et kort paa 248-288 px - telefonen har det paa sin
     # egen linje lige under overskriften (bdgVhpPlanHeadCostPhone).
     mobile_head(header, hide=[legend, costHead])
+    # Fluebenet lige foran titlen, KUN naar planhovedet er gyldigt (samme
+    # validering som det tidligere Valid-maerke, VhpPlanValid) - samme sted,
+    # foldet og udfoldet. Ugyldigt: intet ikon.
+    ok = status_icon("icoVhpPlanHeadStatus", "VhpPlanValid", label_ok="Plan header: valid")
+    ok.props["Visible"] = "IfError(VhpPlanValid, false)"
+    ok.vis = ok.props["Visible"]
+    ok.props["AlignInContainer"] = "AlignInContainer.Center"
+    header.children.insert(0, ok)
+    header.props["Height"] = str(row_height(header.children))
+    header.h = header.props["Height"]
+    # HELE OVERSKRIFTEN FOLDER (issue #548, mobile.fold_head) - kun naar
+    # planhovedet kan foldes. Laget ligger over Total cost-maerket, saa
+    # maerkets advarsel over graensen staar ogsaa i lagets tooltip.
+    label = chev.props["AccessibleLabel"]
+    head = mobile.fold_head("conVhpPlanHeadFold", header, toggle_set, label,
+                            visible="varVhpPlanLocked",
+                            tooltip=f"If({COST_OVER_ON}, {COST_OVER_TEXT}, {label})")
     costPhone = plan_cost_badge("bdgVhpPlanHeadCostPhone", lay.mobile_or(FOLD_COST_ON, "false"))
     costPhone.props["AlignInContainer"] = "AlignInContainer.Start"
     helpPanel = help_panel("conVhpPlanHelp", "plan")
@@ -697,49 +702,21 @@ def build_plan_header():
     btnSave.props["Width"] = str(PLAN_SAVE_W)
     act_button(btnSave, ACT, "plan", text="Saving...", grow=False)
 
-    fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
     planMeta.props["Visible"] = f"!({fold})"
     planMeta.vis = f"!({fold})"
-    # Show/Hide: i den foldede linje hedder den "Show" (btnVhpPlanShow, chevron
-    # ned); i en udfoldet, gemt plan staar "Hide" i foden (chevron op).
-    toggle_set = f"Set({SHOW_VAR}, !IfError({SHOW_VAR}, false))"
-    # Show/Hide er een knap: "Show" i den foldede linje, "Hide" i en udfoldet,
-    # gemt plan. Staar i samme raekke som Reset og Edit.
-    hide = button("btnVhpPlanHide", f'If({fold}, "Show", "Hide")', toggle_set,
-                  width=fit_button_width('"Hide"') + ICON_W, height=36,
-                  accessible=f'If({fold}, "Show the plan header fields", "Hide the plan header fields")',
-                  visible="varVhpPlanLocked",
-                  icon=f'If({fold}, "{icons.FLUENT["expand"]}", "{icons.FLUENT["collapse"]}")')
-    hide.props["LayoutMinWidth"] = hide.props["Width"]
-    hide.props["Appearance"] = "ButtonAppearance.Subtle"
-    hide.props["BorderThickness"] = "0"
-    hide.props["Color"] = C_TITLE
-    hide.props["Visible"] = f"varVhpPlanLocked && !({fold})"
-    hide.vis = hide.props["Visible"]
-    # Foldet: titel oeverst, resumeet under den og Show til hoejre for resumeet.
-    show = button("btnVhpPlanShow", '"Show"', toggle_set,
-                  width=SHOW_W, height=36,
-                  accessible='"Show the plan header fields"',
-                  icon=f'"{icons.FLUENT["expand"]}"')
-    show.props["LayoutMinWidth"] = show.props["Width"]
-    show.props["Appearance"] = "ButtonAppearance.Subtle"
-    show.props["BorderThickness"] = "0"
-    show.props["Color"] = C_TITLE
-    # 44 px paa en telefon (issue #508).
-    mobile.touch(show)
-    foldCard = plan_fold_row(fold, toggle_set, show)
+    foldSummary = plan_fold_summary(fold)
     info = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical", gap=0,
                  justify="Center")
-    footer = section_footer("conVhpPlanFooter", info, [hide, btnReset, btnSave], PLAN_CW)
+    footer = section_footer("conVhpPlanFooter", info, [btnReset, btnSave], PLAN_CW)
     footer.props["Visible"] = f"!({fold})"
     footer.vis = footer.props["Visible"]
 
-    # Foldet: kun foldRow (check, titel, nogletal som chips, Show). Udfoldet:
-    # overskrift, hjaelp, felter og fod som foer.
-    for part in (header, costPhone, helpPanel, grid):
+    # Foldet: overskriften og resumeet. Udfoldet: overskriften, hjaelp,
+    # felter og fod som foer. Telefonens Total cost-linje staar i begge.
+    for part in (helpPanel, grid):
         v = part.props.get("Visible")
         part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
         part.vis = part.props["Visible"]
 
-    return card("conVhpPlanCard", [header, costPhone, helpPanel, grid, foldCard, footer], gap=10,
+    return card("conVhpPlanCard", [head, costPhone, helpPanel, grid, foldSummary, footer], gap=10,
                 pad_y=12)

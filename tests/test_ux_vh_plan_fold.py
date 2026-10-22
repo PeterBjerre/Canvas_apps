@@ -18,18 +18,21 @@ def _block(y, name, n=3000):
 
 def test_the_summary_line_shows_only_when_the_plan_is_locked():
     y = _yaml()
-    row = _block(y, "conVhpPlanFoldRow", 60000)
-    assert "varVhpPlanLocked && !IfError(varVhpPlanShow, false)" in row
-    assert y.index("- btnVhpPlanHide:") > y.index("- conVhpPlanFoldRow:")
+    summ = _block(y, "txtVhpPlanFoldSummary", 6000)
+    assert "varVhpPlanLocked && !IfError(varVhpPlanShow, false)" in summ
     for part in ('"Plant "', "drpVhpPlanType.Selected.Value", '"First call "',
                  "dteVhpFirstCall.SelectedDate", '"dd-mm-yyyy"'):
-        assert part in row, part
-def test_the_fields_fold_away_and_show_brings_them_back():
+        assert part in summ, part
+
+
+def test_the_fields_fold_away_and_the_header_brings_them_back():
+    """Issue #548: ingen Show/Hide-knap - chevronen og hele overskriften."""
     y = _yaml()
     grid = _block(y, "conVhpPlanGrid", 4000)
     assert "!(varVhpPlanLocked && !IfError(varVhpPlanShow, false))" in grid
-    show = _block(y, "btnVhpPlanHide", 2500)
-    assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in show
+    for name in ("btnVhpPlanFold", "btnVhpPlanHeadFoldHit"):
+        assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in _block(y, name, 4000)
+    assert "- btnVhpPlanHide:" not in y and "- btnVhpPlanShow:" not in y
 
 
 def test_saving_the_plan_folds_it_again():

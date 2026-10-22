@@ -1386,6 +1386,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -3610,9 +3612,9 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conFlClassesFold:
+                        - conFlClassesFoldHead:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
                               BorderStyle: |-
                                   =BorderStyle.None
@@ -3622,144 +3624,222 @@ Screens:
                                   =0
                               Height: |-
                                   =44
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - txtFlClassesFoldTitle:
-                                  Control: ModernText
+                              - conFlClassesFold:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Classes"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =64
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.cardTitle
-                                    Text: |-
-                                        ="Classes"
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutJustifyContent: |-
+                                        =LayoutJustifyContent.SpaceBetween
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =64
-                                    Wrap: |-
-                                        =false
-                              - txtFlClassesFoldSummary:
-                                  Control: ModernText
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                                  Children:
+                                    - txtFlClassesFoldTitle:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Classes"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =26
+                                          LayoutMinWidth: |-
+                                              =64
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.cardTitle
+                                          Text: |-
+                                              ="Classes"
+                                          Width: |-
+                                              =64
+                                          Wrap: |-
+                                              =false
+                                    - txtFlClassesFoldSummary:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          Align: |-
+                                              =If(LayoutRank < 2, Align.Right, Align.Left)
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FillPortions: |-
+                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =If(LayoutRank < 2, 36, 20)
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.small
+                                          Text: |-
+                                              =If(LayoutRank < 2, IfError(With({ _c: CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description)))) }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & "  ·  " & With({ _c: CountRows(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass)) }, Text(_c) & If(_c = 1, " class", " classes")), ""), "·  " & IfError(With({ _c: CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description)))) }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & "  ·  " & With({ _c: CountRows(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass)) }, Text(_c) & If(_c = 1, " class", " classes")), ""))
+                                          Visible: |-
+                                              =!Coalesce(varFlClassesOpen, false)
+                                          Width: |-
+                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)))) - ((64) + 8) - ((44) + 8) - 2)
+                                          Wrap: |-
+                                              =If(LayoutRank < 2, true, false)
+                                    - btnFlClassesFold:
+                                        Control: Image
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(Coalesce(varFlClassesOpen, false), "Collapse Classes", "Expand Classes")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          DisabledFill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Height: |-
+                                              =44
+                                          HoverFill: |-
+                                              =C.'row-hover'
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(Coalesce(varFlClassesOpen, false), "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
+                                          ImagePosition: |-
+                                              =ImagePosition.Center
+                                          LayoutMinWidth: |-
+                                              =44
+                                          OnSelect: |-
+                                              =Set(varFlClassesOpen, !Coalesce(varFlClassesOpen, false))
+                                          PressedFill: |-
+                                              =C.'row-pressed'
+                                          RadiusBottomLeft: |-
+                                              =6
+                                          RadiusBottomRight: |-
+                                              =6
+                                          RadiusTopLeft: |-
+                                              =6
+                                          RadiusTopRight: |-
+                                              =6
+                                          TabIndex: |-
+                                              =0
+                                          Tooltip: |-
+                                              =If(Coalesce(varFlClassesOpen, false), "Collapse Classes", "Expand Classes")
+                                          Width: |-
+                                              =44
+                              - btnFlClassesFoldHeadHit:
+                                  Control: Classic/Button
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    Align: |-
-                                        =If(LayoutRank < 2, Align.Right, Align.Left)
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =If(LayoutRank < 2, 36, 20)
-                                    LayoutMinWidth: |-
-                                        =0
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =If(LayoutRank < 2, IfError(With({ _c: CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description)))) }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & "  ·  " & With({ _c: CountRows(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass)) }, Text(_c) & If(_c = 1, " class", " classes")), ""), "·  " & IfError(With({ _c: CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description)))) }, Text(_c) & If(_c = 1, " Functional Location", " Functional Locations")) & "  ·  " & With({ _c: CountRows(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass)) }, Text(_c) & If(_c = 1, " class", " classes")), ""))
-                                    Visible: |-
-                                        =!Coalesce(varFlClassesOpen, false)
-                                    Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((64) + 8) - ((44) + 8) - 2)
-                                    Wrap: |-
-                                        =If(LayoutRank < 2, true, false)
-                              - btnFlClassesFold:
-                                  Control: Image
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(Coalesce(varFlClassesOpen, false), "Collapse Classes", "Expand Classes")
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
                                     BorderColor: |-
                                         =RGBA(0, 0, 0, 0)
                                     BorderStyle: |-
-                                        =BorderStyle.None
+                                        =BorderStyle.Solid
                                     BorderThickness: |-
-                                        =0
-                                    DisabledFill: |-
+                                        =2
+                                    Color: |-
                                         =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =44
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     HoverFill: |-
                                         =C.'row-hover'
-                                    Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(Coalesce(varFlClassesOpen, false), "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
-                                    ImagePosition: |-
-                                        =ImagePosition.Center
-                                    LayoutMinWidth: |-
-                                        =44
                                     OnSelect: |-
                                         =Set(varFlClassesOpen, !Coalesce(varFlClassesOpen, false))
+                                    PressedBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     PressedFill: |-
                                         =C.'row-pressed'
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =6
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =6
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =6
+                                        =R.input
                                     TabIndex: |-
                                         =0
+                                    Text: |-
+                                        =If(Coalesce(varFlClassesOpen, false), "Collapse Classes", "Expand Classes")
                                     Tooltip: |-
                                         =If(Coalesce(varFlClassesOpen, false), "Collapse Classes", "Expand Classes")
                                     Width: |-
-                                        =44
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                         - galFlTabs:
                             Control: Gallery
                             Variant: Horizontal
@@ -8519,6 +8599,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -9613,6 +9695,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -10269,6 +10353,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -10925,6 +11011,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -11581,6 +11669,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -12237,6 +12327,8 @@ Screens:
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
