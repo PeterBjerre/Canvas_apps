@@ -55,7 +55,8 @@ def test_tabs_sit_directly_in_a_fixed_row_in_the_card():
     # Fast retning og justering - ingen formel, der kan skifte.
     assert p["LayoutDirection"].strip() == "=LayoutDirection.Horizontal"
     assert p["LayoutAlignItems"].strip() == "=LayoutAlignItems.Center"
-    assert p["Height"].strip() == "=32"
+    # 44 paa en telefon (issue #508), ellers som foer.
+    assert p["Height"].strip() == "=If(LayoutRank < 2, 44, 32)"
     names = [n for n, _b in _kids(row)]
     assert names == list(KEYS) + ["conKksTopGap", "btnKksFlOpen"]
     # Ingen container med knapper i inde i raekken (den gamle conKksKeys).
@@ -74,7 +75,7 @@ def test_tabs_keep_their_function_and_selected_state():
         assert p["Appearance"].strip() == (f'=If(varKksKey = "{key}", '
                                            'ButtonAppearance.Primary, ButtonAppearance.Outline)')
         assert "Visible" not in p
-        assert p["Height"].strip() == "=32"
+        assert p["Height"].strip() == "=If(LayoutRank < 2, 44, 32)"   # issue #508
         assert p["LayoutMinWidth"] == p["Width"]
 
 

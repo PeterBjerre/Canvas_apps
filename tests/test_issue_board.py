@@ -777,6 +777,10 @@ def test_toolbar_reserves_its_full_width_and_height_at_every_size():
         if expr is None:
             return None
         e = expr.replace("IsAdmin", "true" if admin else "false")
+        # Issue #508: listerne og sorteringen ligger bag "Filters" paa en
+        # telefon - regnet med knappen lukket (standard).
+        e = e.replace("Coalesce(varIbFiltersOpen, false)", "false")
+        e = e.replace("!(LayoutRank < 2)", "(LayoutRank >= 2)")
         return cl.evaluate(e, w, 3, 3, 3)
 
     def shown(kb, w, admin):
