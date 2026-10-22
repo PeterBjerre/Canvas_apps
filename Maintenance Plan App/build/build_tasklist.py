@@ -11,7 +11,7 @@ import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
-                           field_cell, card, pin_widths, grow, row_hit,
+                           card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
                            tab_list, tabs_w, confirm_modal)
 from build_plan_header import section_header, help_panel, section_footer, mobile_head, status_icon
@@ -1359,8 +1359,16 @@ def build_tasklist_section():
     # Tasklist-feltet har en fast, begraenset bredde og staar til venstre.
     TL_W = fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360")
     mobile.touch(drpTasklist)
-    tasklistCell = field_cell("conVhpCellTasklist", "Task list", drpTasklist, required=True,
-                              width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
+    # INGEN ETIKET (issue #542): "Task list *" og dens linje over feltet er
+    # vaek - dropdownen staar direkte i raekken med knapperne, lige under
+    # overskriften (der selv hedder Task list). Kravet er det samme: feltet
+    # bliver roedt (BorderColor/ValidationState via required_formula), og
+    # Save siger "Select a task list first.". Skaermlaeseren faar etiketten
+    # og "required", som field_cell gav den.
+    drpTasklist.props["Width"] = TL_W
+    drpTasklist.props["LayoutMinWidth"] = TL_W
+    drpTasklist.props["AccessibleLabel"] = '"Task list, required"'
+    tasklistCell = drpTasklist
 
     btnAddLines = button(
         "btnVhpAddTasklistLines", "\"Add lines from task list\"",
@@ -1448,7 +1456,7 @@ def build_tasklist_section():
     totalsPhone = totals_card("bdgVhpOpsDurationPhone", phone=True)
     tb_kids = [tasklistCell, btnAddLines, btnAddOp, opsMenu, totalsPhone]
     on_line = flow_ok(tb_kids, OPS_CW, 12)
-    for b in add_btns + [opsMenu]:
+    for b in [drpTasklist] + add_btns + [opsMenu]:
         b.props["AlignInContainer"] = f"If({on_line}, AlignInContainer.End, AlignInContainer.Start)"
     toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
 

@@ -95,7 +95,7 @@ def test_threshold_moves_nothing_in_the_tasklist_section():
 def test_buttons_stay_on_the_tasklist_row():
     tb = _block(_text(), "conVhpOpsToolbar")
     kids = _children(tb)
-    assert kids[:4] == ["conVhpCellTasklist", "btnVhpAddTasklistLines",
+    assert kids[:4] == ["drpVhpItemTasklist", "btnVhpAddTasklistLines",
                         "btnVhpAddOperation", "drpVhpOpsActions"], kids
     for b in ("btnVhpAddTasklistLines", "btnVhpAddOperation"):
         assert "AlignInContainer.End" in _prop(_block(tb, b), "AlignInContainer")
