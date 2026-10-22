@@ -9792,7 +9792,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =If(LayoutRank < 2, ((If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 24), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 36))) - 8 * (Max(1, 1 + 1) - 1)) / Max(1, 1 + 1), 77)
+                                                    =If(LayoutRank < 2, ((If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 24), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 36))) - 8 * (Max(1, 1 + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, 1 + If(!varVhpViewOnly, 1, 0)), 77)
                                           - btnVhpSaveItem:
                                               Control: ModernButton
                                               Properties:
@@ -9881,8 +9881,10 @@ Screens:
                                                     =If(IfError(varVhpAct = "item", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), "Edit", "Save"))
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =!varVhpViewOnly
                                                 Width: |-
-                                                    =If(LayoutRank < 2, ((If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 24), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 36))) - 8 * (Max(1, 1 + 1) - 1)) / Max(1, 1 + 1), 126)
+                                                    =If(LayoutRank < 2, ((If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 24), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 360 - 20) - 36))) - 8 * (Max(1, 1 + If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, 1 + If(!varVhpViewOnly, 1, 0)), 126)
                   - conVhpOpsCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -13570,8 +13572,10 @@ Screens:
                                               =If(IfError(varVhpAct = "ops", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false), "Edit", "Save"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =!varVhpViewOnly
                                           Width: |-
-                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, 1) - 1)) / Max(1, 1), 126)
+                                              =If(LayoutRank < 2, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 8 * (Max(1, If(!varVhpViewOnly, 1, 0)) - 1)) / Max(1, If(!varVhpViewOnly, 1, 0)), 126)
             - conVhpFoot:
                 Control: GroupContainer
                 Variant: AutoLayout

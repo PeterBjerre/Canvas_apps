@@ -6273,37 +6273,33 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Edit " & ThisItem.RequestNo
+                                        =If(!((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation")))), "View", "Edit") & " request " & ThisItem.RequestNo
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    DisabledBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    DisabledFill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    DisplayMode: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), DisplayMode.Edit, DisplayMode.Disabled)
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
                                         =C.'color-brand-primary'
                                     FocusedBorderThickness: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), 2, 0)
+                                        =2
                                     Height: |-
                                         =H.hit
                                     HoverFill: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
+                                        =C.'row-hover'
                                     Image: |-
                                         =If(
                                             (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
                                             LookUp(MdIcons, Key = "edit").Uri,
-                                            LookUp(MdIcons, Key = "edit-off").Uri
+                                            LookUp(MdIcons, Key = "view").Uri
                                         )
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
                                         =If(
+                                            (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
+                                            If(
                                             IfError(gblNavigating, false),
                                             false,
                                             IsBlank(ThisItem.RequestGuid),
@@ -6337,9 +6333,45 @@ Screens:
                                                     Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
                                             )
+                                        ),
+                                            If(
+                                            IfError(gblNavigating, false),
+                                            false,
+                                            IsBlank(ThisItem.RequestGuid),
+                                            Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
+                                            Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation",
+                                                    Set(gblNavigating, true);
+                                                    Set(varFlOpened, "");
+                                                    Set(gblFlWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenFunctionalLocation, ScreenTransition.None),
+                                                "MaintenancePlan",
+                                                    Set(gblNavigating, true);
+                                                    Set(varVhpOpened, "");
+                                                    Set(gblVhpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenVhPlan, ScreenTransition.None),
+                                                "Material",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMatOpened, "");
+                                                    Set(gblMatWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMaterial, ScreenTransition.None),
+                                                "Equipment",
+                                                    Set(gblNavigating, true);
+                                                    Set(varEqOpened, "");
+                                                    Set(gblEqWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
+                                                Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
+                                            )
+                                        )
                                         )
                                     PressedFill: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
+                                        =C.'row-hover'
                                     RadiusBottomLeft: |-
                                         =6
                                     RadiusBottomRight: |-
@@ -6349,9 +6381,9 @@ Screens:
                                     RadiusTopRight: |-
                                         =6
                                     TabIndex: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), 0, -1)
+                                        =0
                                     Tooltip: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), "Edit request", "This request can no longer be edited because it has been submitted.")
+                                        =If(!((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation")))), "View request", "Edit request")
                                     Visible: |-
                                         =LayoutRank >= 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
@@ -6460,37 +6492,33 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Edit " & ThisItem.RequestNo
+                                        =If(!((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation")))), "View", "Edit") & " request " & ThisItem.RequestNo
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    DisabledBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    DisabledFill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    DisplayMode: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), DisplayMode.Edit, DisplayMode.Disabled)
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
                                         =C.'color-brand-primary'
                                     FocusedBorderThickness: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), 2, 0)
+                                        =2
                                     Height: |-
                                         =H.hit
                                     HoverFill: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
+                                        =C.'row-hover'
                                     Image: |-
                                         =If(
                                             (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
                                             LookUp(MdIcons, Key = "edit").Uri,
-                                            LookUp(MdIcons, Key = "edit-off").Uri
+                                            LookUp(MdIcons, Key = "view").Uri
                                         )
                                     ImagePosition: |-
                                         =ImagePosition.Center
                                     OnSelect: |-
                                         =If(
+                                            (((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))),
+                                            If(
                                             IfError(gblNavigating, false),
                                             false,
                                             IsBlank(ThisItem.RequestGuid),
@@ -6524,9 +6552,45 @@ Screens:
                                                     Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
                                             )
+                                        ),
+                                            If(
+                                            IfError(gblNavigating, false),
+                                            false,
+                                            IsBlank(ThisItem.RequestGuid),
+                                            Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
+                                            Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation",
+                                                    Set(gblNavigating, true);
+                                                    Set(varFlOpened, "");
+                                                    Set(gblFlWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenFunctionalLocation, ScreenTransition.None),
+                                                "MaintenancePlan",
+                                                    Set(gblNavigating, true);
+                                                    Set(varVhpOpened, "");
+                                                    Set(gblVhpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenVhPlan, ScreenTransition.None),
+                                                "Material",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMatOpened, "");
+                                                    Set(gblMatWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMaterial, ScreenTransition.None),
+                                                "Equipment",
+                                                    Set(gblNavigating, true);
+                                                    Set(varEqOpened, "");
+                                                    Set(gblEqWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
+                                                Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
+                                            )
+                                        )
                                         )
                                     PressedFill: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), C.'row-hover', RGBA(0, 0, 0, 0))
+                                        =C.'row-hover'
                                     RadiusBottomLeft: |-
                                         =6
                                     RadiusBottomRight: |-
@@ -6536,9 +6600,9 @@ Screens:
                                     RadiusTopRight: |-
                                         =6
                                     TabIndex: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), 0, -1)
+                                        =0
                                     Tooltip: |-
-                                        =If((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation"))), "Edit request", "This request can no longer be edited because it has been submitted.")
+                                        =If(!((((Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "Kladde")) || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo"))) || (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe && (ThisItem.Status.Value = "AfventerInfo") && (ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "FunctionalLocation")))), "View request", "Edit request")
                                     Visible: |-
                                         =LayoutRank >= 3 && LayoutRank < 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
