@@ -76,16 +76,20 @@ def test_the_selected_list_has_no_inner_scrollbar():
     assert str(gal["ShowScrollbar"]).lstrip("=") == "false"
     assert str(gal["TemplatePadding"]).lstrip("=") == "0"
     # Saa hoej som ALLE raekkerne - fanens krop er den eneste scroll.
-    assert str(gal["Height"]).lstrip("=") == "Max(CountRows(colMatObjects), 1) * 44"
+    # (paa en telefon 48 px raekker - koden over beskrivelsen, issue #508)
+    assert str(gal["Height"]).lstrip("=") == \
+        "Max(CountRows(colMatObjects), 1) * If(LayoutRank < 2, 48, 44)"
 
 
 def test_materials_search_field_fits_its_placeholder_and_the_others_are_unchanged():
-    w = int(_prop("inpMatSearch", "Width"))
+    import mobile
+    # Fra Tablet og op (paa en telefon fylder feltet hovedets bredde, #508).
+    w = int(mobile.desk(_prop("inpMatSearch", "Width")))
     ph = "Search FL, supplier, part no., material"
     assert _prop("inpMatSearch", "Placeholder") == f'"{ph}"'
     assert w >= text_px(ph, lay.SIZE_INPUT) + 32 > SEARCH_W
-    assert _prop("inpEqSearch", "Width", EQ) == str(SEARCH_W)
-    assert _prop("inpMpSearch", "Width", MP) == str(SEARCH_W)
+    assert mobile.desk(_prop("inpEqSearch", "Width", EQ)) == str(SEARCH_W)
+    assert mobile.desk(_prop("inpMpSearch", "Width", MP)) == str(SEARCH_W)
 
 
 def test_equipment_and_measuring_point_still_have_no_object_list():

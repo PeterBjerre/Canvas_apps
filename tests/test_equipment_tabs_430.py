@@ -91,6 +91,11 @@ def test_tab_styling_is_the_same_as_materials():
                 continue
             a = _prop(eq, key).replace("varEq", "var")
             b = _prop(mat, key).replace("varMat", "var")
+            if key in ("Width", "LayoutMinWidth"):
+                # Paa en telefon deler fanerne bredden (issue #508) - to
+                # faner i Equipment, tre i Materials. Ellers ens.
+                a, b = a.split(", ", 1)[-1], b.split(", ", 1)[-1]
+                a, b = a.rsplit(", ", 1)[-1], b.rsplit(", ", 1)[-1]
             assert a == b, (suffix, key, a, b)
 
 

@@ -89,8 +89,10 @@ def test_domain_panels_match_the_bright_two_column_mockup():
         assert props[f"img{prefix}EditorBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
         assert props[grid]["LayoutDirection"] == "=LayoutDirection.Vertical"
         pair = props[f"{grid}Pair0"]
-        assert pair["LayoutDirection"] == "=LayoutDirection.Horizontal"
-        assert pair["LayoutWrap"] == "=true"
+        # Fra Tablet og op som mockuppen; paa en telefon een kolonne (#508).
+        assert pair["LayoutDirection"] == \
+            "=If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)"
+        assert pair["LayoutWrap"] == "=If(LayoutRank < 2, false, true)"
 
 
 def test_issue_board_detail_panel_does_not_dim_the_workspace():
