@@ -42,7 +42,8 @@ BADGES = {
         "bdgVhpEditorHeadBadge": (None, None, None),
         # Planens samlede pris i det foldede planhoved (Peter 2026-10-19).
         "bdgVhpPlanFoldCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
-        "bdgVhpOpsHeadBadge": ('If(VhpOpsValid, "Valid", "")', None, None),
+        # Task list and operations: Valid-maerket er afloest af det groenne
+        # flueben foran titlen (issue #522, tests/test_tasklist_header_522.py).
     },
     "ScreenIssueBoard.pa.yaml": {
         "bdgIbRowNo": ("ThisItem.TicketNo", "C.'color-brand-primary'", "C.'bg-muted'"),
@@ -60,7 +61,8 @@ BADGES = {
 }
 OLD_NAMES = ("txtVhpPlanHeadBadge", "txtVhpOpsHeadBadge", "txtIbRowNo", "txtIbDetNo",
              "txtIbDetStatus", "txtIbDetPriority", "txtIbActRole", "txtMdAprChip",
-             "imgMdAprNo", "imgEqNumber", "imgMatNumber", "imgMpNumber", "imgVhpNumber")
+             "imgMdAprNo", "imgEqNumber", "imgMatNumber", "imgMpNumber", "imgVhpNumber",
+             "bdgVhpOpsHeadBadge")
 
 
 def _read(screen):
@@ -105,8 +107,9 @@ def test_every_badge_is_modern_badge_with_our_colors():
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
     # + 1: SAP OBJECT-popuppens nummerbadge (issue #471); - 1: Activity's
-    # rollemaerke (issue #475 - rollen staar nu i typen).
-    assert total == 17
+    # rollemaerke (issue #475 - rollen staar nu i typen); - 1: Task list and
+    # operations' Valid-maerke (issue #522 - nu et flueben foran titlen).
+    assert total == 16
 
 
 def test_old_controls_are_gone():
