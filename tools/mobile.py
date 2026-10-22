@@ -213,6 +213,10 @@ def refit(box):
     pt, pb = p.get("PaddingTop", "0"), p.get("PaddingBottom", "0")
     pt = int(pt) if str(pt).isdigit() else pt
     pb = int(pb) if str(pb).isdigit() else pb
+    # Containerens kant (build_helpers.group(edge=...), issue #550).
+    edge = box._auto[2] if box._auto and len(box._auto) > 2 else 0
+    if edge and isinstance(pt, int) and isinstance(pb, int):
+        pt, pb = pt + edge, pb + edge
     if "Vertical" in p.get("LayoutDirection", "Vertical"):
         h = stack_height(box.children, gap, pt, pb)
     else:
@@ -355,7 +359,9 @@ def restack(node):
     hs = [restack(c) for c in kids]
     if node.control != "GroupContainer" or not kids or not node._auto:
         return phone_h(node)
-    direction, built = node._auto
+    direction, built = node._auto[:2]
+    # Containerens kant (build_helpers.group(edge=...), issue #550).
+    edge = node._auto[2] if len(node._auto) > 2 else 0
     if str(node.props.get("Height")) != str(built) and node.mh is None:
         # Nogen har givet containeren en anden hoejde efter group() - den
         # er ikke laengere boernenes, saa den roeres ikke.
@@ -366,6 +372,7 @@ def restack(node):
     lay_dir = phone(p.get("LayoutDirection", "LayoutDirection.%s" % direction))
     if not all(isinstance(x, (int, float)) for x in (pt, pb, gap)):
         return phone_h(node)
+    pt, pb = pt + edge, pb + edge
     proxies = [_Proxy(h, c.vis) for c, h in zip(kids, hs)]
     wraps = str(phone(p.get("LayoutWrap", "false"))).lower() == "true"
     if "Vertical" in lay_dir or (wraps and direction == "Vertical"):
