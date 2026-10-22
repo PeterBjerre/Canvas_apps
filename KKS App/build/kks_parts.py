@@ -911,6 +911,14 @@ def build_fl_search():
         last_var="varKksFlLast", pick_var=FL_PICK,
         default_items=f"Filter(colKksFl, Code = {FL_PICK})",
         display_mode="DisplayMode.Edit", width=FL_IN_W, stack_search=True)
+    # Telefonen (issue #508, fase 6): feltet og Search er 44 hoeje (som
+    # VH-planens leverandoervaelger og domaeneappernes FL-vaelger).
+    for nm in ("cmbKksFl", "btnKksFlSearch", "spnKksFlBusy"):
+        mobile.touch(mobile.find(picker, nm))
+    fl_row = mobile.find(picker, "conKksFlInput")
+    fl_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + 8 + 4, fl_row.props["Height"])
+    fl_row.h = fl_row.props["Height"]
+    mobile.refit(picker)
     # Beskeden under feltet - som i domaeneapperne, men ombrudt: popuppen er
     # smal paa en telefon.
     per_line = f"Max(20, RoundDown({FL_IN_W} / 7, 0))"

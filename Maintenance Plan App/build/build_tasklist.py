@@ -871,7 +871,8 @@ def _attachments_modal():
     not_saved = du.not_saved_text("txtVhpAttNotSaved", att, visible=edit)
     btnSave = du.save_button("btnVhpAttUpload", att, visible=edit)
     actions = group("conVhpAttActions", [btnSave],
-                    direction="Horizontal", gap=8, height=36, justify="End",
+                    direction="Horizontal", gap=8, height=lay.mobile_or(lay.TOUCH_MIN, 36),
+                    justify="End",
                     align_items="Center", visible=edit)
     ro = du.readonly_note("txtVhpAttReadOnly", f"!{edit}")
 

@@ -48,6 +48,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 import fx  # noqa: E402
+import layout_tokens as lay  # noqa: E402
 
 VAR = "gblToast"
 TOAST_MS = 4000
@@ -182,9 +183,16 @@ def controls(tag):
                  height=TOAST_H, align_items="Center", fill=C_MODAL_BG,
                  border_color=f"If({IS_ERROR}, {C_BORDER_ERROR}, {C_CARD_BORDER})",
                  radius=10, pad=(8, 8, 8, 14), drop_shadow="Bold",
-                 width=f"Min({TOAST_W}, App.Width - 32)", visible=vis)
+                 width=lay.popup_w(TOAST_W, 32), visible=vis)
     card.props["X"] = f"Max(16, App.Width - Self.Width - {EDGE})"
     card.props["Y"] = f"App.Height - Self.Height - {EDGE}"
+    # TELEFONEN (issue #508, fase 6): skaermens bredde minus 2 x 8, centreret,
+    # og OVER bundbjaelken (build_helpers.FOOT_H) - en fejlbesked bliver
+    # staaende, til den lukkes, og maa ikke daekke Save draft/Submit.
+    from build_helpers import FOOT_H
+    card.props["X"] = lay.mobile_or("(App.Width - Self.Width) / 2", card.props["X"])
+    card.props["Y"] = lay.mobile_or(f"App.Height - Self.Height - {FOOT_H + lay.MOBILE_POP_MARGIN}",
+                                    card.props["Y"])
     # Timeren taeller kun, mens en besked, der skal forsvinde, er synlig.
     # Den laeser alderen af beskeden (At) - saa en ny besked midt i en
     # anden faar sine egne fire sekunder.

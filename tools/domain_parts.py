@@ -580,8 +580,18 @@ def build_bar():
     act_button(save, ACT_VAR, "save")
     act_button(submit, ACT_VAR, "submit")
     act_button(dup, ACT_VAR, "duplicate")
+    delete = delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)
+    # TELEFONEN (issue #508, fase 6) - som Functional Location (fase 3):
+    # knapperne bliver i headeren, men er 44 hoeje, og ikonknapperne (Edit,
+    # Duplicate, Delete) er 44 x 44. New request beholder sin tekst (issue
+    # #243). Save draft/Submit staar i bundbjaelken under Desktop.
+    for b in (edit, dup, delete):
+        b.props["Width"] = lay.mobile_or(lay.TOUCH_MIN, b.props["Width"])
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    for b in (new, edit, dup, delete):
+        mobile.touch(b)
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   actions + [delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)],
+                   actions + [delete],
                    icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo",
                    crumb=breadcrumb("Dom", cfg.APP_KEY, "varDomRequestNo"))
 
@@ -1523,7 +1533,7 @@ def build_attachments():
     limits = du.limits_text("txtDomAttLimits", 10, 10, visible=edit)
     save = du.save_button("btnDomAttUpload", att, visible=edit)
     actions = group("conDomAttActions", [save], direction="Horizontal", gap=8,
-                    height=36, justify="End", align_items="Center", visible=edit)
+                    height=lay.mobile_or(lay.TOUCH_MIN, 36), justify="End", align_items="Center", visible=edit)
     ro = du.readonly_note("txtDomAttReadOnly", f"!IsBlank(varDomDocsId) && !{edit}")
 
     title = grow(text_ctrl(
@@ -2341,6 +2351,12 @@ def docs_tab_body(height=EDITOR_TAB_BODY_H):
     samme ModernAttachments-kontrol, Save documents og read-only-note."""
     body = build_attachments().children[1]
     body.props["Height"] = height
+    # Paa en telefon er fanen saa hoej som sit indhold - panelet er den
+    # eneste scroll, ingen scroll i scrollen (issue #508, fase 6). Samme
+    # greb som Objects-fanen (domain_objects.tab_body): mobile.restack
+    # regner hoejden om. (body.h roeres ikke: foraelderens hoejde fra Tablet
+    # og op regner som foer med kroppens naturlige hoejde.)
+    body._auto = ("Vertical", height)
     return body
 
 

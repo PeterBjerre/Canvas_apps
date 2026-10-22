@@ -922,12 +922,20 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
                    width=fit_button_width('"Close"'), height=36)
     retry = button(f"btn{prefix}LoadRetry", '"Retry"', retry_fx, primary=True,
                    width=fit_button_width('"Retry"'), height=36)
+    # Telefonen (issue #508, fase 6): Close og Retry er 44 hoeje og deler
+    # bredden, og kortet er skaermen minus 2 x 8 med 12 i siderne - samme
+    # popup-bredde som resten af appen (lay.popup_w).
+    for b in (close, retry):
+        b.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, b.props["Height"])
+        b.h = b.props["Height"]
     actions = group(f"con{prefix}LoadActions", [close, retry], direction="Horizontal", gap=8,
-                    height=36, justify="Center", align_items="Center", visible=failed)
+                    height=lay.mobile_or(lay.TOUCH_MIN, 36), justify="Center",
+                    align_items="Center", visible=failed)
     card = group(f"con{prefix}LoadCard", [spin, icon, title, step, hint, actions],
                  direction="Vertical", gap=6, fill=C_MODAL_BG, border_color=C_CARD_BORDER,
                  radius=lay.RADIUS_MODAL, pad=(22, 20, 18, 20),
-                 width="Min(360, App.Width - 32)", drop_shadow="Bold", visible=vis)
+                 width=lay.popup_w(360, 32), drop_shadow="Bold", visible=vis)
+    mobile_pad(card, x=lay.MOBILE_CARD_PAD)
     card.props["X"] = "(App.Width - Self.Width) / 2"
     card.props["Y"] = "(App.Height - Self.Height) / 2"
     timer = Ctrl(f"tmr{prefix}LoadSlow", "Timer", props={
@@ -1630,6 +1638,7 @@ def page_icon(name, key, size=PAGE_ICON):
 # ---------------------------------------------------------------------------
 EMPTY_ICON = 40
 EMPTY_TEXT_H = 40
+EMPTY_TEXT_H_MOBILE = 60   # tre linjer paa en telefon (issue #508, fase 6)
 
 
 # ---------------------------------------------------------------------------
@@ -1785,6 +1794,10 @@ def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
     # den sin egen smalle standardbredde, ombroed og blev klippet med en
     # rullepil (Measuring points, screenshots 2026-10-13).
     msg.props["AlignInContainer"] = "AlignInContainer.Stretch"
+    # Telefonen (issue #508, fase 6): op til tre linjer ved 320 px, og
+    # knappen er en tommelfinger-flade (44).
+    msg.props["Height"] = lay.mobile_or(EMPTY_TEXT_H_MOBILE, EMPTY_TEXT_H)
+    msg.h = msg.props["Height"]
     kids = [img, msg]
     if action_text:
         w = fit_button_width(f'"{action_text}"') + (ICON_W if action_icon else 0)
@@ -1792,6 +1805,8 @@ def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
                    primary=primary, width=w, height=36, icon=action_icon,
                    visible=action_visible)
         b.props["LayoutMinWidth"] = str(w)
+        b.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, 36)
+        b.h = b.props["Height"]
         kids.append(b)
     return group(name, kids, direction="Vertical", gap=8, align_items="Center",
                  pad=(12, 0, 12, 0), width=width, visible=visible)
@@ -2310,6 +2325,8 @@ def editor_footer(prefix, delete, reset, cancel, save):
 # graa sloer gjorde det foer), men der tegnes intet paa siden.
 # ---------------------------------------------------------------------------
 PANEL_SAVE_H = 32
+# Paa en telefon er Retry en tommelfinger-flade (issue #508, fase 6).
+PANEL_SAVE_H_FX = lay.mobile_or(lay.TOUCH_MIN, PANEL_SAVE_H)
 PANEL_SAVING = '"saving"'
 PANEL_FAILED = '"failed"'
 
@@ -2344,8 +2361,14 @@ def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
                    width=fit_button_width('"Retry"'), height=PANEL_SAVE_H,
                    display_mode=panel_save_mode(state_var, display_mode), visible=failed,
                    tooltip='"Try to save again"')
+    retry.props["Height"] = PANEL_SAVE_H_FX
+    retry.h = PANEL_SAVE_H_FX
+    # Teksten ombryder paa mobil (to linjer i 44), saa den ikke klippes ved 320.
+    text.props["Wrap"] = lay.mobile_or("true", text.props.get("Wrap", "false"))
+    text.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, text.props["Height"])
+    text.h = text.props["Height"]
     return group(f"con{prefix}EditorSaveStatus", [text, retry], direction="Horizontal",
-                 gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center",
+                 gap=8, height=PANEL_SAVE_H_FX, justify="End", align_items="Center",
                  visible=failed)
 
 
@@ -2373,7 +2396,7 @@ def panel_save_text(btn, state_var, text="Saving...", text_fx=None):
 
 def panel_save_space(status):
     """Det, scrollen skal give af, naar statuslinjen staar der (+ panelets gap)."""
-    return f"If({status.props['Visible']}, {PANEL_SAVE_H + 12}, 0)"
+    return f"If({status.props['Visible']}, {lay.mobile_or(lay.TOUCH_MIN + 12, PANEL_SAVE_H + 12)}, 0)"
 
 
 def panel_save_block(prefix, state_var):

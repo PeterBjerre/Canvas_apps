@@ -500,7 +500,18 @@ ROW_M_LINE3 = 22         # statuschippen
 ROW_M_GAP = 4
 # Notes og Activity staar paa linje 1 (X/Y oven paa raekken).
 ROW_M_ICON_Y = ROW_M_PAD_T
-GAL_H_M = f"Min(galMdRequests.AllItemsCount, {GAL_ROWS_M_MAX}) * {ROW_H_M}"
+# FLERE END 100 PAA EN TELEFON (issue #508, fase 6). Et delegeret galleri
+# henter de naeste 100 raekker, naar det SELV scroller - men paa mobil
+# scroller siden, ikke galleriet, saa listen stoppede ved 100. Nu viser
+# mobilgrenen af Items FirstN(ITEMS, SHOW_N) - 50 ad gangen, og "Show 50
+# more" under listen viser 50 til (mobile.show_count, som KKS og Issue
+# Board). FirstN kan ikke delegeres: Power Apps henter op til appens
+# datagraense (500 som standard) og tager de foerste N lokalt - Studio
+# viser en delegeringsadvarsel paa mobilgrenen. Fra Tablet og op er Items
+# den samme delegerede formel som foer.
+SHOW_VAR = "varMdShowN"
+SHOW_N = mobile.show_count(SHOW_VAR)
+GAL_H_M = f"Min(galMdRequests.AllItemsCount, {SHOW_N}) * {ROW_H_M}"
 STRIP_Y_C = 70
 # R2-079: uden LastActionOn stod der " days ago" i tooltip og skaermlaeser.
 WHEN_FX = ("If(\n    IsBlank(ThisItem.LastActionOn), \"No date\",\n"
@@ -1058,6 +1069,8 @@ def build_filters():
                         width=str(SEARCH_W), ttype="Search",
                         label='"Search number, text or plant"',
                         onchange="Set(varMdSearch, Self.Text);\n" + SAVE_HUB)
+    # Telefonen (issue #508, fase 6): feltet fylder raekkens 44 px.
+    mobile.touch(search)
     shown_pred = 'varMdDomain = "" || Domain = varMdDomain'
     count = text_ctrl("txtMdTotal", scope_count_words(shown_pred),
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
@@ -1123,7 +1136,7 @@ def build_filters():
     # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
     for c in chips + [view_track, count]:
         c.vis = at_least("Tablet")
-    mobile = _mobile_filter()
+    mobile_row = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
     _FLT_LV[peek.name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
@@ -1199,7 +1212,7 @@ def build_filters():
     # brugt, saa den skrives ikke ud.
     row.props["Height"] = FLT_ROW_H
     row.h = FLT_ROW_H
-    return group("conMdFlt", [row, mobile], direction="Vertical", gap=8)
+    return group("conMdFlt", [row, mobile_row], direction="Vertical", gap=8)
 
 
 _MOBILE_FILTERS = ("Open", "Closed", "All", "My queue", STUCK_LABEL)
@@ -1219,6 +1232,7 @@ def _mobile_filter():
     dd = themed_dropdown("ddMdFltMobile", items, cur, width="Parent.Width",
                          label='"Filter requests"', onchange=on_change)
     dd = grow(dd, 80)
+    mobile.touch(dd)   # 44 px paa en telefon (issue #508, fase 6)
     peek = _peek_button("btnMdFltPeekM")
     row = group("conMdFltMobile", [dd, peek], direction="Horizontal", gap=8, height=FLT_ROW_H,
                 width=f"({SHELL_W})", align_items="Center", visible=below("Tablet"))
@@ -1691,7 +1705,8 @@ def build_list():
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
         "Height": if_below("Tablet", GAL_H_M,
                            if_below("Wide", str(GAL_ROWS_C * ROW_H_C), str(GAL_ROWS * ROW_H))),
-        "Items": ITEMS, "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
+        "Items": lay.mobile_or(f"FirstN({ITEMS}, {SHOW_N})", ITEMS),
+        "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
         "Selectable": "false", "ShowScrollbar": SCROLLBAR_NOT_MOBILE, "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": if_below("Tablet", str(ROW_H_M),
@@ -1718,7 +1733,19 @@ def build_list():
     head_rule = group("conMdListRule", [], direction="Horizontal", height=1,
                       fill=C_DIVIDER, visible=at_least("Wide"))
 
-    parts = [_active_filter(), head, head_rule, loading, gal, empty]
+    # "Show 50 more" (kun mobil): synlig, saa laenge listen er fyldt op til
+    # det viste antal - der KAN vaere flere. Et tryk, der ikke finder
+    # flere, skjuler den igen (galleriet har faerre raekker end SHOW_N).
+    # Antallet tilbage kendes ikke uden at taelle hele listen (CountRows
+    # kan ikke delegeres til SharePoint), saa teksten naevner det ikke.
+    more = button("btnMdShowMore", f'"Show {mobile.SHOW_STEP} more"',
+                  f"Set({SHOW_VAR}, {SHOW_N} + {mobile.SHOW_STEP})",
+                  width=200, height=mobile.TOUCH, icon="ChevronDown",
+                  visible=f"{lay.MOBILE} && galMdRequests.AllItemsCount >= {SHOW_N}",
+                  accessible=f'"Show {mobile.SHOW_STEP} more requests"')
+    more.props["AlignInContainer"] = "AlignInContainer.Stretch"
+    more.props["LayoutMinWidth"] = "0"
+    parts = [_active_filter(), head, head_rule, loading, gal, more, empty]
     gal.h = GAL_ROWS_C * ROW_H_C
     h_compact = card("conMdListCard", parts, gap=8).props["Height"]
     gal.h = GAL_H_M

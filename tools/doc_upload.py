@@ -162,6 +162,9 @@ def save_button(name, pane, onselect=None, base_mode="DisplayMode.Edit", visible
                display_mode=(f"If({pane.busy} || {pane.picker}.IsUploading, "
                              f"DisplayMode.Disabled, {base_mode})"))
     b.props["LayoutMinWidth"] = b.props["Width"]
+    # Telefonen (issue #508, fase 6): en tommelfinger-flade.
+    b.props["Height"] = lay.mobile_or(lay.TOUCH_MIN, 36)
+    b.h = b.props["Height"]
     return b
 
 

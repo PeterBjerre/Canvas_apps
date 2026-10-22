@@ -56,6 +56,8 @@ from build_helpers import (group, text_ctrl, button, text_input,
 import layout_tokens as lay
 import request_index as ri
 import icons
+import mobile
+from build_helpers import mobile_footer, mobile_pad
 
 OPEN = "gblFbOpen"
 ME = "gblFbMe"
@@ -98,6 +100,15 @@ GENERAL = ("Question", "Improvement idea", "Technical issue", "Other")
 SEARCH_MIN = 6
 ROW_H = 36
 MAX_ROWS = 7
+# TELEFONEN (issue #508, fase 6): listens raekker er TOUCH hoeje paa mobil,
+# saa en tommelfinger rammer det rigtige emne. Tablet og desktop: ROW_H.
+ROW_H_M = lay.TOUCH_MIN
+ROW_H_FX = lay.mobile_or(ROW_H_M, ROW_H)
+
+
+def _row_y(desk_y, mob_y):
+    """Y i en listeraekke: mob_y paa mobil (raekken er ROW_H_M), ellers desk_y."""
+    return lay.mobile_or(mob_y, desk_y)
 
 
 def _type_fx(domain_expr):
@@ -127,6 +138,13 @@ MESSAGE_PLACEHOLDER = '"Describe your question, idea or issue..."'
 # cellen/omraadet uden luft, saa venstre kant og bundkanten blev skaaret
 # af. EDGE er luften paa alle fire sider af de to kanter.
 EDGE = 2
+
+# Det faste i popuppen PAA EN TELEFON (issue #508, fase 6): sloerets luft
+# 2 x 8, polstringen 36, overskrift 44, intro 40, Email 62, emnecellen
+# 20 + 6 + 44 (H.control) + EDGE, beskedens etiket 26, foden 44 + 8 + 44
+# (knapperne under hinanden) og fem mellemrum af 12. EDGE laegges til i
+# build(), som paa de andre skaermbredder.
+PHONE_FIXED = 2 * 8 + 36 + 44 + 40 + 62 + (20 + 6 + 44) + 26 + (44 + 8 + 44) + 5 * 12
 
 # Valget til flowets "Context"-input (issue #194): flowet viser et fast
 # emne i overskriften og - kun for en anmodning - et afsnit med nummer,
@@ -236,6 +254,9 @@ def _subject_picker(n, avail):
         n("btn", "Subject"), _fit(label, "Self.Width", SUBJECT_PX), toggle,
         accessible=label, height=34, size=size,
         color=f"If({has}, {C_INPUT_FG}, {C_MUTED})")
+    # Paa mobil fylder knappen feltets hoejde (H.control = 44): hele feltet
+    # er klikfladen (issue #508, fase 6).
+    mobile.touch(btn)
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
         "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")',
         # Tooltip som etiketten (issue #515).
@@ -259,6 +280,7 @@ def _subject_picker(n, avail):
     find_name = n("inp", "SubjectFind")
     find = text_input(find_name, '""', placeholder='"Search number, title or type"',
                       label='"Search your requests"')
+    mobile.touch(find)
     many = f"CountRows({REQS}) > {SEARCH_MIN}"
     # Soegefeltets kant faar ogsaa luft til siderne og foroven (issue #492).
     find_wrap = group(n("con", "SubjectFind"), [find], direction="Vertical", gap=0,
@@ -293,24 +315,27 @@ def _subject_picker(n, avail):
     head = text_ctrl(n("txt", "SubjectHead"), "ThisItem.Label", size=lay.SIZE_MICRO,
                      color=C_MUTED, weight="Semibold", height=18, wrap="false",
                      visible=f'{kind} = "H"',
-                     width="Parent.TemplateWidth - 24", extra={"X": "12", "Y": str(ROW_H - 22)})
+                     width="Parent.TemplateWidth - 24",
+                     extra={"X": "12", "Y": _row_y(ROW_H - 22, ROW_H_M - 22)})
     accent = Ctrl(n("rct", "SubjectAccent"), "Rectangle", props={
         "AccessibleLabel": '"Selected"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": _accent_fx("ThisItem.Domain"), "Height": "24", "OnSelect": "false",
-        "TabIndex": "0", "Visible": selected, "Width": "3", "X": "0", "Y": str((ROW_H - 24) // 2),
+        "TabIndex": "0", "Visible": selected, "Width": "3", "X": "0",
+        "Y": _row_y((ROW_H - 24) // 2, (ROW_H_M - 24) // 2),
     }, h=24, vis=selected)
     row_icon = Ctrl(n("img", "SubjectRowIcon"), "Image", props={
         "AccessibleLabel": 'Coalesce(ThisItem.TypeName, "Request")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx("ThisItem.Domain"),
         "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
-        "Visible": f'{kind} = "R"', "Width": "20", "X": "12", "Y": str((ROW_H - 20) // 2),
+        "Visible": f'{kind} = "R"', "Width": "20", "X": "12",
+        "Y": _row_y((ROW_H - 20) // 2, (ROW_H_M - 20) // 2),
     }, h=20, vis=f'{kind} = "R"')
     text_x = f'If({kind} = "R", 40, 12)'
     text_w = f"Parent.TemplateWidth - {text_x} - 12"
     row_text = text_ctrl(n("txt", "SubjectRow"), _fit("ThisItem.Label", "Self.Width", ROW_TEXT_PX),
                          size=ROW_TEXT_SIZE, color=f'If({kind} = "E", {C_MUTED}, {C_TITLE})',
                          height=20, wrap="false", visible=f'{kind} <> "H"',
-                         width=text_w, extra={"X": text_x, "Y": str((ROW_H - 20) // 2)})
+                         width=text_w, extra={"X": text_x, "Y": _row_y((ROW_H - 20) // 2, (ROW_H_M - 20) // 2)})
     # weight er et udtryk, ikke et navn
     row_text.props["FontWeight"] = f"If({selected}, FontWeight.Semibold, FontWeight.Normal)"
     pick = (f"Set({SEL}, {{Kind: ThisItem.Kind, Code: ThisItem.Code, Label: ThisItem.Label, "
@@ -320,13 +345,14 @@ def _subject_picker(n, avail):
     hit_label = (f'If({kind} = "R", "Request " & ThisItem.Code & ", " & ThisItem.TypeName & '
                  '", " & ThisItem.Title, ThisItem.Label)')
     hit = row_hit(n("btn", "SubjectPick"), pick, hit_label, "Parent.TemplateWidth", ROW_H, radius=6)
+    mobile.touch(hit)
     hit.props["Visible"] = pickable
     hit.vis = pickable
 
     gal_name = n("gal", "Subject")
     # Listen holder sig inden for den plads, der er under knappen, og
     # scroller resten (issue #205).
-    gal_h = (f"Min(Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}, "
+    gal_h = (f"Min(Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H_FX}, "
              f"{avail} - 12 - If({many}, {find_wrap.h}, 0))")
     gal = Ctrl(gal_name, "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Subjects and your requests"',
@@ -335,7 +361,7 @@ def _subject_picker(n, avail):
         "Items": items, "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
-        "TemplatePadding": "0", "TemplateSize": str(ROW_H),
+        "TemplatePadding": "0", "TemplateSize": ROW_H_FX,
         "Width": "Parent.Width", "WrapCount": "1",
     }, children=[head, accent, row_icon, row_text, hit], h=gal_h)
 
@@ -390,7 +416,12 @@ def build(p):
     # 26, footer 36 og seks mellemrum af 12. Vedhaeftningsraekken (36 + 12) er vaek (issue #215), saa
     # beskeden faar den plads. Den afhaenger IKKE af, om listen er foldet
     # ud (issue #205), saa popuppen staar stille.
-    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - {366 + EDGE})))"
+    # TELEFONEN (issue #508, fase 6): popuppen skal kunne staa paa skaermen
+    # uden at sloeret scroller - ellers scroller baade siden og emnelisten.
+    # Det faste paa mobil er PHONE_FIXED (se nedenfor); beskeden faar resten,
+    # mindst 120 og hoejst de 220, den havde.
+    msg_h = (f"If({lay.below('Tablet')}, Max(120, Min(220, App.Height - {PHONE_FIXED + EDGE})), "
+             f"Max(160, Min(272, App.Height - 40 - {366 + EDGE})))")
     # Listens hoejde under vaelgerens knap: mellemrummet, beskedens etiket
     # og beskeden minus 4 px luft over listen. Rammens EDGE i bunden
     # opvejes af cellens EDGE under knappen, saa rammen slutter praecis ved
@@ -405,9 +436,13 @@ def build(p):
     # X oeverst til hoejre (issue #343) - lukker og nulstiller som foer.
     head = popup_head(n("con", "Head"), title, n("btn", "Close"), f"Set({OPEN}, false); {reset}")
 
+    # Paa mobil en kortere tekst, der kan staa paa to linjer ved 320 px.
     intro = text_ctrl(n("txt", "Intro"),
-                      f'"Questions, ideas or something not working? Your message goes to {MAILBOX}."',
+                      lay.mobile_or(f'"Questions, ideas or issues? Sent to {MAILBOX}."',
+                                    f'"Questions, ideas or something not working? Your message goes to {MAILBOX}."'),
                       size=13, color=C_MUTED, height=40, wrap="true")
+    # Skaermlaeseren laeser den samme tekst som foer fra Tablet og op.
+    intro.props["AccessibleLabel"] = intro.props["Text"]
 
     locked = {"PaddingLeft": "12", "VerticalAlign": "VerticalAlign.Middle",
               "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
@@ -416,8 +451,12 @@ def build(p):
                             fill=C_DISABLED_BG, accessible='"Your initials (locked)"', extra=locked)
     inpEmail = text_ctrl(n("txt", "Email"), ME, size=14, color=C_MUTED, height=36,
                          fill=C_DISABLED_BG, accessible='"Your email (locked)"', extra=locked)
+    # Initialerne er laest af mailadressen - paa mobil staar kun Email, saa
+    # den har hele bredden (issue #508, fase 6).
+    initials = mobile.hide_on_mobile(_field(n("con", "InitialsCell"), "Initials", inpInitials,
+                                            width="110"))
     who = group(n("con", "Who"), [
-        _field(n("con", "InitialsCell"), "Initials", inpInitials, width="110"),
+        initials,
         grow(_field(n("con", "EmailCell"), "Email", inpEmail), min_w=0),
     ], direction="Horizontal", gap=12, height=62, align_items="Start")
 
@@ -476,16 +515,22 @@ def build(p):
                         tooltip='"Open the message as a draft in your own Outlook"')
     footer = group(n("con", "Footer"), [btnOutlook, btnSend], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
+    # Paa mobil staar knapperne under hinanden i fuld bredde, 44 hoeje,
+    # Send nederst - som alle andre popupper (build_helpers.mobile_footer).
+    mobile_footer(footer)
 
     modal = group(n("con", "Modal"), [head, intro, who, area, footer],
                   direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
                   radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18),
-                  width="Min(560, App.Width - 40)", drop_shadow="ExtraBold",
+                  width=lay.popup_w(560, 40), drop_shadow="ExtraBold",
                   align_in_container="Center")
+    mobile_pad(modal, x=mobile.CARD_PAD)
     backdrop = group(n("con", "Backdrop"), [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
                      justify="Start", align_items="Center", pad=(20, 0, 20, 0),
                      overflow_y="Scroll")
+    # Paa mobil lige under kanten (sheet_y), saa beskeden faar pladsen.
+    mobile_pad(backdrop, top=mobile.POP_MARGIN, bottom=mobile.POP_MARGIN)
     backdrop.props["X"] = "0"
     backdrop.props["Y"] = "0"
     return [backdrop]

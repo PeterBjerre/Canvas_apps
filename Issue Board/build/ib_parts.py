@@ -3170,6 +3170,12 @@ def build_detail():
         "Visible": IS_ADMIN,
         "Width": "Parent.Width",
     }), h=24, vis=IS_ADMIN)
+    # Telefonen (issue #508, fase 6): hele linjen er en 44 px klikflade, og
+    # teksten er kort nok til een linje ved 320 px. Skaermlaeseren faar den
+    # fulde tekst som foer.
+    _ph(internal)
+    internal.props["Label"] = lay.mobile_or('"Internal note (admins only)"',
+                                            internal.props["Label"])
     # Hjaelpeteksten er kun saa hoej, som teksten kraever (een linje paa en
     # bred skaerm) - ikke en fast to-linjers flade. Mens der sendes, siger
     # den, hvor langt kommentaren er (som hjulets tekst foer #411).
