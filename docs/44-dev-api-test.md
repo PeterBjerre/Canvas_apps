@@ -1,75 +1,91 @@
-# 44 — Testflow til WOE- og lager-API'et i DEV
+# 44 — Flows til WOE- og lager-API'et i DEV
 
-Et testflow i solutionen, der henter et JWT-token med client credentials og
-kalder to endpoints på API-gatewayen i DEV. Det er kun til test og er ikke
-koblet på nogen app.
+To flows i solutionen, som appen kan kalde. Hvert flow henter et JWT-token
+med client credentials og kalder sit endpoint på API-gatewayen i DEV med
+`x-apikey`. De afløser testflowet `BioSap-Test-DevApis` fra PR #549.
 
-```
-GET https://dev.api.orsted.dk/woe/api/workorders/{ordre}/objects
-GET https://dev.api.orsted.dk/inventorymanagement/materialonstocks/{plant}/{materiale}
-```
+| Flow | Input fra appen | Endpoint |
+|---|---|---|
+| `BioSap-Integration-WoeOrderObjects` | `OrderNumber` | `GET https://dev.api.orsted.dk/woe/api/workorders/{OrderNumber}/objects` |
+| `BioSap-Integration-MaterialStock` | `Plant`, `Material` | `GET https://dev.api.orsted.dk/inventorymanagement/materialonstocks/{Plant}/{Material}` |
 
-| Fil | Indhold |
+API-teamet har kun åbnet lager-rollen for `materialonstocks/2806/1019`.
+Andre kombinationer giver 403, indtil de åbner mere.
+
+## Svaret til appen
+
+Begge flows svarer altid med de samme fire tekstfelter, også ved fejl:
+
+| Felt | Indhold |
 |---|---|
-| `solution/BIOSAP/src/Workflows/BioSap-Test-DevApis-8E2F4C71-….json` | Flowet `BioSap-Test-DevApis` |
-| `solution/BIOSAP/src/environmentvariabledefinitions/orsted_BioSapWoeDevApiKey` | Miljøvariabel `BioSap-WOE-Dev-ApiKey` |
-| `solution/BIOSAP/src/environmentvariabledefinitions/orsted_BioSapInventoryDevApiKey` | Miljøvariabel `BioSap-Inventory-Dev-ApiKey` |
+| `ok` | `yes` når API'et svarede 200, ellers `no` |
+| `status` | HTTP-status fra API'et, eller fra token-kaldet hvis tokenet fejlede |
+| `message` | Tom ved 200, ellers en engelsk fejltekst til brugeren |
+| `result` | API'ets svar som JSON-tekst (tom ved token-fejl) |
+
+Eksempel i Power Fx (flowet skal først tilføjes som datakilde i appen):
+
+```
+Set(
+    varWoeAnswer,
+    'BioSap-Integration-WoeOrderObjects'.Run(Trim(txtOrderNumber.Text))
+);
+If(
+    varWoeAnswer.ok = "yes",
+    Set(varWoeObjects, ParseJSON(varWoeAnswer.result)),
+    Notify(varWoeAnswer.message, NotificationType.Error)
+)
+```
+
+```
+Set(
+    varStockAnswer,
+    'BioSap-Integration-MaterialStock'.Run("2806", "1019")
+);
+```
+
+Felterne i `result` bestemmes af API'et. Se API-dokumentationen (Scalar)
+eller kør flowet én gang og læs svaret i kørselshistorikken.
 
 ## Hemmeligheder
 
 Repoet er offentligt, så client secret og de to `x-apikey`-nøgler står kun
 som *Current value* på miljøvariabler i miljøet:
 
-| Miljøvariabel | Værdi |
+| Miljøvariabel | Bruges af | Værdi |
+|---|---|---|
+| `BioSap-WOC-Client-Secret` | begge | Client secret til app-registreringen `6b699286-…` (den samme som `BioSap-Integration-Order-Objects`). Både KKTEO og PowerAppSecret4 virker |
+| `BioSap-WOE-Dev-ApiKey` | WOE | `x-apikey` til WOE i DEV |
+| `BioSap-Inventory-Dev-ApiKey` | lager | `x-apikey` til inventory management i DEV |
+
+Mangler en værdi (tom eller `***REDACTED***`), svarer flowet appen med
+`ok = no` og en besked om, hvilken variabel der skal sættes, og kørslen
+ender som Failed. Token-kaldet har *Secure inputs* og *Secure outputs*,
+API-kaldet *Secure inputs*, så secret, nøgle og token ikke kan ses i
+kørselshistorikken.
+
+Client ID, tenant, scope og base-URL står i handlingen `Setup` i hvert flow.
+Ret dem der ved skift fra DEV til test eller produktion.
+
+## Handlinger
+
+| Handling | Hvad den gør |
 |---|---|
-| `BioSap-WOC-Client-Secret` | Client secret til app-registreringen `6b699286-…`. Det er den samme app-registrering, som `BioSap-Integration-Order-Objects` bruger, så secret'en deles. Har API-teamet givet en ny secret, så sæt den her; en gyldig secret virker for begge flows |
-| `BioSap-WOE-Dev-ApiKey` | `x-apikey` til WOE i DEV |
-| `BioSap-Inventory-Dev-ApiKey` | `x-apikey` til inventory management i DEV. Er det samme nøgle som til WOE, så sæt samme værdi i begge |
+| `Setup` | Token-URL, client ID, scope og base-URL |
+| `Check_environment_variables` | Svarer appen og stopper, hvis en miljøvariabel mangler |
+| `Get_token` | POST til Entra ID (skjult i historikken) |
+| `Call_API` | GET med `Authorization: Bearer …` og `x-apikey` |
+| `Respond_result` | Svarer appen med status og svar, også når API'et ikke svarer 200 |
+| `Respond_token_error` | Svarer appen med Entra ID's `error_description` og stopper kørslen som Failed |
 
-Mangler en værdi (tom eller `***REDACTED***`), stopper flowet med det samme
-med en besked om, hvilke variabler der skal sættes. Token-kald og API-kald
-har *Secure inputs* slået til, og token-kaldet også *Secure outputs*, så
-secret, nøgler og token ikke kan ses i kørselshistorikken.
-
-Client ID, tenant, scopes og URL'er er ikke hemmelige og står i handlingen
-`Setup`. Ret dem der, hvis API-teamet giver nye.
-
-| Nøgle i `Setup` | Værdi |
-|---|---|
-| `tokenUrl` | `https://login.microsoftonline.com/100b3c99-…/oauth2/v2.0/token` |
-| `clientId` | `6b699286-72e8-4e8a-8e93-ce166f5c22d0` |
-| `woeScope` | `https://Dongenergy.onmicrosoft.com/b6608a78-4d04-462b-a5da-d5488f8b164c/.default` |
-| `inventoryScope` | `https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default` |
-
-De to API'er har hver sit scope, så flowet henter to tokens.
-
-## Kør testen
-
-**Run** → udfyld ordrenummer, plant og materiale, eller lad felterne stå
-tomme for at bruge eksemplerne fra API-teamet (ordre `25711067`, plant
-`2806`, materiale `1019`). API-teamet har kun åbnet rollen for
-`materialonstocks/2806/1019`, så andre plant/materiale-kombinationer kan
-give 403, indtil de åbner mere.
-
-De to API'er kaldes parallelt, så en fejl i det ene stopper ikke det andet.
-
-| Handling | Hvad den viser |
-|---|---|
-| `Check_environment_variables` | Stopper, hvis en af de tre miljøvariabler mangler |
-| `Get_token_Woe` / `Get_token_Inventory` | POST til Entra ID (skjult i historikken) |
-| `Token_error_Woe` / `Token_error_Inventory` | Kun ved fejl: status og `error_description` fra Entra ID |
-| `Call_Woe` / `Call_Inventory` | GET med `Authorization: Bearer …` og `x-apikey` |
-| `Response_Woe` / `Response_Inventory` | URL, HTTP-status og hele svaret |
-| `Both_ok` | Kørslen ender som **Failed**, hvis ikke begge svarer 200, med fx `WOE: API 200, Inventory: Token 401` |
-
-Der er ingen genforsøg, så fejlen kommer med det samme.
+Der er ingen genforsøg, så appen får svar med det samme.
 
 ## Typiske fejl
 
-| Resultat | Årsag |
+| `status` / besked | Årsag |
 |---|---|
-| `Token 401` / `invalid_client` | Forkert eller udløbet client secret |
-| `Token 400` / `invalid_scope` | Forkert scope i `Setup` |
-| `API 401` | Mangler eller forkert `x-apikey`, eller tokenet er til det forkerte scope |
-| `API 403` | App-registreringen har ikke rollen til netop det endpoint |
-| `API 404` | Ordren eller materialet findes ikke i DEV |
+| `401` + "Token could not be fetched" | Forkert eller udløbet client secret |
+| `400` + "Token could not be fetched" | Forkert scope i `Setup` |
+| `401` fra API'et | Mangler eller forkert `x-apikey`, eller tokenet er til det forkerte scope |
+| `403` fra API'et | App-registreringen har ikke rollen til netop det endpoint |
+| `404` fra API'et | Ordren eller materialet findes ikke i DEV |
