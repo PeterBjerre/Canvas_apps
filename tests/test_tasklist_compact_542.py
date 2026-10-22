@@ -30,7 +30,7 @@ def test_dropdown_sits_directly_in_the_toolbar_row():
     assert "20 + 6 +" not in _prop(tb, "Height")
 
 
-def test_header_keeps_check_and_totals_card():
+def test_header_keeps_check_and_duration_badge():
     head = _children(_block(_text(), "conVhpOpsHead"))
     assert head[0] == "icoVhpOpsHeadStatus", head
-    assert "crdVhpOpsTotals" in head, head
+    assert "bdgVhpOpsDuration" in head, head  # #545: kortet blev til Duration-maerket

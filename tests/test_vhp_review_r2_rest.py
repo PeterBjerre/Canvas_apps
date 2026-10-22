@@ -128,7 +128,7 @@ def test_cost_over_shown_on_the_plan_cost_badge():
     # Advarslen staar paa planens Total cost-maerke (issue #529).
     assert "Sum(colVhpOperations, Cost) > VhpCostThreshold" in bp.COST_OVER_ON
     screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
-    assert "crdVhpOpsTotals" in screen
+    assert "bdgVhpEditorCost" in screen  # itemets Total cost (issue #545)
     assert "txtVhpOpsCostOver" not in screen and "htmVhpOpsTotals" not in screen
 
 
