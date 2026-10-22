@@ -2240,6 +2240,32 @@ App:
       // Alle items er gemt som valid og opfylder deres regler.
       VhpItemsValid = VhpStepItemDone && IsBlank(VhpItemRuleErrors);
 
+      // Det aktive item har ingen blokeringer (issue #530) - fluebenet i Item-sektionen.
+      VhpActiveItemValid = With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, IsEmpty(
+          With(
+              {
+                  ops: Filter(colVhpOperations, ItemId = ar.ItemId),
+                  pk: IfError(varVhpPlan.PlanType = "Strategy", false) && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))
+              },
+              Filter(
+                  Table(
+                      { n: "Item short text", m: IsBlank(Trim(ar.ShortText)) },
+                      { n: "Main work center", m: IsBlank(Trim(ar.MainWorkCenter)) },
+                      { n: "Maintenance activity type", m: IsBlank(Trim(ar.ActivityType)) },
+                      { n: "Functional Location", m: IsBlank(Trim(ar.FunctionalLocation)) },
+                      { n: "Initials", m: Len(Trim(ar.Initials)) <> 5 },
+                      { n: "Main work center (other plant)", m: !IsBlank(Trim(ar.MainWorkCenter)) && !IsBlank(VhpPlant) && IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper(VhpPlant) && W.Value = Trim(ar.MainWorkCenter)).Value) },
+                      { n: "Functional Location (other plant)", m: !IsBlank(Trim(ar.FunctionalLocation)) && !IsBlank(VhpPlant) && Upper(Left(Trim(ar.FunctionalLocation), 3)) <> Upper(Left(Trim(VhpPlant), 3)) },
+                      { n: "Task list", m: IsBlank(Trim(ar.TasklistKey)) },
+                      { n: "Task list (other plant)", m: !IsBlank(Trim(ar.TasklistKey)) && !IsBlank(VhpPlant) && IsBlank(LookUp(colVhpTasklists As TL, Upper(TL.Plant) = Upper(VhpPlant) && TL.Key = ar.TasklistKey).Key) },
+                      { n: "Operations", m: IsEmpty(ops) },
+                      { n: "Operation details", m: !IsEmpty(Filter(ops, IsBlank(Trim(OperationShortText)) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(MaterialGroup, "")))) || (Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" && Coalesce(Cost, 0) <= 0) || (pk && Len(Coalesce(PackagesKey, ";")) <= 1))) }
+                  ),
+                  m
+              )
+          )
+      ));
+
       // Alle items har tasklist og operationer, og reglerne er opfyldt.
       VhpOpsValid = VhpStepTasklistDone && VhpStepOpsDone && IsBlank(VhpOpsRuleErrors);
 

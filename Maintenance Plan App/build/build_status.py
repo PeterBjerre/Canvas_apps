@@ -215,6 +215,51 @@ def any_plant_conflict(r="", p=PLANT):
                        + [tasklist_plant_conflict(r, p)])
 
 
+# ITEMETS BLOKERINGER (issue #448; flyttet hertil fra build_items i issue
+# #530). Hver raekke er een ting, der holder Submit tilbage for itemet: de
+# paakraevede felter, vaerdier fra et andet vaerk (issue #453), en tasklist,
+# mindst een operation og operationernes egne regler. Alt laeses af
+# samlingerne - ingen datakald.
+_OP_PROBLEM = (f"{OP_NO_TEXT} || ({OP_NO_MG}) || ({OP_NO_COST}) || "
+               f"(pk && {OP_NO_PKG})")
+
+
+def _blocker_rows(row):
+    return [(n, c) for n, c in item_required(row)] + [
+        (f"{n} (other plant)", c) for n, c in item_plant_conflicts(row)] + [
+        ("Task list", f"IsBlank(Trim({row}TasklistKey))"),
+        ("Task list (other plant)", tasklist_plant_conflict(row)),
+        ("Operations", "IsEmpty(ops)"),
+        ("Operation details", f"!IsEmpty(Filter(ops, {_OP_PROBLEM}))"),
+    ]
+
+
+def item_blockers(row):
+    """Itemets blokeringer som tabel { n, m } - row er praefikset paa
+    itemets kolonner ("ThisItem." paa kortet, "ar." for det aktive item)."""
+    return (
+        "With(\n"
+        "    {\n"
+        f"        ops: Filter(colVhpOperations, ItemId = {row}ItemId),\n"
+        f"        pk: IfError({IS_STRAT_PLAN}, false) && {HAS_PKGS}\n"
+        "    },\n"
+        "    Filter(\n"
+        "        Table(\n"
+        + ",\n".join(f'            {{ n: "{n}", m: {c} }}' for n, c in _blocker_rows(row)) + "\n"
+        "        ),\n"
+        "        m\n"
+        "    )\n"
+        ")")
+
+
+# ISSUE #530: det item, Item Editoren viser, er gyldigt - samme betingelse
+# som fluebenet paa dets kort i Items-listen. Uden aktivt item er raekken
+# blank, felterne mangler, og den er falsk.
+ACTIVE_ITEM_VALID = "VhpActiveItemValid"
+ACTIVE_ITEM_VALID_FX = ("With({ ar: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, IsEmpty(\n"
+                        + "    " + _nest(item_blockers("ar.")) + "\n))")
+
+
 ITEM_RULE = _per_row(
     "Filter(\n"
     "    VhpSaveableItems,\n"
@@ -433,6 +478,8 @@ def formulas():
         "Plan header er gemt og opfylder sine regler.")
     add("VhpItemsValid", "VhpStepItemDone && IsBlank(VhpItemRuleErrors)",
         "Alle items er gemt som valid og opfylder deres regler.")
+    add(ACTIVE_ITEM_VALID, ACTIVE_ITEM_VALID_FX,
+        "Det aktive item har ingen blokeringer (issue #530) - fluebenet i Item-sektionen.")
     add("VhpOpsValid", "VhpStepTasklistDone && VhpStepOpsDone && IsBlank(VhpOpsRuleErrors)",
         "Alle items har tasklist og operationer, og reglerne er opfyldt.")
     # Selected er afkrydsningen i tabellerne - den er ikke en aendring af

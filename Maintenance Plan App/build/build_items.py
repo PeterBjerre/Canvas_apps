@@ -604,30 +604,13 @@ def item_delete_confirm():
 # samlingerne - ingen datakald - og Item Editoren skriver sine felter i
 # colVhpItems, naar de aendres (write_item), saa kortet foelger med uden Save.
 _ROW = "ThisItem."
-_OP_PROBLEM = (f"{st.OP_NO_TEXT} || ({st.OP_NO_MG}) || ({st.OP_NO_COST}) || "
-               f"(pk && {st.OP_NO_PKG})")
 # Issue #453: vaerdier fra et andet vaerk end Plan Headers Plant er ogsaa
-# blokeringer - de markeres, de slettes ikke.
-_BLOCKER_ROWS = [(n, c) for n, c in st.item_required(_ROW)] + [
-    (f"{n} (other plant)", c) for n, c in st.item_plant_conflicts(_ROW)] + [
-    ("Task list", f"IsBlank(Trim({_ROW}TasklistKey))"),
-    ("Task list (other plant)", st.tasklist_plant_conflict(_ROW)),
-    ("Operations", "IsEmpty(ops)"),
-    ("Operation details", f"!IsEmpty(Filter(ops, {_OP_PROBLEM}))"),
-]
-ITEM_BLOCKERS = (
-    "With(\n"
-    "    {\n"
-    f"        ops: Filter(colVhpOperations, ItemId = {_ROW}ItemId),\n"
-    f"        pk: IfError({st.IS_STRAT_PLAN}, false) && {st.HAS_PKGS}\n"
-    "    },\n"
-    "    Filter(\n"
-    "        Table(\n"
-    + ",\n".join(f'            {{ n: "{n}", m: {c} }}' for n, c in _BLOCKER_ROWS) + "\n"
-    "        ),\n"
-    "        m\n"
-    "    )\n"
-    ")")
+# blokeringer - de markeres, de slettes ikke. Listen staar i build_status
+# (item_blockers, issue #530), saa Item Editorens flueben bruger den samme.
+ITEM_BLOCKERS = st.item_blockers(_ROW)
+# ISSUE #530: det AKTIVE item er gyldigt - samme betingelse som kortets
+# flueben (ITEM_BLOCKERS), regnet paa raekken, Item Editoren viser.
+ACTIVE_ITEM_OK = st.ACTIVE_ITEM_VALID
 # Mangler kortets item et paakraevet felt? (de roede kanter i editoren)
 ITEM_FIELDS_MISSING_ROW = "(" + " || ".join(c for _n, c in st.item_required(_ROW)) + ")"
 
@@ -768,13 +751,11 @@ def build_items_rail():
     btnAdd.props["Layout"] = lay.mobile_or("ButtonLayout.IconOnly",
                                            btnAdd.props.get("Layout", "ButtonLayout.IconBefore"))
     btnAdd.props["AccessibleLabel"] = '"Add item"'
-    header = section_header("conVhpItemsHead", "Items", "Step 2", extra_right=[btnCopy, btnAdd],
-                            valid_fx=items_valid_fx())
+    # ISSUE #530: intet Valid-badge i Items-hovedet - hvert kort har sit
+    # eget flueben, og Item-sektionen har fluebenet for det aktive item.
+    # [titel] [gap] [copy] [add]
+    header = section_header("conVhpItemsHead", "Items", None, extra_right=[btnCopy, btnAdd])
     mobile_head(header)
-    # Badget foer knapperne: [titel] [gap] [badge] [copy] [add]
-    _kids = header.children
-    _badge = _kids.pop()
-    _kids.insert(len(_kids) - 2, _badge)
 
     # --- item card template -------------------------------------------------
     # Uden kort tekst hedder kortet sit NUMMER i listen (issue #230) - det
@@ -795,8 +776,9 @@ def build_items_rail():
         size=12, color=C_MUTED, height=18, wrap="false")
     cardTextCol = grow(group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist],
                              direction="Vertical", gap=2))
-    # STATUS (mockup): flueben/advarsel til venstre og "Valid" (groen) eller
-    # "N to fix" (roed) til hoejre - ikke et uppercase-badge.
+    # STATUS (mockup): flueben/advarsel til venstre og "N to fix" (roed) til
+    # hoejre - ikke et uppercase-badge. ISSUE #530: et gyldigt item viser
+    # kun det groenne flueben; teksten "Valid" er fjernet (den gentog det).
     #
     # ISSUE #448: N er itemets AEGTE blokeringer for Submit, regnet af de
     # aktuelle vaerdier (item_blockers). Foer talte kortet fire felter paa
@@ -809,7 +791,7 @@ def build_items_rail():
     cardIcon.props["AlignInContainer"] = "AlignInContainer.Center"
     cardStatus = text_ctrl(
         "txtVhpItemCardStatus",
-        f"With({{ fixN: {FIX_N} }}, If(fixN = 0, \"Valid\", Text(fixN) & \" to fix\"))",
+        f"With({{ fixN: {FIX_N} }}, If(fixN = 0, \"\", Text(fixN) & \" to fix\"))",
         size=12, weight="Semibold", height=22, width=84, wrap="false", align="Right",
         extra={
             "AlignInContainer": "AlignInContainer.End",
@@ -997,14 +979,15 @@ def items_valid_fx():
     return "VhpItemsValid"
 
 
+EDITOR_OK_SIZE = 20
+
+
 def build_item_editor():
-    # TRIN-BADGE (issue #123): "Step 2", indtil trinnet er faerdigt og
-    # gyldigt, saa "Valid" - som Plan Header og Tasklist and Operations.
-    # Foer stod det valgte items egen status her (Draft/Valid/Invalid); den
-    # staar stadig paa itemets kort i listen. Badgets advarsel vises, naar
-    # det valgte item mangler et paakraevet felt, efter Save er forsoegt
-    # eller itemet er aabnet med mangler (issue #448: af vaerdierne, ikke
-    # af Status fra sidste Save).
+    # STATUS (issue #530): et flueben foer titlen for det AKTIVE item i
+    # stedet for trin-badget (issue #123), der viste "Valid" for alle items.
+    # Advarslen vises, naar det valgte item mangler et paakraevet felt,
+    # efter Save er forsoegt eller itemet er aabnet med mangler (issue #448:
+    # af vaerdierne, ikke af Status fra sidste Save).
     # HVILKET ITEM (UX-review M5, VH-plan-mockuppen): "Item 1 - Bearing
     # lubrication" ved titlen. Hovedets "Delete item" er fjernet (issue
     # #457): et item slettes kun fra sit kort i Items-listen.
@@ -1014,14 +997,26 @@ def build_item_editor():
                       f'If(IsBlank(varVhpActiveItemId), "", Text({no}) & '
                       f'If(IsBlank({active}.ShortText), "", "  \u00b7  " & {active}.ShortText))',
                       size=lay.SIZE_BODY, color=C_MUTED, height=20, width="260", wrap="false")
-    header = section_header("conVhpEditorHead", "Item", "Step 2", extra_left=[which],
-                            valid_fx=items_valid_fx(),
-                            attention_fx=f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))")
+    # ISSUE #530: Valid-badget er erstattet af et groent cirkulaert flueben
+    # LIGE FOER "Item" - som det foldede planhoved (build_plan_header.
+    # plan_fold_row). Fluebenet vises kun, naar det AKTIVE item er gyldigt
+    # (samme betingelse som fluebenet paa dets kort). Badgets fejltilstand
+    # ("Invalid": paakraevede felter mangler, efter Save er forsoegt)
+    # bevares som det roede udraabstegn; ellers er ikonet skjult.
+    attention = f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))"
+    header = section_header("conVhpEditorHead", "Item", None, extra_left=[which])
     # Telefonen (issue #508): "1 · kort tekst" faar resten af linjen efter
-    # titlen og badget (foer fast 260 px - linjen blev 411 px bred).
+    # fluebenet og titlen (foer fast 260 px - linjen blev 411 px bred).
     mobile_head(header)
     title_w = header.children[0].props["Width"]
-    which.props["Width"] = lay.mobile_or(f"Max(0, ({EDITOR_CW}) - {title_w} - 72 - 3 * 8)", "260")
+    which.props["Width"] = lay.mobile_or(
+        f"Max(0, ({EDITOR_CW}) - {EDITOR_OK_SIZE} - {title_w} - 3 * 8)", "260")
+    okIcon = status_icon("icoVhpEditorStatus", ACTIVE_ITEM_OK, size=EDITOR_OK_SIZE,
+                         label_ok="Item is valid", label_bad="Item is invalid")
+    okIcon.props["Visible"] = f"({ACTIVE_ITEM_OK}) || {attention}"
+    okIcon.vis = okIcon.props["Visible"]
+    okIcon.props["AlignInContainer"] = "AlignInContainer.Center"
+    header.children.insert(0, okIcon)
     helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: EEN combobox med Search (issue #63) ---------

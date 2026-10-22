@@ -42,6 +42,10 @@ ICONS = {
                                  "If(VhpPlanValid, C.'state-ok-fg', C.'state-error-fg')",
                                  "20", None),
         "icoVhpItemCardStatus": (None, None, "20", None),
+        # Issue #530: Item-sektionens flueben i stedet for Valid-badget.
+        "icoVhpEditorStatus": ('If(VhpActiveItemValid, "CheckmarkCircle", "ErrorCircle")',
+                               "If(VhpActiveItemValid, C.'state-ok-fg', C.'state-error-fg')",
+                               "20", None),
         # Task list and operations: fluebenet foran titlen, kun naar
         # sektionen er gyldig (issue #529 - afloeser Valid-maerket).
         "icoVhpOpsHeadStatus": ('If(VhpOpsValid, "CheckmarkCircle", "ErrorCircle")',
@@ -103,8 +107,9 @@ def test_every_icon_is_modern_icon_in_the_token_color():
             # Det gamle billede er vaek.
             assert f"- img{name[3:]}:" not in text, name
             total += 1
-    # 15 foer issue #469 (Activity-ikonerne blev en knap); + 1 issue #529.
-    assert total == 14
+    # 15 foer issue #469 (Activity-ikonerne blev en knap); + 1 issue #529;
+    # + 1 issue #530.
+    assert total == 15
 
 
 def test_item_card_status_follows_the_same_rule_as_its_text():
