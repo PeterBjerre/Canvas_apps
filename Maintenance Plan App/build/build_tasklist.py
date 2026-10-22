@@ -1487,7 +1487,10 @@ def build_tasklist_section():
         # Bredt nok til "Saving..." (issue #433), saa foden staar stille.
         width=fit_button_width("\"Saving...\"", min_w=96) + ICON_W, height=36,
         display_mode=("If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
-                      "btnVhpSaveDraft.DisplayMode)"))
+                      "btnVhpSaveDraft.DisplayMode)"),
+        # Issue #551: ingen blyant i View mode - kun i Edit mode, som Plan
+        # headers Save/Edit (build_plan_header.btnVhpPlanSave).
+        visible="!varVhpViewOnly")
     btnTlSave.props["AccessibleLabel"] = (f'If({OPS_LOCKED}, "Edit the task list and operations", '
                                           '"Save the task list and operations")')
     act_button(btnTlSave, ACT, "ops", text="Saving...", grow=False)

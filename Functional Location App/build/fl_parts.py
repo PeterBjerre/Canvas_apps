@@ -1515,11 +1515,13 @@ def build_classes():
     # der ikke var der. Nu er knappen et View-ikon med tooltippet "View
     # class data"; den aabner det SAMME panel (kun til at laese) og skifter
     # ikke tilstand - sidehovedets Edit er stadig eneste vej til Edit mode.
-    verb = f'If({CLS_LOCKED}, "View", "Edit")'
+    # Issue #551: ikon og verbum fra de faelles hjaelpere (icons.edit_or_view,
+    # action_tips.verb) - samme regel som Materials/Equipment/MP's raekker.
+    verb = tips.verb(CLS_LOCKED)
     open_ = button("btnFlCOpen", f'{verb}',
                    open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=ACT_BTN,
                    height=30,
-                   icon=f'If({CLS_LOCKED}, "{CLS_VIEW_ICON}", "{icons.FLUENT["edit"]}")',
+                   icon=icons.edit_or_view(CLS_LOCKED),
                    accessible=f'{verb} & " class data of " & ThisItem.FL',
                    tooltip=(f'With({{ m: {info_msg} }}, {verb} & " class data of " & ThisItem.FL & '
                             'If(IsBlank(m), "", " - " & m))'))
@@ -1612,7 +1614,8 @@ CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 # Classes' View-ikon (issue #533): et ikon, appen allerede bruger paa
 # ModernButton - "DocumentText" (Long text: laes teksten). Oejet (icons.EYE)
 # findes kun som SVG i View mode-pillen, ikke som ModernButton-ikon.
-CLS_VIEW_ICON = icons.FLUENT["long_text"]
+# Issue #551: det er nu det faelles icons.FLUENT["view"].
+CLS_VIEW_ICON = icons.FLUENT["view"]
 
 
 # Dropdownens valg: tom, den gemte vaerdi hvis den er ugyldig, og listen

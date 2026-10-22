@@ -183,6 +183,9 @@ FLUENT = {
     "submit": "Send",       # indsend en anmodning = send en besked
     "send": "Send",
     "edit": "Edit",
+    # Kun-laes-udgaven af "edit" (issue #533/#551): samme dokumentikon som
+    # Long text. Oejet (EYE) findes kun som SVG, ikke som ModernButton-ikon.
+    "view": "DocumentText",
     "delete": "Delete",
     "add": "Add",
     "dismiss": "Dismiss",
@@ -214,6 +217,14 @@ FLUENT = {
     # Domaeneikonerne (DOMAIN) har INTET Fluent-sidestykke - de er vores
     # egne, ens med sidebaren, og bliver Image-kontroller (docs/38).
 }
+
+# BLYANT = KAN RETTES, VIEW-IKON = KUN LAESE (issue #551)
+#   En knap, der aabner indhold, der i View (eller naar det er laast) kun
+#   kan laeses, viser View-ikonet - aldrig blyanten. locked er et Power
+#   Fx-udtryk; svaret er knappens Icon-udtryk.
+def edit_or_view(locked):
+    return f'If({locked}, "{FLUENT["view"]}", "{FLUENT["edit"]}")'
+
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.
 def stroke(px):

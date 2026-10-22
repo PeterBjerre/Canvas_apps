@@ -58,10 +58,23 @@ COPY_ROW = lit("Copy row")
 DELETE_ROW = lit("Delete row")
 
 
+def edit_or_view(what, locked=None):
+    """Blyanten/View-ikonet (issue #551): "View <what>", naar indholdet kun
+    kan ses (locked er et Power Fx-udtryk), ellers "Edit <what>" - fx
+    View row / View details / View class data."""
+    edit = lit("Edit " + what)
+    return edit if locked is None else f'If({locked}, {lit("View " + what)}, {edit})'
+
+
+def verb(locked):
+    """ "View" eller "Edit" - foran en tekst, der bygges videre paa."""
+    return f'If({locked}, "View", "Edit")'
+
+
 def edit_row(locked=None):
     """Edit-ikonet: "View row", naar raekken kun kan ses (locked er et
     Power Fx-udtryk), ellers "Edit row"."""
-    return EDIT_ROW if locked is None else f"If({locked}, {VIEW_ROW}, {EDIT_ROW})"
+    return edit_or_view("row", locked)
 
 
 def view_count(n_expr, one, many=None, empty="", empty_locked=None, locked=None):
