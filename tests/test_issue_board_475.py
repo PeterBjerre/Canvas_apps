@@ -37,7 +37,8 @@ def test_status_and_actions_share_the_line_under_the_header():
     P, c = _ctrls()
     assert [k.name for k in c["conIbDetMeta"].children] == ["bdgIbDetStatus", "conIbDetActions"]
     assert c["conIbDetActions"].props["LayoutJustifyContent"] == "LayoutJustifyContent.End"
-    top = [k.name for k in c["conIbDetTop"].children]
+    # Telefonens titel i hele bredden (issue #508) staar kun paa mobil.
+    top = [k.name for k in c["conIbDetTop"].children if k.name != "txtIbDetTitleM"]
     assert top[0] == "conIbDetMeta" and top[-1] == "conIbDetTabs"
     assert "conIbDetRule" not in c
 
@@ -127,7 +128,10 @@ def test_comment_field_stays_at_the_bottom_under_a_scrolling_feed():
     feed = c["conIbActFeed"]
     assert [k.name for k in feed.children] == ["galIbActivity"]
     assert feed.props["LayoutOverflowY"] == "LayoutOverflow.Scroll"
-    assert feed.props["Height"].startswith("Max(80, Parent.Height - (")
+    # Fra Tablet og op; paa en telefon er feeden saa hoej som sine linjer,
+    # og fanen er den eneste scroll (issue #508).
+    import mobile
+    assert mobile.desk(feed.props["Height"]).startswith("Max(80, Parent.Height - (")
     # Indholdsfladen gaar helt ned til panelets bund - ikke kun saa hoej som
     # den laengste fane.
     h = c["conIbDetContent"].props["Height"]

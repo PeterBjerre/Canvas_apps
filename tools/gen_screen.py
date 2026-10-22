@@ -84,6 +84,11 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from design_tokens import ref as _t, TRANSPARENT
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+import layout_tokens as _lay
+# Et galleri uden scrollbar paa en telefon, hvor det er saa hoejt som sine
+# raekker og siden scroller (issue #508): ShowScrollbar = denne formel.
+SCROLLBAR_NOT_MOBILE = _lay.mobile_or("false", "true")
+MOBILE_GALLERY_RESERVE = 8
 # SHELL_W bruges ikke her, men builderne importerer den herfra. __all__
 # fortaeller pyflakes, at den genudsendes (som i doc_upload.py).
 __all__ = ["SHELL_W"]
@@ -172,8 +177,13 @@ class Ctrl:
     #       som .Height i en formel.
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
+    # mh    = hoejden PAA EN TELEFON, naar den er en anden end h (issue #508,
+    #         tools/mobile.restack). None = som h's mobilgren.
+    # _auto = (retning, hoejde) for en container, hvis hoejde group() regnede
+    #         af boernene - kun dem kan mobile.restack regne om.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w")
+                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w",
+                 "mh", "_auto")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -187,6 +197,8 @@ class Ctrl:
         self._grow = None      # mindstebredde, naar barnet tager resten
         self._fit = None       # (naturlig bredde, reserve): se build_helpers.fit
         self._vis = None
+        self.mh = None
+        self._auto = None
         if vis is not None:
             self.vis = vis
 
@@ -390,13 +402,23 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
         if c.control == "Gallery":
             pad = _p(c, "TemplatePadding", "0")
             size = _p(c, "TemplateSize", "0")
-            sb = SCROLLBAR_W if _p(c, "ShowScrollbar", "false") == "true" else 0
+            ssb = _p(c, "ShowScrollbar", "false")
+            sb = SCROLLBAR_W if ssb == "true" else 0
+            # Ingen scrollbar paa mobil, ellers som foer (issue #508,
+            # SCROLLBAR_NOT_MOBILE). Andre formler giver 0 som altid.
+            if ssb == SCROLLBAR_NOT_MOBILE:
+                sb = f"If({_lay.MOBILE}, 0, {SCROLLBAR_W})"
             if c.variant == "Horizontal":
                 c._tpl_w = size
                 c._tpl_h = f"({_p(c, 'Height')}) - 2 * {pad}"
                 c._tpl_unc = False
             else:
                 res = GALLERY_RESERVE if unc else 0
+                # Uden scrollbar paa mobil (SCROLLBAR_NOT_MOBILE) er der ingen
+                # scrollbar, der kan komme alligevel: reserven er MOBILE_
+                # GALLERY_RESERVE dér. Fra Tablet og op er den den samme.
+                if res and ssb == SCROLLBAR_NOT_MOBILE:
+                    res = f"If({_lay.MOBILE}, {MOBILE_GALLERY_RESERVE}, {GALLERY_RESERVE})"
                 wrap = _p(c, "WrapCount", "1")
                 if cw is None:
                     c._tpl_w = None
@@ -585,7 +607,23 @@ def _background(c, x, y, w, h, vis):
 
 
 def _place(c, x, y, w, h, vis, out):
-    """Placer c i boksen (x, y, w, h). w/h er None, naar c har sin egen."""
+    """Placer c i boksen (x, y, w, h). w/h er None, naar c har sin egen.
+
+    "_Mobile" (issue #508, tools/mobile.gallery_place): {X, Y, Width,
+    Height} paa en telefon - udtryk i skabelonens koordinater. De lagt
+    UDEN OM den udregnede placering som If(LayoutRank < 2, mobil, som
+    foer), saa en raekke kan staa som et kort paa to linjer paa en telefon,
+    mens tablet og desktop er praecis, som de var."""
+    mob = c.props.pop("_Mobile", None)
+    if mob:
+        if "X" in mob:
+            x = _lay.mobile_or(mob["X"], x)
+        if "Y" in mob:
+            y = _lay.mobile_or(mob["Y"], y)
+        if "Width" in mob:
+            w = _lay.mobile_or(mob["Width"], w if w is not None else _p(c, "Width", "0"))
+        if "Height" in mob:
+            h = _lay.mobile_or(mob["Height"], h if h is not None else _hv(c))
     own_vis = c.props.get("Visible")
     vis_all = _and(vis, own_vis)
     if c.control != "GroupContainer":
@@ -755,6 +793,14 @@ def flatten_galleries(nodes, problems=None):
                     w = c._tpl_w if c._tpl_w is not None else _p(k, "Width", "")
                     _place(k, "0", "0", w, _hv(k), None, out)
                 else:
+                    # En kontrol direkte i skabelonen har sin egen X/Y/
+                    # bredde/hoejde - "_Mobile" (mobile.gallery_place) laegges
+                    # uden om dem som i _place (issue #508, fase 5).
+                    mob = k.props.pop("_Mobile", None)
+                    for key, val in (mob or {}).items():
+                        k.props[key] = _lay.mobile_or(val, k.props.get(key, "0"))
+                        if key == "Height":
+                            k.h = k.props[key]
                     out.append(k)
             # "_OnTop": en kontrol, der skal ligge OVEN PAA en anden i
             # raekken - fx Delete oven paa den gennemsigtige knap, der goer

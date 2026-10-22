@@ -777,6 +777,10 @@ def test_toolbar_reserves_its_full_width_and_height_at_every_size():
         if expr is None:
             return None
         e = expr.replace("IsAdmin", "true" if admin else "false")
+        # Issue #508: listerne og sorteringen ligger bag "Filters" paa en
+        # telefon - regnet med knappen lukket (standard).
+        e = e.replace("Coalesce(varIbFiltersOpen, false)", "false")
+        e = e.replace("!(LayoutRank < 2)", "(LayoutRank >= 2)")
         return cl.evaluate(e, w, 3, 3, 3)
 
     def shown(kb, w, admin):
@@ -789,7 +793,11 @@ def test_toolbar_reserves_its_full_width_and_height_at_every_size():
         # Kortets indre bredde: kroppens padding og scrollbar trukket fra
         # (FIT_SLACK er luft, ikke optaget plads - soegefeltets grow maa
         # bruge den), og kortets 2 x 18 px.
-        inner = w - nav - (lay.SHELL_INSET - lay.FIT_SLACK) - 2 * 18
+        # Paa en telefon er rammen og kortet smallere polstret (issue #508).
+        phone = lay.rank_for(w) < lay.MOBILE_RANK
+        inset = lay.SHELL_INSET_MOBILE if phone else lay.SHELL_INSET
+        card_pad = lay.MOBILE_CARD_PAD if phone else 18
+        inner = w - nav - (inset - lay.FIT_SLACK) - 2 * card_pad
         for admin in (True, False):
             for name, body in rows:
                 props = body["Properties"]

@@ -32,11 +32,13 @@ import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 import action_tips as tips
+import mobile
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
                            act_fx, act_button, act_status, act_layers, panel_save_text,
                            confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
+                           mobile_pad,
                            panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
                            panel_save_block, reset_click_fx, reset_confirm)
 
@@ -285,9 +287,19 @@ def build_bar():
     # "Saving..." / "Submitting..." paa knapperne, mens der gemmes (#420).
     act_button(save, ACT, "save")
     act_button(submit, ACT, "submit")
+    delete = delete_button("Fl", "varFlViewOnly", "varFlRequestGuid")
+    # TELEFONEN (issue #508): knapperne bliver i headeren (issue #392), men
+    # de er 44 px hoeje, og ikonknapperne (Edit, Save draft, Submit, Delete)
+    # er 44 x 44 - en tommelfinger rammer dem. New Request beholder sin tekst
+    # (issue #243). Tablet og desktop er uaendrede.
+    for b in (edit, save, delete) + ((submit,) if ICON_SUBMIT else ()):
+        b.props["Width"] = lay.mobile_or(mobile.TOUCH, b.props["Width"])
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    for b in (new, edit, save, submit, delete):
+        mobile.touch(b)
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
-                  actions + [delete_button("Fl", "varFlViewOnly", "varFlRequestGuid")],
+                  actions + [delete],
                   icon=cfg.APP_KEY, mode_var="varFlViewOnly",
                   crumb=breadcrumb("Fl", cfg.APP_KEY, "varFlRequestNo"))
     return bar
@@ -555,6 +567,50 @@ V_ROW_H = f"{ROW_H} + {TOUCH_EXTRA}"
 
 ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
 
+# --- Telefonen: raekkerne som kort (issue #508) ------------------------------
+# Under Tablet er tabellen (V_MIN, ca. 1300 px) et kort pr. raekke - ingen
+# vandret scroll og ingen kolonneoverskrifter. Cellerne er de SAMME kontroller
+# (samme navne, bindinger og regler); kun placeringen er en anden
+# (mobile.gallery_place). Galleriets raekker har een hoejde, saa kortet har
+# to tilstande for alle raekker: kompakt (standard) og "Row details"
+# (ROWS_MORE, chevronen over listen):
+#   A  #3 . CLASS . Str. X . ABC Y          [Status] [Delete]
+#   B  Functional Location
+#   C  Description
+#   -- Row details --
+#   D  Room | Sort field | [ ] ATEX
+#   E  [Class data]  [Manufacturer]
+#   F  [Warranty]    [Copy]
+# Status (fejl og advarsler) og Delete staar altid paa kortet. Alle felter
+# er ogsaa i sidepanelet (Class data/Manufacturer/Warranty -> Show all).
+M_CARD_W = f"({SHELL_W} - {2 * lay.MOBILE_CARD_PAD})"
+M_TW = M_CARD_W
+M_LINE = mobile.TOUCH
+M_GAP = 8
+M_PAD_T = 8
+M_PAD_B = 12
+
+
+def _m_y(i):
+    """Y for kortets linje i (0 = A)."""
+    return M_PAD_T + i * (M_LINE + M_GAP)
+
+
+M_ROW_H_COMPACT = _m_y(3) - M_GAP + M_PAD_B
+M_ROW_H_MORE = _m_y(6) - M_GAP + M_PAD_B
+ROWS_MORE = "varFlRowsMoreOpen"
+ROWS_MORE_ON = mobile.state(ROWS_MORE)
+M_ROW_H = f"If({ROWS_MORE_ON}, {M_ROW_H_MORE}, {M_ROW_H_COMPACT})"
+# Saa mange kort staar uden egen scroll; flere (sjaeldent - loftet er
+# MAX_ROWS) scroller i listen, som tabellen goer efter GAL_MAX raekker.
+M_ROWS_MAX = 50
+M_HALF = f"(({M_TW}) - {M_GAP}) / 2"
+M_STATUS_W = 80
+M_ATEX_W = 72
+# Popup-knappernes flueben kraever MFR_WAR_W (ca. 143 px). Er en halv linje
+# smallere (under ca. 360 px skaermbredde), viser kun den groenne kant og
+# tekst (mark_done) og skaermlaeserens "filled in", at der er data.
+
 # Felterne bag popup-knapperne (Master, ens for alle klasser).
 MFR_FIELDS = ["MANUFACTURER", "MODEL NUMBER", "MANUFACTURER PART NUMBER",
               "MANUFACTURER SERIAL NUMBER"]
@@ -728,10 +784,74 @@ def row_cells():
     delete.props["Width"] = str(ACT_BTN)
     actions = group("conFlRowAct", [copy, delete], direction="Horizontal", gap=VGAP,
                     height=lay.HIT, align_items="Center")
+    _mobile_card(fl, desc, [kks, cls, abc], vals, atex, pops, status, copy, delete)
     # Samme raekkefoelge som V_FIXED: de faelles kolonner, saa Class data
     # (issue #468).
     return _cells(V_SPEC, [no, fl, desc, kks, cls] + vals + [abc, atex]
                   + pops + [status, actions])
+
+
+def _more(ctrl):
+    """Kun i "Row details" paa en telefon; ellers som foer."""
+    ctrl.vis = lay.mobile_or(ROWS_MORE_ON, ctrl.props.get("Visible") or "true")
+    return ctrl
+
+
+def _mobile_card(fl, desc, meta_cells, vals, atex, pops, status, copy, delete):
+    """Raekkens celler som et kort paa en telefon (se M_CARD_W ovenfor)."""
+    tw = M_TW
+    for c in meta_cells:
+        # Klasse, StrIndicator og ABC staar i kortets linje A (row_meta_m).
+        mobile.hide_on_mobile(c)
+    mobile.gallery_place(status, x=f"({tw}) - {ACT_BTN + M_GAP + M_STATUS_W}", y=M_PAD_T,
+                         w=M_STATUS_W, h=M_LINE)
+    mobile.gallery_place(delete, x=f"({tw}) - {ACT_BTN}", y=M_PAD_T, w=ACT_BTN, h=M_LINE)
+    # Felterne i fuld bredde og 44 px; uden kolonneoverskrift siger
+    # pladsholderen, hvad feltet er (etiketten har skaermlaeseren i forvejen).
+    for i, (inp, ph) in enumerate(((fl, '"Functional Location"'), (desc, '"Description"'))):
+        mobile.gallery_place(inp, x=0, y=_m_y(1 + i), w=tw, h=M_LINE)
+        cur = inp.props.get("Placeholder", '""')
+        new = ph if cur == '""' else cur.replace('"")', ph + ")")
+        inp.props["Placeholder"] = lay.mobile_or(new, cur)
+    # D: Room | Sort field | ATEX
+    vw = f"(({tw}) - {M_ATEX_W} - {2 * M_GAP}) / 2"
+    for i, inp in enumerate(vals):
+        lbl = _NO_CLASS[ROW_VALS[i][1]]["Column"]
+        mobile.gallery_place(inp, x=0 if i == 0 else f"{vw} + {M_GAP}", y=_m_y(3), w=vw, h=M_LINE)
+        ph = '"' + lbl[:1] + lbl[1:].lower() + '"'
+        inp.props["Placeholder"] = lay.mobile_or(ph, inp.props.get("Placeholder", '""'))
+        _more(inp)
+    # Hele linjens hoejde (44) er klikfladen (issue #508, fase 6).
+    mobile.gallery_place(atex, x=f"({tw}) - {M_ATEX_W}", y=_m_y(3), w=M_ATEX_W, h=M_LINE)
+    atex.props["Label"] = lay.mobile_or('"ATEX"', atex.props["Label"])
+    _more(atex)
+    # E/F: Class data, Manufacturer, Warranty - og Copy (med tekst).
+    for b, (x, line) in zip(pops, ((0, 4), (f"{M_HALF} + {M_GAP}", 4), (0, 5))):
+        mobile.gallery_place(b, x=x, y=_m_y(line), w=M_HALF, h=M_LINE)
+        has = b.props["Icon"][3:].split(', "Checkmark"')[0]
+        b.props["Layout"] = lay.mobile_or(
+            f"If(({has}) && ({M_HALF}) >= {MFR_WAR_W}, ButtonLayout.IconBefore, "
+            "ButtonLayout.TextOnly)", b.props["Layout"])
+        _more(b)
+    mobile.gallery_place(copy, x=f"{M_HALF} + {M_GAP}", y=_m_y(5), w=M_HALF, h=M_LINE)
+    copy.props["Layout"] = lay.mobile_or("ButtonLayout.IconBefore", copy.props["Layout"])
+    _more(copy)
+
+
+def row_meta_m():
+    """Kortets linje A paa en telefon: raekkens nummer, klasse,
+    StrIndicator og ABC indicator i een linje (kun mobil)."""
+    txt = (f'With({{ c: ThisItem.AssignedClass, k: ThisItem.KksType, a: {_val("ABC INDIC.")} }}, '
+           '"#" & ThisItem.Pos & "  \u00b7  " & If(IsBlank(c), "No class yet", c) & '
+           'If(IsBlank(k), "", "  \u00b7  Str. " & k) & If(IsBlank(a), "", "  \u00b7  ABC " & a))')
+    t = text_ctrl("txtFlRowMetaM", txt, size=13, weight="Semibold", height=20, wrap="false",
+                  visible=lay.MOBILE,
+                  accessible='"Row " & ThisItem.Pos & ", class " & '
+                             'Coalesce(ThisItem.AssignedClass, "not set yet")')
+    t.props["X"] = "0"
+    t.props["Y"] = str(M_PAD_T + (M_LINE - 20) // 2)
+    t.props["Width"] = f"Max(0, ({M_TW}) - {ACT_BTN + M_STATUS_W + 3 * M_GAP})"
+    return t
 
 
 # --- Sidepanelet (raekkens editor, issue #278) -------------------------------
@@ -885,8 +1005,57 @@ def _panel_section(key, title):
         vis = f'{has} && !(IfError(varFlPanelJump, "") in [{keys}])'
     heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
                         weight="Semibold", height=22, wrap="false", visible=vis)
-    return group(f"conFlPanel{key}", [heading] + fields, direction="Vertical",
+    # TELEFONEN (issue #508): sektionerne kan klappes sammen (chevron), saa
+    # panelet ikke er en lang formular. Aabnet fra en knap (Class data,
+    # Manufacturer, Warranty) er knappens sektioner altid aabne - de andre
+    # er skjult som foer. Under "Show all fields" er Functional location og
+    # sektioner med en fejl aabne; resten viser antal udfyldte og fejl.
+    mobile.hide_on_mobile(heading)
+    fold = mobile.collapsible(f"FlPanel{key}", title, fields, _sec_var(key),
+                              summary=_sec_summary(key), size=lay.SIZE_BODY,
+                              open_expr=_sec_open(key))
+    # Chevronen kun, naar sektionen KAN klappes (ikke aabnet fra en knap).
+    chev = mobile.find(fold[0], f"btnFlPanel{key}Fold")
+    chev.vis = f"{chev.vis} && IsBlank(IfError(varFlPanelJump, \"\"))"
+    return group(f"conFlPanel{key}", [heading] + fold, direction="Vertical",
                  gap=PANEL_HEAD_GAP, visible=vis)
+
+
+def _sec_var(key):
+    return f"varFlPanel{key}Open"
+
+
+def _sec_fields(key):
+    """Sektionens felter (og dens undergitter: Main har StrIndicator/Class)."""
+    panes = [key] + ([cfg.PANEL_SUB[key]] if key in cfg.PANEL_SUB else [])
+    test = " || ".join(f'Pane = "{k}"' for k in panes)
+    return f"Filter(colFlDet, {test}).Field"
+
+
+def _sec_errors(key):
+    """Felter i sektionen med en fejl (samme udvalg som field_issue for
+    spool-felterne). Main's FL/Description har deres egen besked - Main er
+    altid aaben, saa den taeller ikke."""
+    return (f'CountRows(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && '
+            f'Ord >= 100 && Field in {_sec_fields(key)}))')
+
+
+def _sec_open(key):
+    """Er sektionen aaben paa telefonen? Aabnet fra en knap: altid (de
+    andre sektioner er skjult). Ellers brugerens valg, og som standard
+    Main og sektioner med en fejl."""
+    default = "true" if key == "Main" else f"IfError({_sec_errors(key)} > 0, false)"
+    return (f'If(!IsBlank(IfError(varFlPanelJump, "")), true, '
+            f"Coalesce({_sec_var(key)}, {default}))")
+
+
+def _sec_summary(key):
+    """Opsummeringen, mens sektionen er lukket: fejl og udfyldte felter."""
+    fields = _sec_fields(key)
+    return (f'IfError(With({{ e: {_sec_errors(key)}, '
+            f"f: CountRows(Filter(colFlVals, RowGuid = varFlDetailRow && Field in {fields})), "
+            f"n: CountRows({fields}) }}, "
+            'If(e > 0, e & " to fix  \u00b7  ", "") & f & " of " & n & " filled"), "")')
 
 
 # Afstanden mellem sektionerne (issue #347). Hvert felt slutter allerede
@@ -899,14 +1068,17 @@ PANEL_SECTION_GAP = 4
 PANEL_HEAD_GAP = 4
 PANEL_PAD = 20
 # Panelets formularbredde: panelet minus pad, scrollens pad og scrollbaren.
-PANEL_FORM_W = f"({lay.PANEL_W_AT}) - 2 * {PANEL_PAD} - 2 * {PANEL_PAD} - {SCROLLBAR_W}"
+# Paa telefonen (issue #508) er polstringen 12 + 0 (lay.PANEL_INNER_W).
+assert PANEL_PAD == 20, "lay.PANEL_INNER_W regner med 2 x 20 + 2 x 20 fra Tablet"
+PANEL_FORM_W = lay.PANEL_INNER_W
 PANEL_COL_MIN = 200
-# 3 kolonner naar de kan faa PANEL_COL_MIN hver, ellers 2, ellers 1.
-PANEL_COLS = (f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
-              f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1))")
+# 3 kolonner naar de kan faa PANEL_COL_MIN hver, ellers 2, ellers 1. Paa
+# telefonen altid EEN kolonne (issue #508) - ogsaa paa en bred telefon.
+PANEL_COLS = lay.mobile_or("1", f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
+                                f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1))")
 # KKS type + Assigned class: side om side, og under hinanden (KKS type
 # foerst), naar to kolonner ikke kan faa PANEL_COL_MIN hver.
-PANEL_SUB_COLS = f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1)"
+PANEL_SUB_COLS = lay.mobile_or("1", f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1)")
 # Panelets gem-tilstand: "saving", "failed" eller tom (issue #402,
 # build_helpers.panel_save_status). Hoerer til den raekke, der er aaben -
 # den nulstilles, naar panelet aabnes paa en raekke og naar det lukkes.
@@ -972,6 +1144,7 @@ def build_row_panel():
     show_all.props["BorderColor"] = C_INPUT_BORDER
     show_all.props["BorderThickness"] = "1"
     show_all.props["AlignInContainer"] = "AlignInContainer.Start"
+    mobile.touch(show_all)
     # Klassen uden klassefelter (som popuppens "This class has no class
     # data fields.") - ellers stod panelet tomt under "Show all fields".
     cls_keys = ", ".join(f'"{k}"' for k in PANEL_FOCUS[PANEL_CLS_JUMP])
@@ -998,6 +1171,12 @@ def build_row_panel():
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
+    # TELEFONEN (issue #508): panelet er allerede hele skaermen under Desktop
+    # (PANEL_W_AT), med overskriften (Row n of m, pilene og Luk) fast
+    # oeverst og bundbjaelken fast nederst. Som row_editor_panel: 12 px i
+    # siderne, formularen uden ekstra polstring (PANEL_FORM_W regner med det).
+    mobile.full_screen(panel, pad_x=lay.MOBILE_PAD_X)
+    mobile_pad(scroll, x=0)
     # Mens panelet gemmer: et gennemsigtigt lag over alt. Bekraeftelserne
     # ligger OVER panelet.
     return [backdrop, panel, panel_save_block("Fl", PANEL_SAVE)] + _panel_confirms()
@@ -1065,30 +1244,58 @@ def build_rows():
                         display_mode=DM_EDIT, icon=icons.FLUENT["paste"],
                         tooltip='"Paste functional locations and descriptions copied from Excel"'),
                  icon=True)
+    # Telefonen (issue #508): Paste rows og Add row er 44 x 44 ikoner, saa
+    # titlen og taelleren kan staa paa linjen ved 320 px.
+    for b in (paste, add):
+        b.props["Width"] = lay.mobile_or(mobile.TOUCH, b.props["Width"])
+        b.props["LayoutMinWidth"] = b.props["Width"]
+        b.props["Layout"] = lay.mobile_or("ButtonLayout.IconOnly", b.props["Layout"])
+        mobile.touch(b)
     head_row = group("conFlRowsTop", pin_widths([title, count, paste, add]), direction="Horizontal",
-                     gap=12, align_items="Center")
+                     gap=12, align_items="Center", height=lay.mobile_or(mobile.TOUCH, 36))
+    # "Row details" (kun telefonen): kortenes ekstra linjer - se M_CARD_W.
+    more, = mobile.collapsible("FlRowsMore", "Row details", [], ROWS_MORE,
+                               summary='"Room, sort, class, maker, warranty"')
 
-    head = table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W)
+    head = mobile.hide_on_mobile(table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W))
+    n = "CountRows(colFlRows)"
     gal = table_gallery("galFlRows", '"Functional Location rows"',
-                        "Sort(colFlRows, RowNo)", "CountRows(colFlRows)", row_cells(), "conFlRow",
-                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F,
+                        "Sort(colFlRows, RowNo)", n, row_cells(), "conFlRow",
+                        row_h=V_ROW_H, gap=VGAP, width=lay.mobile_or(M_CARD_W, V_GAL_W),
+                        tpl_h=ROW_TOP_F,
                         # En ny kopi kan ses paa sin baggrund (issue #467).
-                        row_fill=f"If({COPIED}, {C_INFO_BG}, {C_TRANSPARENT})")
+                        row_fill=f"If({COPIED}, {C_INFO_BG}, {C_TRANSPARENT})",
+                        extra=[row_meta_m()])
+    # Kortene paa telefonen: hele listen uden egen scroll (op til M_ROWS_MAX),
+    # og raekkens baggrund (en ny kopi) daekker hele kortet.
+    gal.props["TemplateSize"] = lay.mobile_or(M_ROW_H, gal.props["TemplateSize"])
+    gal.props["Height"] = lay.mobile_or(f"Min({n}, {M_ROWS_MAX}) * ({M_ROW_H})", gal.props["Height"])
+    gal.h = gal.props["Height"]
+    gal.props["ShowScrollbar"] = lay.mobile_or(f"{n} > {M_ROWS_MAX}", gal.props["ShowScrollbar"])
+    mobile.gallery_place(mobile.find(gal, "conFlRow"), w=M_TW, h=f"({M_ROW_H}) - 1")
     # Vandret scroll, naar tabellen er bredere end kortet (Equipment/
     # Materials' moenster, domain_parts). Start, ikke Stretch - check_layout
     # regel 14. Den vandrette scrollbar tager hoejde, saa den laegges til.
-    table = group("conFlTable", [head, divider("conFlRowsRule", width=V_GAL_W), gal],
+    table = group("conFlTable", [head, mobile.hide_on_mobile(divider("conFlRowsRule", width=V_GAL_W)),
+                                 gal],
                   direction="Vertical", gap=10, overflow_x="Scroll", align_items="Start")
-    table.props["Height"] = f"{table.props['Height']} + If({V_WIDE}, {SCROLLBAR_W}, 0)"
+    # Paa telefonen er tabellen kun kortene - kortet er aldrig bredere end
+    # pladsen, saa der er ingen vandret scrollbar.
+    table.props["Height"] = lay.mobile_or(
+        f"Min({n}, {M_ROWS_MAX}) * ({M_ROW_H})",
+        f"{table.props['Height']} + If({V_WIDE}, {SCROLLBAR_W}, 0)")
     table.h = table.props["Height"]
 
     # Kun noget at sige, naar der ER noget: en fejl ved gem/indsend, eller
     # raekker, der blokerer Submit. Ingen "Ready."/"Done." (issue #77).
+    # Telefonen (issue #508): beskeden ombrydes paa to linjer i stedet for
+    # at blive skaaret af - den siger, hvad der blokerer Submit.
     info = text_ctrl("txtFlInfo",
                      "varFlInfo",
-                     size=12, color=C_INVALID_FG, height=18, wrap="false",
+                     size=12, color=C_INVALID_FG, height=lay.mobile_or(36, 18),
+                     wrap=lay.mobile_or("true", "false"),
                      visible="!IsBlank(varFlInfo)")
-    return card("conFlRowsCard", [head_row, table, info, verify_button()], gap=10)
+    return card("conFlRowsCard", [head_row, more, table, info, verify_button()], gap=10)
 
 # ---------------------------------------------------------------------------
 # Klassefanerne (functional-location.html:77-81, FL28 og FL60)
@@ -1133,6 +1340,15 @@ VIEW_POS = ("With({ vw: " + VIEW + " },\n"
             "          FirstIssue: r.FirstIssue, FirstWarning: r.FirstWarning,\n"
             "          FlBad: r.FlBad, DescBad: r.DescBad })))")
 TAB_W = 136
+# Telefonen (issue #508): fanerne er 42 px hoeje (galleriet 48 med
+# TemplatePadding 3), og Classes' raekker er kort paa tre linjer:
+#   #3 . FL                                   [Edit]
+#   Description
+#   CLASS . Str. X . Room . Sort . ABC . ATEX
+TAB_H_M = 42
+C_ROW_H_M = 76
+C_ROWS_MAX = 50
+CLASSES_OPEN = "varFlClassesOpen"
 
 
 def build_classes():
@@ -1141,7 +1357,8 @@ def build_classes():
     title = text_ctrl("txtFlClassesH", '"Classes"', size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                       wrap="false")
 
-    tab = button("btnFlTab", "ThisItem.Label", "Set(varFlTab, ThisItem.Key)", width=130, height=34)
+    tab = button("btnFlTab", "ThisItem.Label", "Set(varFlTab, ThisItem.Key)", width=130,
+                 height=lay.mobile_or(TAB_H_M, 34))
     sel = "varFlTab = ThisItem.Key"
     tab.props["Appearance"] = f"If({sel}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
     tab.props["BasePaletteColor"] = C_PRIMARY
@@ -1154,23 +1371,25 @@ def build_classes():
         "BorderStyle": "BorderStyle.None",
         "Fill": C_CARD_BG,
         "FillPortions": "0",
-        "Height": "40",
+        "Height": lay.mobile_or(TAB_H_M + 6, 40),
         "Items": "colFlTabs",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
         # Kun naar fanerne ikke kan staa paa een linje.
-        "ShowScrollbar": f"CountRows(colFlTabs) * {TAB_W} > {SHELL_W} - 36",
+        # Paa telefonen swipes fanerne - ingen scrollbar under dem.
+        "ShowScrollbar": lay.mobile_or("false", f"CountRows(colFlTabs) * {TAB_W} > {SHELL_W} - 36"),
         "TabIndex": "0",
         "TemplatePadding": "3",
         "TemplateSize": str(TAB_W - 6),
         "Visible": HAS_CLASSES,
         "Width": "Parent.Width",
         "WrapCount": "1",
-    }, children=[tab], h=40, vis=HAS_CLASSES)
+    }, children=[tab], h=lay.mobile_or(TAB_H_M + 6, 40), vis=HAS_CLASSES)
 
-    note = text_ctrl("txtFlClassNote",
-                     '"Compact view - the Edit pencil opens the class data of the row."',
+    note_txt = lay.mobile_or('"The pencil opens the class data of the row."',
+                             '"Compact view - the Edit pencil opens the class data of the row."')
+    note = text_ctrl("txtFlClassNote", note_txt, accessible=note_txt,
                      size=12, color=C_MUTED, height=18, wrap="false", visible=HAS_CLASSES)
 
     head = table_head("conFlClsHead", C_SPEC, gap=VGAP, width=C_GAL_W)
@@ -1221,24 +1440,66 @@ def build_classes():
     # Den tomme kolonne mellem ATEX og Actions (C_GAP_W).
     gap = group("conFlCGap", [], direction="Horizontal", height=20)
     cells = _cells(C_SPEC, [no, fl, desc, strc, clsc] + ro_vals + [gap, c_act])
+    # Telefonen: kortet paa tre linjer (TAB_H_M ovenfor). Nummeret staar
+    # foran FL, og klasse, StrIndicator, Room, Sort, ABC og ATEX i een linje
+    # (txtFlCMetaM). Blyanten er 44 px til hoejre.
+    for c in [no, strc, clsc] + ro_vals:
+        mobile.hide_on_mobile(c)
+    text_w = f"({M_TW}) - {ACT_BTN + M_GAP}"
+    fl.props["Text"] = lay.mobile_or(
+        '"#" & ThisItem.Pos & "  \u00b7  " & If(IsBlank(ThisItem.FL), "-", ThisItem.FL)',
+        fl.props["Text"])
+    mobile.gallery_place(fl, x=0, y=8, w=text_w, h=22)
+    mobile.gallery_place(desc, x=0, y=30, w=text_w, h=20)
+    mobile.gallery_place(open_, x=f"({M_TW}) - {ACT_BTN}", y=(C_ROW_H_M - M_LINE) // 2,
+                         w=ACT_BTN, h=M_LINE)
+    meta = text_ctrl(
+        "txtFlCMetaM",
+        f'With({{ c: ThisItem.AssignedClass, k: ThisItem.KksType, r: {_val("ROOM")}, '
+        f'so: {_val("SORT FIELD")}, a: {_val("ABC INDIC.")}, x: {_val("ATEX")} }}, '
+        'Coalesce(c, "-") & If(IsBlank(k), "", "  \u00b7  Str. " & k) & '
+        'If(IsBlank(r), "", "  \u00b7  Room " & r) & If(IsBlank(so), "", "  \u00b7  Sort " & so) & '
+        'If(IsBlank(a), "", "  \u00b7  ABC " & a) & If(Upper(Trim(x)) = "X", "  \u00b7  ATEX", ""))',
+        size=12, color=C_MUTED, height=18, wrap="false", visible=lay.MOBILE)
+    meta.props["X"] = "0"
+    meta.props["Y"] = "50"
+    meta.props["Width"] = f"Max(0, {text_w})"
     # Samme raekkehoejde og mellemrum som Rows (issue #468).
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
-                        cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W,
-                        row_h=V_ROW_H, tpl_h=ROW_TOP_F)
+                        cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP,
+                        width=lay.mobile_or(M_CARD_W, C_GAL_W),
+                        row_h=V_ROW_H, tpl_h=ROW_TOP_F, extra=[meta])
+    gal.props["TemplateSize"] = lay.mobile_or(C_ROW_H_M, gal.props["TemplateSize"])
+    c_mob_h = f"Min({VIEW_N}, {C_ROWS_MAX}) * {C_ROW_H_M}"
+    gal.props["Height"] = lay.mobile_or(c_mob_h, gal.props["Height"])
+    gal.h = gal.props["Height"]
+    gal.props["ShowScrollbar"] = lay.mobile_or(f"{VIEW_N} > {C_ROWS_MAX}", gal.props["ShowScrollbar"])
     # Vandret scroll, naar tabellen er bredere end kortet - som Rows'
     # conFlTable (issue #356).
     c_wide = f"({ROWS_W}) < ({C_W})"
-    table = group("conFlClsTable", [head, divider("conFlClsRule", HAS_CLASSES, width=C_GAL_W), gal],
+    mobile.hide_on_mobile(head)
+    rule = mobile.hide_on_mobile(divider("conFlClsRule", HAS_CLASSES, width=C_GAL_W))
+    table = group("conFlClsTable", [head, rule, gal],
                   direction="Vertical", gap=10, overflow_x="Scroll", align_items="Start",
                   visible=HAS_CLASSES)
-    table.props["Height"] = f"{table.props['Height']} + If({c_wide}, {SCROLLBAR_W}, 0)"
+    table.props["Height"] = lay.mobile_or(
+        c_mob_h, f"{table.props['Height']} + If({c_wide}, {SCROLLBAR_W}, 0)")
     table.h = table.props["Height"]
     empty = text_ctrl("txtFlNoClassRows",
                       '"No classified rows yet - a row appears here once its Functional Location is valid."',
                       size=13, color=C_MUTED, height=20, wrap="false",
                       visible=f"!({HAS_CLASSES})")
+    # Telefonen: Classes er en anden visning af de samme raekker - sekundaer,
+    # saa kortet er klappet sammen (chevron) med antallet som opsummering.
+    # Titlen staar i chevronlinjen dér; fra Tablet er kortet som foer.
+    mobile.hide_on_mobile(title)
+    fold = mobile.collapsible(
+        "FlClasses", "Classes", [tabs, note, table, empty], CLASSES_OPEN,
+        summary=(f'IfError(If(CountRows({V.BUCKETS}) = 0, "None yet", '
+                 f'Text(CountRows({V.BUCKETS})) & " classified"), "")'),
+        size=lay.SIZE_CARD_TITLE)
     return card("conFlClassesCard",
-                [title, tabs, note, table, empty],
+                [title, *fold],
                 gap=10)
 
 
@@ -1378,12 +1639,24 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
     issue = text_ctrl(f"txtFl{tag}Issue", f"Coalesce(ThisItem.Issue, {FIELD_HELP})",
                       size=12, color=f"If(IsBlank(ThisItem.Issue), {C_MUTED}, {C_INVALID_FG})",
                       height=18, wrap="false")
+    # Telefonen (issue #508): felterne er 44 px hoeje (touch), og flisen har
+    # ingen luft til hoejre - der er kun een kolonne (PANEL_COLS).
+    for c in (txt, dte, dd, chk, ro):
+        c.props["Height"] = lay.mobile_or(mobile.TOUCH, c.props["Height"])
+        c.h = c.props["Height"]
+    # Bredden paa telefonen: panelets formular (lay.PANEL_INNER_W) minus de
+    # 8 px, et galleri uden scrollbar holder fri paa mobil - ikke den
+    # usikre kaedes GALLERY_RESERVE (40 px tabt i hver linje).
+    for c in (lbl, txt, dte, dd, chk, ro, issue):
+        mobile.gallery_place(c, w=f"App.Width - {2 * lay.MOBILE_PAD_X} - {SCROLLBAR_W} - 8")
     tile = group(f"conFl{tag}Tile", [lbl, txt, dte, dd, chk, ro, issue], direction="Vertical", gap=2,
                  width="Parent.TemplateWidth", height="Parent.TemplateHeight",
                  pad=(0, TILE_GAP, 10, 0))
+    mobile_pad(tile, right=0)
     if live:
         _live(tile)
-    gal_h = f"RoundUp({n} / ({cols}), 0) * {TILE_H}"
+    tile_h = lay.mobile_or(TILE_H + mobile.TOUCH - 36, TILE_H)
+    gal_h = f"RoundUp({n} / ({cols}), 0) * ({tile_h})"
     vis = f"IfError({n} > 0, false)"
     gal = Ctrl(f"galFl{tag}Fields", "Gallery", variant="Vertical", props={
         "AccessibleLabel": label,
@@ -1398,7 +1671,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
         "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "0",
-        "TemplateSize": str(TILE_H),
+        "TemplateSize": tile_h,
         "Visible": vis,
         "Width": "Parent.Width",
         "WrapCount": cols,
@@ -1498,18 +1771,22 @@ def _paste_add_fx():
 
 def build_paste():
     """Popuppen "Paste rows" - [sloer, popup]."""
-    from build_helpers import popup_head, tap_backdrop, popup_body_max, capped_body
+    from build_helpers import popup_head, tap_backdrop, popup_body_max, capped_body, mobile_footer
     vis = "IfError(varFlPasteOpen, false)"
     close = "Set(varFlPasteOpen, false)"
     backdrop = tap_backdrop("conFlPasteBackdrop", vis, close)
     title = text_ctrl("txtFlPasteTitle", '"Paste rows"', size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=26, wrap="false")
     head = popup_head("conFlPasteHead", title, "btnFlPasteClose", close)
-    help_ = text_ctrl("txtFlPasteHelp",
-                      '"Copy two columns in Excel and paste them here, one row per line: '
-                      'the functional location and the description."',
-                      size=13, color=C_MUTED, height=lay.if_below("Tablet", 60, 40), wrap="true")
-    inp = text_input("inpFlPaste", 'Coalesce(varFlPasteText, "")', height=160, ttype="Multiline",
+    # Telefonen (issue #508): kortere hjaelp og et lavere felt, saa Add rows
+    # kan ses over tastaturet; popuppen staar oeverst i (naesten) fuld bredde.
+    help_txt = lay.mobile_or('"Paste two Excel columns: functional location and description."',
+                             '"Copy two columns in Excel and paste them here, one row per line: '
+                             'the functional location and the description."')
+    help_ = text_ctrl("txtFlPasteHelp", help_txt, size=13, color=C_MUTED, height=40, wrap="true",
+                      accessible=help_txt)
+    inp = text_input("inpFlPaste", 'Coalesce(varFlPasteText, "")', height=lay.mobile_or(120, 160),
+                     ttype="Multiline",
                      placeholder='"Paste from Excel"', label='"Rows to paste"',
                      onchange="Set(varFlPasteText, Self.Text)")
     n = f"CountRows({PASTE_LINES})"
@@ -1519,11 +1796,13 @@ def build_paste():
                  display_mode=f"If({n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conFlPasteFooter", [add], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    body = capped_body("conFlPasteBody", [help_, inp], popup_body_max([head.h, footer.h]))
+    mobile_footer(footer)
+    body = capped_body("conFlPasteBody", [help_, inp], f"{popup_body_max([head.h, 0])} - ({footer.h})")
     modal = group("conFlPasteModal", [head, body, footer], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(560, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 3)"
+    mobile.mobile_popup(modal, top=True)
     return [backdrop, modal]

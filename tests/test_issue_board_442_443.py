@@ -56,7 +56,9 @@ def test_overview_reads_the_rows_own_count_not_the_connector_flag():
     assert "Has attachments" not in text and "HasFiles" not in text
     # Papirclipsen pr. raekke: kun naar DENNE sag har mindst een fil.
     assert P.ROW_HAS_FILES == "Coalesce(ThisItem.FileCount, 0) > 0"
-    assert text.count("Coalesce(ThisItem.FileCount, 0) > 0") == 2
+    # 2 synligheder + 2 i telefonens kortplacering (issue #508: taleboblen
+    # og metadata giver plads til papirclipsen, naar den staar).
+    assert text.count("Coalesce(ThisItem.FileCount, 0) > 0") == 4
 
 
 def test_upload_saves_the_count_in_the_same_patch():
@@ -93,6 +95,8 @@ def test_tab_count_is_known_at_open_and_never_a_guessed_zero():
     # Ikke laengere Activity's Attachment-haendelser (de skrives ikke siden #300).
     assert 'CountRows(Filter(colIbActivity, Kind = "Attachment"))' not in formulas
     # Blank = ukendt -> "Attachments" uden tal.
-    assert '"Attachments" & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")' in _read(SCREEN)
+    # Paa en telefon hedder fanen "Files" (issue #508).
+    assert ('If(LayoutRank < 2, "Files", "Attachments") & If(IsBlank(IbFileCount), "", '
+            '" (" & IbFileCount & ")")') in _read(SCREEN)
     # Filerne hentes stadig foerst, naar fanen vaelges.
     assert P.LOAD_FILES not in P.LOAD_OPEN

@@ -6,6 +6,7 @@ liste og soegefeltet) klippes ikke af foraelderen.
 
     python3 -m pytest tests/test_feedback_message_492.py
 """
+import re
 import glob
 import os
 
@@ -112,7 +113,9 @@ def test_open_list_stays_inside_the_area():
         area_h = _props(doc, f"con{p}FbArea")["Height"]
         layer = _props(doc, f"con{p}FbSubjectLayer")
         y = layer["Y"]
-        h = (layer["Height"].replace(f"Min(gal{p}FbSubject.AllItemsCount, 7) * 36", "10000")
+        # Raekkerne er 44 hoeje paa mobil (issue #508, fase 6): If(LayoutRank < 2, 44, 36).
+        h = (re.sub(r"Min\(gal%sFbSubject\.AllItemsCount, 7\) \* (?:If\(LayoutRank < 2, 44, 36\)|36)" % p,
+                    "10000", layer["Height"])
              .replace("CountRows(colFbRequests) > 6", "True"))
         for control, rank in ((36, 3), (44, 2), (44, 1)):
             for app_h in (700, 900, 1200):

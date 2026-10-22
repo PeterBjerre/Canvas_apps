@@ -5,7 +5,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
                         C_MODAL_BG, C_PRIMARY_SOFT,
-                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W, C_WARN_FG,
+                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, C_WARN_FG,
                         C_NEUTRAL_BG, C_TITLE)
 import layout_tokens as lay
 import icons
@@ -14,9 +14,11 @@ from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, f
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
                            tab_list, tabs_w, modern_card, confirm_modal)
-from build_plan_header import section_header, help_panel, section_footer
+from build_plan_header import section_header, help_panel, section_footer, mobile_head
+from build_helpers import mobile_pad
+import mobile
 from build_helpers import act_fx, act_mark, act_button
-from gen_screen import lock_section
+from gen_screen import lock_section, SCROLLBAR_NOT_MOBILE
 
 # Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
 NV = num_value()
@@ -50,7 +52,8 @@ VIEW_READONLY = "If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)"
 OPS_LOCKED = cfg.section_locked("Ops")
 # Skaermens handlingstilstand (build_hero.ACT) - Saving... i knappen.
 ACT = "varVhpAct"
-OPS_CW = f"({SHELL_W} - 36)"
+# Paa en telefon er kortets polstring 12 i hver side (issue #508).
+OPS_CW = lay.CARD_INNER_W
 
 # ---------------------------------------------------------------------------
 # Operationstabellens kolonner.
@@ -228,6 +231,10 @@ def _matgrp_modal():
         f'"Current material group: " & If(IsBlank({cur_v}), "(none)", {matgrp_display(cur_v)})',
         size=12, color=C_MUTED, height=18, wrap="false")
     row_h = 36
+    # Telefonen (issue #508): raekker paa 44 px (klikflade), og listen
+    # bruger den hoejde, popuppen har (den eneste scroll i popuppen).
+    row_h_m = mobile.TOUCH + 2
+    row_h_fx = lay.mobile_or(row_h_m, row_h)
     line = grow(text_ctrl("txtVhpMgRow", "ThisItem.Display", size=13, height=24, wrap="false"))
     row = group("conVhpMgRow", [line], direction="Horizontal", height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth",
@@ -240,14 +247,15 @@ def _matgrp_modal():
     # Popup'en aabnes kun fra en knap, der er slaaet fra i View - men et
     # klik paa listen maa heller ikke skrive der (issue #390).
     hit.props["DisplayMode"] = VIEW_READONLY
-    gal_h = f"Min(CountRows(colVhpMaterialGroups) * {row_h}, Max(160, App.Height - 220))"
+    gal_h = lay.mobile_or(f"Min(CountRows(colVhpMaterialGroups) * {row_h_m}, Max(160, App.Height - 150))",
+                          f"Min(CountRows(colVhpMaterialGroups) * {row_h}, Max(160, App.Height - 220))")
     gal = Ctrl("galVhpMatGroups", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Material groups - select one to use it"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
         "Height": gal_h, "Items": "colVhpMaterialGroups",
         "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "2",
-        "TemplateSize": str(row_h - 2), "Width": MODAL_CW, "WrapCount": "1",
+        "TemplateSize": f"({row_h_fx}) - 2", "Width": MODAL_CW, "WrapCount": "1",
     }, children=[row, hit], h=gal_h)
     return _modal("VhpMg", '"Material group · Operation " & varVhpMgOpNo', MG_OPEN,
                   MG_CLOSE, [cur, gal])
@@ -395,8 +403,10 @@ def _tab_bar():
     for key, text, short, cond in TABS:
         fx = f'"{text}"' if text == short else f'If({roomy}, "{text}", "{short}")'
         tabs.append((key, fx) + ((f"IfError({cond}, false)",) if cond else ()))
-    return tab_list("tabVhpOps", "varVhpOpsTab", tabs, label="Task list sections",
-                    width=OPS_CW)
+    tl = tab_list("tabVhpOps", "varVhpOpsTab", tabs, label="Task list sections",
+                  width=OPS_CW)
+    # 44 px paa en telefon (issue #508).
+    return mobile.touch(tl)
 
 
 def _tab_bar_if_strategy():
@@ -558,25 +568,35 @@ def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False, cap=F
     t = text_ctrl(f"txt{name}Title", title, size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                   wrap="false")
     head = popup_head(f"con{name}HeadRow", t, f"btn{name}Close", close_fx, mode=close_mode)
+    # TELEFONEN (issue #508): popuppen er skaermens bredde minus 2 x 8 med
+    # 12 px polstring i siderne (MODAL_CW), og en popup med meget indhold
+    # (scroll/cap) staar oeverst og bruger hele hoejden minus 2 x 8.
     if scroll:
-        body_h = f"Max(200, App.Height - {150 + HEAD_H - 32})"
+        body_h = lay.mobile_or(f"App.Height - {2 * lay.MOBILE_POP_MARGIN + 36 + HEAD_H + 12}",
+                               f"Max(200, App.Height - {150 + HEAD_H - 32})")
         body = group(f"con{name}Body", kids, direction="Vertical", gap=8, height=body_h,
                      overflow_y="Scroll")
         kids = [body]
     elif cap:
-        kids = [du.capped_body(f"con{name}Body", kids, f"App.Height - 40 - 36 - {HEAD_H} - 12", gap=8)]
+        cap_h = lay.mobile_or(f"App.Height - {2 * lay.MOBILE_POP_MARGIN} - 36 - {HEAD_H} - 12",
+                              f"App.Height - 40 - 36 - {HEAD_H} - 12")
+        kids = [du.capped_body(f"con{name}Body", kids, cap_h, gap=8)]
     modal = group(f"con{name}Modal", [head] + kids, direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=f"Min({width}, App.Width - 40)",
+                  pad=(18, 18, 18, 18), width=lay.popup_w(width, 40),
                   drop_shadow="ExtraBold", visible=f"IfError({open_var}, false)")
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "20" if scroll else "Max(20, (App.Height - Self.Height) / 3)"
+    desk_y = "20" if scroll else "Max(20, (App.Height - Self.Height) / 3)"
+    modal.props["Y"] = mobile.sheet_y(desk_y) if (scroll or cap) else desk_y
     return modal
 
 
 ATT_OPEN = "!IsBlank(varVhpAttOpNo)"
 # Popup'ernes indholdsbredde: 620 minus 18 + 18.
-MODAL_CW = "(Min(620, App.Width - 40) - 36)"
+# Paa en telefon: App.Width - 2 x 8 (popup_w) - 2 x 12 (polstringen).
+MODAL_CW = lay.mobile_or(f"App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD}",
+                         "(Min(620, App.Width - 40) - 36)")
 
 
 MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
@@ -618,8 +638,9 @@ def _materials_modal():
         ), primary=True, width=fit_button_width('"Add material"') + ICON_W, icon="Add",
         display_mode=VIEW_LOCK, visible=f"!{ro}")
 
+    mobile.touch(btnAdd)
     actions = group("conVhpMatActions", [btnAdd], direction="Horizontal", gap=8,
-                    height=36, align_items="Center", visible=f"!{ro}")
+                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center", visible=f"!{ro}")
 
     header = Ctrl("htmVhpMatHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _mat_header_html(),
@@ -687,7 +708,26 @@ def _materials_modal():
                 align_items="Center", width="Parent.TemplateWidth")
 
     MAT_ROWS = 6
-    gal_h = MAT_ROWS * (MAT_ROW_H + 2)
+    # TELEFONEN (issue #508): tabellen (620 px) er et kort pr. linje -
+    # materialenummeret og Edit/Delete oeverst, antal, enhed og status
+    # under, beskrivelsen nederst. Galleriet er saa hoejt som sine kort og
+    # scroller ikke selv; det er popuppens indhold, der scroller (een
+    # scroll). Fra Tablet og op er tabellen uaendret.
+    MAT_ROW_H_M = 118
+    n_mat = "CountRows(colVhpMatDraft)"
+    gal_h = lay.mobile_or(f"{n_mat} * {MAT_ROW_H_M}", MAT_ROWS * (MAT_ROW_H + 2))
+    tpl_w_m = f"(({MODAL_CW}) - 4)"
+    pad_m = 8
+    act_w = 2 * lay.HIT_TOUCH + 4
+    for c in (txtNo, numQty):
+        mobile.touch(c)
+    mobile.gallery_place(txtNo, x=pad_m, y=4, w=f"{tpl_w_m} - {2 * pad_m + act_w + 8}",
+                         h=mobile.TOUCH)
+    mobile.gallery_place(cellAct, x=f"{tpl_w_m} - {pad_m + act_w}", y=4)
+    mobile.gallery_place(numQty, x=pad_m, y=52, w=80, h=mobile.TOUCH)
+    mobile.gallery_place(txtUnit, x=pad_m + 88, y=59, w=60)
+    mobile.gallery_place(chip, x=f"{tpl_w_m} - {pad_m} - {w['STATUS']}", y=63)
+    mobile.gallery_place(txtDesc, x=pad_m, y=98, w=f"{tpl_w_m} - {2 * pad_m}", h=18)
     gallery = Ctrl("galVhpMaterials", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Materials for this operation"',
         "BorderStyle": "BorderStyle.None",
@@ -698,15 +738,21 @@ def _materials_modal():
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
-        "ShowScrollbar": "true",
+        "ShowScrollbar": SCROLLBAR_NOT_MOBILE,
         "TabIndex": "0",
         "TemplatePadding": "2",
         "TemplateSize": str(MAT_ROW_H),
-        "Width": str(MAT_TABLE_W + 4 + SCROLLBAR_W),
+        "Width": lay.mobile_or(MODAL_CW, str(MAT_TABLE_W + 4 + SCROLLBAR_W)),
         "WrapCount": "1",
     }, children=[row], h=gal_h)
     # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
     table_surface(gallery, "rctVhpMatRule")
+    # Kortets hoejde paa en telefon - EFTER table_surface, som regner med et tal.
+    gallery.props["TemplateSize"] = lay.mobile_or(MAT_ROW_H_M - 2, gallery.props["TemplateSize"])
+    gallery.children[-1].props["Y"] = lay.mobile_or(MAT_ROW_H_M - 2 - 1,
+                                                    gallery.children[-1].props["Y"])
+    for c in (header, divider):
+        mobile.hide_on_mobile(c)
 
     # Tom tilstand (UX-review F4) - knappen Add material staar lige over.
     empty = empty_state("conVhpMatEmpty",
@@ -716,8 +762,9 @@ def _materials_modal():
                         visible="IfError(CountRows(colVhpMatDraft) = 0, false)")
 
     note = text_ctrl("txtVhpMatNote",
-                     '"Description and unit are filled in by the material lookup. '
-                     'Until it is in place they stay empty."',
+                     lay.mobile_or('"Description and unit come from the material lookup later."',
+                                   '"Description and unit are filled in by the material lookup. '
+                                   'Until it is in place they stay empty."'),
                      size=12, color=C_MUTED, height=32, wrap="true")
 
     # Start, ikke Stretch: tabellen har sin egen bredde og scroller vandret
@@ -768,8 +815,9 @@ def _materials_modal():
         # naar det forlades, saa en Save, der var slaaet fra indtil da, ville
         # sluge det klik, der forlader feltet. Uden aendringer lukker Save blot.
         display_mode=VIEW_LOCK, visible=f"!{ro}")
+    mobile.touch(btnSave)
     footer = group("conVhpMatFooter", [info, btnSave], direction="Horizontal", gap=8,
-                   height=36, align_items="Center")
+                   height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
     return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', MAT_OPEN,
                   MAT_CLOSE_FX, [actions, note, table, footer], width=MAT_MODAL_W, cap=True)
@@ -823,7 +871,8 @@ def _attachments_modal():
     not_saved = du.not_saved_text("txtVhpAttNotSaved", att, visible=edit)
     btnSave = du.save_button("btnVhpAttUpload", att, visible=edit)
     actions = group("conVhpAttActions", [btnSave],
-                    direction="Horizontal", gap=8, height=36, justify="End",
+                    direction="Horizontal", gap=8, height=lay.mobile_or(lay.TOUCH_MIN, 36),
+                    justify="End",
                     align_items="Center", visible=edit)
     ro = du.readonly_note("txtVhpAttReadOnly", f"!{edit}")
 
@@ -917,7 +966,15 @@ def _vendor_modal():
         default_items=f"Filter({VEN_RESULTS}, Code = {VEN_PICK})",
         display_mode=edit, label="Vendor", width=MODAL_CW,
         min_len=vs.MIN_SEARCH_LEN, kind="Ven", searcher=vs.search_action,
-        placeholder=vs.PLACEHOLDER, search_accessible='"Search vendor"')
+        placeholder=vs.PLACEHOLDER, search_accessible='"Search vendor"',
+        # Telefonen (issue #508): feltet over Search - comboboksen var 120 px.
+        stack_search=True)
+    for nm in (VEN_COMBO, "btnVhpVenSearch", "spnVhpVenBusy"):
+        mobile.touch(mobile.find(picker, nm))
+    ven_row = mobile.find(picker, "conVhpVenInput")
+    ven_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + 8 + 4, ven_row.props["Height"])
+    ven_row.h = ven_row.props["Height"]
+    mobile.refit(picker)
     msg = text_ctrl("txtVhpVenMsg", VEN_MSG, size=12, color=C_MUTED, height=32,
                     wrap="true", visible=f"!IsBlank({VEN_MSG})")
     sel = f"{VEN_COMBO}.Selected.Code"
@@ -933,6 +990,8 @@ def _vendor_modal():
         danger=True, width=fit_button_width('"Remove vendor"'), height=32,
         display_mode=(f'If(varVhpViewOnly || {VEN_BUSY} || IsBlank(Trim(Coalesce({VEN_OP}.Vendor, ""))), '
                       'DisplayMode.Disabled, DisplayMode.Edit)'))
+    for b in (use, remove):
+        mobile.touch(b)
     actions = flow_row("conVhpVenActions", [use, remove], MODAL_CW, gap=8)
     return _modal("VhpVen", '"Vendor · Operation " & varVhpVenOpNo', VEN_OPEN,
                   VEN_CLOSE, [cur, picker, msg, actions])
@@ -1023,7 +1082,13 @@ def _op_detail_modal():
                  "RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);\n"
                  'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32,
                  display_mode=DM_ITEM)
-    actions = flow_row("conVhpOpMActions", [mats, docs, rem], MODAL_CW, gap=8)
+    # TELEFONEN (issue #508) - popuppen aabnes kun fra mobillisten: alle
+    # felter og knapper er 44 px hoeje, og Remove (sletter linjen) staar for
+    # sig selv under Materials og Docs i fuld bredde, ikke klos op ad dem.
+    rem.props["Width"] = MODAL_CW
+    for b in (mats, docs, rem):
+        mobile.touch(b)
+    actions = flow_row("conVhpOpMActions", [mats, docs], MODAL_CW, gap=8)
 
     on_op = lambda s: s.replace("ThisItem", OPM)
     ctrl_items = ("Filter(Distinct(Table("
@@ -1061,37 +1126,70 @@ def _op_detail_modal():
         'If(varVhpPlan.PlanType <> "Strategy", "-", "(no packages)")',
         size=13, height=20, wrap="false", visible=f"!{m_pills}")
     packages_gal = pkg_pills("VhpOpM", "varVhpOpMNo", f"{OPM}.PackagesKey")
+    # Telefonen (issue #508): hver pille kan trykkes paa 44 px hoejde.
+    pill, pill_hit = packages_gal.children
+    packages_gal.props["Height"] = lay.mobile_or(mobile.TOUCH + 4, packages_gal.props["Height"])
+    packages_gal.h = packages_gal.props["Height"]
+    pill.props["Y"] = lay.mobile_or((mobile.TOUCH - 26) // 2, pill.props["Y"])
+    pill_hit.props["Y"] = lay.mobile_or("0", pill_hit.props["Y"])
+    pill_hit.props["Height"] = lay.mobile_or(mobile.TOUCH, pill_hit.props["Height"])
     packages_gal.props["Visible"] = m_pills
     packages_gal.vis = m_pills
     packages = group("conVhpOpMPackages", [packages_txt, packages_gal], direction="Vertical", gap=0)
+    for c in (opno, short, ctrl, vendor, price, matgrp, longtext):
+        mobile.touch(c)
+    for unit_row in (work, persons):
+        # number_field med enhed er en raekke [felt, enhed] - foelg feltets hoejde.
+        for k in unit_row.children:
+            if k.control != "ModernText":
+                mobile.touch(k)
+        mobile.refit(unit_row)
+    rem_gap = group("conVhpOpMRemoveGap", [], direction="Horizontal", height=12)
     return _modal("VhpOpM", '"Operation " & varVhpOpMNo', OPM_OPEN, 'Set(varVhpOpMNo, "")',
                   [label("L0", "Operation no."), opno, label("L1", "Short text"), short, label("L2", "Work (h)"), work,
                    label("L3", "Number of people"), persons, dur,
                    label("L4", "Control key"), ctrl, label("L5", "Supplier"), vendor,
                    label("L6", "Price"), price, label("L7", "Material group"), matgrp,
                    label("L8", "Long text"), longtext, label("L9", "Packages"), packages,
-                   actions], scroll=True)
+                   actions, rem_gap, rem], scroll=True)
 
 
 def _ops_list_mobile():
-    """Operationerne som en liste af knapper under Tablet: en linje pr.
-    operation, et tryk aabner popup'en."""
+    """Operationerne som kort under Tablet: et kort pr. operation, et tryk
+    aabner popup'en (_op_detail_modal).
+
+    Issue #508: to linjer i stedet for een afkortet - nummer og kort tekst
+    oeverst, arbejde, personer, kontrolnoegle og materialer under, og en
+    pil til hoejre. Listen er saa hoej som sine kort (ingen indre scroll)."""
     n_ops = "CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))"
     has_ops = f"IfError(!IsBlank(varVhpActiveItemId) && {n_ops} > 0, false)"
-    row_h = 46
-    line = grow(text_ctrl(
+    row_h = 64
+    line1 = text_ctrl(
         "txtVhpOpMRow",
-        'ThisItem.OperationNo & "  \u00b7  " & Coalesce(ThisItem.OperationShortText, "") & "  \u00b7  " & '
-        + lay.num_text("ThisItem.WorkHours") + ' & " h"',
-        size=13, height=24, wrap="false"))
+        'ThisItem.OperationNo & "  " & If(IsBlank(Trim(ThisItem.OperationShortText)), '
+        '"(no short text)", ThisItem.OperationShortText)',
+        size=14, weight="Semibold", height=22, wrap="false",
+        accessible='"Operation " & ThisItem.OperationNo & ": " & ThisItem.OperationShortText')
+    mats = ("CountRows(Filter(colVhpMaterials, ItemId = ThisItem.ItemId && "
+            "OperationNo = ThisItem.OperationNo))")
+    line2 = text_ctrl(
+        "txtVhpOpMRowMeta",
+        (lay.num_text("ThisItem.WorkHours") + ' & " h  \u00b7  " & '
+         'Text(Coalesce(ThisItem.Persons, 1)) & If(Coalesce(ThisItem.Persons, 1) = 1, " person", " people") & '
+         '"  \u00b7  " & Coalesce(ThisItem.ControlKey, "-") & '
+         f'If({mats} > 0, "  \u00b7  " & Text({mats}) & " mat.", "")'),
+        size=12, color=C_MUTED, height=18, wrap="false")
+    text_col = grow(group("conVhpOpMRowText", [line1, line2], direction="Vertical", gap=4))
     chev = text_ctrl("txtVhpOpMChev", '"\u203a"', size=lay.SIZE_CARD_TITLE, color=C_MUTED, height=24, width=16,
                      wrap="false")
-    row = group("conVhpOpMRow", [line, chev], direction="Horizontal", gap=8,
+    row = group("conVhpOpMRow", [text_col, chev], direction="Horizontal", gap=8,
                 height="Parent.TemplateHeight - 2", align_items="Center",
                 width="Parent.TemplateWidth", fill=C_CARD_BG, pad=(0, 8, 0, 8))
     hit = row_hit("btnVhpOpMHit", "Set(varVhpOpMNo, ThisItem.OperationNo)",
                   '"Open operation " & ThisItem.OperationNo', "Parent.TemplateWidth",
                   "Parent.TemplateHeight - 2")
+    from build_helpers import row_rule
+    rule = row_rule("rctVhpOpMRule", row_h - 2)
     vis = f"{has_ops} && {below('Tablet')}"
     # + 2: TemplatePadding over foerste raekke (issue #506, se galVhpOps).
     gal_h = f"{n_ops} * {row_h} + 2"
@@ -1102,8 +1200,9 @@ def _ops_list_mobile():
         "Items": "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
         "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "2",
-        "TemplateSize": str(row_h - 2), "Visible": vis, "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[row, hit], h=gal_h, vis=vis)
+        "TemplateSize": str(row_h - 2), "Visible": vis, "Width": OPS_CW, "WrapCount": "1",
+        "AlignInContainer": "AlignInContainer.Start",
+    }, children=[row, rule, hit], h=gal_h, vis=vis)
     return gal
 
 
@@ -1168,6 +1267,9 @@ def build_tasklist_section():
     # operationer, og ingen tasklist-/operationsregel fejler.
     header = section_header("conVhpOpsHead", "Task list and operations", "Step 3",
                             valid_fx="VhpOpsValid")
+    # Telefonen (issue #508): "Task list" - den lange titel og badget var
+    # 324 px i et kort paa 248-288 px.
+    mobile_head(header, short_title="Task list")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
@@ -1206,6 +1308,7 @@ def build_tasklist_section():
         ")")
     # Tasklist-feltet har en fast, begraenset bredde og staar til venstre.
     TL_W = fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360")
+    mobile.touch(drpTasklist)
     tasklistCell = field_cell("conVhpCellTasklist", "Task list", drpTasklist, required=True,
                               width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
 
@@ -1266,10 +1369,14 @@ def build_tasklist_section():
     # The two row-creating buttons stand right after the tasklist field,
     # bottom-aligned with its dropdown while they share a line.
     add_btns = [btnAddLines, btnAddOp]
+    # TELEFONEN (issue #508): de to knapper staar ogsaa paa en telefon - i
+    # fuld bredde og 44 px hoeje under task listen. Foer var de gemt i en
+    # dropdown ("Task list actions"), som man skulle vide, var en menu.
     for b in add_btns:
         b.props["Width"] = str(fit_button_width(b.props["Text"]) + ICON_W)
         b.props["LayoutMinWidth"] = b.props["Width"]
-        b.vis = at_least("Tablet")
+        b.vis = lay.mobile_or("true", at_least("Tablet"))
+        mobile.touch(b)
     opsMenu = themed_dropdown(
         "drpVhpOpsActions",
         'Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" })',
@@ -1281,8 +1388,9 @@ def build_tasklist_section():
             f"    \"Add manual operation\", {btnAddOp.props['OnSelect']}\n"
             ");\nReset(Self)"))
     opsMenu.props["LayoutMinWidth"] = "190"
-    opsMenu.vis = below("Tablet")
-    opsMenu.props["Visible"] = below("Tablet")
+    # Afloest af knapperne paa en telefon (se ovenfor). Kontrollen bliver
+    # staaende (skjult), saa intet, der naevner den, brydes.
+    opsMenu.vis = lay.mobile_or("false", below("Tablet"))
     # Kortet med Total cost og Duration staar hoejrestillet i samme raekke
     # som task listen og knapperne (Peter 2026-10-19). I overskriften gjorde
     # det hele overskriften hoej. Et tomt mellemrum tager resten af linjen.

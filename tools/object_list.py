@@ -169,9 +169,15 @@ def summary_fx(list_col, first_col, *, empty='"-"'):
 # ---------------------------------------------------------------------------
 # Kontrollerne: listen med kode, beskrivelse og Remove
 # ---------------------------------------------------------------------------
+# Raekken paa en telefon (issue #508): koden over beskrivelsen, saa
+# beskrivelsen ikke klemmes ned til et par bogstaver ved siden af koden.
+PHONE_ROW_H = 48
+
+
 def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
           label="Object list", extra=(),
-          hint='"Search for a functional location and press Add."', on_remove=None):
+          hint='"Search for a functional location and press Add."', on_remove=None,
+          phone_tw=None):
     """Objektlisten som den ses i formularen: en overskrift med antallet,
     en raekke pr. objekt (kode, beskrivelse, Remove) og en linje, naar den
     er tom.
@@ -222,6 +228,17 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
     # ved faa objekter. Nu er der EEN scroll: fanens krop (capped_body),
     # og den scroller kun, naar listen reelt er hoejere end panelet.
     gal_h = f"Max({count_fx(coll)}, 1) * {ROW_H}"
+    tpl = str(ROW_H)
+    if phone_tw:
+        # phone_tw: skabelonens bredde paa en telefon (et udtryk uden
+        # Parent.*). Kode og beskrivelse paa hver sin linje, skraldespanden
+        # til hoejre.
+        import mobile
+        mobile.gallery_place(code, x=0, y=4, w=f"({phone_tw}) - {REMOVE_W + 8}", h=20)
+        mobile.gallery_place(desc, x=0, y=24, w=f"({phone_tw}) - {REMOVE_W + 8}", h=20)
+        mobile.gallery_place(rem, x=f"({phone_tw}) - {REMOVE_W}", y=(PHONE_ROW_H - REMOVE_W) // 2)
+        tpl = mobile.mobile_or(PHONE_ROW_H, ROW_H)
+        gal_h = f"Max({count_fx(coll)}, 1) * {tpl}"
     gal = Ctrl(f"gal{prefix}Objects", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Functional locations on this row"',
         "BorderStyle": "BorderStyle.None",
@@ -235,7 +252,7 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
         "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "0",
-        "TemplateSize": str(ROW_H),
+        "TemplateSize": tpl,
         "Width": "Parent.Width",
         "WrapCount": "1",
         "Visible": f"{count_fx(coll)} > 0",

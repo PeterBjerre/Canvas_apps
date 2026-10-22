@@ -65,5 +65,10 @@ def test_only_one_result_count():
     assert names[:3] == ["conIbTbTop", "conIbTbFilters", "conIbCountRow"]
     count = card.children[2].children[0]
     assert count.name == "txtIbCount"
-    assert count.props["Text"] == ('With({ n: galIbList.AllItemsCount }, '
-                                   'n & If(n = 1, " issue", " issues"))')
+    # Issue #508: paa en telefon taeller den IbListRows (listen viser de
+    # foerste - Show more); fra Tablet og op som foer.
+    import mobile
+    assert mobile.desk(count.props["Text"]) == ('With({ n: galIbList.AllItemsCount }, '
+                                                'n & If(n = 1, " issue", " issues"))')
+    assert mobile.phone(count.props["Text"]) == ('With({ n: CountRows(IbListRows) }, '
+                                                 'n & If(n = 1, " issue", " issues"))')

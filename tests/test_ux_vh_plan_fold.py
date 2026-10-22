@@ -26,7 +26,7 @@ def test_the_summary_line_shows_only_when_the_plan_is_locked():
         assert part in row, part
 def test_the_fields_fold_away_and_show_brings_them_back():
     y = _yaml()
-    grid = _block(y, "conVhpPlanGrid", 2500)
+    grid = _block(y, "conVhpPlanGrid", 4000)
     assert "!(varVhpPlanLocked && !IfError(varVhpPlanShow, false))" in grid
     show = _block(y, "btnVhpPlanHide", 2500)
     assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in show

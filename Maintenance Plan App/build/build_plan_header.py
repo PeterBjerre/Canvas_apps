@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG)
 import icons
 import build_help as bh
 import build_status as st
 import layout_tokens as lay
+import mobile
 from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
                            themed_dropdown, field_cell, col_width, card, grow,
                            row_n, text_px, fit_button_width, ICON_W, date_picker, modern_badge)
@@ -37,7 +38,20 @@ def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None)
     btn_w = " + ".join(f"({b.props['Width']})" for b in buttons) + f" + {8 * (len(buttons) - 1)}"
     if drop_in_fold is not None:
         btn_w = f"({btn_w}) - If({keep_inline}, {drop_in_fold.props['Width']} + 8, 0)"
-    row = group(f"{name}Btns", buttons, direction="Horizontal", gap=8, height=36,
+    # TELEFONEN (issue #508): knapperne er 44 px hoeje og deler kortets fulde
+    # bredde ligeligt mellem de synlige - foer var raekken summen af alle
+    # tre bredder (307 px) og gik ud over et 288 px kort. Fra Tablet og op
+    # uaendret.
+    n_vis = " + ".join(f"If({b.vis}, 1, 0)" if b.vis else "1" for b in buttons)
+    each = f"(({cw}) - 8 * (Max(1, {n_vis}) - 1)) / Max(1, {n_vis})"
+    for b in buttons:
+        mobile.touch(b)
+        b.props["Width"] = lay.mobile_or(each, b.props["Width"])
+        if "LayoutMinWidth" in b.props:
+            b.props["LayoutMinWidth"] = lay.mobile_or("0", b.props["LayoutMinWidth"])
+    row_h = lay.mobile_or(mobile.TOUCH, 36)
+    btn_w = lay.mobile_or(cw, btn_w)
+    row = group(f"{name}Btns", buttons, direction="Horizontal", gap=8, height=row_h,
                 align_items="Center", justify="End", width=btn_w)
     row.props["AlignInContainer"] = f"If({narrow}, AlignInContainer.End, AlignInContainer.Center)"
     info.props["Width"] = f"Max(0, If({narrow}, {cw}, {cw} - ({btn_w}) - 8 - 2))"
@@ -53,14 +67,16 @@ def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None)
     footer.props["LayoutDirection"] = (f"If({narrow}, LayoutDirection.Vertical, "
                                        "LayoutDirection.Horizontal)")
     iv = f"({info.vis})" if info.vis else "true"
-    h = f"If({narrow}, If({iv}, ({info.h}) + 8, 0) + 36, Max(If({iv}, {info.h}, 0), 36))"
+    h = (f"If({narrow}, If({iv}, ({info.h}) + 8, 0) + {row_h}, "
+         f"Max(If({iv}, {info.h}, 0), {row_h}))")
     footer.props["Height"] = h
     footer.h = h
     return footer
 
 
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
-PLAN_CW = f"({SHELL_W} - 36)"
+# Paa en telefon er kortets polstring 12 (lay.CARD_INNER_W, issue #508).
+PLAN_CW = lay.CARD_INNER_W
 # Save/Edit-knappens bredde.
 # Bredt nok til "Saving..." (issue #433), saa foden staar stille, mens der gemmes.
 PLAN_SAVE_W = fit_button_width("\"Saving...\"", min_w=96) + ICON_W
@@ -96,6 +112,29 @@ def help_var(section):
     return "varVhpShowHints"
 
 
+def mobile_head(header, short_title=None, hide=()):
+    """Sektionsoverskriften paa en telefon (issue #508): 8 px mellem
+    delene i stedet for 12, evt. en kortere titel, og dele, der kan
+    undvaeres (hide), skjules. Titel, trin-badge og knapper skulle ellers
+    bruge 300-410 px i et kort, der er 248-288 px bredt - og blev klippet.
+    Fra Tablet og op er overskriften uaendret."""
+    header.props["LayoutGap"] = lay.mobile_or(8, header.props.get("LayoutGap", "12"))
+    t = header.children[0]
+    if short_title:
+        full = t.props["Text"]
+        t.props["Text"] = lay.mobile_or(f'"{short_title}"', full)
+        sw = text_px(short_title, lay.SIZE_CARD_TITLE)
+        t.props["Width"] = lay.mobile_or(sw, t.props["Width"])
+        t.props["LayoutMinWidth"] = t.props["Width"]
+        # Skaermlaeseren faar stadig hele titlen.
+        t.props["AccessibleLabel"] = full
+    for c in hide:
+        v = c.props.get("Visible")
+        c.props["Visible"] = lay.mobile_or("false", v or "true")
+        c.vis = c.props["Visible"]
+    return header
+
+
 def required_legend():
     """ "* Required" - forklaringen paa stjernerne. Stod i hero-kortet; nu i
     Plan header, hvor de foerste stjerner staar."""
@@ -121,6 +160,8 @@ def required_legend():
 # for at teksten kan rettes uden en build, og den staar her, saa den er
 # til at se.
 HELP_LINE_H = 18 + 4 * 16 + 6
+# Telefonen (issue #508): plads til syv linjer broedtekst.
+HELP_LINE_H_M = 18 + 7 * 16 + 6
 
 
 def help_panel(name, section):
@@ -129,11 +170,14 @@ def help_panel(name, section):
     Teksten kan dermed rettes af dem, der kender fagligheden, uden at
     nogen skal bygge appen. Se build_help.py."""
     v = help_var(section)
+    # Paa en telefon er linjerne kortere, saa et afsnit fylder flere linjer:
+    # hoejere raekker der (issue #508), ellers blev teksten klippet.
+    line_h = lay.mobile_or(HELP_LINE_H_M, HELP_LINE_H)
     head = text_ctrl(child_name("txt", name, "H"), "ThisItem.Heading", size=13, weight="Semibold",
                      height=18, wrap="false",
                      visible='!IsBlank(ThisItem.Heading)')
     body = text_ctrl(child_name("txt", name, "B"), "ThisItem.Body", size=12, color=C_MUTED,
-                     height=HELP_LINE_H - 18 - 6, wrap="true")
+                     height=f"({line_h}) - 18 - 6", wrap="true")
     tmpl = group(f"{name}Row", [head, body], direction="Vertical", gap=2,
                  width="Parent.TemplateWidth",
                  height="Parent.TemplateHeight - 2")
@@ -149,13 +193,13 @@ def help_panel(name, section):
         # Gallery uden TabIndex melder App checker som "Missing tab stop".
         "TabIndex": "0",
         "TemplatePadding": "0",
-        "TemplateSize": str(HELP_LINE_H),
+        "TemplateSize": line_h,
         "Width": "Parent.Width",
         # Tom liste skal stadig fylde EEN raekke, ellers bliver panelet
         # et farvet baand uden indhold, som ingen kan forklare.
-        "Height": f"Max(CountRows({bh.panel(section)}), 1) * {HELP_LINE_H}",
+        "Height": f"Max(CountRows({bh.panel(section)}), 1) * ({line_h})",
     }, children=[tmpl],
-        h=f"Max(CountRows({bh.panel(section)}), 1) * {HELP_LINE_H}")
+        h=f"Max(CountRows({bh.panel(section)}), 1) * ({line_h})")
     empty = text_ctrl(
         child_name("txt", name, "Empty"),
         bh._q("No help text for this section yet - it is maintained in "
@@ -381,8 +425,12 @@ PLANT_ONCHANGE = (
 def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
+    legend = required_legend()
     header = section_header("conVhpPlanHead", "Plan header", "Step 1", valid_fx="VhpPlanValid",
-                            extra_left=[required_legend()])
+                            extra_left=[legend])
+    # Telefonen: stjernerne ved felterne bliver; forklaringen "* Required"
+    # skjules, saa titel og badge kan staa paa een linje (issue #508).
+    mobile_head(header, hide=[legend])
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
     # Statusbanneret ("Plan is open for editing" / "Plan locked ...") er
@@ -490,6 +538,8 @@ def build_plan_header():
     FC_CELL = col_width(CW, PLAN_COLS)
 
     def cell(name, label, ctrl, hint, required=False):
+        # 44 px paa en telefon (issue #508); cellens hoejde regnes af feltet.
+        mobile.touch(ctrl)
         return field_cell(name, label, ctrl, required=required, width=FC_CELL,
                           container_w=CW, fill_portions_formula="0",
                           hint_text=bh.hint(hint), hints_on=bh.HINTS_ON)
@@ -637,6 +687,8 @@ def build_plan_header():
     show.props["Appearance"] = "ButtonAppearance.Subtle"
     show.props["BorderThickness"] = "0"
     show.props["Color"] = C_TITLE
+    # 44 px paa en telefon (issue #508).
+    mobile.touch(show)
     foldCard = plan_fold_row(fold, toggle_set, show)
     info = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical", gap=0,
                  justify="Center")

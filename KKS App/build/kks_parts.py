@@ -40,6 +40,8 @@ from build_helpers import (fluent, fluent_icon, button, card, concurrent, fit_bu
 from fl_picker import HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD
 import layout_tokens as lay
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+import mobile
+from gen_screen import SCROLLBAR_NOT_MOBILE, MOBILE_GALLERY_RESERVE
 
 import kks_config as cfg
 
@@ -49,7 +51,9 @@ P = "Kks"
 # Bredder
 # ---------------------------------------------------------------------------
 # Indholdet i et kort: SHELL_W minus kortets 2 x 18 px polstring.
-CARD_W = f"({SHELL_W} - 2 * {lay.CARD_PAD})"
+# Kortets indre bredde - 12 i siderne paa en telefon (build_helpers.card,
+# issue #508 fase 6); foer regnede KKS med 18 dér og spildte 12 px.
+CARD_W = lay.CARD_INNER_W
 # Results: no card on a phone, so the content is as wide as the page.
 RES_W = f"If({lay.below('Tablet')}, {SHELL_W}, {CARD_W})"
 
@@ -112,6 +116,35 @@ TABLE_MAX_H = f"If({lay.below('Tablet')}, 1120, Max(560, App.Height - 600))"
 
 def desc_h(ref):
     return f"Max(1, RoundUp(Len({ref}) / {CHARS_PER_LINE}, 0)) * {LINE_H} + 1"
+
+
+# --- Telefonen: raekkerne som kort (issue #508) -----------------------------
+#
+#   ABA ................................. [kopier]
+#   Beskrivelsen i hele kortets bredde, ombrudt
+#   -------------------------------------------------
+#
+# Under Tablet stod koden i en 72 px kolonne og beskrivelsen klemt ved siden
+# af (ca. 110 px ved 320). Nu staar koden og kopier-knappen paa linjen
+# foroven, og beskrivelsen faar hele bredden under. Samme kontroller, samme
+# navne og samme klik - kun placeringen er en anden (mobile.gallery_place).
+# Galleriet har ingen egen scroll paa en telefon: det er saa hoejt som de
+# viste kort (siden scroller), og "Show more" viser flere (mobile.show_more).
+M_TW = f"({SHELL_W} - {MOBILE_GALLERY_RESERVE})"   # skabelonen paa en telefon
+M_PAD = 12
+M_TOP = 40           # kodelinjen: kopier-knappen (44) med lidt luft under
+M_DESC_W = f"({M_TW} - {2 * M_PAD})"
+M_CHARS = f"Max(14, RoundDown({M_DESC_W} / 7.5, 0))"
+SHOW_VAR = "varKksShowN"
+SHOW_N = mobile.show_count(SHOW_VAR)
+
+
+def desc_h_m(ref):
+    return f"Max(1, RoundUp(Len({ref}) / {M_CHARS}, 0)) * {LINE_H} + 1"
+
+
+def row_h_m(ref):
+    return f"{M_TOP} + {desc_h_m(ref)} + 10"
 
 
 def row_h(ref):
@@ -294,6 +327,14 @@ KksTitle = {KEY_SW} & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(I
 # ---------------------------------------------------------------------------
 # Delene
 # ---------------------------------------------------------------------------
+def _phone_h(c, h):
+    """En anden hoejde paa en telefon (issue #508) - FOER foraelderen bygges,
+    saa dens hoejde regner med den. Tablet og desktop er uaendrede."""
+    c.props["Height"] = lay.mobile_or(h, c.props["Height"])
+    c.h = c.props["Height"]
+    return c
+
+
 def _selected(b, selected, radius=CHIP_RADIUS):
     """Piller: valgt = fyldt i primaerfarven med hvid tekst, ikke valgt =
     lyseblaa kant og moerkeblaa tekst (originalens (173,208,238) og
@@ -399,6 +440,7 @@ def _key_tabs():
                             f" / {len(cfg.KEYS)}, {TAB_W})")
         # Fast i raekken - den skifter aldrig retning.
         b.props["LayoutMinWidth"] = b.props["Width"]
+        _phone_h(b, mobile.TOUCH)      # touch paa en telefon (issue #508)
         tabs.append(_selected(b, f'varKksKey = "{key}"', radius=14))
     return tabs
 
@@ -442,14 +484,14 @@ def _top_row():
     fl = _fl_button("btnKksFlOpen", TOP_WIDE, FL_BTN_W)
     fl.props["LayoutMinWidth"] = str(FL_BTN_W)
     row = group("conKksTopRow", tabs + [gap, fl], direction="Horizontal", gap=TOP_GAP,
-                height=32, align_items="Center")
+                height=lay.mobile_or(mobile.TOUCH, 32), align_items="Center")
     return row
 
 
 def _fl_button_narrow():
     """FL-knappen under fanerne, naar den ikke kan staa paa deres linje.
     Direkte i kortet (lodret, Stretch): fuld bredde."""
-    return _fl_button("btnKksFlOpenNarrow", TOP_NARROW, FL_BTN_W)
+    return _phone_h(_fl_button("btnKksFlOpenNarrow", TOP_NARROW, FL_BTN_W), mobile.TOUCH)
 
 
 SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Min({CARD_W}, 420))"
@@ -485,6 +527,7 @@ def _search_row():
     inp = text_input("inpKksFind", '""', placeholder='"Search code or description"',
                      height=SEARCH_H, label='"Search KKS codes and descriptions"')
     inp.props["TriggerOutput"] = "TriggerOutput.Delayed"
+    _phone_h(inp, mobile.TOUCH)
     grow(inp)
     # Krydset rydder kun teksten - noegleomraadet og bogstavet bliver staaende.
     clear = button("btnKksFindClear", '""', CLEAR_QUERY, width=SEARCH_H, height=SEARCH_H,
@@ -564,7 +607,8 @@ def _level_menu(n, label, keys, selected, visible, enabled):
     text = (f'Coalesce(If({selected} = "", Blank(), {selected}), "ALL") & '
             f'If(IsBlank({selected}) || {selected} = "ALL" || IsBlank({desc}), "", " \u00b7 " & '
             f'If(Len({desc}) > {cut}, Left({desc}, {cut} - 1) & "...", {desc}))')
-    btn = button(f"btnKksSel{n}", text, f"Set(varKksPick, {n})", width="Parent.Width", height=40,
+    btn = button(f"btnKksSel{n}", text, f"Set(varKksPick, {n})", width="Parent.Width",
+                 height=lay.mobile_or(mobile.TOUCH, 40),
                  accessible=f'"Choose {label.lower()}"', icon="ChevronDown",
                  display_mode=f"If({enabled}, DisplayMode.Edit, DisplayMode.Disabled)")
     btn.props["Layout"] = "ButtonLayout.IconAfter"
@@ -573,7 +617,11 @@ def _level_menu(n, label, keys, selected, visible, enabled):
     return btn
 
 
-PICK_W = "(Min(460, App.Width - 24) - 36)"
+# Paa en telefon er vaelgeren et ark i (naesten) hele skaermen
+# (mobile.mobile_popup, issue #508): bredden er lay.popup_w, og siderne er
+# polstret med MOBILE_CARD_PAD.
+PICK_W = lay.mobile_or(f"(App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD})",
+                       "(Min(460, App.Width - 24) - 36)")
 PICK_DESC_W = f"({PICK_W} - {2 * ROW_PAD} - {CODE_W} - {ROW_GAP} - {SCROLLBAR_W} - {GALLERY_RESERVE})"
 PICK_SELECTED = ('Switch(varKksPick, 1, varKksL1, 2, Coalesce(varKksL2, "ALL"), '
                  'Coalesce(varKksL3, "ALL"))')
@@ -622,7 +670,11 @@ def build_picker():
     hit = row_hit("btnKksPickHit", PICK_SELECT,
                   '"Choose " & ThisItem.Value & " " & ThisItem.Desc',
                   "Parent.TemplateWidth", f"({rh}) - 1")
-    gal_h = "Max(160, Min(App.Height - 220, 480))"
+    # Telefonen: listen fylder arket ned til bunden (hovedet 44, mellemrummet
+    # 12, arkets polstring 2 x 18 og margen 2 x 8) - den er arkets eneste
+    # scroll, og siden bag er laast af sloeret.
+    gal_h = lay.mobile_or(f"Max(160, App.Height - {2 * lay.MOBILE_POP_MARGIN + 36 + 44 + 12})",
+                          "Max(160, Min(App.Height - 220, 480))")
     gal = Ctrl("galKksPick", "Gallery", variant="VariableHeight", props={
         "AccessibleLabel": '"Choices"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
@@ -639,6 +691,7 @@ def build_picker():
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 3)"
+    mobile.mobile_popup(modal, 460, 24, top=True)
     return [backdrop, modal]
 
 
@@ -709,6 +762,7 @@ def _crumbs():
         b = button(f"btnKksCrumb{name}", text, act, width=w, height=32, visible=vis,
                    accessible=label)
         b.props["Size"] = str(lay.SIZE_SMALL)
+        _phone_h(b, mobile.TOUCH)
         crumbs.append(_link(b, here))
     return flow_row("conKksCrumbs", crumbs, RES_W, gap=2)
 
@@ -728,6 +782,8 @@ def build_results():
                  direction="Horizontal", gap=ROW_GAP, height=34, align_items="Center",
                  fill=C_MUTED_BG, border_color=C_DIVIDER, radius=10,
                  pad=(0, ROW_PAD, 0, ROW_PAD))
+    # Kortene paa en telefon har ingen kolonner - overskriften er vaek.
+    mobile.hide_on_mobile(head)
 
     rh = row_h("ThisItem.Description")
     code = text_ctrl("txtKksRowCode", "ThisItem.Code", size=lay.SIZE_BODY, weight="Semibold",
@@ -764,15 +820,28 @@ def build_results():
     copy.props["X"] = f"Parent.TemplateWidth - {ROW_PAD} - Self.Width"
     copy.props["Y"] = "0"
     copy.props["_OnTop"] = "true"
-    gal_h = f"If(CountRows(colKksResults) = 0, 0, {TABLE_MAX_H})"
+    # Telefonen (issue #508): kortet - se M_TW.
+    rh_m = row_h_m("ThisItem.Description")
+    mobile.gallery_place(row, w=M_TW, h=rh_m)
+    mobile.gallery_place(code, x=M_PAD, y=12, w=f"{M_TW} - {2 * M_PAD} - {lay.HIT_TOUCH} - 8",
+                         h=20)
+    mobile.gallery_place(desc, x=M_PAD, y=M_TOP, w=M_DESC_W, h=desc_h_m("ThisItem.Description"))
+    mobile.gallery_place(rule, y=f"({rh_m}) - 1", w=M_TW)
+    mobile.gallery_place(hit, w=M_TW, h=f"({rh_m}) - 1")
+    copy.props["X"] = lay.mobile_or(f"{M_TW} - 4 - Self.Width", copy.props["X"])
+    n = "CountRows(colKksResults)"
+    shown = f"FirstN(colKksResults, {SHOW_N})"
+    gal_h = lay.mobile_or(f"If({n} = 0, 0, Sum({shown}, {row_h_m('ThisRecord.Description')}))",
+                          f"If({n} = 0, 0, {TABLE_MAX_H})")
     gal = Ctrl("galKksRows", "Gallery", variant="VariableHeight", props={
         "AccessibleLabel": '"KKS codes. Select a row to go to its place."',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
-        "Height": gal_h, "Items": "colKksResults", "LayoutMinWidth": "0",
+        "Height": gal_h, "Items": lay.mobile_or(shown, "colKksResults"), "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "ShowScrollbar": SCROLLBAR_NOT_MOBILE, "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "42", "Width": "Parent.Width",
     }, children=[row, rule, hit, copy], h=gal_h, vis="CountRows(colKksResults) > 0")
+    more = mobile.show_more("btnKksShowMore", SHOW_VAR, n, label="codes")
 
     empty = text_ctrl(
         "txtKksEmpty",
@@ -782,7 +851,7 @@ def build_results():
         size=lay.SIZE_BODY, weight="Semibold", height=40, wrap="true",
         color=f"If(IsEmpty(colKksScope) && IfError(varKksTried, false), {C_INVALID_FG}, {C_MUTED})",
         visible="CountRows(colKksResults) = 0")
-    res = card("conKksResultsCard", [_crumbs(), path, head, gal, empty], gap=8)
+    res = card("conKksResultsCard", [_crumbs(), path, head, gal, more, empty], gap=8)
     narrow = lay.below("Tablet")
     res.props["Fill"] = f"If({narrow}, {C_TRANSPARENT}, {C_CARD_BG})"
     res.props["BorderThickness"] = f"If({narrow}, 0, 1)"
@@ -814,7 +883,10 @@ def build_loading():
 # roerer en anden skaerms vaelger. KKS-filtrene, den valgte kode og
 # resultaterne staar uroert, naar popuppen aabnes og lukkes.
 FL_W = "Min(560, App.Width - 24)"
-FL_IN_W = f"({FL_W} - 36)"
+# Paa en telefon er popuppen naesten hele bredden (mobile.mobile_popup,
+# issue #508) - indholdet regner af den samme bredde.
+FL_IN_W = lay.mobile_or(f"(App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD})",
+                        f"({FL_W} - 36)")
 FL_PICK = "varKksFlPick"
 FL_SEL = f"LookUp(colKksFl, Code = {FL_PICK})"
 
@@ -828,8 +900,10 @@ def build_fl_search():
     vis = f"IfError({FL_OPEN}, false)"
     close = f"Set({FL_OPEN}, false)"
     backdrop = tap_backdrop("conKksFlBackdrop", vis, close)
-    title = text_ctrl("txtKksFlTitle", '"Search Functional Locations"',
+    # Kortere titel paa en telefon - den lange klippedes ved 320 px (fase 6).
+    title = text_ctrl("txtKksFlTitle", lay.mobile_or('"Search FL in SAP"', '"Search Functional Locations"'),
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
+    title.props["AccessibleLabel"] = '"Search Functional Locations"'
     head = popup_head("conKksFlHead", title, "btnKksFlClose", close,
                       accessible='"Close the Functional Location search"')
     intro = text_ctrl("txtKksFlIntro",
@@ -841,6 +915,14 @@ def build_fl_search():
         last_var="varKksFlLast", pick_var=FL_PICK,
         default_items=f"Filter(colKksFl, Code = {FL_PICK})",
         display_mode="DisplayMode.Edit", width=FL_IN_W, stack_search=True)
+    # Telefonen (issue #508, fase 6): feltet og Search er 44 hoeje (som
+    # VH-planens leverandoervaelger og domaeneappernes FL-vaelger).
+    for nm in ("cmbKksFl", "btnKksFlSearch", "spnKksFlBusy"):
+        mobile.touch(mobile.find(picker, nm))
+    fl_row = mobile.find(picker, "conKksFlInput")
+    fl_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + 8 + 4, fl_row.props["Height"])
+    fl_row.h = fl_row.props["Height"]
+    mobile.refit(picker)
     # Beskeden under feltet - som i domaeneapperne, men ombrudt: popuppen er
     # smal paa en telefon.
     per_line = f"Max(20, RoundDown({FL_IN_W} / 7, 0))"
@@ -915,4 +997,5 @@ def build_fl_search():
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 4)"
+    mobile.mobile_popup(modal, top=True)
     return [backdrop, modal]

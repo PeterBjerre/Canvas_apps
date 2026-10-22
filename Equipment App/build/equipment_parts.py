@@ -222,3 +222,7 @@ dp.configure(row_actions=dp.standard_row_actions(
     docs_fx=((dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
               + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx()),
     docs_n="ThisItem.FileCount"))
+# Paa en telefon (issue #508): producenten og garantien (Documents-fanen)
+# er klappet sammen - ingen kraevede felter. En garanti, der slutter foer
+# den starter, holder sin sektion aaben.
+dp.configure(mobile_folds={"Mfr": (None, None), "Warranty": (WARRANTY_BAD, None)})

@@ -230,8 +230,9 @@ COPIED = f'(IfError({COPIED_VAR}, "") = {ROW_KEY})'
 # alle niveauer.
 POP_MAX_W = 640
 POP_PAD = 16
-POP_W = f"Min({POP_MAX_W}, App.Width - 24)"
-GW = f"({POP_W} - {2 * POP_PAD})"
+# Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
+POP_W = lay.popup_w(POP_MAX_W, 24)
+GW = f"({POP_W} - {lay.mobile_or(2 * lay.MOBILE_CARD_PAD, 2 * POP_PAD)})"
 MAX_ROWS = 5
 INDENT = 28
 BAR_Y = 6            # luft over bjaelken - ogsaa mellem to niveauer
@@ -446,6 +447,10 @@ def build_popup():
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=POP_W, drop_shadow="ExtraBold",
                   align_in_container="Center")
+    # Samme sidepolstring som appens andre popupper paa en telefon (issue
+    # #508, fase 6): MOBILE_CARD_PAD (12). GW regner med den.
+    from build_helpers import mobile_pad
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["Height"] = (f"{2 * POP_PAD + lay.HIT_TOUCH + 20 + 34 + 3 * 8} + "
                              f"If({BUSY}, 80, If(IsEmpty({ROWS}), 40, {gh}))")
     backdrop = group(n("con", "Backdrop"), [modal], direction="Vertical", gap=0,

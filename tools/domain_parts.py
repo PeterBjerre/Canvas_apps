@@ -45,13 +45,14 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import (Ctrl, SHELL_W, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTED,
+from gen_screen import (Ctrl, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
+import mobile
 from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker,
                            fit_button_width, number_field, num_value, themed_dropdown,
@@ -266,6 +267,11 @@ HOOKS = {
     "submit_guard": None,
     "after_submit": "",
     "row_actions": None,
+    # Sidepanelets sektioner, der er klappet sammen paa en telefon (issue
+    # #508): {noegle: (tvang, opsummering)}. noegle er form_section's key;
+    # tvang et udtryk, der holder sektionen aaben (fx en forkert vaerdi i
+    # den), opsummering en Power Fx-tekst (None: "n of m filled").
+    "mobile_folds": {},
 }
 
 
@@ -298,8 +304,10 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # oppe end den foerste, og inputfelter, man ikke kunne finde.
 #
 # Kortets padding er 18 i hver side; det er de 36.
-FORM_W = f"({SHELL_W} - 36)"
-PANEL_FORM_W = f"{lay.PANEL_W_AT} - 2 * 20 - 2 * 20 - {SCROLLBAR_W}"
+# Paa en telefon er kortets og panelets polstring mindre (issue #508) -
+# lay.CARD_INNER_W og lay.PANEL_INNER_W er de samme tal fra Tablet og op.
+FORM_W = lay.CARD_INNER_W
+PANEL_FORM_W = lay.PANEL_INNER_W
 
 # DOKUMENTERNE OG DETALJERNE ER POPUPS
 # ------------------------------------
@@ -572,8 +580,18 @@ def build_bar():
     act_button(save, ACT_VAR, "save")
     act_button(submit, ACT_VAR, "submit")
     act_button(dup, ACT_VAR, "duplicate")
+    delete = delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)
+    # TELEFONEN (issue #508, fase 6) - som Functional Location (fase 3):
+    # knapperne bliver i headeren, men er 44 hoeje, og ikonknapperne (Edit,
+    # Duplicate, Delete) er 44 x 44. New request beholder sin tekst (issue
+    # #243). Save draft/Submit staar i bundbjaelken under Desktop.
+    for b in (edit, dup, delete):
+        b.props["Width"] = lay.mobile_or(lay.TOUCH_MIN, b.props["Width"])
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    for b in (new, edit, dup, delete):
+        mobile.touch(b)
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   actions + [delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)],
+                   actions + [delete],
                    icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo",
                    crumb=breadcrumb("Dom", cfg.APP_KEY, "varDomRequestNo"))
 
@@ -1515,7 +1533,7 @@ def build_attachments():
     limits = du.limits_text("txtDomAttLimits", 10, 10, visible=edit)
     save = du.save_button("btnDomAttUpload", att, visible=edit)
     actions = group("conDomAttActions", [save], direction="Horizontal", gap=8,
-                    height=36, justify="End", align_items="Center", visible=edit)
+                    height=lay.mobile_or(lay.TOUCH_MIN, 36), justify="End", align_items="Center", visible=edit)
     ro = du.readonly_note("txtDomAttReadOnly", f"!IsBlank(varDomDocsId) && !{edit}")
 
     title = grow(text_ctrl(
@@ -2061,6 +2079,11 @@ PANEL_CELL_W = fits(PANEL_FORM_W, PANEL_NEED_2, PANEL_FORM_W,
                     fits(PANEL_FORM_W, PANEL_NEED_3,
                          f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2",
                          f"(({PANEL_FORM_W}) - {2 * GRID_GAP}) / 3"))
+# Een kolonne paa ALLE telefoner (issue #508) - ogsaa en bred, hvor panelet
+# ellers fik to. Raekkerne staar da lodret (grid_row, mobile.phone_stack).
+PANEL_CELL_W = mobile.mobile_or(PANEL_FORM_W, PANEL_CELL_W)
+# Mellemrummet mellem felterne i den ene kolonne paa en telefon.
+M_GRID_GAP = 12
 
 
 # Felter, der fylder hele panelets bredde (mockuppen: FL og Description).
@@ -2133,12 +2156,16 @@ def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
                           fits(calc_w, PANEL_NEED_2, _chunk_h(run_heights, 1),
                                fits(calc_w, PANEL_NEED_3, _chunk_h(run_heights, 2),
                                     _chunk_h(run_heights, 3))))
-            groups.append(group(f"{name}Pair{index}", run,
-                                direction="Horizontal", gap=GRID_GAP,
-                                height=run_height, width=container_w or "Parent.Width",
-                                wrap="true"))
-        return group(name, groups, direction="Vertical", gap=GRID_GAP,
-                     width=container_w or "Parent.Width", wrap="false")
+            pair = group(f"{name}Pair{index}", run,
+                         direction="Horizontal", gap=GRID_GAP,
+                         height=run_height, width=container_w or "Parent.Width",
+                         wrap="true")
+            # Paa en telefon: een celle pr. linje (issue #508).
+            groups.append(mobile.phone_stack(pair, gap=M_GRID_GAP))
+        box = group(name, groups, direction="Vertical", gap=GRID_GAP,
+                    width=container_w or "Parent.Width", wrap="false")
+        box.props["LayoutGap"] = mobile.mobile_or(M_GRID_GAP, GRID_GAP)
+        return box
     else:
         if columns < 1 or columns > GRID_COLS:
             raise ValueError("grid_row columns must be between 1 and 4")
@@ -2324,7 +2351,181 @@ def docs_tab_body(height=EDITOR_TAB_BODY_H):
     samme ModernAttachments-kontrol, Save documents og read-only-note."""
     body = build_attachments().children[1]
     body.props["Height"] = height
+    # Paa en telefon er fanen saa hoej som sit indhold - panelet er den
+    # eneste scroll, ingen scroll i scrollen (issue #508, fase 6). Samme
+    # greb som Objects-fanen (domain_objects.tab_body): mobile.restack
+    # regner hoejden om. (body.h roeres ikke: foraelderens hoejde fra Tablet
+    # og op regner som foer med kroppens naturlige hoejde.)
+    body._auto = ("Vertical", height)
     return body
+
+
+# Fanernes korte tekst paa en telefon - "Documents" kan ikke staa i en
+# tredjedel af 320 px.
+PHONE_TAB_TEXT = {"Documents": "Docs"}
+
+
+def _phone_tabs(selector):
+    """Fanerne paa en telefon (issue #508): skinnen er hele panelets bredde,
+    og fanerne deler den ligeligt - foer var Materials' tre 382 px brede og
+    stak ud over en 360 px skaerm. Uden flueben (den valgte er udfyldt og
+    halvfed) og med den korte tekst, saa ingen tekst klippes ved 320 px."""
+    from build_helpers import SEG_PAD, SEG_GAP
+    tabs = selector.children
+    n = len(tabs)
+    inner = mobile.phone(PANEL_FORM_W)
+    each = f"(({inner}) - {2 * SEG_PAD + (n - 1) * SEG_GAP}) / {n}"
+    for b in tabs:
+        b.props["Width"] = mobile.mobile_or(each, b.props["Width"])
+        b.props["LayoutMinWidth"] = b.props["Width"]
+        b.props["Icon"] = mobile.mobile_or('""', b.props["Icon"])
+        b.props["Layout"] = mobile.mobile_or("ButtonLayout.TextOnly", b.props["Layout"])
+        text = b.props["Text"].strip('"')
+        if text in PHONE_TAB_TEXT:
+            b.props["Text"] = mobile.mobile_or('"%s"' % PHONE_TAB_TEXT[text], b.props["Text"])
+    selector.props["Width"] = mobile.mobile_or(inner, selector.props["Width"])
+    return selector
+
+
+# ---------------------------------------------------------------------------
+# SIDEPANELET PAA EN TELEFON (issue #508, fase 4)
+#
+# Panelet er allerede hele skaermen (row_editor_panel). Her bliver
+# formularen en telefonformular:
+#   - een kolonne (PANEL_CELL_W, grid_row) med 12 px mellem felterne
+#   - felter, valglister, datoer og knapper 44 px hoeje (36 fra Tablet)
+#   - raekker, der ikke kan staa ved siden af hinanden (Materials' nummer
+#     fra SAP, MP's nummer), staar under hinanden
+#   - appens sekundaere sektioner (HOOKS["mobile_folds"]) er klappet
+#     sammen bag en chevron med en kort opsummering; en sektion med en
+#     forkert vaerdi i (tvang) staar altid aaben
+# Til sidst regnes hoejderne om (mobile.restack). Tablet og desktop er
+# uaendrede: alt staar i mobilgrenen af If(LayoutRank < 2, ...).
+# ---------------------------------------------------------------------------
+PHONE_FIELDS = ("ModernTextInput", "ModernDropdown", "ModernCombobox", "ModernDatePicker",
+                "ModernButton", "ModernSpinner")
+# Raekker med knapper, der staar under hinanden paa en telefon.
+PHONE_STACKS = ("conDomDetMpNo",)
+# ... og raekker, der ombryder i stedet (fast retning): boernene er hele
+# bredden paa en telefon. Materials' nummerraekke er bredere end panelet
+# ved 1024 px (en kendt, uaendret ting fra foer) - en retning, der skifter,
+# ville faa check_layout regel 4d til at efterproeve den dér.
+PHONE_WRAPS = ("conDomDetCreatedRow",)
+# Sektionens slutning: appens linjer under felterne hoerer ikke til den.
+FOLD_STOP = ("conDomPanelExtras", "txtDomFormInfo")
+
+
+def _walk(node):
+    yield node
+    for c in node.children or ():
+        yield from _walk(c)
+
+
+def _phone_fields(root):
+    for c in _walk(root):
+        if c.control in PHONE_FIELDS and str(c.props.get("Height")) == "36":
+            mobile.set_phone_h(c, lay.TOUCH_MIN)
+    for c in _walk(root):
+        if c.name == "conDomFlInput" and "LayoutDirection.Vertical" in str(
+                c.props.get("LayoutDirection", "")):
+            # FL-vaelgeren stabler allerede under Tablet: comboboks over Search.
+            mobile.set_phone_h(c, 2 * lay.TOUCH_MIN + 8 + 4)
+        elif c.name in PHONE_WRAPS:
+            full = mobile.phone(PANEL_FORM_W)
+            for k in c.children:
+                k.props["Width"] = mobile.mobile_or(full, k.props["Width"])
+                k.props["LayoutMinWidth"] = mobile.mobile_or(
+                    full, k.props.get("LayoutMinWidth", "0"))
+            c.props["LayoutWrap"] = mobile.mobile_or("true", c.props.get("LayoutWrap", "false"))
+            c._auto = ("Vertical", c.props["Height"])
+        elif c.name in PHONE_STACKS:
+            for k in c.children:
+                if k.control == "ModernText":
+                    mobile.set_phone_h(k, 20)
+            mobile.phone_stack(c, gap=8)
+        elif c.name == "txtDomDetCreatedHint":
+            c.props["Wrap"] = mobile.mobile_or("true", c.props.get("Wrap", "false"))
+            mobile.set_phone_h(c, 36)
+    # Containere med en fast hoejde (tal), hvis boern blev hoejere: en
+    # raekke faar det hoejeste barn, en stak summen (uden skjulte boern
+    # - der regnes med dem alle, det er det ugunstigste).
+    for c in reversed(list(_walk(root))):
+        p = c.props
+        d = str(p.get("LayoutDirection", ""))
+        if (c.control != "GroupContainer" or c._auto or "If(" in d or not c.children
+                or not str(p.get("Height", "")).isdigit()
+                or "Scroll" in str(p.get("LayoutOverflowY", ""))):
+            continue
+        hs = [mobile.phone_h(k) for k in c.children]
+        if not all(isinstance(h, (int, float)) for h in hs):
+            continue
+        num = lambda k: int(p.get(k, "0")) if str(p.get(k, "0")).isdigit() else 0
+        pad = num("PaddingTop") + num("PaddingBottom")
+        if "Vertical" in d:
+            need = sum(hs) + num("LayoutGap") * (len(hs) - 1) + pad
+        else:
+            need = max(hs) + pad
+        if need > int(p["Height"]):
+            mobile.set_phone_h(c, need)
+
+
+def _filled_fx(members):
+    """ "n of m filled" for felterne i en sektion (dem fra SECTIONS)."""
+    kinds = {c: k for c, _l, k, _ch in FIELDS}
+    cols = []
+    for m in members:
+        for c in _walk(m):
+            col = c.name[len("conDom"):] if c.name.startswith("conDom") else None
+            if col in kinds and kinds[col] != "bool" and col not in cols:
+                cols.append(col)
+    if not cols:
+        return None
+    terms = " + ".join(f'If(IsBlank({_var(c)}), 0, 1)' for c in cols)
+    return f'Text({terms}) & " of {len(cols)} filled"'
+
+
+def _fold_sections(items):
+    """Klap appens sekundaere sektioner sammen i listen items (paa stedet)."""
+    folds = HOOKS["mobile_folds"] or {}
+    i = 0
+    while i < len(items):
+        sec = items[i]
+        key = sec.name[len("conDomSec"):] if sec.name.startswith("conDomSec") else None
+        if key not in folds:
+            i += 1
+            continue
+        j = i + 1
+        while (j < len(items) and not items[j].name.startswith("conDomSec")
+               and items[j].name not in FOLD_STOP):
+            j += 1
+        members = items[i + 1:j]
+        force, summary = folds[key]
+        title = sec.children[0].props["Text"]
+        title = title[len('Upper("'):-2] if title.startswith('Upper("') else title.strip('"')
+        var = f"varDomSec{key}Open"
+        open_expr = (f"({mobile.state(var)} || ({force}))" if force else None)
+        out = mobile.collapsible(f"DomSec{key}", title, members, var,
+                                 summary=summary or _filled_fx(members), open_expr=open_expr)
+        head = out[0]
+        if sec.vis:
+            mobile._and_vis(head, sec.vis)
+        mobile.hide_on_mobile(sec)
+        items.insert(i, head)
+        i = j + 1
+
+
+def mobile_panel(content):
+    """Sidepanelets indhold paa en telefon - se afsnittet ovenfor. content
+    er listen, row_editor_panel faar; den rettes paa stedet."""
+    for c in content:
+        _phone_fields(c)
+    _fold_sections(content)
+    for c in content:
+        if c.name in ("conDomEditorDetails", "conDomEditorDocuments"):
+            _fold_sections(c.children)
+    for c in content:
+        mobile.restack(c)
+    return content
 
 
 def editor_tabs(form, extras=(), objects=None, documents=(), open_objects=""):
@@ -2351,6 +2552,7 @@ def editor_tabs(form, extras=(), objects=None, documents=(), open_objects=""):
     tabs.append(("Documents", "Documents", f'{tab} = "Documents"',
                  f'Set({tab}, "Documents");\n{open_active_docs_fx()}', None))
     selector = segmented("conDomEditorTabs", tabs, label="Row details", fit=True)
+    _phone_tabs(selector)
     details = group("conDomEditorDetails",
                     list(form.children[:-2]) + list(extras) + [form.children[-1]],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
@@ -2833,6 +3035,8 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                          align_items="Center")
         line3 = act_line("conDomRowLineC3", 1)
         line4 = act_line("conDomRowLineC4", 2)
+        # Paa en telefon: een linje, Delete for sig selv (issue #508).
+        _phone_card(cs, acts, key, line2, badge, line3.children + line4.children)
     else:
         line3 = btns("conDomRowLineC3", ACTION_BTNS, [details_fx(), load_fx, delete_fx],
                      danger=("btnDomRowDelete",), modes=ROW_MODES)
@@ -2842,6 +3046,172 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                  height="Parent.TemplateHeight - 2", align_items="Stretch",
                  width="Parent.TemplateWidth", pad=(8, CELL_PAD, 0, CELL_PAD),
                  visible=below("Desktop"))
+
+
+# ---------------------------------------------------------------------------
+# LISTEN PAA EN TELEFON (issue #508, fase 4)
+#
+# Kortet (_compact_row) er det samme fra en telefon til en tablet - paa en
+# telefon er det lavere og laeses bedre:
+#
+#     Beskrivelse ...........................  [Status]
+#     vaerdi  ·  vaerdi  ·  vaerdi
+#     [Edit] [Docs] [Objects] [Copy]                [Delete]
+#
+# Titlen er raekkens beskrivelse (Equipment og MP havde anmodningstypen og
+# vaerket foerst), handlingerne staar paa EEN linje, og Delete staar for
+# sig selv yderst til hoejre - adskilt fra resten. Et tryk paa kortet (eller
+# Edit) aabner raekken i sidepanelet, der er hele skaermen paa en telefon:
+# det ER kortets detaljevisning, med alle felter og fanerne. Derfor ingen
+# "Row details"-tilstand for alle kort som i FL (fase 3) - her har hver
+# raekke allerede sin egen detaljevisning, et tryk vaek.
+#
+# Ingen scroll i listen: den er saa hoej som (hoejst M_ROWS_MAX) kort.
+# ---------------------------------------------------------------------------
+M_ROW_H = 108
+M_ROWS_MAX = 50
+M_PAD_X = 10
+M_TITLE_Y, M_META_Y, M_ACT_Y = 8, 34, 58
+M_ACT_X = 4
+M_DEL_GAP = 12
+# Skabelonens bredde paa en telefon: galleriet er FORM_W bredt (TABLE_AVAIL
+# + 4 + scrollbaren), minus TemplatePadding 2 i hver side. Parent.* kan
+# ikke staa i en bredde i et galleri (gen_screen._place).
+M_TW = "((%s) - 4)" % mobile.phone(FORM_W)
+# Filtrene paa en telefon: bag knappen "Filters" (blank = lukket).
+FILTERS_VAR = "varDomFiltersOpen"
+
+
+def _active_filters():
+    """Antallet af filtre, der filtrerer (0-2) - knappen siger det."""
+    return (f'(If(IsBlank(drpDomStatusFilter.Selected.Value) || '
+            f'drpDomStatusFilter.Selected.Value = "{ALL_STATUS}", 0, 1) + '
+            f'If(IsBlank(drpDomPlantFilter.Selected.Value) || '
+            f'drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}", 0, 1))')
+
+
+def _phone_toolbar(head, search, status, plant, gap_, row_add):
+    """Listens hoved paa en telefon:
+
+        [ Search ...................................... ]
+        [v Filters (1)]                   [paste] [+ Add row]
+        [ All status                                  v ]   <- kun naar
+        [ All plants                                  v ]      Filters er aaben
+
+    Fra Tablet og op er hovedet uaendret (flow_row). Paste rows og Add row
+    paa telefonen er egne knapper med de samme handlinger (de originale
+    staar i flow_row'en og skjules her); Copy row skjules - paa en telefon
+    daekker panelet listen, saa der er aldrig en aaben raekke at kopiere
+    fra listen (kortets Copy goer det)."""
+    TOUCH = lay.TOUCH_MIN
+    open_ = mobile.state(FILTERS_VAR)
+    n = _active_filters()
+    for c in (search, status, plant):
+        mobile.set_phone_h(c, TOUCH)
+        c.props["Width"] = mobile.mobile_or(mobile.phone(FORM_W), c.props["Width"])
+    for c in (status, plant):
+        mobile._and_vis(c, mobile.shown(FILTERS_VAR))
+    gap_.vis = mobile.mobile_or("false", gap_.vis)
+    for b in row_add:
+        mobile.hide_on_mobile(b)
+    flt = button("btnDomFiltersM", f'If({n} > 0, "Filters (" & Text({n}) & ")", "Filters")',
+                 f"Set({FILTERS_VAR}, !{open_})",
+                 width=fit_button_width('"Filters (2)"') + ICON_W, height=TOUCH)
+    flt.props["Icon"] = f'If({open_}, "{icons.FLUENT["collapse"]}", "{icons.FLUENT["expand"]}")'
+    flt.props["Layout"] = "ButtonLayout.IconBefore"
+    lab = (f'If({open_}, "Hide filters", "Show filters") & '
+           f'If({n} > 0, " - " & Text({n}) & " active", "")')
+    flt.props["AccessibleLabel"] = lab
+    flt.props["Tooltip"] = lab
+    pill(flt, f"({open_} || {n} > 0)")
+    flt.props["LayoutMinWidth"] = flt.props["Width"]
+    kids = [flt, grow(group("conDomRowsTopMGap", [], direction="Horizontal", height=0))]
+    if row_add:
+        paste = button("btnDomPasteRowsM", '"Paste rows"', paste_open_fx(),
+                       icon=icons.FLUENT["paste"], width=TOUCH, height=TOUCH,
+                       accessible='"Paste rows copied from Excel"',
+                       tooltip='"Paste rows copied from Excel - they are added as drafts"',
+                       visible="!varDomViewOnly")
+        paste.props["Layout"] = "ButtonLayout.IconOnly"
+        add = button("btnDomNewRowM", '"Add row"', new_row_fx(), primary=True, icon="Add",
+                     width=fit_button_width('"Add row"') + ICON_W, height=TOUCH,
+                     visible="!varDomViewOnly && !IsEmpty(colDomRows)")
+        for b in (paste, add):
+            b.props["LayoutMinWidth"] = b.props["Width"]
+        kids += [paste, add]
+    bar = group("conDomRowsTopM", kids, direction="Horizontal", gap=8, height=TOUCH,
+                align_items="Center", width=FORM_W, visible=mobile.MOBILE)
+    head.children.insert(1, bar)
+    # Paa en telefon er hovedet altid stablet (eet barn pr. linje).
+    p = head.props
+    p["LayoutDirection"] = mobile.mobile_or("LayoutDirection.Vertical", p["LayoutDirection"])
+    p["LayoutAlignItems"] = mobile.mobile_or("LayoutAlignItems.Stretch", p["LayoutAlignItems"])
+    mobile.set_phone_h(head, f"12 + {TOUCH} + 8 + {TOUCH} + If({open_}, 16 + {2 * TOUCH}, 0)")
+    return head
+
+
+def _phone_card(cs, acts, key, meta, badge, rule_btns):
+    """Kortets placering paa en telefon (mobile.gallery_place) - se ovenfor."""
+    desc = next((c for c in cs if c[0] == cfg.TEXT_LABEL.upper()), None)
+    if desc is None or cs[0] is not desc:
+        # Measuring Point har ingen beskrivelseskolonne i listen - kortet
+        # faar den alligevel som titel (som de andres DESC-plads).
+        text = (desc[1] if desc else
+                f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})')
+        others = [c for c in cs if c is not desc][:3]
+        key.props["Text"] = mobile.mobile_or(text, key.props["Text"])
+        rest = " & \"  \u00b7  \" & ".join(f"Text({c[1]})" for c in others)
+        meta.props["Text"] = mobile.mobile_or(rest, meta.props["Text"])
+    bw = sc.table_width(sc.ROW)
+    mobile.gallery_place(key, x=M_PAD_X, y=M_TITLE_Y,
+                         w=f"{M_TW} - {2 * M_PAD_X + 8} - {bw}")
+    mobile.gallery_place(badge, x=f"{M_TW} - {M_PAD_X} - {bw}", y=M_TITLE_Y)
+    mobile.gallery_place(meta, x=M_PAD_X, y=M_META_Y, w=f"{M_TW} - {2 * M_PAD_X}")
+    # Handlingerne er 44 x 44. Ved 320 px er der ikke plads til Materials'
+    # fire + Delete med mellemrum OG M_DEL_GAP luft foran Delete - saa staar
+    # de fire taet (som en knapgruppe), og Delete holder sin afstand.
+    left = [b for b in rule_btns if not b.name.startswith("btnDomRowDelete")]
+    n = len(left)
+    need = 2 * M_ACT_X + (n + 1) * ROW_ICON_W + (n - 1) * ROW_BTN_GAP + M_DEL_GAP
+    gap = f"If({M_TW} >= {need}, {ROW_BTN_GAP}, 0)"
+    for b in rule_btns:
+        if b.name.startswith("btnDomRowDelete"):
+            mobile.gallery_place(b, x=f"{M_TW} - {M_ACT_X} - {ROW_ICON_W}", y=M_ACT_Y)
+        else:
+            i = left.index(b)
+            mobile.gallery_place(b, x=(f"{M_ACT_X} + {i} * ({ROW_ICON_W} + {gap})" if i
+                                       else M_ACT_X), y=M_ACT_Y)
+
+
+def _phone_fix(fix):
+    """"Still missing"-listen paa en telefon: 44 px knapper (raekkerne 52
+    px) og ingen egen scroll - listen er saa hoej som sine raekker (hoejst
+    M_ROWS_MAX)."""
+    from build_helpers import FIX_ROW_H, FIX_ROWS_MAX
+    gal = fix.children[1]
+    row_h = 52
+    tpl = mobile.mobile_or(row_h, FIX_ROW_H)
+    p = gal.props
+    p["TemplateSize"] = tpl
+    p["Height"] = p["Height"].replace(f"{FIX_ROWS_MAX}) * {FIX_ROW_H}",
+                                      f"{mobile.mobile_or(M_ROWS_MAX, FIX_ROWS_MAX)}) * {tpl}")
+    gal.h = p["Height"]
+    p["ShowScrollbar"] = mobile.mobile_or("false", p["ShowScrollbar"])
+    for c in gal.children:
+        if c.control == "ModernButton":
+            c.props["Height"] = mobile.mobile_or(lay.TOUCH_MIN, c.props["Height"])
+        if c.control == "ModernButton":
+            c.props["Y"] = c.props["Y"].replace(str(FIX_ROW_H), f"({tpl})", 1)
+        else:
+            c.props["Y"] = mobile.mobile_or((row_h - 20) // 2, c.props["Y"])
+    return fix
+
+
+def _phone_empty(empty):
+    """Den tomme listes knap (Add row): TOUCH_MIN hoej paa en telefon."""
+    for c in empty.children:
+        if c.control == "ModernButton":
+            mobile.set_phone_h(c, lay.TOUCH_MIN)
 
 
 # Soegefeltets standardbredde paa listen.
@@ -2920,6 +3290,7 @@ def build_list(slots, badge_head, search_placeholder, search_w=None):
     head.props["PaddingBottom"] = "6"
     head.props["Height"] = f"({head.props['Height']}) + 12"
     head.h = head.props["Height"]
+    _phone_toolbar(head, search, status, plant, gap_, row_add)
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -2959,12 +3330,19 @@ def build_list(slots, badge_head, search_placeholder, search_w=None):
                 justify="Start", width="Parent.TemplateWidth", visible=at_least("Desktop"))
     row_c = _compact_row(lay_, load_row_fx(), copy_row_fx(), delete_this_row_fx())
 
+    # MOBIL (issue #508): kortene staar uden egen scroll - listen er saa
+    # hoej som (hoejst M_ROWS_MAX) kort, og siden er den eneste scroll.
+    # Fra Tablet og op som foer (GAL_ROWS_C/GAL_ROWS, galleriet scroller).
     gal_h = (f"Max(Min(CountRows({LIST_SCOPE}), "
-             + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + "), 1) * "
-             + if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2)))
-    rule = row_rule("rctDomRowRule", if_below("Desktop", str(ROW_H_C), str(ROW_H)))
+             + mobile.mobile_or(M_ROWS_MAX,
+                                if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)))
+             + "), 1) * "
+             + mobile.mobile_or(M_ROW_H + 2,
+                                if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2))))
+    tpl = mobile.mobile_or(M_ROW_H, if_below("Desktop", str(ROW_H_C), str(ROW_H)))
+    rule = row_rule("rctDomRowRule", tpl)
     gal = row_list("Dom", f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
-                   [row, row_c, rule], gal_h, if_below("Desktop", str(ROW_H_C), str(ROW_H)),
+                   [row, row_c, rule], gal_h, tpl,
                    onselect=load_row_fx(), width=f"({table_w}) + 4 + {SCROLLBAR_W}",
                    accessible="Saved rows")
     if panel_on:
@@ -2995,6 +3373,7 @@ def build_list(slots, badge_head, search_placeholder, search_w=None):
         visible=f"IsEmpty({LIST_SCOPE})")
     table.vis = f"!IsEmpty({LIST_SCOPE})"
     table.props["Visible"] = table.vis
+    _phone_empty(empty)
 
     # HVAD MANGLER (UX-review M4): efter Submit staar kladde-raekkerne her
     # med "Open row" - den samme handling som raekkens Edit. Listen gaar
@@ -3015,13 +3394,17 @@ def build_list(slots, badge_head, search_placeholder, search_w=None):
         (f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly"
          if not panel_on else f"CountRows({DRAFTS}) > 0 && !varDomViewOnly"),
         f"Set({FIX_VAR}, false)", closable=not panel_on)
+    _phone_fix(fix)
     parts = [head, table, empty] + _submit_parts()
     parts.insert(1 if not panel_on else 3, fix)
     # Raekkeloftet (R2-041): under tabellen, kun naar det er ramt.
     cap = text_ctrl("txtDomRowsCap", f'"{ROWS_CAP_MSG}"', size=13, color=C_WARN_FG,
                     height=if_below("Tablet", 40, 20), wrap="true", visible=ROWS_CAPPED)
     parts.insert(parts.index(table) + 1, cap)
-    return card("conDomRowsCard", parts)
+    box = card("conDomRowsCard", parts)
+    # Hoejderne paa en telefon (hovedet, den tomme liste) - issue #508.
+    mobile.restack(box)
+    return box
 
 
 # ---------------------------------------------------------------------------
@@ -3227,12 +3610,19 @@ def build_paste():
     status = act_status("DomPasteAct", ACT_VAR, ("add",))
     footer = group("conDomPasteFooter", [preview, *status, add], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
+    # Paa en telefon: knapperne under hinanden, 44 px (issue #508).
+    from build_helpers import mobile_footer
+    mobile_footer(footer)
     body = du.capped_body("conDomPasteBody", [help_, inp, gal],
-                          popup_body_max([head.h, footer.h]))
+                          mobile.mobile_or(
+                              popup_body_max([head.h, 2 * lay.TOUCH_MIN + 20 + 16],
+                                             margin=mobile.POP_MARGIN, pad=18),
+                              popup_body_max([head.h, 36])))
     modal = group("conDomPasteModal", [head, body, footer], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(640, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 3)"
+    mobile.mobile_popup(modal, top=True)
     return [backdrop, modal]

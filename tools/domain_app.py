@@ -222,6 +222,9 @@ def _row_editor(form, panel_content=None, reset=None):
     footer = editor_footer("Dom", delete, reset, cancel, save)
     content = (list(form.children[:-2]) + [form.children[-1]]
                if panel_content is None else panel_content)
+    # Telefonformularen: een kolonne, 44 px felter, sekundaere sektioner
+    # klappet sammen (issue #508).
+    dp.mobile_panel(content)
     return row_editor_panel(
         "Dom", f'If(IsBlank(varDomActiveRowId), "New row", "Row " & Text({position}) & '
         f'" of " & Text(CountRows({order})))', content, footer,

@@ -38,10 +38,26 @@ def _height(expr, n):
     return eval(e, {"__builtins__": {}}, {"Max": max})
 
 
+def _tier(expr, phone):
+    """Issue #508: en formel paa formen If(LayoutRank < 2, mobil, ellers)
+    -> den gren, der gaelder for tieren. Andre formler er uaendrede."""
+    head = "If(LayoutRank < 2,"
+    if not expr.startswith(head) or not expr.endswith(")"):
+        return expr
+    body, depth = expr[len(head):-1], 0
+    for i, ch in enumerate(body):
+        depth += (ch == "(") - (ch == ")")
+        if ch == "," and depth == 0:
+            return (body[:i] if phone else body[i + 1:]).strip()
+    return expr
+
+
+@pytest.mark.parametrize("phone", [False, True])
 @pytest.mark.parametrize("ctrl,min_rows", [("galVhpOps", 1), ("galVhpOpsM", 1),
                                            ("galVhpPkgRows", 1)])
-def test_gallery_height_fits_content_exactly(ctrl, min_rows):
-    p = _props(open(VH, encoding="utf-8").read(), ctrl)
+def test_gallery_height_fits_content_exactly(ctrl, min_rows, phone):
+    p = {k: _tier(v, phone) for k, v in
+         _props(open(VH, encoding="utf-8").read(), ctrl).items()}
     pad, size = int(p["TemplatePadding"]), int(p["TemplateSize"])
     for n in range(min_rows, 30):
         content = pad + n * (size + pad)

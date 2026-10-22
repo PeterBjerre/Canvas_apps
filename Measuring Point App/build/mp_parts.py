@@ -401,6 +401,9 @@ def build_rows():
 # har ingen dokumenter (issue #300) og ingen Objects-fane - et maalepunkt
 # sidder paa EEN funktionsplads, som vaelges i formularen. Ingen More-menu.
 dp.configure(row_actions=dp.standard_row_actions())
+# Paa en telefon (issue #508): Notes (Remarks) er klappet sammen. Alle
+# andre sektioner har kraevede felter og staar aabne.
+dp.configure(mobile_folds={"More": (None, None)})
 
 
 # ---------------------------------------------------------------------------

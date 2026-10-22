@@ -9,6 +9,12 @@ from layout_tokens import at_least, if_below
 from build_helpers import popup_head, tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button
 from design_tokens import ref_hex
 from gen_screen import lock_section
+from build_helpers import mobile_pad
+import mobile
+
+# TELEFONEN (issue #508): popupperne er skaermen minus 2 x 8 med 12 px
+# polstring i siderne - indholdet er da App.Width - 40 bredt.
+POP_CW_M = f"App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD}"
 import sp_config as cfg
 
 MUT_HEX = ref_hex("text-muted")
@@ -134,6 +140,7 @@ def build_tasklist_picker_modal():
     txtSearch = text_input("inpVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
                             height=36, label="\"Search operations\"")
     grow(txtSearch)
+    mobile.touch(txtSearch)
     # Under desktop: "Select all visible" ved soegefeltet som foer. Paa
     # desktop sidder "Select all" i tabeloverskriften (issue #109).
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props=checkbox_theme({
@@ -143,10 +150,14 @@ def build_tasklist_picker_modal():
         "Label": "\"Select all visible\"",
         "OnCheck": SELECT_ALL_VISIBLE,
         "OnUncheck": CLEAR_ALL_VISIBLE,
-        "Width": "200",
+        "Width": lay.mobile_or("110", "200"),
     }), vis=if_below("Desktop", "true", "false"))
-    toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12, height=36,
-                    align_items="Center")
+    # Telefonen: "Select all" (110 px) - soegefeltet fik 68 px ved siden af
+    # "Select all visible" (issue #508). Skaermlaeseren hoerer stadig hele.
+    chkSelectAll.props["Label"] = lay.mobile_or('"Select all"', chkSelectAll.props["Label"])
+    mobile.touch(chkSelectAll)
+    toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12,
+                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
     infoText = text_ctrl(
         "txtVhpPickerInfo",
@@ -215,6 +226,23 @@ def build_tasklist_picker_modal():
         direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2", align_items="Center",
         width="Parent.TemplateWidth")
 
+    # TELEFONEN (issue #508): tabellen (636 px) scrollede vandret. Hver linje
+    # er et kort: afkrydsningen til venstre, nummer og kort tekst oeverst og
+    # arbejdscenter, kontrolnoegle og timer i een linje under.
+    ROW_M = 56
+    tpl_w_m = f"(({POP_CW_M}) - 4 - {lay.SCROLLBAR_W})"
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chkRowSel, x=4, y=(ROW_M - 2 - mobile.TOUCH) // 2, w=36, h=mobile.TOUCH)
+    mobile.gallery_place(txtRowOpNo, x=40, y=4, w=54, h=24)
+    mobile.gallery_place(txtRowShort, x=98, y=4, w=f"{tpl_w_m} - 102", h=24)
+    mobile.gallery_place(txtRowMwc, x=40, y=28, w=f"{tpl_w_m} - 44", h=22)
+    txtRowMwc.props["Text"] = lay.mobile_or(
+        'Coalesce(ThisItem.MainWorkCenter, "-") & "  \u00b7  " & Coalesce(ThisItem.ControlKey, "-") & '
+        '"  \u00b7  " & Text(ThisItem.WorkHours) & " h work  \u00b7  " & Text(ThisItem.DurationHours) & " h"',
+        txtRowMwc.props["Text"])
+    txtRowMwc.props["Color"] = lay.mobile_or(C_MUTED, txtRowMwc.props.get("Color", C_MUTED))
+    for c in (txtRowCtrl, txtRowWork, txtRowDur):
+        mobile.hide_on_mobile(c)
     gallery = Ctrl(
         "galVhpPicker", "Gallery", variant="Vertical",
         props={
@@ -225,9 +253,11 @@ def build_tasklist_picker_modal():
             # Desktop: saa hoej som raekkerne, med et loft fra skaermhoejden,
             # saa popuppen aldrig gaar ud over skaermen. Foerst naar raekkerne
             # ikke kan staa der, scroller galleriet (issue #109).
-            "Height": if_below("Desktop", "280",
-                               f"Min(Max({VISIBLE_N}, 1) * {PICKER_ROW_H}, "
-                               f"Max(3 * {PICKER_ROW_H}, App.Height - {PICKER_FIXED_H + 2 * PICKER_EDGE}))"),
+            # Telefonen: popuppen er naesten hele skaermen; listen faar resten.
+            "Height": lay.mobile_or("Max(3 * 56, App.Height - 270)",
+                                    if_below("Desktop", "280",
+                                             f"Min(Max({VISIBLE_N}, 1) * {PICKER_ROW_H}, "
+                                             f"Max(3 * {PICKER_ROW_H}, App.Height - {PICKER_FIXED_H + 2 * PICKER_EDGE}))")),
             "Items": VISIBLE_OPS,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
@@ -236,19 +266,23 @@ def build_tasklist_picker_modal():
             "TabIndex": "0",
             "TemplatePadding": "2",
             "TemplateSize": "32",
-            "Width": "636",
+            "Width": lay.mobile_or(POP_CW_M, "636"),
             "WrapCount": "1",
         },
         children=[pickerRow], h=None)
     gallery.h = gallery.props["Height"]
     # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
     table_surface(gallery, "rctVhpPickerRule", surface=C_MODAL_BG)
+    gallery.props["TemplateSize"] = lay.mobile_or(ROW_M - 2, gallery.props["TemplateSize"])
+    gallery.children[-1].props["Y"] = lay.mobile_or(ROW_M - 3, gallery.children[-1].props["Y"])
+    for c in (colHead, divider):
+        mobile.hide_on_mobile(c)
 
     # Ingen scroll her: beholderen er praecis saa hoej som sit indhold, og
     # galleriet scroller selv. To scrollbarer oven i hinanden tog 18 px
     # ekstra af bredden, og sidste kolonne laa under dem.
     listWrap = group("conVhpPickerListWrap", [colHead, divider, gallery], direction="Vertical", gap=4,
-                     width=636, align_items="Start")
+                     width=lay.mobile_or(POP_CW_M, 636), align_items="Start")
     # POPUPPEN FOELGER SKAERMEN (REVIEW.md A16). Den var fast 740 px og gik
     # ud over en telefon. Nu er den Min(740, App.Width - 40) som de andre
     # popups; listen beholder sine 636 px og scroller VANDRET i en smallere
@@ -317,22 +351,24 @@ def build_tasklist_picker_modal():
             "    Clear(colVhpPickerSelected);\n"
             "    Set(varVhpTasklistPickerOpen, false)\n"
             ")"
-        ), primary=True, width=170, height=36,
+        ), primary=True, width=lay.mobile_or(POP_CW_M, 170), height=lay.mobile_or(mobile.TOUCH, 36),
         # Desktop: graa, til der er valgt mindst een linje (issue #109).
         # View: ingen nye linjer, heller ikke herfra (issue #390).
         display_mode=(f"If(varVhpViewOnly || ({DESK} && CountRows(colVhpPickerSelected) = 0), "
                       "DisplayMode.Disabled, DisplayMode.Edit)"))
-    footer = group("conVhpPickerFooter", [btnAddSelected], direction="Horizontal", gap=10, height=36,
-                  justify="End", align_items="Center")
+    footer = group("conVhpPickerFooter", [btnAddSelected], direction="Horizontal", gap=10,
+                   height=lay.mobile_or(mobile.TOUCH, 36), justify="End", align_items="Center")
 
     modal = group(
         "conVhpPickerModal", [headRow, toolbar, infoText, listScroll, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-        pad=(18, 18, 18, 18), width="Min(740, App.Width - 40)", drop_shadow="ExtraBold",
+        pad=(18, 18, 18, 18), width=lay.popup_w(740, 40), drop_shadow="ExtraBold",
         visible="varVhpTasklistPickerOpen")
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     # Desktop: hoejt oppe med fast luft til toppen, ikke centreret.
-    modal.props["Y"] = if_below("Desktop", "Max(20, (App.Height - Self.Height) / 3)", str(PICKER_EDGE))
+    modal.props["Y"] = mobile.sheet_y(
+        if_below("Desktop", "Max(20, (App.Height - Self.Height) / 3)", str(PICKER_EDGE)))
     return modal
 
 
@@ -366,7 +402,11 @@ def build_longtext_modal():
 
     box = text_input("inpVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
-                     width="Parent.Width", height="Min(260, Max(120, App.Height - 180))",
+                     width="Parent.Width",
+                     # Telefonen (issue #508): feltet faar den hoejde, der er;
+                     # popuppen staar oeverst, saa tastaturet daekker mindst.
+                     height=lay.mobile_or("Max(120, Min(360, App.Height - 200))",
+                                          "Min(260, Max(120, App.Height - 180))"),
                      ttype="Multiline", label="\"Long text\"")
 
     # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville
@@ -388,18 +428,20 @@ def build_longtext_modal():
             "    )\n"
             ");\n"
             "Set(varVhpLongTextOpen, false)"
-        ), primary=True, width=150, height=36, icon=ICON_SAVE,
+        ), primary=True, width=lay.mobile_or(POP_CW_M, 150), height=lay.mobile_or(mobile.TOUCH, 36),
+        icon=ICON_SAVE,
         display_mode="If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conVhpLongTextFooter", [btnSave], direction="Horizontal", gap=10,
-                   height=36, justify="End", align_items="Center")
+                   height=lay.mobile_or(mobile.TOUCH, 36), justify="End", align_items="Center")
 
     modal = group(
         "conVhpLongTextModal", [headRow, box, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-        pad=(18, 18, 18, 18), width="Min(620, App.Width - 40)", drop_shadow="ExtraBold",
+        pad=(18, 18, 18, 18), width=lay.popup_w(620, 40), drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    modal.props["Y"] = mobile.sheet_y("Max(20, (App.Height - Self.Height) / 3)")
     # Teksten paa et gemt item eller en gemt task list (issue #433) kan
     # laeses, men ikke rettes, til sektionen er laast op med Edit.
     lock_section([modal], "varVhpViewOnly",

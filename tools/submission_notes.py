@@ -143,8 +143,10 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                paa sloeret lukker ikke (issue #115).
     Returnerer (kontroller, inputA, inputS)."""
     vis = f"IfError({open_var}, false)"
-    pop_w = f"Min({POP_MAX_W}, App.Width - 24)"
-    inner = f"({pop_w} - {2 * PAD})"
+    # Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
+    pop_w = lay.popup_w(POP_MAX_W, 24)
+    # Paa en telefon 12 i siderne som appens andre popupper (issue #508, fase 6).
+    inner = f"({pop_w} - {lay.mobile_or(2 * lay.MOBILE_CARD_PAD, 2 * PAD)})"
     # Sektionernes bredde: raekken minus dens luft paa begge sider.
     pane_area = f"({inner} - {2 * SPLIT_PAD})"
     narrow = below("Tablet")
@@ -184,8 +186,11 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
         # Bunden har kun Submit og er vaek i visningen - ingen tom plads.
         footer = group(f"con{prefix}NotesFooter", [ok], direction="Horizontal", gap=8,
                        height=36, justify="End", align_items="Center", visible=edit)
+        # Telefonen (issue #508): Submit i fuld bredde og 44 px hoej.
+        from build_helpers import mobile_footer
+        mobile_footer(footer)
         foot = [footer]
-        foot_h = f"If({edit}, 36 + 12, 0)"
+        foot_h = f"If({edit}, ({footer.h}) + 12, 0)"
     natural = f"{INTRO_H} + 12 + {row_h}"
     room = f"App.Height - 32 - {2 * PAD} - {head.h} - 12 - {foot_h}"
     body_h = f"Min({natural}, Max(120, {room}))"
@@ -195,6 +200,8 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(PAD, PAD, PAD, PAD), width=pop_w, drop_shadow="ExtraBold",
                   align_in_container="Center")
+    from build_helpers import mobile_pad
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["Height"] = f"{2 * PAD} + {head.h} + 12 + ({body_h}) + {foot_h}"
     backdrop = group(f"con{prefix}NotesBackdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,

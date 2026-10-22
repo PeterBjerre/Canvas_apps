@@ -8,10 +8,21 @@ Equipment og Measuring Points.
 """
 import os
 import re
+import sys
 
 import pytest
 
-from conftest import ROOT
+from conftest import ROOT, TOOLS
+
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import mobile  # noqa: E402
+
+
+def _desk(v):
+    """Tablet/desktop-grenen af en mobil-If (issue #508: paa en telefon
+    staar Add row og Paste rows i hovedets egen raekke, btn*NewRowM)."""
+    return mobile.desk(v)
 
 SCREENS = [("ScreenMaterial", "Mat"), ("ScreenEquipment", "Eq"),
            ("ScreenMeasuringPoint", "Mp")]
@@ -27,10 +38,13 @@ def _visible(text, name):
 def test_toolbar_add_row_hidden_without_rows(screen, p):
     text = open(os.path.join(ROOT, "BIO SAP App", screen + ".pa.yaml"),
                 encoding="utf-8").read()
-    assert _visible(text, "btn%sNewRow" % p) == \
+    assert _desk(_visible(text, "btn%sNewRow" % p)) == \
         "!var%sViewOnly && !IsEmpty(col%sRows)" % (p, p)
     # Den tomme tilstands knap vises netop, naar listen er tom.
     assert _visible(text, "btn%sRowsEmptyAdd" % p) == \
         "IsEmpty(col%sRows) && !var%sViewOnly" % (p, p)
     # Paste rows staar stadig i vaerktoejslinjen, ogsaa uden raekker.
-    assert _visible(text, "btn%sPasteRows" % p) == "!var%sViewOnly" % p
+    assert _desk(_visible(text, "btn%sPasteRows" % p)) == "!var%sViewOnly" % p
+    # ... og paa en telefon i hovedets egen raekke, med samme regler.
+    assert _visible(text, "btn%sNewRowM" % p) == "!var%sViewOnly && !IsEmpty(col%sRows)" % (p, p)
+    assert _visible(text, "btn%sPasteRowsM" % p) == "!var%sViewOnly" % p

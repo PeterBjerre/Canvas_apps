@@ -26,8 +26,11 @@ INVARIANT: PackagesKey er aldrig tom - en operation uden pakker har ";".
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
-                        C_TRANSPARENT, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, row_hit, text_input, pin_widths
+                        C_TRANSPARENT)
+from build_helpers import (text_ctrl, group, button, button_row, row_hit, text_input, pin_widths,
+                           mobile_footer)
+import layout_tokens as lay
+import mobile
 from design_tokens import ref_hex
 from build_plan_header import help_panel
 
@@ -36,7 +39,8 @@ PKGS = "Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)"
 PKGS_SORTED = f"Sort({PKGS}, PackageNo)"
 OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
 
-OPS_CW = f"({SHELL_W} - 36)"
+# Paa en telefon er kortets polstring 12 i hver side (issue #508).
+OPS_CW = lay.CARD_INNER_W
 
 # Matricens maal. Label-kolonnen er fast; pakkekolonnerne kommer fra
 # strategien, saa bredden er dynamisk.
@@ -392,6 +396,9 @@ def build_strategy_body():
         display_mode="If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
 
     actionRow = button_row("conVhpPkgActionRow", [btnHier, btnAll, btnClear], OPS_CW)
+    # Telefonen (issue #508): tre knapper paa 87 px klippede "Fill by
+    # hierarchy". Nu staar de under hinanden i fuld bredde, 44 px hoeje.
+    mobile_footer(actionRow)
 
     # --- matrix-overskrift ---------------------------------------------------
     # SAMME DESIGN SOM OPERATIONSTABELLEN (Peter 2026-10-19): overskriften er
@@ -420,6 +427,10 @@ def build_strategy_body():
     }, h=34)
     divider = group("conVhpPkgDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal",
                     width=MATRIX_W)
+    # Telefonen: hver operation er et kort, og pillerne viser selv pakkens
+    # kode - kolonneoverskriften behoeves ikke (og var 468 px bred).
+    for c in (matrixHead, divider):
+        mobile.hide_on_mobile(c)
 
     # --- matrix-raekker ------------------------------------------------------
     # Nummer og tekst er de samme felter som paa operationslinjen, men laast:
@@ -458,6 +469,22 @@ def build_strategy_body():
     cellsGal = _pkg_cell_gallery("galVhpPkgCells", None, items=cell_items)
     cellsGal.children = [cellPill, cellHit]
 
+    # TELEFONEN (issue #508): matricen (60 + 200 + 64 pr. pakke) var bredere
+    # end skaermen og scrollede vandret. Nu er hver operation et kort:
+    # nummer og tekst oeverst, pakkernes piller under i kortets fulde
+    # bredde. Hver pille har en klikflade paa hele cellen (44 px hoej).
+    tpl_w_m = f"(({OPS_CW}) - 4)"
+    cell_m = f"Min({CELL_W}, Max({PILL_W + 4}, {tpl_w_m} / Max(1, CountRows({PKGS}))))"
+    cellsGal.props["TemplateSize"] = lay.mobile_or(cell_m, cellsGal.props["TemplateSize"])
+    cellPill.props["X"] = lay.mobile_or(f"(Parent.TemplateWidth - {PILL_W}) / 2", cellPill.props["X"])
+    cellHit.props["X"] = lay.mobile_or("0", cellHit.props["X"])
+    cellHit.props["Y"] = lay.mobile_or("0", cellHit.props["Y"])
+    cellHit.props["Width"] = lay.mobile_or("Parent.TemplateWidth", cellHit.props["Width"])
+    cellHit.props["Height"] = lay.mobile_or(ROW_H, cellHit.props["Height"])
+    mobile.gallery_place(rowOpNo, x=0, y=4, w=OPNO_W, h=32)
+    mobile.gallery_place(rowText, x=OPNO_W + LBL_GAP, y=4, w=f"{tpl_w_m} - {OPNO_W + LBL_GAP}", h=32)
+    mobile.gallery_place(cellsGal, x=0, y=40, w=tpl_w_m, h=ROW_H)
+
     # Hele skabelonens hoejde, ikke "- 2": cellerne er ROW_H hoeje, og
     # skabelonen er ROW_H. Med "- 2" var raekken 38 px til 40 px indhold.
     # Det kunne foerst ses, da skabelonens hoejde blev skrevet ud som et
@@ -471,7 +498,9 @@ def build_strategy_body():
 
     # + 2: TemplatePadding over foerste raekke. Uden den var indholdet 2 px
     # hoejere end galleriet, og det rullede et hak med musehjulet (#506).
-    rows_h = f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H} + 2"
+    ROW_H_M = 4 + 32 + 4 + ROW_H + 4
+    rows_h = lay.mobile_or(f"Max(CountRows({OPS_ACTIVE}), 1) * {ROW_H_M + 2} + 2",
+                           f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H} + 2")
     rowsGal = Ctrl(
         "galVhpPkgRows", "Gallery", variant="Vertical",
         props={
@@ -487,8 +516,8 @@ def build_strategy_body():
             "ShowScrollbar": "false",
             "TabIndex": "0",
             "TemplatePadding": "2",
-            "TemplateSize": str(ROW_H),
-            "Width": f"{MATRIX_W} + 4",   # + TemplatePadding i begge sider
+            "TemplateSize": lay.mobile_or(ROW_H_M, ROW_H),
+            "Width": lay.mobile_or(OPS_CW, f"{MATRIX_W} + 4"),   # + TemplatePadding i begge sider
             "WrapCount": "1",
         },
         children=[matrixRow], h=rows_h)

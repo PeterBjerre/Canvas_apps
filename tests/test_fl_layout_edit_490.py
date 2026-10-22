@@ -53,8 +53,8 @@ def test_classes_actions_align_with_rows_actions():
     assert p.C_SPEC[-1][2] == p.ACT_W
     # Den udfladede raekke: blyanten har samme X-led som Rows' Copy, naar
     # Gap har hele sin bredde.
-    x = _eval(T._prop("btnFlCOpen", "X"), 1920)
-    assert x == _eval(T._prop("btnFlRowCopy", "X"), 1920)
+    x = _eval(T._desk_all(T._prop("btnFlCOpen", "X")), 1920)
+    assert x == _eval(T._desk_all(T._prop("btnFlRowCopy", "X")), 1920)
 
 
 def test_description_is_uppercase():

@@ -89,8 +89,10 @@ def test_domain_panels_match_the_bright_two_column_mockup():
         assert props[f"img{prefix}EditorBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
         assert props[grid]["LayoutDirection"] == "=LayoutDirection.Vertical"
         pair = props[f"{grid}Pair0"]
-        assert pair["LayoutDirection"] == "=LayoutDirection.Horizontal"
-        assert pair["LayoutWrap"] == "=true"
+        # Fra Tablet og op som mockuppen; paa en telefon een kolonne (#508).
+        assert pair["LayoutDirection"] == \
+            "=If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)"
+        assert pair["LayoutWrap"] == "=If(LayoutRank < 2, false, true)"
 
 
 def test_issue_board_detail_panel_does_not_dim_the_workspace():
@@ -113,7 +115,8 @@ def test_functional_location_has_status_column_and_row_panel():
     props = _properties("ScreenFunctionalLocation.pa.yaml")
     assert "btnFlRowStatus" in props
     assert "conFlEditorPanel" in props
-    assert props["conFlEditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
+    # Hele skaermen paa en telefon (issue #508) - fra Tablet som foer.
+    assert props["conFlEditorPanel"]["Width"] == "=" + lay.mobile_or("App.Width", lay.PANEL_W_AT)
     assert all(f"conFlPanel{section}" in props
                for section in ("Main", "Class", "Loc", "Mfr", "War", "TRM"))
     assert "conFlPanelStatus" not in props and "conFlPanelMaster" not in props

@@ -15,7 +15,9 @@ from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, grou
                            field_cell, col_width, card, grow,
                            fit_button_width, column_grid, ICON_W,
                            mark_done, segmented, border_rule, row_n)
-from build_plan_header import section_header, help_panel, section_footer, status_icon
+from build_plan_header import section_header, help_panel, section_footer, status_icon, mobile_head
+from build_helpers import mobile_pad, mobile_footer
+import mobile
 from build_helpers import ensure_hit, popup_head, act_fx, act_mark, act_button
 from build_helpers import reset_click_fx, reset_confirm
 from gen_screen import lock_section
@@ -53,7 +55,8 @@ ACT = "varVhpAct"
 
 # Items-skinnens og editorens indholdsbredde (kortbredde minus 18+18 polstring).
 RAIL_CW = RAIL_W - 36
-EDITOR_CW = f"({EDITOR_W} - 36)"
+# Paa en telefon er kortets polstring 12 i hver side (issue #508).
+EDITOR_CW = lay.mobile_or(f"({EDITOR_W} - 24)", f"({EDITOR_W} - 36)")
 
 # To kolonner til felterne - Functional Location har sin egen raekke i
 # editorens fulde bredde under dem (issue #72).
@@ -65,7 +68,11 @@ EDITOR_COLS = 3
 # knapperne over det.
 ITEM_GAP = 6
 ITEM_ROW_H = 88 + ITEM_GAP
-ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * {ITEM_ROW_H}"
+# Telefonen (issue #508): Delete paa kortet er 44 px (foer 30), saa kortet
+# er 10 px hoejere.
+ITEM_ROW_H_M = 98 + ITEM_GAP
+ITEM_ROW_H_FX = lay.mobile_or(ITEM_ROW_H_M, ITEM_ROW_H)
+ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * ({ITEM_ROW_H_FX})"
 
 # Comboboksen (tools/fl_picker.py, issue #63) - soegefelt OG valgliste.
 FL_COMBO = "cmbVhpItemFL"
@@ -576,10 +583,14 @@ def item_delete_confirm():
                 accessible='"Delete the item permanently"')
     footer = group(f"con{p}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
+    # Telefonen (issue #508): knapperne under hinanden i fuld bredde, 44 px,
+    # Delete nederst - og popuppen i skaermens bredde minus 2 x 8.
+    mobile_footer(footer)
     modal = group(f"con{p}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
+                  pad=(18, 18, 18, 18), width=lay.popup_w(460, 40),
                   drop_shadow="ExtraBold", visible=vis)
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return [backdrop, modal]
@@ -747,8 +758,19 @@ def build_items_rail():
     })
     ensure_hit(btnCopy)
     btnCopy.props["LayoutMinWidth"] = btnCopy.props["Width"]
+    # TELEFONEN (issue #508): "Add item" er kun sit plus-ikon (44 x 44) -
+    # titel, badge, Copy og Add item kunne ikke staa paa 248-288 px. Den
+    # tilgaengelige tekst og tooltip siger stadig "Add item".
+    btnAdd.props["Width"] = lay.mobile_or(mobile.TOUCH, btnAdd.props["Width"])
+    btnAdd.props["LayoutMinWidth"] = btnAdd.props["Width"]
+    btnAdd.props["Height"] = lay.mobile_or(mobile.TOUCH, btnAdd.props["Height"])
+    btnAdd.h = btnAdd.props["Height"]
+    btnAdd.props["Layout"] = lay.mobile_or("ButtonLayout.IconOnly",
+                                           btnAdd.props.get("Layout", "ButtonLayout.IconBefore"))
+    btnAdd.props["AccessibleLabel"] = '"Add item"'
     header = section_header("conVhpItemsHead", "Items", "Step 2", extra_right=[btnCopy, btnAdd],
                             valid_fx=items_valid_fx())
+    mobile_head(header)
     # Badget foer knapperne: [titel] [gap] [badge] [copy] [add]
     _kids = header.children
     _badge = _kids.pop()
@@ -812,6 +834,8 @@ def build_items_rail():
         accessible=f"\"Delete item \" & Text({CARD_NO})")
     btnDelete.props["Size"] = "13"
     btnDelete.props["_OnTop"] = "true"
+    # 44 px paa en telefon (issue #508) - kortet er hoejere dér (ITEM_ROW_H_M).
+    mobile.touch(btnDelete)
     RIGHT_W = max(84, DEL_W)
     cardRight = group("conVhpItemCardRight", [cardStatus, btnDelete], direction="Vertical", gap=6,
                       align_items="End", width=RIGHT_W)
@@ -869,8 +893,9 @@ def build_items_rail():
             # uanset hvad der staar i Width.
             "AlignInContainer": "AlignInContainer.Start",
             "TemplatePadding": "0",
-            "TemplateSize": str(ITEM_ROW_H),
-            "Width": f"({if_below('Desktop', SHELL_W, str(RAIL_W))}) - 36",
+            "TemplateSize": ITEM_ROW_H_FX,
+            "Width": lay.mobile_or(f"({SHELL_W}) - 24",
+                                   f"({if_below('Desktop', SHELL_W, str(RAIL_W))}) - 36"),
             "WrapCount": "1",
         },
         children=[itemCard, btnOpen], h=ITEMS_GAL_H)
@@ -915,7 +940,7 @@ def _obj_list_button(n_obj):
     hx = ref_hex
     edge = f"If({done}, {hx('state-ok-fg')}, {hx('border-default')})"
     ink = f"If({off}, {hx('text-muted')}, {done}, {hx('state-ok-fg')}, {hx('text-primary')})"
-    def _svg(w, x0, label):
+    def _svg(w, x0, label, h=h):
         return (
             f'"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'{w}\' height=\'{h}\' '
             f'viewBox=\'0 0 {w} {h}\'><rect x=\'0.5\' y=\'0.5\' width=\'{w - 1}\' '
@@ -928,7 +953,8 @@ def _obj_list_button(n_obj):
                f'font-family=\'Segoe UI, sans-serif\' font-size=\'14\' font-weight=\'600\' '
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
             + '</svg>"')
-    svg = (f'If({below("Tablet")}, ' + _svg(40, 12, None) + ', '
+    # Telefonen (issue #508): en kvadratisk klikflade paa 44 x 44.
+    svg = (f'If({below("Tablet")}, ' + _svg(mobile.TOUCH, 14, None, mobile.TOUCH) + ', '
            + _svg(w, 14, '"Object list (" & Text(' + n_obj + ') & ")"') + ')')
     img = Ctrl("imgVhpObjList", "Image", props={
         "AccessibleLabel": f'"Object list, " & Text({n_obj}) & " selected"',
@@ -939,7 +965,7 @@ def _obj_list_button(n_obj):
         "Fill": C_TRANSPARENT,
         "FocusedBorderColor": C_PRIMARY,
         "FocusedBorderThickness": "2",
-        "Height": str(h),
+        "Height": lay.mobile_or(mobile.TOUCH, h),
         "HoverFill": C_MUTED_BG,
         "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
         "ImagePosition": "ImagePosition.Fit",
@@ -957,8 +983,8 @@ def _obj_list_button(n_obj):
         "PressedFill": C_MUTED_BG,
         "TabIndex": "0",
         "Tooltip": OBJ_TOOLTIP,
-        "Width": if_below("Tablet", "40", str(w)),
-    }, h=h)
+        "Width": if_below("Tablet", str(mobile.TOUCH), str(w)),
+    }, h=lay.mobile_or(mobile.TOUCH, h))
     return img
 
 
@@ -991,6 +1017,11 @@ def build_item_editor():
     header = section_header("conVhpEditorHead", "Item", "Step 2", extra_left=[which],
                             valid_fx=items_valid_fx(),
                             attention_fx=f"({REQ_ITEM} && !IsBlank({ACTIVE_MISSING}))")
+    # Telefonen (issue #508): "1 · kort tekst" faar resten af linjen efter
+    # titlen og badget (foer fast 260 px - linjen blev 411 px bred).
+    mobile_head(header)
+    title_w = header.children[0].props["Width"]
+    which.props["Width"] = lay.mobile_or(f"Max(0, ({EDITOR_CW}) - {title_w} - 72 - 3 * 8)", "260")
     helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: EEN combobox med Search (issue #63) ---------
@@ -1035,6 +1066,19 @@ def build_item_editor():
                                    # Issue #505: kun "<n> Functional Locations
                                    # found for <q>." - ikke "Select one ...".
                                    select_hint=False))
+
+    # TELEFONEN (issue #508): feltet, Search og Object list er 44 px hoeje
+    # (stablet: feltet over knapperne). Fra Tablet og op uaendret.
+    for nm in (FL_COMBO, "btnVhpFlSearch", "spnVhpFlBusy"):
+        mobile.touch(mobile.find(flPicker, nm))
+    fl_act = mobile.find(flPicker, "conVhpFlActions")
+    fl_act.props["Height"] = lay.mobile_or(mobile.TOUCH, fl_act.props["Height"])
+    fl_act.h = fl_act.props["Height"]
+    fl_row = mobile.find(flPicker, "conVhpFlInput")
+    fl_gap = int(fl_row.props.get("LayoutGap", "8"))
+    fl_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + fl_gap + 4, fl_row.props["Height"])
+    fl_row.h = fl_row.props["Height"]
+    mobile.refit(flPicker)
 
     # For kort soegetekst (issue #144): en kort besked under feltet, saa
     # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser
@@ -1225,6 +1269,10 @@ def build_item_editor():
     CW = EDITOR_CW
 
     def cell(name, label, ctrl, hint, required=False):
+        # Felter og knapper er 44 px hoeje paa en telefon (issue #508);
+        # cellens hoejde regnes af dem.
+        if ctrl.control != "GroupContainer":
+            mobile.touch(ctrl)
         return field_cell(name, label, ctrl, required=required, width=EDITOR_COL_W,
                           container_w=CW, fill_portions_formula="0",
                           hint_text=bh.hint(hint), hints_on=bh.HINTS_ON)
@@ -1465,9 +1513,11 @@ ITEM_SAVE_W = fit_button_width("\"Saving...\"", min_w=96) + ICON_W
 # 20 px i hver side), dens polstring og pladsen inden i den. Listen tager
 # hele den indre bredde (issue #385). 760 (foer 640) giver plads til de tre
 # kolonner i mockuppen (2026-10-21).
-OBJ_MODAL_W = "Min(760, App.Width - 40)"
+OBJ_MODAL_W = lay.popup_w(760, 40)
 OBJ_MODAL_PAD = 18
-OBJ_LIST_W = f"({OBJ_MODAL_W}) - {2 * OBJ_MODAL_PAD}"
+# Paa en telefon: skaermen minus 2 x 8 og 2 x 12 polstring (issue #508).
+OBJ_LIST_W = lay.mobile_or(f"App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD}",
+                           f"(Min(760, App.Width - 40)) - {2 * OBJ_MODAL_PAD}")
 
 # Kolonnerne i Object list (mockup 2026-10-21): afkrydsning, Functional
 # Location, Description og Status. Overskriften og raekkerne bruger de
@@ -1525,6 +1575,7 @@ def build_object_list_modal():
                         height=36, label="\"Search objects\"",
                         # Soegning aendrer intet - den virker ogsaa i View.
                         display_mode="DisplayMode.Edit")
+    mobile.touch(search)
 
     # Kolonneoverskrifterne - venstre kant flugter med raekkernes tekst.
     def head(name, text, width=None):
@@ -1539,6 +1590,8 @@ def build_object_list_modal():
     colHead = group("conVhpObjListCols", [hCode, hDesc, hStat], direction="Horizontal",
                     gap=OBJ_COL_GAP, height=18, pad=(0, right, 0, left), align_items="Center",
                     width=OBJ_LIST_W)
+    # Telefonen: raekkerne er kort (se nedenfor) - ingen kolonneoverskrift.
+    mobile.hide_on_mobile(colHead)
 
     IN_DRAFT = "CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0"
     # Afkrydsningen har ingen etiket - koden og beskrivelsen staar i deres
@@ -1574,6 +1627,20 @@ def build_object_list_modal():
 
     OBJ_ROWS = 9
     OBJ_ROW_H = 40
+    # TELEFONEN (issue #508): fire kolonner (28 + 200 + beskrivelse + 122)
+    # kan ikke staa i 280-344 px - beskrivelsen var 0 px bred. Hver raekke er
+    # et kort: afkrydsningen til venstre, koden, beskrivelsen og statusen
+    # under hinanden i resten af bredden.
+    OBJ_ROW_H_M = 80
+    tpl_w_m = f"(({OBJ_LIST_W}) - {2 * OBJ_TPL_PAD} - {OBJ_SCROLL})"
+    text_x = OBJ_ROW_PAD + OBJ_CHK_W + OBJ_COL_GAP
+    text_w = f"{tpl_w_m} - {text_x + OBJ_ROW_PAD}"
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chkObj, x=OBJ_ROW_PAD, y=(OBJ_ROW_H_M - 2 - mobile.TOUCH) // 2, w=36,
+                         h=mobile.TOUCH)
+    mobile.gallery_place(txtCode, x=text_x, y=6, w=text_w)
+    mobile.gallery_place(txtDesc, x=text_x, y=28, w=text_w)
+    mobile.gallery_place(status, x=text_x, y=50)
     galObj = Ctrl(
         "galVhpItemObjects", "Gallery", variant="Vertical",
         props={
@@ -1583,7 +1650,10 @@ def build_object_list_modal():
             "BorderThickness": "1",
             "Fill": C_INPUT_BG,
             "FillPortions": "0",
-            "Height": f"Min({OBJ_ROWS * (OBJ_ROW_H + 2)}, Max(96, App.Height - 340))",
+            # Telefonen: popuppen er naesten hele skaermen, og listen faar
+            # resten af hoejden (popuppens eneste scroll).
+            "Height": lay.mobile_or("Max(160, App.Height - 300)",
+                                    f"Min({OBJ_ROWS * (OBJ_ROW_H + 2)}, Max(96, App.Height - 340))"),
             "Items": OBJ_ROWS_FX,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
@@ -1591,7 +1661,7 @@ def build_object_list_modal():
             "ShowScrollbar": "true",
             "TabIndex": "0",
             "TemplatePadding": str(OBJ_TPL_PAD),
-            "TemplateSize": str(OBJ_ROW_H),
+            "TemplateSize": lay.mobile_or(OBJ_ROW_H_M, OBJ_ROW_H),
             # Issue #385: listens bredde er popuppens INDRE bredde - samme
             # udtryk som popuppens Width minus dens polstring - og ikke
             # Parent.Width. Med Parent.Width var bredden et gaet for
@@ -1604,7 +1674,8 @@ def build_object_list_modal():
             "AlignInContainer": "AlignInContainer.Start",
             "WrapCount": "1",
         },
-        children=[objRowTpl], h=OBJ_ROWS * (OBJ_ROW_H + 2))
+        children=[objRowTpl],
+        h=lay.mobile_or("Max(160, App.Height - 300)", OBJ_ROWS * (OBJ_ROW_H + 2)))
 
     objEmpty = text_ctrl(
         "txtVhpObjEmpty",
@@ -1648,8 +1719,18 @@ def build_object_list_modal():
         ), primary=True, width=fit_button_width("\"Use selected\""), height=36,
         # Skjult i View (issue #406) - popup'en er kun til at se objekterne.
         display_mode=VIEW_LOCK, visible="!varVhpViewOnly")
+    # TELEFONEN (issue #508): knapperne deler bredden og er 44 px hoeje;
+    # antallet staar i "Use selected (n)" i stedet for i teksten ved siden af
+    # (der var ingen plads til den).
+    mobile.hide_on_mobile(info)
+    n_sel = "Text(CountRows(colVhpObjDraft))"
+    btnUse.props["Text"] = lay.mobile_or(f'"Use selected (" & {n_sel} & ")"', btnUse.props["Text"])
+    inner_m = f"({OBJ_LIST_W})"
+    for b, share in ((btnCancel, "0.4"), (btnUse, "0.6")):
+        mobile.touch(b)
+        b.props["Width"] = lay.mobile_or(f"(({inner_m}) - 8) * {share}", b.props["Width"])
     footer = group("conVhpObjListFooter", [info, btnCancel, btnUse], direction="Horizontal",
-                   gap=8, height=36, align_items="Center")
+                   gap=8, height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
     # Maks 760 bred og aldrig bredere end skaermen minus 20 px i hver side.
     modal = group(
@@ -1658,8 +1739,9 @@ def build_object_list_modal():
         gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(OBJ_MODAL_PAD,) * 4, width=OBJ_MODAL_W, drop_shadow="ExtraBold",
         visible="varVhpObjListOpen")
+    mobile_pad(modal, x=mobile.CARD_PAD)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    modal.props["Y"] = mobile.sheet_y("Max(20, (App.Height - Self.Height) / 3)")
     # Et gemt item (issue #433) viser sine objekter skrivebeskyttet, som i View.
     lock_section([modal], "varVhpViewOnly", ITEM_LOCKED)
     return modal

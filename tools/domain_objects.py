@@ -67,9 +67,10 @@ from fl_picker import fl_picker
 from gen_screen import C_MUTED
 from gen_screen import Ctrl, C_MODAL_BG, C_PRIMARY_SOFT, C_TRANSPARENT
 from build_helpers import (text_ctrl, capped_body, button, group, grow, popup_head,
-                           tap_backdrop, checkbox_theme, fit_button_width)
+                           tap_backdrop, checkbox_theme, fit_button_width, mobile_footer)
 from layout_tokens import if_below
 import layout_tokens as lay
+import mobile
 import icons
 import status_chip as chip
 
@@ -190,6 +191,7 @@ LIST_PAD = 18
 LIST_ROW_H = 40
 LIST_CHK_W = 28
 LIST_CODE_W = 170
+PHONE_ROW_H = 48
 LIST_STATUS = [
     ("selected", "Selected", icons.STATUS_READY, "ok"),
     ("available", "Available", icons.STATUS_ADD, "info"),
@@ -254,7 +256,17 @@ def build_popup(after=""):
                 gap=10, height=LIST_ROW_H, pad=(0, 8, 0, 8), fill=C_TRANSPARENT,
                 align_items="Center", width="Parent.TemplateWidth")
     n = f"CountRows({CANDS})"
-    gal_h = f"Min(Max({n}, 1) * {LIST_ROW_H}, Max({LIST_ROW_H * 2}, App.Height - 300))"
+    # Paa en telefon (issue #508): popuppen er (naesten) hele skaermen, og
+    # raekken er et lille kort - [x] kode + status / beskrivelse.
+    tw = f"App.Width - {2 * mobile.POP_MARGIN + 2 * mobile.CARD_PAD}"
+    bw = chip.table_width(LIST_STATUS)
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chk, x=0, y=2, w=LIST_CHK_W + 8, h=mobile.TOUCH)
+    mobile.gallery_place(code, x=LIST_CHK_W + 8, y=6, w=f"{tw} - {LIST_CHK_W + 16} - {bw}")
+    mobile.gallery_place(status, x=f"{tw} - {bw}", y=5)
+    mobile.gallery_place(desc, x=LIST_CHK_W + 8, y=28, w=f"{tw} - {LIST_CHK_W + 8}")
+    row_h = mobile.mobile_or(PHONE_ROW_H, LIST_ROW_H)
+    gal_h = f"Min(Max({n}, 1) * {row_h}, Max({LIST_ROW_H * 2}, App.Height - 300))"
     gal = Ctrl("galDomObjList", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Functional locations to choose from"',
         "BorderStyle": "BorderStyle.None",
@@ -268,8 +280,8 @@ def build_popup(after=""):
         "ShowScrollbar": "true",
         "TabIndex": "0",
         "TemplatePadding": "0",
-        "TemplateSize": str(LIST_ROW_H),
-        "Width": f"({LIST_W}) - {2 * LIST_PAD}",
+        "TemplateSize": row_h,
+        "Width": mobile.mobile_or(tw, f"({LIST_W}) - {2 * LIST_PAD}"),
         "WrapCount": "1",
         "Visible": f"{n} > 0",
     }, children=[row], h=gal_h, vis=f"{n} > 0")
@@ -291,12 +303,14 @@ def build_popup(after=""):
         b.props["LayoutMinWidth"] = b.props["Width"]
     foot = group("conDomObjListFoot", [info, cancel, use], direction="Horizontal", gap=8,
                  height=36, align_items="Center")
+    mobile_footer(foot)
     modal = group("conDomObjListModal", [head, under, gal, empty, foot],
                   direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
                   radius=lay.RADIUS_MODAL, pad=(LIST_PAD,) * 4, width=LIST_W,
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = dp.MODAL_X
     modal.props["Y"] = dp.MODAL_Y
+    mobile.mobile_popup(modal, top=True)
     return [back, modal]
 
 
@@ -329,8 +343,11 @@ def tab_body(height, min_len=None, after="", extra=()):
         "Dom", OBJECTS, width="Parent.Width", msg_var=FL_MSG,
         display_mode=DM_EDIT, label="Functional locations", extra=extra,
         hint='"No functional locations on this row yet."',
-        on_remove=after or None)
+        on_remove=after or None, phone_tw=mobile.phone(dp.PANEL_FORM_W))
     body = capped_body("conDomObjTabBody", [hint, picker, msg, pnl], height)
     body.props["Height"] = height
     body.h = height
+    # Paa en telefon er fanen saa hoej som sit indhold - panelet er den
+    # eneste scroll (issue #508). mobile.restack regner den om.
+    body._auto = ("Vertical", height)
     return body

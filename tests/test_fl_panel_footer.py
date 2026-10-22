@@ -121,7 +121,9 @@ def test_kks_type_beside_assigned_class_before_class_data():
     assert "Derived from the KKS code." not in text
     assert "Determined by the KKS code." not in text
     main = T._children("conFlPanelMain")
-    assert main == ["txtFlPanelMainTitle", "galFlPanelMainFields", "galFlPanelKksFields"]
+    # conFlPanelMainFold: sektionens chevronlinje, kun paa en telefon (#508).
+    assert main == ["txtFlPanelMainTitle", "conFlPanelMainFold", "galFlPanelMainFields",
+                    "galFlPanelKksFields"]
     assert T._prop("galFlPanelKksFields", "Items") == 'Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)'
     cols = T._prop("galFlPanelKksFields", "WrapCount")
     assert cols.startswith("If((") and cols.endswith(", 2, 1)")
