@@ -72,8 +72,10 @@ def test_tabs_keep_their_function_and_selected_state():
         assert p["OnSelect"].strip().startswith(f'=Set(varKksKey, "{key}");')
         # Issue #478: soegeteksten bliver staaende og gaelder i den nye type.
         assert "Reset(inpKksFind)" not in p["OnSelect"]
-        assert p["Appearance"].strip() == (f'=If(varKksKey = "{key}", '
-                                           'ButtonAppearance.Primary, ButtonAppearance.Outline)')
+        # Det faelles segment-udtryk (issue #526): Outline, valgt = lyseblaa kant.
+        assert p["Appearance"].strip() == "=ButtonAppearance.Outline"
+        assert p["BorderColor"].strip() == (f'=If(varKksKey = "{key}", '
+                                            "C.'seg-on-border', C.'border-default')")
         assert "Visible" not in p
         assert p["Height"].strip() == "=If(LayoutRank < 2, 44, 32)"   # issue #508
         assert p["LayoutMinWidth"] == p["Width"]
