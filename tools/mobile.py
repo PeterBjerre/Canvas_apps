@@ -383,3 +383,38 @@ def phone_stack(box, gap=None):
     # Som om group() havde regnet hoejden: restack maa regne den om.
     box._auto = ("Vertical", p["Height"])
     return box
+
+
+# ---------------------------------------------------------------------------
+# LISTER UDEN EGEN SCROLL (fase 5: KKS Lookup og Issue Board)
+#
+# En lang liste paa en telefon er SIDENS scroll - galleriet er saa hoejt som
+# de kort, det viser, og har ingen scrollbar. Saa ingen indlejret scroll. For
+# ikke at tegne tusind kort paa een gang viser galleriet de foerste
+# show_count() raekker (FirstN i Items paa mobil), og knappen "Show more"
+# under listen viser SHOW_STEP til. Fra Tablet og op er listen som foer.
+# ---------------------------------------------------------------------------
+SHOW_STEP = 50
+
+
+def show_count(var, step=SHOW_STEP):
+    """Antallet af raekker, listen viser paa en telefon (blank = step)."""
+    return "Coalesce(%s, %d)" % (var, step)
+
+
+def show_more(name, var, total, step=SHOW_STEP, label="items"):
+    """Knappen under en liste paa en telefon: "Show 50 more (120 left)".
+    Kun paa mobil og kun, naar der er flere raekker end vist. total: Power
+    Fx for det samlede antal (samme raekker, som listen viser)."""
+    from build_helpers import button
+    n = show_count(var, step)
+    left = "(%s - %s)" % (total, n)
+    vis = "%s && %s > %s" % (MOBILE, total, n)
+    btn = button(name, '"Show " & Min(%d, %s) & " more (" & %s & " left)"' % (step, left, left),
+                 "Set(%s, %s + %d)" % (var, n, step), width=200, height=TOUCH,
+                 icon="ChevronDown", visible=vis,
+                 accessible='"Show " & Min(%d, %s) & " more %s, " & %s & " not shown yet"'
+                            % (step, left, label, left))
+    btn.props["AlignInContainer"] = "AlignInContainer.Stretch"
+    btn.props["LayoutMinWidth"] = "0"
+    return btn

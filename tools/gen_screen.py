@@ -793,6 +793,14 @@ def flatten_galleries(nodes, problems=None):
                     w = c._tpl_w if c._tpl_w is not None else _p(k, "Width", "")
                     _place(k, "0", "0", w, _hv(k), None, out)
                 else:
+                    # En kontrol direkte i skabelonen har sin egen X/Y/
+                    # bredde/hoejde - "_Mobile" (mobile.gallery_place) laegges
+                    # uden om dem som i _place (issue #508, fase 5).
+                    mob = k.props.pop("_Mobile", None)
+                    for key, val in (mob or {}).items():
+                        k.props[key] = _lay.mobile_or(val, k.props.get(key, "0"))
+                        if key == "Height":
+                            k.h = k.props[key]
                     out.append(k)
             # "_OnTop": en kontrol, der skal ligge OVEN PAA en anden i
             # raekken - fx Delete oven paa den gennemsigtige knap, der goer
