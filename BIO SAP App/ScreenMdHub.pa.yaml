@@ -10766,7 +10766,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =154 + If(IfError(varMdSapBusy, false), 80, If(IsEmpty(colMdSapRows), 40, Min(CountRows(colMdSapRows), 5) * 86))
+                      =154 + If(IfError(varMdSapBusy, false), 80, If(IsEmpty(colMdSapRows), 40, Min(CountRows(colMdSapRows), 5) * 78))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -11128,7 +11128,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Min(CountRows(colMdSapRows), 5) * 86
+                            =Min(CountRows(colMdSapRows), 5) * 78
                         Items: |-
                             =colMdSapRows
                         LayoutMinWidth: |-
@@ -11142,7 +11142,7 @@ Screens:
                         TemplatePadding: |-
                             =0
                         TemplateSize: |-
-                            =86
+                            =78
                         Visible: |-
                             =!IfError(varMdSapBusy, false) && !IsEmpty(colMdSapRows)
                         Width: |-
@@ -11162,7 +11162,7 @@ Screens:
                               Fill: |-
                                   =C.'border-subtle'
                               Height: |-
-                                  =(86)
+                                  =(78)
                               OnSelect: |-
                                   =false
                               TabIndex: |-
@@ -11187,7 +11187,7 @@ Screens:
                               Fill: |-
                                   =C.'border-subtle'
                               Height: |-
-                                  =If(ThisItem.More, (86), 22)
+                                  =If(ThisItem.More, (78), 18)
                               OnSelect: |-
                                   =false
                               TabIndex: |-
@@ -11224,7 +11224,7 @@ Screens:
                               X: |-
                                   =(ThisItem.Lvl - 1) * 28 + 12
                               Y: |-
-                                  =22
+                                  =18
                         - txtMdSapKind:
                             Control: ModernText
                             Properties:
@@ -11273,7 +11273,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28
                               Y: |-
-                                  =6
+                                  =2
                         - rctMdSapGuide:
                             Control: Rectangle
                             Properties:
@@ -11286,7 +11286,7 @@ Screens:
                               Fill: |-
                                   =C.'border-subtle'
                               Height: |-
-                                  =If(ThisItem.Kids, (86) - 38, 32)
+                                  =If(ThisItem.Kids, (78) - 34, 28)
                               OnSelect: |-
                                   =false
                               TabIndex: |-
@@ -11296,7 +11296,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 12
                               Y: |-
-                                  =If(ThisItem.Kids, 38, 46)
+                                  =If(ThisItem.Kids, 34, 42)
                         - inpMdSapNo:
                             Control: ModernTextInput
                             Properties:
@@ -11345,7 +11345,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 18
                               Y: |-
-                                  =38 + (48 - 32) / 2
+                                  =34 + (44 - 32) / 2
                         - txtMdSapDesc:
                             Control: ModernText
                             Properties:
@@ -11386,7 +11386,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15
                               Y: |-
-                                  =38 + 4
+                                  =34 + 2
                         - txtMdSapCopied:
                             Control: ModernText
                             Properties:
@@ -11429,7 +11429,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38 + 15
                               Y: |-
-                                  =38 + 4
+                                  =34 + 2
                         - rctMdSapNoSep:
                             Control: Rectangle
                             Properties:
@@ -11442,7 +11442,7 @@ Screens:
                               Fill: |-
                                   =C.'border-subtle'
                               Height: |-
-                                  =28
+                                  =24
                               OnSelect: |-
                                   =false
                               TabIndex: |-
@@ -11452,7 +11452,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 38
                               Y: |-
-                                  =48
+                                  =44
                         - btnMdSapCopy:
                             Control: ModernButton
                             Properties:
@@ -11504,7 +11504,7 @@ Screens:
                               X: |-
                                   =ThisItem.Lvl * 28 + 18 + 13 + Min(240 - 26, Len(ThisItem.No) * If(IsMatch(ThisItem.No, "[0-9]+"), 0.57, 0.6) * (If(LayoutRank < 2, 16, 14))) + 4 - (H.hit - 20) / 2
                               Y: |-
-                                  =38 + (48 - Self.Height) / 2
+                                  =34 + (44 - Self.Height) / 2
                         - imgMdSapLogo:
                             Control: Image
                             Properties:
@@ -11557,30 +11557,7 @@ Screens:
                               X: |-
                                   =((If(LayoutRank < 2, App.Width - 16, Min(640, App.Width - 24)) - If(LayoutRank < 2, 24, 32)) - 18) - 76
                               Y: |-
-                                  =38 + (48 - Self.Height) / 2
-                        - rctMdSapRule:
-                            Control: Rectangle
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Divider"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Fill: |-
-                                  =C.'border-subtle'
-                              Height: |-
-                                  =1
-                              OnSelect: |-
-                                  =false
-                              TabIndex: |-
-                                  =0
-                              Width: |-
-                                  =Max(0, ((If(LayoutRank < 2, App.Width - 16, Min(640, App.Width - 24)) - If(LayoutRank < 2, 24, 32)) - 18) - (ThisItem.Lvl * 28))
-                              X: |-
-                                  =ThisItem.Lvl * 28
-                              Y: |-
-                                  =85
+                                  =34 + (44 - Self.Height) / 2
       - tmrMdSapCopied:
           Control: Timer
           Properties:
