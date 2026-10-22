@@ -236,6 +236,7 @@ PROPER = (
     "Upload", "Reopen", "New issue", "Done", "Manual operation", "Add lines from task list", "Save changes", "Save", "None", "ZBOW", "Office 365",
     # Kortene, en hjaelpetekst henviser til ved navn.
     "Task list and operations", "Strategy packages", "Plan header", "Row details",
+    "Classes",  # FL-kortet - klik-lagets "Expand Classes" (issue #548)
     # SharePoint-kolonner, en hjaelpetekst naevner ved navn.
     "Hierarchical",
     # Issue Boards statusser (Issue Board/build/ib_config.STATUS).
