@@ -38,8 +38,6 @@ BADGES = {
         "bdgVhpNumber": ("varVhpPlanKey", "ColorValue(C.'hex-domain-vhp')",
                          "ColorValue(C.'hex-domain-vhp' & \"1F\")"),
         "bdgVhpPlanHeadBadge": ('If(VhpPlanValid, "Valid", "")', None, None),
-        "bdgVhpItemsHeadBadge": (None, None, None),
-        "bdgVhpEditorHeadBadge": (None, None, None),
         # Planens samlede pris i det foldede planhoved (Peter 2026-10-19).
         "bdgVhpPlanFoldCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
         "bdgVhpOpsHeadBadge": ('If(VhpOpsValid, "Valid", "")', None, None),
@@ -58,7 +56,7 @@ BADGES = {
         "bdgMdSapNo": ("varMdSapReq.RequestNo", None, None),
     },
 }
-OLD_NAMES = ("txtVhpPlanHeadBadge", "txtVhpOpsHeadBadge", "txtIbRowNo", "txtIbDetNo",
+OLD_NAMES = ("bdgVhpItemsHeadBadge", "bdgVhpEditorHeadBadge", "txtVhpPlanHeadBadge", "txtVhpOpsHeadBadge", "txtIbRowNo", "txtIbDetNo",
              "txtIbDetStatus", "txtIbDetPriority", "txtIbActRole", "txtMdAprChip",
              "imgMdAprNo", "imgEqNumber", "imgMatNumber", "imgMpNumber", "imgVhpNumber")
 
@@ -105,8 +103,9 @@ def test_every_badge_is_modern_badge_with_our_colors():
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
     # + 1: SAP OBJECT-popuppens nummerbadge (issue #471); - 1: Activity's
-    # rollemaerke (issue #475 - rollen staar nu i typen).
-    assert total == 17
+    # rollemaerke (issue #475 - rollen staar nu i typen); - 2: Items- og
+    # Item-sektionens Valid-badge (issue #530 - flueben i stedet).
+    assert total == 15
 
 
 def test_old_controls_are_gone():
