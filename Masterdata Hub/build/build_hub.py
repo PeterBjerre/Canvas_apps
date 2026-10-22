@@ -23,7 +23,7 @@ import layout_tokens as lay
 from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown,
                            confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented,
-                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H, mobile_pad,
+                           SEG_GAP, SEG_EDGE, SEG_TRACK_H, SEG_BTN_H, mobile_pad,
                            seg_style, seg_track)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
@@ -587,11 +587,11 @@ def _seg_style(b, selected):
 def _seg_track(name, kids):
     """Skinnen om segmenterne (build_helpers.seg_track). Bredden saettes i
     build_filters (summen af segmenternes bredde i hvert trin)."""
-    g = seg_track(name, kids, "Parent.Width", height=SEG_H)
+    g = seg_track(name, kids, "Parent.Width", height=SEG_TRACK_H)
     g.props["AlignInContainer"] = "AlignInContainer.Center"
     _SEG_KIDS[name] = kids
     _FLT_LV[name] = {k: (sum(_FLT_LV[c.name][k][0] for c in kids) + (len(kids) - 1) * SEG_GAP
-                         + 2 * SEG_PAD, None, None) for k in FLT_LEVELS}
+                         + 2 * SEG_EDGE, None, None) for k in FLT_LEVELS}
     return g
 
 
@@ -644,8 +644,8 @@ def _view_switch():
         b.props["Width"] = b.props["LayoutMinWidth"] = lay.mobile_or(wm, w)
         b.props["Size"] = str(size)
         b.props["Layout"] = "ButtonLayout.TextOnly"
-    t.props["Width"] = lay.mobile_or(sum(m for m, _ in ws) + SEG_GAP + 2 * SEG_PAD,
-                                     sum(d for _, d in ws) + SEG_GAP + 2 * SEG_PAD)
+    t.props["Width"] = lay.mobile_or(sum(m for m, _ in ws) + SEG_GAP + 2 * SEG_EDGE,
+                                     sum(d for _, d in ws) + SEG_GAP + 2 * SEG_EDGE)
     t.props["AlignInContainer"] = "AlignInContainer.Center"
     t.vis = below("Tablet")
     return [t]
@@ -1115,7 +1115,7 @@ def build_filters():
             for k in FLT_LEVELS:
                 per[k] += ws[k]
         n = len(t.children)
-        extra = (n - 1) * 2 + 2 * 2             # SEG_GAP og SEG_PAD
+        extra = (n - 1) * SEG_GAP + 2 * SEG_EDGE   # mellemrum, polstring og kant (#550)
         _FLT_LV[t.name] = {k: (per[k] + extra, None, None) for k in FLT_LEVELS}
     # GRUPPERET (som Hub-mockuppen): Open/Closed/All-skinnen og info-knappen |
     # de to flag | - og til hoejre My requests/All requests-skinnen og antallet.

@@ -125,11 +125,16 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
           align_items="Stretch", fill=None, border_color=None, border_thickness=None,
           radius=None, pad=None, fill_portions=None, wrap=None, justify=None,
           overflow_y=None, overflow_x=None, visible=None, drop_shadow="None", align_in_container=None,
-          layout_min_width=None, wrap_rows=1):
+          layout_min_width=None, wrap_rows=1, edge=0):
     """height=None betyder: regn hoejden ud af boernene (anbefalet).
 
     Angiv kun height eksplicit, naar containeren bevidst skal have en fast
     hoejde og selv klippe/scrolle sit indhold.
+
+    edge: px, der foroven og forneden laegges til den regnede hoejde ud over
+    polstringen - containerens egen kant (issue #550). Kanten tager plads
+    inde i containeren, saa en skinne med kant, der kun var polstring +
+    knap hoej, klippede knappens bund. mobile.restack regner med den.
     """
     if pad is not None:
         if isinstance(pad, tuple):
@@ -142,9 +147,9 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
     auto = height is None
     if height is None:
         if direction == "Vertical":
-            height = stack_height(children, gap, pt, pb)
+            height = stack_height(children, gap, pt + edge, pb + edge)
         else:
-            height = row_height(children, pt, pb, rows=wrap_rows, gap=gap)
+            height = row_height(children, pt + edge, pb + edge, rows=wrap_rows, gap=gap)
 
     props = {
         "BorderStyle": "BorderStyle.None" if not border_color else None,
@@ -192,7 +197,7 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
                h=height, vis=visible)
     if auto:
         # Hoejden er boernenes - mobile.restack kan regne den om (#508).
-        box._auto = (direction, props["Height"])
+        box._auto = (direction, props["Height"], edge) if edge else (direction, props["Height"])
     return box
 
 
@@ -538,8 +543,24 @@ def bool_toggle(name, default, display_mode=None, tooltip=None, true_text='"Yes"
 SEG_H = 34
 SEG_PAD = 2
 SEG_BTN_H = SEG_H - 2 * SEG_PAD
-SEG_BTN_H_MOBILE = 40    # paa en telefon (issue #508) - skinnen bliver 44
+SEG_BTN_H_MOBILE = 40    # paa en telefon (issue #508)
 SEG_GAP = 2
+# SKINNENS KANT TAGER PLADS (issue #550). Skinnen (seg_track) har en kant
+# paa 1 px, og en container tegner sin kant INDE i sin egen flade (samme
+# erfaring som side_nav's skinne). Skinnen var kun polstring + knap hoej
+# (2 + 30 + 2 = 34), saa der var 28 px til en 30 px knap: bunden af
+# segmenterne - kant, valgt-markering og runde hjoerner - blev klippet,
+# tydeligst i Materials' sidepanel. Paa samme maade manglede 2 px i
+# bredden, saa det sidste segments hoejre kant stod helt ude i kanten.
+# Nu regnes kanten med i skinnens maal - eet sted, for alle skinner:
+#   hoejde = kant + polstring + knap + polstring + kant = 36 (telefon 46)
+#   bredde = segmenterne + mellemrum + 2 * (polstring + kant)
+# SEG_H er stadig hoejden paa de fritstaaende faneknapper (Issue Board),
+# der ikke staar i en skinne.
+SEG_BORDER = 1
+SEG_EDGE = SEG_PAD + SEG_BORDER
+SEG_TRACK_H = SEG_BTN_H + 2 * SEG_EDGE
+SEG_TRACK_H_MOBILE = SEG_BTN_H_MOBILE + 2 * SEG_EDGE
 SEG_SIZE = 13
 # Alle segmenter er lige brede - bredden af den laengste tekst, appen
 # bruger, plus fluebenet. Saa ser alle segmenterede felter ens ud.
@@ -554,7 +575,7 @@ def segmented_width(n):
     """Skinnens bredde for segmented() med n lige brede segmenter (ikke fit,
     ikke compact) - det, en celle mindst skal vaere, for at det sidste
     segment ikke klippes af (issue #477)."""
-    return n * seg_button_width() + (n - 1) * SEG_GAP + 2 * SEG_PAD
+    return n * seg_button_width() + (n - 1) * SEG_GAP + 2 * SEG_EDGE
 
 
 # DET FAELLES UDTRYK FOR SEGMENTER OG FANER (issue #526)
@@ -620,11 +641,16 @@ def seg_style(b, on, *, icon=True, standalone=False, radius=None):
 
 def seg_track(name, kids, width, gap=SEG_GAP, height=None):
     """Skinnen om segmenterne - seg_style's flade. Fast, vandret raekke
-    (ingen formel-retning), knapperne direkte i den."""
+    (ingen formel-retning), knapperne direkte i den.
+
+    Hoejden regnes af knapperne PLUS kanten (edge, issue #550), saa hele
+    segmentet - kant, valgt-markering og hjoerner - ses. width skal ogsaa
+    have kanten med: 2 * SEG_EDGE ud over segmenterne og mellemrummene."""
     return group(name, kids, direction="Horizontal", gap=gap, width=width, height=height,
                  align_items="Center", fill=C_SEG_TRACK_BG, border_color=C_CARD_BORDER,
+                 border_thickness=SEG_BORDER,
                  radius=lay.mobile_or(SEG_RADIUS_MOBILE, SEG_RADIUS),
-                 pad=SEG_PAD, align_in_container="Start")
+                 pad=SEG_PAD, align_in_container="Start", edge=SEG_BORDER)
 
 
 def segmented(name, options, display_mode=None, label=None, fit=False, compact=False):
@@ -663,7 +689,7 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
         b.h = b.props["Height"]
         kids.append(b)
     gap = 0 if compact else SEG_GAP
-    track_w = sum(widths) + (len(kids) - 1) * gap + 2 * SEG_PAD
+    track_w = sum(widths) + (len(kids) - 1) * gap + 2 * SEG_EDGE
     return seg_track(name, kids, track_w, gap=gap)
 
 
