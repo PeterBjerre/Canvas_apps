@@ -5,10 +5,10 @@ Issue #529: itemets omkostninger adskilt fra planens advarsel.
 Task list and operations
   * Valid-maerket er vaek; det groenne flueben (status_icon) staar lige foran
     titlen, som i Plan header, og kun naar sektionen er gyldig (VhpOpsValid).
-  * Kortet med det valgte items Total cost og Duration staar oeverst til
-    hoejre i overskriften (fra Tablet); telefonen har det nederst i
-    task-list-raekken. Kortet viser ALDRIG advarslen om omkostnings-
-    godkendelse og har altid samme hoejde.
+  * Maerket med det valgte items Duration staar oeverst til hoejre i
+    overskriften (fra Tablet); telefonen har det nederst i task-list-
+    raekken. Det viser ALDRIG advarslen om omkostningsgodkendelse.
+    (Issue #545: itemets Total cost er flyttet til Item-sektionen.)
   * Task listen og de to knapper staar paa samme linje.
 
 Plan header
@@ -65,7 +65,7 @@ def test_ops_header_is_check_title_and_totals_without_valid_badge():
     t = _text()
     kids = _children(_block(t, "conVhpOpsHead"))
     assert kids[:2] == ["icoVhpOpsHeadStatus", "txtVhpOpsHeadTitle"], kids
-    assert kids[-1] == "crdVhpOpsTotals", kids
+    assert kids[-1] == "bdgVhpOpsDuration", kids
     assert "- bdgVhpOpsHeadBadge:" not in t
     ico = _block(t, "icoVhpOpsHeadStatus")
     assert _prop(ico, "Visible") == "IfError(VhpOpsValid, false)"
@@ -74,17 +74,16 @@ def test_ops_header_is_check_title_and_totals_without_valid_badge():
 
 def test_item_totals_never_show_the_plan_warning():
     t = _text()
-    for name in ("crdVhpOpsTotals", "crdVhpOpsTotalsPhone"):
-        card = _block(t, name)
-        assert "needs cost approval" not in card, name
-        assert "VhpCostThreshold" not in card, name
-        assert _prop(card, "Description") == "Blank()", name
-        assert _prop(card, "Height") == "60", name
-        # Kun det valgte items operationer.
-        assert "ItemId = varVhpActiveItemId" in _prop(card, "Title"), name
-        assert "DurationHours" in _prop(card, "Subtitle"), name
-    assert _prop(_block(t, "crdVhpOpsTotals"), "Visible").startswith("If(LayoutRank < 2, false, ")
-    assert _prop(_block(t, "crdVhpOpsTotalsPhone"), "Visible").endswith(", false)")
+    for name in ("bdgVhpOpsDuration", "bdgVhpOpsDurationPhone"):
+        b = _block(t, name)
+        assert "needs cost approval" not in b, name
+        assert "VhpCostThreshold" not in b, name
+        # Kun det valgte items operationer - og kun Duration (issue #545).
+        content = _prop(b, "Content")
+        assert "ItemId = varVhpActiveItemId" in content, name
+        assert "DurationHours" in content and "Cost" not in content, name
+    assert _prop(_block(t, "bdgVhpOpsDuration"), "Visible").startswith("If(LayoutRank < 2, false, ")
+    assert _prop(_block(t, "bdgVhpOpsDurationPhone"), "Visible").endswith(", false)")
 
 
 def test_threshold_moves_nothing_in_the_tasklist_section():
@@ -97,7 +96,7 @@ def test_threshold_moves_nothing_in_the_tasklist_section():
 def test_buttons_stay_on_the_tasklist_row():
     tb = _block(_text(), "conVhpOpsToolbar")
     kids = _children(tb)
-    assert kids[:4] == ["conVhpCellTasklist", "btnVhpAddTasklistLines",
+    assert kids[:4] == ["drpVhpItemTasklist", "btnVhpAddTasklistLines",
                         "btnVhpAddOperation", "drpVhpOpsActions"], kids
     for b in ("btnVhpAddTasklistLines", "btnVhpAddOperation"):
         assert "AlignInContainer.End" in _prop(_block(tb, b), "AlignInContainer")
