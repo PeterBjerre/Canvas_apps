@@ -184,9 +184,20 @@ def fold_head(name, row, onselect, label, visible=None, tooltip=None):
     tooltip: lagets Tooltip - standard label. Laget ligger over raekken, saa
     et maerkes eget tooltip (fx Total cost) skal staa her.
 
-    Raekken beholder sin hoejde (row.h), og containeren faar den samme."""
+    Raekken beholder sin hoejde (row.h), og containeren faar den samme.
+
+    INGEN BLAA RING OM OVERSKRIFTEN (issue #557): en klassisk knap beholder
+    fokus efter et klik, saa row_hit's fokuskant (2 px primaerfarve) stod
+    rundt om hele overskriften, til man klikkede et andet sted. Lagets
+    fokuskant er nu gennemsigtig - tykkelsen bliver 2, som i stable_scrim,
+    fordi App checker kraever en tykkelse > 0. Laget er stadig et tab stop
+    (TabIndex 0, check_layout regel 37), saa Enter/mellemrum folder, og
+    skaermlaeseren laeser label. Det SYNLIGE fokus for tastaturet staar paa
+    chevronen (raekkens knap med samme handling): den har en 2 px ring i
+    primaerfarven. Chevronen ligger under laget, saa et museklik giver den
+    aldrig fokus - ringen ses kun, naar man tabber til den."""
     from build_helpers import row_hit
-    from gen_screen import Ctrl
+    from gen_screen import Ctrl, C_PRIMARY, C_TRANSPARENT
     h = row.h
     for k in ("FillPortions", "LayoutMinWidth", "AlignInContainer"):
         row.props.pop(k, None)
@@ -196,6 +207,10 @@ def fold_head(name, row, onselect, label, visible=None, tooltip=None):
     hit = row_hit("btn%sHit" % name[3:], onselect, label, "Parent.Width",
                   "Parent.Height", radius=lay.RADIUS_INPUT)
     hit.props["Tooltip"] = tooltip or label
+    hit.props["FocusedBorderColor"] = C_TRANSPARENT
+    for chev in _with_select(row, onselect):
+        chev.props["FocusedBorderColor"] = C_PRIMARY
+        chev.props["FocusedBorderThickness"] = "2"
     if visible is not None:
         hit.props["Visible"] = visible
         hit.vis = visible
@@ -204,6 +219,15 @@ def fold_head(name, row, onselect, label, visible=None, tooltip=None):
         "FillPortions": "0", "Height": str(h), "LayoutMinWidth": "0",
         "Width": "Parent.Width",
     }, children=[row, hit], h=h)
+
+
+def _with_select(node, onselect):
+    """Kontrollerne under node, hvis OnSelect er onselect (fold_head's
+    chevron) - uanset hvordan bygningen har navngivet dem."""
+    for c in node.children or ():
+        if c.props.get("OnSelect") == onselect:
+            yield c
+        yield from _with_select(c, onselect)
 
 
 def mobile_popup(modal, max_w=None, margin=24, top=None):
