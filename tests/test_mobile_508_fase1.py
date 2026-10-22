@@ -150,7 +150,10 @@ def test_hub_list_is_cards_without_an_inner_scroll_on_a_phone():
     assert hub(gal, "TemplateSize", 800) == 112 and hub(gal, "TemplateSize", 1920) == 52
     h = _p("ScreenMdHub.pa.yaml", gal, "Height")
     assert "galMdRequests.AllItemsCount" in h
-    assert hub(gal, "Height", 360, n=8) == 8 * 100        # saa hoejt som raekkerne
+    # saa hoejt som raekkerne - hoejst de viste (fase 6: Show more, 50 ad gangen)
+    shown = h.replace("Coalesce(varMdShowN, 50)", "50")
+    assert _ev(shown, 360, 8) == 8 * 100
+    assert _ev(shown, 360, 80) == 50 * 100
     assert hub(gal, "Height", 800) == 784 and hub(gal, "Height", 1920) == 728
     ssb = _p("ScreenMdHub.pa.yaml", gal, "ShowScrollbar")
     assert _ev(ssb, 360) == 0 and _ev(ssb, 1366) == 1
