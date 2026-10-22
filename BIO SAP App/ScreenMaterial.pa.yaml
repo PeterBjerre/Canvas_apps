@@ -9462,7 +9462,7 @@ Screens:
                         DropShadow: |-
                             =DropShadow.None
                         Fill: |-
-                            =C.'state-neutral-bg'
+                            =C.'seg-track-bg'
                         FillPortions: |-
                             =0
                         Height: |-
@@ -9488,13 +9488,13 @@ Screens:
                         PaddingTop: |-
                             =2
                         RadiusBottomLeft: |-
-                            =If(LayoutRank < 2, 22, 17)
+                            =If(LayoutRank < 2, 10, 8)
                         RadiusBottomRight: |-
-                            =If(LayoutRank < 2, 22, 17)
+                            =If(LayoutRank < 2, 10, 8)
                         RadiusTopLeft: |-
-                            =If(LayoutRank < 2, 22, 17)
+                            =If(LayoutRank < 2, 10, 8)
                         RadiusTopRight: |-
-                            =If(LayoutRank < 2, 22, 17)
+                            =If(LayoutRank < 2, 10, 8)
                         Width: |-
                             =If(LayoutRank < 2, App.Width - 24 - 18, 382)
                       Children:
@@ -9508,15 +9508,15 @@ Screens:
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               Appearance: |-
-                                  =If(varMatEditorTab = "Details", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                  =ButtonAppearance.Outline
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If(varMatEditorTab = "Details", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                  =If(varMatEditorTab = "Details", C.'seg-on-border', RGBA(0, 0, 0, 0))
                               BorderThickness: |-
                                   =1
                               Color: |-
-                                  =If(varMatEditorTab = "Details", C.'text-on-primary', C.'text-muted')
+                                  =If(varMatEditorTab = "Details", C.'seg-on-fg', C.'text-muted')
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -9532,13 +9532,13 @@ Screens:
                               OnSelect: |-
                                   =Set(varMatEditorTab, "Details")
                               RadiusBottomLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusBottomRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               Size: |-
                                   =T.body
                               Text: |-
@@ -9557,15 +9557,15 @@ Screens:
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               Appearance: |-
-                                  =If(varMatEditorTab = "Objects", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                  =ButtonAppearance.Outline
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If(varMatEditorTab = "Objects", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                  =If(varMatEditorTab = "Objects", C.'seg-on-border', RGBA(0, 0, 0, 0))
                               BorderThickness: |-
                                   =1
                               Color: |-
-                                  =If(varMatEditorTab = "Objects", C.'text-on-primary', C.'text-muted')
+                                  =If(varMatEditorTab = "Objects", C.'seg-on-fg', C.'text-muted')
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -9583,13 +9583,13 @@ Screens:
                                   Set(varMatObjPick, "");
                                   Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl)
                               RadiusBottomLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusBottomRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               Size: |-
                                   =T.body
                               Text: |-
@@ -9608,15 +9608,15 @@ Screens:
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               Appearance: |-
-                                  =If(varMatEditorTab = "Documents", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                  =ButtonAppearance.Outline
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If(varMatEditorTab = "Documents", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                  =If(varMatEditorTab = "Documents", C.'seg-on-border', RGBA(0, 0, 0, 0))
                               BorderThickness: |-
                                   =1
                               Color: |-
-                                  =If(varMatEditorTab = "Documents", C.'text-on-primary', C.'text-muted')
+                                  =If(varMatEditorTab = "Documents", C.'seg-on-fg', C.'text-muted')
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -9637,13 +9637,13 @@ Screens:
                                       Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
                                   )
                               RadiusBottomLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusBottomRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopLeft: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               RadiusTopRight: |-
-                                  =If(LayoutRank < 2, 20, 15)
+                                  =If(LayoutRank < 2, 8, 6)
                               Size: |-
                                   =T.body
                               Text: |-
@@ -10424,7 +10424,7 @@ Screens:
                                                 DropShadow: |-
                                                     =DropShadow.None
                                                 Fill: |-
-                                                    =C.'state-neutral-bg'
+                                                    =C.'seg-track-bg'
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
@@ -10450,13 +10450,13 @@ Screens:
                                                 PaddingTop: |-
                                                     =2
                                                 RadiusBottomLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusBottomRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 Width: |-
                                                     =160
                                               Children:
@@ -10470,15 +10470,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(!Coalesce(varMatFIsStockItem, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(!Coalesce(varMatFIsStockItem, false), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(!Coalesce(varMatFIsStockItem, false), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(!Coalesce(varMatFIsStockItem, false), C.'text-on-primary', C.'text-muted')
+                                                          =If(!Coalesce(varMatFIsStockItem, false), C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -10496,13 +10496,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFIsStockItem, false)
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -10523,15 +10523,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFIsStockItem, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFIsStockItem, false), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFIsStockItem, false), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFIsStockItem, false), C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFIsStockItem, false), C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -10549,13 +10549,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFIsStockItem, true); If(IsBlank(Trim(Coalesce(varMatFStorageBin, ""))), Set(varMatFStorageBin, "X"))
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -10643,7 +10643,7 @@ Screens:
                                                 DropShadow: |-
                                                     =DropShadow.None
                                                 Fill: |-
-                                                    =C.'state-neutral-bg'
+                                                    =C.'seg-track-bg'
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
@@ -10669,13 +10669,13 @@ Screens:
                                                 PaddingTop: |-
                                                     =2
                                                 RadiusBottomLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusBottomRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 Width: |-
                                                     =160
                                               Children:
@@ -10689,15 +10689,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(!Coalesce(varMatFReplacesExisting, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(!Coalesce(varMatFReplacesExisting, false), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(!Coalesce(varMatFReplacesExisting, false), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(!Coalesce(varMatFReplacesExisting, false), C.'text-on-primary', C.'text-muted')
+                                                          =If(!Coalesce(varMatFReplacesExisting, false), C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -10715,13 +10715,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFReplacesExisting, false)
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -10742,15 +10742,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFReplacesExisting, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFReplacesExisting, false), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFReplacesExisting, false), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFReplacesExisting, false), C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFReplacesExisting, false), C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -10768,13 +10768,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFReplacesExisting, true)
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -13586,7 +13586,7 @@ Screens:
                                                 DropShadow: |-
                                                     =DropShadow.None
                                                 Fill: |-
-                                                    =C.'state-neutral-bg'
+                                                    =C.'seg-track-bg'
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
@@ -13612,13 +13612,13 @@ Screens:
                                                 PaddingTop: |-
                                                     =2
                                                 RadiusBottomLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusBottomRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 Width: |-
                                                     =202
                                               Children:
@@ -13632,15 +13632,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "No", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "No", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFStrategicPart, "") = "No", C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "No", C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFStrategicPart, "") = "No", C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -13658,13 +13658,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFStrategicPart, "No")
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -13683,15 +13683,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "Yes", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "Yes", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFStrategicPart, "") = "Yes", C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFStrategicPart, "") = "Yes", C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFStrategicPart, "") = "Yes", C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -13709,13 +13709,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFStrategicPart, "Yes")
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -13801,7 +13801,7 @@ Screens:
                                                 DropShadow: |-
                                                     =DropShadow.None
                                                 Fill: |-
-                                                    =C.'state-neutral-bg'
+                                                    =C.'seg-track-bg'
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
@@ -13827,13 +13827,13 @@ Screens:
                                                 PaddingTop: |-
                                                     =2
                                                 RadiusBottomLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusBottomRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopLeft: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 RadiusTopRight: |-
-                                                    =If(LayoutRank < 2, 22, 17)
+                                                    =If(LayoutRank < 2, 10, 8)
                                                 Width: |-
                                                     =202
                                               Children:
@@ -13847,15 +13847,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "No", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "No", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFWearPart, "") = "No", C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "No", C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFWearPart, "") = "No", C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -13873,13 +13873,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFWearPart, "No")
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-
@@ -13898,15 +13898,15 @@ Screens:
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
                                                       Appearance: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "Yes", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                          =ButtonAppearance.Outline
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "Yes", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                          =If(Coalesce(varMatFWearPart, "") = "Yes", C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =If(Coalesce(varMatFWearPart, "") = "Yes", C.'text-on-primary', C.'text-muted')
+                                                          =If(Coalesce(varMatFWearPart, "") = "Yes", C.'seg-on-fg', C.'text-muted')
                                                       DisplayMode: |-
                                                           =If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Font: |-
@@ -13924,13 +13924,13 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varMatFWearPart, "Yes")
                                                       RadiusBottomLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusBottomRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopLeft: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       RadiusTopRight: |-
-                                                          =If(LayoutRank < 2, 20, 15)
+                                                          =If(LayoutRank < 2, 8, 6)
                                                       Size: |-
                                                           =T.body
                                                       Text: |-

@@ -7988,7 +7988,7 @@ Screens:
                                                             DropShadow: |-
                                                                 =DropShadow.None
                                                             Fill: |-
-                                                                =C.'state-neutral-bg'
+                                                                =C.'seg-track-bg'
                                                             FillPortions: |-
                                                                 =0
                                                             Height: |-
@@ -8014,13 +8014,13 @@ Screens:
                                                             PaddingTop: |-
                                                                 =2
                                                             RadiusBottomLeft: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusBottomRight: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusTopLeft: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusTopRight: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             Width: |-
                                                                 =202
                                                           Children:
@@ -8034,15 +8034,15 @@ Screens:
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Center
                                                                   Appearance: |-
-                                                                      =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                                      =ButtonAppearance.Outline
                                                                   BasePaletteColor: |-
                                                                       =C.'color-brand-primary'
                                                                   BorderColor: |-
-                                                                      =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                                      =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                                   BorderThickness: |-
                                                                       =1
                                                                   Color: |-
-                                                                      =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'text-on-primary', C.'text-muted')
+                                                                      =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'seg-on-fg', C.'text-muted')
                                                                   DisplayMode: |-
                                                                       =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
@@ -8061,13 +8061,13 @@ Screens:
                                                                       =Set(varVhpItemRevPick, false);
                                                                       If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Revision: "" }))
                                                                   RadiusBottomLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusBottomRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   Size: |-
                                                                       =T.body
                                                                   Text: |-
@@ -8088,15 +8088,15 @@ Screens:
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Center
                                                                   Appearance: |-
-                                                                      =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                                      =ButtonAppearance.Outline
                                                                   BasePaletteColor: |-
                                                                       =C.'color-brand-primary'
                                                                   BorderColor: |-
-                                                                      =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                                      =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                                   BorderThickness: |-
                                                                       =1
                                                                   Color: |-
-                                                                      =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'text-on-primary', C.'text-muted')
+                                                                      =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'seg-on-fg', C.'text-muted')
                                                                   DisplayMode: |-
                                                                       =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
@@ -8115,13 +8115,13 @@ Screens:
                                                                       =Set(varVhpItemRevPick, true);
                                                                       If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Revision: First(colVhpRevisionOptions).Value }))
                                                                   RadiusBottomLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusBottomRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   Size: |-
                                                                       =T.body
                                                                   Text: |-
@@ -9304,7 +9304,7 @@ Screens:
                                                             DropShadow: |-
                                                                 =DropShadow.None
                                                             Fill: |-
-                                                                =C.'state-neutral-bg'
+                                                                =C.'seg-track-bg'
                                                             FillPortions: |-
                                                                 =0
                                                             Height: |-
@@ -9330,13 +9330,13 @@ Screens:
                                                             PaddingTop: |-
                                                                 =2
                                                             RadiusBottomLeft: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusBottomRight: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusTopLeft: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             RadiusTopRight: |-
-                                                                =If(LayoutRank < 2, 22, 17)
+                                                                =If(LayoutRank < 2, 10, 8)
                                                             Width: |-
                                                                 =202
                                                           Children:
@@ -9350,15 +9350,15 @@ Screens:
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Center
                                                                   Appearance: |-
-                                                                      =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                                      =ButtonAppearance.Outline
                                                                   BasePaletteColor: |-
                                                                       =C.'color-brand-primary'
                                                                   BorderColor: |-
-                                                                      =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                                      =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                                   BorderThickness: |-
                                                                       =1
                                                                   Color: |-
-                                                                      =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, C.'text-on-primary', C.'text-muted')
+                                                                      =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, C.'seg-on-fg', C.'text-muted')
                                                                   DisplayMode: |-
                                                                       =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
@@ -9377,13 +9377,13 @@ Screens:
                                                                       =Set(varVhpItemNfPick, { Value: "" });
                                                                       If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { NonFlowUserStatus: "" }))
                                                                   RadiusBottomLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusBottomRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   Size: |-
                                                                       =T.body
                                                                   Text: |-
@@ -9404,15 +9404,15 @@ Screens:
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Center
                                                                   Appearance: |-
-                                                                      =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                                      =ButtonAppearance.Outline
                                                                   BasePaletteColor: |-
                                                                       =C.'color-brand-primary'
                                                                   BorderColor: |-
-                                                                      =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", C.'color-brand-primary', RGBA(0, 0, 0, 0))
+                                                                      =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", C.'seg-on-border', RGBA(0, 0, 0, 0))
                                                                   BorderThickness: |-
                                                                       =1
                                                                   Color: |-
-                                                                      =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", C.'text-on-primary', C.'text-muted')
+                                                                      =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", C.'seg-on-fg', C.'text-muted')
                                                                   DisplayMode: |-
                                                                       =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
@@ -9431,13 +9431,13 @@ Screens:
                                                                       =Set(varVhpItemNfPick, { Value: "ZBOW" });
                                                                       If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (true), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { NonFlowUserStatus: "ZBOW" }))
                                                                   RadiusBottomLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusBottomRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopLeft: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   RadiusTopRight: |-
-                                                                      =If(LayoutRank < 2, 20, 15)
+                                                                      =If(LayoutRank < 2, 8, 6)
                                                                   Size: |-
                                                                       =T.body
                                                                   Text: |-
