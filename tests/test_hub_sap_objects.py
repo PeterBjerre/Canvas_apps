@@ -217,10 +217,10 @@ def test_only_one_open_in_sap_action_at_the_far_right():
         assert _prop(logo, key), key
     assert _prop(logo, "HoverFill") != _prop(logo, "PressedFill")
     assert _prop(logo, "FocusedBorderThickness") == "2" and _prop(logo, "TabIndex") == "0"
-    # Hoejre kant = bjaelkernes hoejre kant - 8, paa alle bredder.
+    # Hoejre kant = bjaelkernes hoejre kant (issue #521), paa alle bredder.
     for w in (390, 800, 1366):
         right = _px(so.RIGHT, w=w)
-        assert _px(_prop(logo, "X"), w=w) + so.SAP_LOGO_W == right
+        assert _px(_prop(logo, "X"), w=w) + so.SAP_LOGO_W == right == _px(so.EDGE, w=w)
 
 
 def test_copy_icon_sits_close_to_the_number_before_the_description():
@@ -263,7 +263,7 @@ def test_open_in_sap_is_one_outlined_button_without_a_separator_before_it():
     assert _prop(logo, "BorderColor") == "C.'border-input'"
     assert _prop(logo, "BorderThickness") == "1"
     img = _prop(logo, "Image")
-    assert ">SAP</text>" in img and "M69 9l-8 8" in img
+    assert ">SAP</text>" in img and "stroke-linecap='round'" in img
     assert f"width='{so.SAP_LOGO_W}'" in img
     assert _prop(logo, "Width") == str(so.SAP_LOGO_W)
     # Ingen kolonneoverskrift for handlingen.
@@ -296,3 +296,83 @@ def test_copy_gives_brief_local_feedback():
     assert _prop(tmr, "Duration") == str(so.COPIED_MS)
     assert _prop(tmr, "OnTimerEnd") == f'Set({so.COPIED_VAR}, "")'
     assert f'Set({so.COPIED_VAR}, "")' in so.open_fx()
+
+
+# ---------------------------------------------------------------------------
+# Issue #521: maerke og ikon i een knap - samme midterlinje, mindre ikon,
+# afbalanceret luft (ogsaa naar det skraa snit regnes med), knappen
+# yderst til hoejre, og det hele virker paa telefon, tablet og desktop.
+# ---------------------------------------------------------------------------
+def _svg_ink(img):
+    """Blaek-kasserne laest direkte fra den SVG, appen faar."""
+    paths = re.findall(r"<path d='([^']+)'", img)
+    nums = lambda d: [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", d)]
+
+    def box(d, grow=0.0):
+        # Absolutte M/H/V/L - folg pennen.
+        xs, ys, x, y = [], [], 0.0, 0.0
+        for cmd, args in re.findall(r"([MHVL])([^MHVLZ]+)", d):
+            v = nums(args)
+            if cmd in "ML":
+                x, y = v
+            elif cmd == "H":
+                x = v[0]
+            else:
+                y = v[0]
+            xs.append(x)
+            ys.append(y)
+        return (min(xs) - grow, min(ys) - grow, max(xs) + grow, max(ys) + grow)
+    sw = float(re.search(r"stroke-width='([\d.]+)'", img).group(1)) / 2
+    logo, icon = box(paths[0]), box(paths[1], sw)
+    w = float(re.search(r"width='([\d.]+)'", img).group(1))
+    h = float(re.search(r"height='([\d.]+)'", img).group(1))
+    return logo, icon, w, h
+
+
+def test_open_in_sap_logo_and_icon_share_one_centerline_with_balanced_space():
+    logo_blk = _block(_block(_yaml(), "conMdSapBackdrop"), "imgMdSapLogo")
+    logo, icon, w, h = _svg_ink(_prop(logo_blk, "Image"))
+    assert (logo, icon) == (so._GEO["logo"], so._GEO["icon"])
+    # Samme vandrette midterlinje - og den er billedets (og knappens) midte.
+    for box in (logo, icon):
+        assert abs((box[1] + box[3]) / 2 - h / 2) < 0.01, box
+    # "SAP" sidder om samme midterlinje (Arials versalhoejde).
+    base = float(re.search(r"<text x='[\d.]+' y='([\d.]+)'", _prop(logo_blk, "Image")).group(1))
+    assert abs(base - so.SAP_CAP * so.SAP_TEXT_SIZE / 2 - h / 2) < 0.05
+    # Ikonet understoetter maerket: mindre, men ikke forsvindende.
+    ratio = (icon[3] - icon[1]) / (logo[3] - logo[1])
+    assert 0.55 <= ratio <= 0.75, ratio
+    # Lige meget blaek-fri luft ved begge knapkanter.
+    assert abs(logo[0] - (w - icon[2])) < 0.01
+    # Afstanden maerke -> ikon maales fra snittets kant paa midterlinjen:
+    # mindst kantluften og ikke mere end halvanden gang den. Ved ikonets
+    # top (hvor snittet er bredest) roerer de ikke hinanden.
+    cut = so.SAP_LOGO_CUT / (logo[3] - logo[1])
+    edge_at = lambda y: logo[2] - cut * (y - logo[1])
+    gap_mid = icon[0] - edge_at(h / 2)
+    assert so.SAP_BTN_PAD <= gap_mid <= 1.5 * so.SAP_BTN_PAD, gap_mid
+    assert icon[0] - edge_at(icon[1]) >= 4
+    assert icon[0] > logo[2]
+    # Billedet er netop saa bredt som knappen og ikke hoejere end den
+    # mindste klikflade - Center tegner det uskaleret midt i (32 og 44).
+    assert w == so.SAP_LOGO_W and _prop(logo_blk, "Width") == str(so.SAP_LOGO_W)
+    assert h == so.LINK <= 32
+    assert _prop(logo_blk, "ImagePosition") == "ImagePosition.Center"
+    # Knappen selv staar midt i raekken - ogsaa naar klikfladen er 44 hoej.
+    assert f"={so.BAR_Y + so.BAR_H} + ({so.LINE_H} - Self.Height) / 2" in logo_blk
+
+
+def test_open_in_sap_button_fits_at_phone_tablet_and_desktop_widths():
+    pop = _block(_yaml(), "conMdSapBackdrop")
+    logo, desc = _block(pop, "imgMdSapLogo"), _block(pop, "txtMdSapDesc")
+    for w, rank, hit in ((360, 1, 44), (390, 1, 44), (768, 2, 32), (1024, 3, 32),
+                         (1366, 3, 32), (1920, 3, 32)):
+        for lvl in (0, 1, 2):
+            kw = dict(lvl=lvl, rank=rank, hit=hit, w=w)
+            x = _px(_prop(logo, "X"), **kw)
+            # Yderst til hoejre, inden for galleriet (scrollbarens plads fri).
+            assert x + so.SAP_LOGO_W == _px(so.EDGE, **kw) <= _px(so.GW, **kw) - so.SB
+            # Beskrivelsen faar stadig plads foran knappen.
+            dx = _px(_prop(desc, "X"), **kw)
+            assert dx + _px(_prop(desc, "Width"), **kw) <= x - 10, (w, lvl)
+            assert _px(_prop(desc, "Width"), **kw) > 0, (w, lvl)
