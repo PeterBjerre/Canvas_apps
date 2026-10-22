@@ -42,18 +42,20 @@ def test_a_section_is_a_muted_uppercase_title_without_rules():
 
 def test_equipment_sections_follow_the_mockup():
     y = _yaml("ScreenEquipment.pa.yaml")
-    pos = _order(y, ["txtEqSecIdent", "txtEqSecLoc", "txtEqSecMfr", "txtEqSecWarranty"])
+    pos = _order(y, ["txtEqSecIdent", "txtEqSecLoc", "txtEqSecMfr", "txtEqSecWarranty",
+                     "txtEqSecDocs"])
     assert pos == sorted(pos)
-    for t in ("Identification", "Location", "Manufacturer", "Warranty and documents"):
+    for t in ("Identification", "Location", "Manufacturer", "Warranty", "Documents"):
         assert f'Upper("{t}")' in y, t
+    assert "Warranty and documents" not in y
     # Felterne staar i deres sektion. FL staar i Location paa Details
-    # (issue #485 - ingen Objects-fane) og garantien paa Documents-fanen
-    # (issue #430) - efter Details.
+    # (issue #485 - ingen Objects-fane), garantien sidst paa Details
+    # (issue #531) og dokumenterne paa Documents-fanen (issue #430).
     assert (y.index("txtEqSecLoc:") < y.index("conEqFl:") < y.index("conEqRoomCoordinates:")
             < y.index("txtEqSecMfr:"))
-    assert y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("conEqEditorDocuments:")
+    assert (y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("txtEqSecWarranty:")
+            < y.index("conEqEditorDocuments:") < y.index("txtEqSecDocs:"))
     assert "conEqEditorObjects:" not in y
-    assert y.index("conEqEditorDocuments:") < y.index("txtEqSecWarranty:")
 
 
 def test_materials_and_measuring_points_have_titled_sections():
