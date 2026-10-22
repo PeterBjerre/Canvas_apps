@@ -41,8 +41,16 @@ BADGES = {
         "bdgVhpItemsHeadBadge": (None, None, None),
         "bdgVhpEditorHeadBadge": (None, None, None),
         # Planens samlede pris i det foldede planhoved (Peter 2026-10-19).
-        "bdgVhpPlanFoldCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
-        "bdgVhpOpsHeadBadge": ('If(VhpOpsValid, "Valid", "")', None, None),
+        # Over omkostningsgraensen i advarselsfarverne (issue #529) - ogsaa
+        # udfoldet og paa telefonen (tests/test_cost_summary_529.py).
+        "bdgVhpPlanFoldCost": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
+                               "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
+        "bdgVhpPlanHeadCost": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
+                               "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
+        "bdgVhpPlanHeadCostPhone": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
+                                    "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
+        # Task list and operations: Valid-maerket er afloest af det groenne
+        # flueben foran titlen (issue #529, tests/test_cost_summary_529.py).
     },
     "ScreenIssueBoard.pa.yaml": {
         "bdgIbRowNo": ("ThisItem.TicketNo", "C.'color-brand-primary'", "C.'bg-muted'"),
@@ -60,7 +68,8 @@ BADGES = {
 }
 OLD_NAMES = ("txtVhpPlanHeadBadge", "txtVhpOpsHeadBadge", "txtIbRowNo", "txtIbDetNo",
              "txtIbDetStatus", "txtIbDetPriority", "txtIbActRole", "txtMdAprChip",
-             "imgMdAprNo", "imgEqNumber", "imgMatNumber", "imgMpNumber", "imgVhpNumber")
+             "imgMdAprNo", "imgEqNumber", "imgMatNumber", "imgMpNumber", "imgVhpNumber",
+             "bdgVhpOpsHeadBadge")
 
 
 def _read(screen):
@@ -105,8 +114,10 @@ def test_every_badge_is_modern_badge_with_our_colors():
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
     # + 1: SAP OBJECT-popuppens nummerbadge (issue #471); - 1: Activity's
-    # rollemaerke (issue #475 - rollen staar nu i typen).
-    assert total == 17
+    # rollemaerke (issue #475 - rollen staar nu i typen); - 1: Task list and
+    # operations' Valid-maerke (issue #529 - nu et flueben foran titlen);
+    # + 2: planens Total cost udfoldet og paa telefonen (issue #529).
+    assert total == 18
 
 
 def test_old_controls_are_gone():

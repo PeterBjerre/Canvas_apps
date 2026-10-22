@@ -122,10 +122,11 @@ def test_cost_threshold_formula_is_environment_filtered():
     assert cfg.SETTINGS_ENV in ("DEV", "TEST", "PROD")
 
 
-def test_cost_over_shown_on_the_totals_card():
-    import build_tasklist as bt
+def test_cost_over_shown_on_the_plan_cost_badge():
+    import build_plan_header as bp
     # Graensen gaelder hele planen (Peter 2026-10-19), ikke det enkelte item.
-    assert "Sum(colVhpOperations, Cost) > VhpCostThreshold" in bt.COST_OVER_ON
+    # Advarslen staar paa planens Total cost-maerke (issue #529).
+    assert "Sum(colVhpOperations, Cost) > VhpCostThreshold" in bp.COST_OVER_ON
     screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
     assert "crdVhpOpsTotals" in screen
     assert "txtVhpOpsCostOver" not in screen and "htmVhpOpsTotals" not in screen
