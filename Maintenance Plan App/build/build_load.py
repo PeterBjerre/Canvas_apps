@@ -75,7 +75,6 @@ EMPTY_ITEM_FIELDS = [
     ("NonFlowUserStatus", '""'), ("TasklistKey", '""'),
     ("TasklistName", '""'), ("Status", '"draft"'), ("SpId", "0"),
     ("ItemGuid", "Text(GUID())"),
-    ("SystemNo", '""'), ("SystemFL", '""'),
 ]
 
 # Planhovedet. Feltnavnene SKAL vaere de samme som i OnStart's foerste
@@ -131,10 +130,6 @@ ITEM_FIELDS = [
     # Itemets identitet (docs/32 §6, R2-034). Et item fra foer kolonnen
     # blev skrevet, faar en ny her og beholder den fra naeste gem.
     ("ItemGuid", "Coalesce(IT.ItemGuid, Text(GUID()))"),
-    # Systemet slaas op i baggrunden af BioSap-VhPlan-ItemSystem, naar
-    # itemet er gemt. Ingen ekstra kald: kolonnerne kommer med raekken.
-    ("SystemNo", 'Coalesce(IT.SystemNo, "")'),
-    ("SystemFL", 'Coalesce(IT.SystemFL, "")'),
 ]
 
 OP_FIELDS = [
