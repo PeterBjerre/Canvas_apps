@@ -48,6 +48,12 @@ BADGES = {
                                     "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
         # Task list and operations: Valid-maerket er afloest af det groenne
         # flueben foran titlen (issue #529, tests/test_cost_summary_529.py).
+        # Itemets Total item cost (Item) og Duration (Task list) - issue #545,
+        # tests/test_item_cost_header_545.py. Altid de normale farver.
+        "bdgVhpEditorCost": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpEditorCostPhone": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpOpsDuration": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
+        "bdgVhpOpsDurationPhone": (None, "C.'text-primary'", "C.'state-neutral-bg'"),
     },
     "ScreenIssueBoard.pa.yaml": {
         "bdgIbRowNo": ("ThisItem.TicketNo", "C.'color-brand-primary'", "C.'bg-muted'"),

@@ -677,7 +677,7 @@ i `sp_config.py`, som alle andre.
 | *Add item* / *Copy item* (`build_items.py`) og startitemet (`build_load.py`, `EMPTY_ITEM_FIELDS`) | `ItemGuid: Text(GUID())` på det nye item. *Copy item* kopierer **ikke** kildens `ItemGuid` |
 | Indlæsning (`build_load.py`, `ITEM_FIELDS`) | `ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))` |
 | `colVhpItems` (`sp_config.py`, `WORKING_COLLECTIONS`) | Feltet `ItemGuid` |
-| Kortet `crdVhpOpsTotals` øverst i tasklisten (`build_tasklist.py`) | Viser Total cost og Duration for det aktive item. Er **planens** total over grænsen fra `AppSettings`, siger kortet det. Planens total står i det foldede planhoved. Kun information; flowet regner selv |
+| Mærket `bdgVhpEditorCost` (Total item cost) øverst til højre i Item-sektionen (`build_items.py`, issue #545) | Viser summen af det aktive items operationer. Advarslen om **planens** total over grænsen fra `AppSettings` står kun på planens Total cost i Plan header (tooltip). Kun information; flowet regner selv |
 | Items-skinnen | Pr. item et lille mærke med systemgodkendelse og omkostningsgodkendelse, læst fra `MD_ApprovalLog` på `RequestGuid` |
 | Statusbanner i toppen | Hvor sagen er (`ApprovalStage`), hvem den ligger hos, og `ReturnComment` ved `Returned` |
 | Skrivebeskyttelse | Alle felter låses, når `Status` ikke er `Draft` eller `Returned` |

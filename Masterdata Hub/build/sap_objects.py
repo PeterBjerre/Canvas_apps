@@ -263,6 +263,12 @@ COPIED = f'(IfError({COPIED_VAR}, "") = {ROW_KEY})'
 # item 1, opgaveliste 2), og et lille "L" foran bjaelken viser, at den
 # hoerer under raekken ovenover. Ikonerne til hoejre staar paa SAMME x i
 # alle niveauer.
+#
+# Issue #543: ingen vandrette skillestreger mellem objekterne. Bjaelken er
+# rykket op i den plads, stregen og luften over den fyldte, og raekken med
+# nummeret er saa lav, som en touch-klikflade tillader (lay.HIT_TOUCH) -
+# popuppen er mere kompakt. Den graa bjaelke markerer selv, hvor et nyt
+# objekt begynder; indrykning og hierarkiets streger viser niveauet.
 POP_MAX_W = 640
 POP_PAD = 16
 # Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
@@ -270,9 +276,9 @@ POP_W = lay.popup_w(POP_MAX_W, 24)
 GW = f"({POP_W} - {lay.mobile_or(2 * lay.MOBILE_CARD_PAD, 2 * POP_PAD)})"
 MAX_ROWS = 5
 INDENT = 28
-BAR_Y = 6            # luft over bjaelken - ogsaa mellem to niveauer
+BAR_Y = 2            # luft over bjaelken - ogsaa mellem to objekter (#543)
 BAR_H = 32
-LINE_H = 48          # raekken med nummeret
+LINE_H = lay.HIT_TOUCH   # raekken med nummeret: plads til touch-knapperne (#543)
 ROW_H = BAR_Y + BAR_H + LINE_H
 GUIDE = 12           # den lodrette streg foran nummeret, fra niveauets x
 NO_X = 18            # nummerets felt, fra niveauets x
@@ -518,16 +524,15 @@ def build_popup():
     desc_end = f"If({has_url}, {logo_x} - 12, {RIGHT})"
     desc_w = f"Max(0, {desc_end} - ({desc_x}))"
     desc = text_ctrl(n("txt", "Desc"), "ThisItem.Desc", size=lay.SIZE_BODY, color=C_TITLE,
-                     height=LINE_H - 8, wrap="true", width=desc_w, visible=f"!{COPIED}",
-                     extra={"X": desc_x, "Y": f"{line_y} + 4",
+                     height=LINE_H - 4, wrap="true", width=desc_w, visible=f"!{COPIED}",
+                     extra={"X": desc_x, "Y": f"{line_y} + 2",
                             "VerticalAlign": "VerticalAlign.Middle"})
     # "Copied" staar kort paa beskrivelsens plads efter en kopiering.
     copied = text_ctrl(n("txt", "Copied"), COPIED_LABEL, size=lay.SIZE_BODY, weight="Semibold",
-                       color=C_VALID_FG, height=LINE_H - 8, wrap="false", width=desc_w,
+                       color=C_VALID_FG, height=LINE_H - 4, wrap="false", width=desc_w,
                        visible=COPIED,
-                       extra={"X": desc_x, "Y": f"{line_y} + 4",
+                       extra={"X": desc_x, "Y": f"{line_y} + 2",
                               "VerticalAlign": "VerticalAlign.Middle"})
-    rule = _line(n("rct", "Rule"), x0, ROW_H - 1, f"Max(0, {EDGE} - ({x0}))", 1)
     gh = f"Min(CountRows({ROWS}), {MAX_ROWS}) * {ROW_H}"
     gal = Ctrl(n("gal", "Rows"), "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"SAP objects"',
@@ -538,7 +543,7 @@ def build_popup():
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Visible": f"!{BUSY} && !IsEmpty({ROWS})",
         "Width": GW, "WrapCount": "1",
-    }, children=[l_pass, l_v, l_h, bar, guide, no, desc, copied, sep, copy, logo, rule],
+    }, children=[l_pass, l_v, l_h, bar, guide, no, desc, copied, sep, copy, logo],
        h=MAX_ROWS * ROW_H)
 
     title = text_ctrl(n("txt", "Title"), '"SAP objects"', size=lay.SIZE_CARD_TITLE, weight="Semibold",

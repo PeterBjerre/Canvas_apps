@@ -11,11 +11,12 @@ import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
-                           field_cell, card, pin_widths, grow, row_hit,
+                           card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
-                           tab_list, tabs_w, modern_card, confirm_modal)
+                           tab_list, tabs_w, confirm_modal)
 from build_plan_header import section_header, help_panel, section_footer, mobile_head, status_icon
 from build_helpers import mobile_pad
+from build_helpers import modern_badge  # issue #545: Duration-maerket
 import mobile
 from build_helpers import act_fx, act_mark, act_button
 from gen_screen import lock_section, SCROLLBAR_NOT_MOBILE
@@ -319,64 +320,81 @@ def _ops_header_html():
 
 
 # ---------------------------------------------------------------------------
-# Noegletal (Total cost og Duration)
+# Noegletal: itemets Total item cost (Item) og Duration (her)
 # ---------------------------------------------------------------------------
 # Summerne stod foer i en raekke under operationstabellen ("Total for this
-# item"). Peter 2026-10-19: et kort oeverst til hoejre i sektionen, ved
-# Valid-maerket, med Total cost og Duration. Senere samme dag flyttet ned i
-# raekken med task listen og knapperne. Kortet er det moderne Card
-# (build_helpers.modern_card), som Peter bad om. Summerne gaelder det valgte
-# item - det er dets operationer, tabellen viser.
+# item"), derefter i et kort i denne sektions overskrift med Total cost og
+# Duration (issue #529). ISSUE #545 (Uffe): itemets omkostning hoerer til
+# ITEMET - den staar nu som "Total item cost"-maerket oeverst til hoejre i
+# Item-sektionen (build_items.item_cost_badge). Her staar kun Duration
+# tilbage: varigheden er operationernes og nyttig, mens man bygger dem.
+# Summerne gaelder det valgte item - det er dets operationer, tabellen viser.
 OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
 
-# Tom tabel har ingen sum at vise - saa er kortet skjult.
+# Tom tabel har ingen sum at vise - saa er maerket skjult.
 TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
              f"CountRows({OPS_ACTIVE}) > 0, false)")
 
 # Planens samlede omkostning og graensen staar i build_plan_header (issue
 # #529): advarslen hoerer til planen og vises KUN paa planens Total
-# cost-maerke (tooltip) - aldrig her i Task list and operations.
+# cost-maerke (tooltip) - aldrig her og aldrig paa itemets maerke.
 
 # Timer og kroner i appens ENE talformat (layout_tokens.num_text, UX-review
 # B2): "7" og "1,192" - ikke "7," og "1.192,00".
-ITEM_COST_TEXT = ('"Total cost: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, Cost)") + ' & " DKK"')
 ITEM_DUR_TEXT = ('"Duration: " & ' + lay.num_text(f"Sum({OPS_ACTIVE}, DurationHours)") + ' & " h"')
-# OEVERST TIL HOEJRE I OVERSKRIFTEN (issue #529, som #522 foreslog), dér
-# hvor Valid-maerket stod. Kortet viser KUN det valgte items Total cost og
-# Duration - planens advarsel om omkostningsgodkendelse staar paa planens
-# Total cost-maerke i Plan header (build_plan_header.plan_cost_badge).
-# Kortet har derfor altid to linjer og samme hoejde, saa intet flytter sig.
-TOTALS_CARD_W = 230
-TOTALS_CARD_H = 60
 
-# Overskriftskortet staar fra Tablet og op. Paa en telefon er kortet 248-288
-# px bredt - der er ikke plads ved titlen, saa telefonen beholder kortet i
-# fuld bredde nederst i task-list-raekken (issue #508), under knapperne.
+# ITEMETS TOTAL COST (issue #545): summen af ALLE det valgte items
+# operationer. Coalesce: et item uden operationer viser "0 DKK" (Sum af en
+# tom tabel er Blank) - maerket staar, saa snart et item er valgt, og
+# opdateres af sig selv, naar operationer, priser eller det valgte item
+# skifter (det er en formel, ingen variabel at holde ved lige).
+ITEM_COST = f"Coalesce(Sum({OPS_ACTIVE}, Cost), 0)"
+ITEM_COST_TEXT = '"Total item cost: " & ' + lay.num_text(ITEM_COST) + ' & " DKK"'
+ITEM_COST_ON = "IfError(!IsBlank(varVhpActiveItemId), false)"
+ITEM_COST_TIP = '"Combined cost from Task list and operations"'
+
+# Et maerke, der er saa bredt som teksten (som planens Total cost-maerke):
+# ca. 7 px pr. tegn i 12 px Semibold og 10 px luft i hver side.
+def badge_w(text_fx):
+    return f"Len({text_fx}) * 7 + 24"
+
+
+DUR_BADGE_H = 24
+# Til pladsregnestykket ved titlen: "Duration: 1,234.5 h" (19 tegn).
+DUR_BADGE_MAX_W = 19 * 7 + 24
+
+# Overskriftsmaerket staar fra Tablet og op. Paa en telefon er der ikke
+# plads ved titlen, saa telefonen har maerket nederst i task-list-raekken
+# (issue #508), under knapperne.
 TOTALS_HEAD_ON = lay.mobile_or("false", TOTALS_ON)
 TOTALS_PHONE_ON = lay.mobile_or(TOTALS_ON, "false")
 
 
-def totals_card(name="crdVhpOpsTotals", phone=False):
-    """Kortet med itemets Total cost og Duration. phone=False: i sektions-
-    overskriften (Tablet og op); phone=True: i task-list-raekken paa en
-    telefon, i fuld bredde. Ingen beskrivelse (issue #529)."""
+def totals_card(name="bdgVhpOpsDuration", phone=False):
+    """Maerket med det valgte items Duration (issue #545: Total cost er
+    flyttet til Item-sektionen). phone=False: i sektionsoverskriften (Tablet
+    og op); phone=True: i task-list-raekken paa en telefon. Aldrig planens
+    advarsel om omkostningsgodkendelse."""
     vis = TOTALS_PHONE_ON if phone else TOTALS_HEAD_ON
-    c = modern_card(
-        name, ITEM_COST_TEXT, ITEM_DUR_TEXT, "Blank()",
-        width=TOTALS_CARD_W, height=TOTALS_CARD_H, fill=C_NEUTRAL_BG,
-        title_color=C_TITLE, subtitle_color=C_MUTED, description_color=C_MUTED,
-        title_size=13, subtitle_size=12, description_size=11,
-        visible=vis)
+    w = badge_w(ITEM_DUR_TEXT)
+    c = modern_badge(
+        name, ITEM_DUR_TEXT, color=C_TITLE, fill=C_NEUTRAL_BG,
+        width=w, height=DUR_BADGE_H, size=12, pad=(10, 10),
+        accessible='"Item " & ' + ITEM_DUR_TEXT, visible=vis,
+        extra={"AlignInContainer": "AlignInContainer.Center"})
     if phone:
-        # Fuld bredde i den lodrette raekke paa telefonen; fra Tablet og op
-        # er kortet skjult og maa ikke taelle med i raekkens bredde/hoejde.
-        c.props["Width"] = lay.mobile_or(OPS_CW, 0)
+        # Fra Tablet og op er maerket skjult og maa ikke taelle med i
+        # raekkens bredde/hoejde. Paa telefonen staar det til venstre, med
+        # en fast bredde: raekkens flow_ok-graense (og check_layout regel
+        # 4d) skal kunne regne bredden ud uden at kende teksten.
+        c.props["Width"] = lay.mobile_or(DUR_BADGE_MAX_W, 0)
         c.props["LayoutMinWidth"] = "0"
-        c.h = lay.mobile_or(TOTALS_CARD_H, 0)
+        c.props["Height"] = lay.mobile_or(DUR_BADGE_H, 0)
+        c.h = c.props["Height"]
+        c.props["AlignInContainer"] = "AlignInContainer.Start"
     else:
-        c.props["LayoutMinWidth"] = str(TOTALS_CARD_W)
-        c.h = lay.mobile_or(0, f"If({TOTALS_ON}, {TOTALS_CARD_H}, 0)")
-    c.props["AlignInContainer"] = "AlignInContainer.Center"
+        c.props["LayoutMinWidth"] = c.props["Width"]
+        c.h = lay.mobile_or(0, f"If({TOTALS_ON}, {DUR_BADGE_H}, 0)")
     return c
 
 
@@ -1274,21 +1292,21 @@ def build_tasklist_section():
     # OVERSKRIFTEN (issue #529), som Plan header: det groenne flueben
     # (status_icon) staar lige foran titlen, KUN naar sektionen er gyldig -
     # samme validering som det tidligere Valid-maerke (VhpOpsValid). Selve
-    # maerket er vaek; dets plads til hoejre har kortet med Total cost og
-    # Duration nu.
+    # maerket er vaek; til hoejre staar itemets Duration (issue #545: Total
+    # cost staar nu i Item-sektionen).
     totals = totals_card()
     header = section_header("conVhpOpsHead", "Task list and operations", None,
                             extra_right=[totals])
     # Telefonen (issue #508): "Task list" - den lange titel og badget var
     # 324 px i et kort paa 248-288 px.
     mobile_head(header, short_title="Task list")
-    # Et smalt tablet-vindue: titel, flueben og kortet (TOTALS_CARD_W) kan
+    # Et smalt tablet-vindue: titel, flueben og maerket (DUR_BADGE_MAX_W) kan
     # ikke staa paa een linje med den lange titel - saa den korte, ligesom
-    # paa telefonen. Kortet bliver altid i fuld bredde.
+    # paa telefonen.
     title = header.children[0]
     full, short = mobile.desk(title.props["Text"]), mobile.phone(title.props["Text"])
     full_w, short_w = mobile.desk(title.props["Width"]), mobile.phone(title.props["Width"])
-    need = f"{20 + int(full_w) + TOTALS_CARD_W + 3 * 12}"
+    need = f"{20 + int(full_w) + DUR_BADGE_MAX_W + 3 * 12}"
     title.props["Text"] = lay.mobile_or(short, fits(OPS_CW, need, short, full))
     title.props["Width"] = lay.mobile_or(short_w, fits(OPS_CW, need, short_w, full_w))
     title.props["LayoutMinWidth"] = title.props["Width"]
@@ -1297,7 +1315,7 @@ def build_tasklist_section():
     ok.vis = ok.props["Visible"]
     ok.props["AlignInContainer"] = "AlignInContainer.Center"
     header.children.insert(0, ok)
-    # Fast hoejde, naar kortet vises (TOTALS_CARD_H) - se totals_card.
+    # Fast hoejde, naar maerket vises (DUR_BADGE_H) - se totals_card.
     # (mobile.refit kan ikke bruges: overskriftens LayoutGap er en mobil-If.)
     header.props["Height"] = str(row_height(header.children))
     header.h = header.props["Height"]
@@ -1341,8 +1359,16 @@ def build_tasklist_section():
     # Tasklist-feltet har en fast, begraenset bredde og staar til venstre.
     TL_W = fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360")
     mobile.touch(drpTasklist)
-    tasklistCell = field_cell("conVhpCellTasklist", "Task list", drpTasklist, required=True,
-                              width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
+    # INGEN ETIKET (issue #542): "Task list *" og dens linje over feltet er
+    # vaek - dropdownen staar direkte i raekken med knapperne, lige under
+    # overskriften (der selv hedder Task list). Kravet er det samme: feltet
+    # bliver roedt (BorderColor/ValidationState via required_formula), og
+    # Save siger "Select a task list first.". Skaermlaeseren faar etiketten
+    # og "required", som field_cell gav den.
+    drpTasklist.props["Width"] = TL_W
+    drpTasklist.props["LayoutMinWidth"] = TL_W
+    drpTasklist.props["AccessibleLabel"] = '"Task list, required"'
+    tasklistCell = drpTasklist
 
     btnAddLines = button(
         "btnVhpAddTasklistLines", "\"Add lines from task list\"",
@@ -1423,15 +1449,14 @@ def build_tasklist_section():
     # Afloest af knapperne paa en telefon (se ovenfor). Kontrollen bliver
     # staaende (skjult), saa intet, der naevner den, brydes.
     opsMenu.vis = lay.mobile_or("false", below("Tablet"))
-    # Kortet med Total cost og Duration staar i sektionsoverskriften (issue
-    # #529). Raekken her er kun task listen og knapperne - de staar paa
-    # samme linje, bundjusteret med dropdownen. Kortet har altid samme
-    # hoejde (ingen advarsel her), saa intet i raekken flytter sig.
-    # Telefonen: kortet i fuld bredde nederst i raekken (TOTALS_PHONE_ON).
-    totalsPhone = totals_card("crdVhpOpsTotalsPhone", phone=True)
+    # Duration-maerket staar i sektionsoverskriften (issue #529, #545).
+    # Raekken her er kun task listen og knapperne - de staar paa samme
+    # linje, bundjusteret med dropdownen. Telefonen: maerket nederst i
+    # raekken (TOTALS_PHONE_ON).
+    totalsPhone = totals_card("bdgVhpOpsDurationPhone", phone=True)
     tb_kids = [tasklistCell, btnAddLines, btnAddOp, opsMenu, totalsPhone]
     on_line = flow_ok(tb_kids, OPS_CW, 12)
-    for b in add_btns + [opsMenu]:
+    for b in [drpTasklist] + add_btns + [opsMenu]:
         b.props["AlignInContainer"] = f"If({on_line}, AlignInContainer.End, AlignInContainer.Start)"
     toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
 
