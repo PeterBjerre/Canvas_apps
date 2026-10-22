@@ -78,3 +78,101 @@ def test_view_icon_opens_the_panel_without_switching_mode():
     assert "DisplayMode" not in T._ctrl("btnFlCOpen")["Properties"]
     note = T._prop("txtFlClassNote", "Text")
     assert "the view icon opens" in note and "Edit pencil" in note
+
+
+# ---------------------------------------------------------------------------
+# Issue #533 (udvidet): Classes klappet sammen, opsummering og gem
+# ---------------------------------------------------------------------------
+OPEN = "Coalesce(varFlClassesOpen, false)"
+
+
+def _yaml():
+    return T._text()
+
+
+def test_classes_fold_on_every_screen_width_closed_by_default():
+    # Chevronlinjen ses overalt - ikke kun paa telefonen.
+    assert "Visible" not in T._ctrl("conFlClassesFold")["Properties"]
+    assert "Visible" not in T._ctrl("btnFlClassesFold")["Properties"]
+    assert T._prop("btnFlClassesFold", "OnSelect") == f"Set(varFlClassesOpen, !{OPEN})"
+    # Den gamle titel kun fra Tablet er vaek - titlen staar i chevronlinjen.
+    assert T._ctrl("txtFlClassesH") is None
+    # Indholdet kun, mens Classes er aaben - paa alle bredder (blank = lukket).
+    for c in ("galFlTabs", "txtFlClassNote", "conFlClsTable", "txtFlNoClassRows"):
+        vis = str(T._ctrl(c)["Properties"]["Visible"])
+        assert vis.lstrip("=").startswith(OPEN), c
+        assert "LayoutRank" not in vis, c
+
+
+def test_classes_summary_counts_rows_and_classes():
+    p = T._parts()
+    assert T._prop("txtFlClassesFoldSummary", "Visible") == f"!{OPEN}"
+    text = T._prop("txtFlClassesFoldSummary", "Text")
+    # Tomme raekker (den nederst) taeller ikke; klasserne er Classes' egne.
+    assert "CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description))))" in text
+    assert f"CountRows(Distinct({p.V.BUCKETS}, AssignedClass))" in text
+    assert '" Functional Location", " Functional Locations"' in text
+    assert '" class", " classes"' in text
+
+
+def test_open_state_survives_edits_filters_and_saves():
+    p, s = T._parts(), T._parts().S
+    # Kun chevronen, en ny anmodning og en anden anmodning saetter den.
+    assert "varFlClassesOpen" not in s.save_fx() + s.submit_fx()
+    assert "varFlClassesOpen" not in T._prop("btnFlTab", "OnSelect")
+    for fx in (p.set_row_fx("g", "FL", "x"), p.set_val_fx("g", '"ROOM"', "x"),
+               p.delete_row_fx("g"), p.copy_row_fx("g"), p.capped_add_row_fx()):
+        assert "varFlClassesOpen" not in fx
+    assert "Set(varFlClassesOpen, false)" in p.RESET_FX
+    assert "Set(varFlClassesOpen, false)" in s.load_fx()
+
+
+def test_deleting_a_row_removes_its_classes_entry():
+    # Classes er en visning af colFlRows (V.BUCKETS) - ingen egen kopi.
+    items = T._prop("galFlClassRows", "Items")
+    assert "Filter(colFlRows, " in items
+    assert "Remove(colFlRows, LookUp(colFlRows, RowGuid = g))" in T._parts().delete_row_fx("g")
+
+
+def test_unsaved_changes_are_tracked_and_cleared_by_a_save():
+    p, s = T._parts(), T._parts().S
+    # Kun naar vaerdien faktisk aendres.
+    assert ('If(Coalesce(LookUp(colFlRows, RowGuid = g).FL, "") <> Coalesce(nv, ""), '
+            'Set(varFlDirty, true))') in p.set_row_fx("g", "FL", "x")
+    assert "Set(varFlDirty, true)" in p.set_val_fx("g", '"ROOM"', "x")
+    for fx in (p.delete_row_fx("g"), p.copy_row_fx("g"), p._paste_add_fx()):
+        assert "Set(varFlDirty, true)" in fx
+    # En tom raekke gemmes ikke - den goer intet ugemt.
+    assert "varFlDirty" not in p.capped_add_row_fx() + p.AUTO_ROW_FX
+    # Et gem nulstiller den - kun naar det lykkedes; et fejlet gem beholder
+    # baade vaerdierne og markeringen.
+    save = s.save_fx()
+    ok, failed = save.split("Set(varFlInfo, \"Saving failed")
+    assert "Set(varFlDirty, false)" in ok.rsplit("CountRows(colFlSaveErrors) = 0,", 1)[1]
+    assert "varFlDirty" not in failed
+    # Ny og hentet anmodning: intet ugemt.
+    assert "Set(varFlDirty, false)" in p.RESET_FX and "Set(varFlDirty, false)" in s.load_fx()
+    # Cancel/Reset i panelet: tilbage til tilstanden, da panelet blev aabnet.
+    assert "Set(varFlDirtyAtOpen, Coalesce(varFlDirty, false))" in p.open_row_panel_fx("g")
+    assert "Set(varFlDirty, Coalesce(varFlDirtyAtOpen, true))" in p.PANEL_RESTORE
+
+
+def test_unsaved_changes_are_visible():
+    unsaved = '(Coalesce(varFlDirty, false) && !varFlViewOnly && varFlStatus <> "Indsendt")'
+    assert T._prop("txtFlUnsaved", "Text") == '"Unsaved changes"'
+    assert unsaved in T._prop("txtFlUnsaved", "Visible")
+    # Under Desktop: i Rows' taeller (ogsaa paa telefonen).
+    assert f'If({unsaved}, "  ·  Unsaved changes", "")' in T._prop("txtFlRowsCount", "Text")
+    assert T._prop("btnFlSaveDraft", "Tooltip").startswith(f'If({unsaved}, "Unsaved changes. "')
+
+
+def test_panel_save_is_the_same_save_and_submit_saves_too():
+    p, s = T._parts(), T._parts().S
+    # Panelets Save er det fulde gem (samme som Save draft) - ikke kun lokalt.
+    assert s.save_fx() in p.PANEL_SAVE_FX
+    assert s.save_fx() in p.SAVE_DRAFT_FX
+    assert "same as Save draft" in T._prop("btnFlEditorSave", "Tooltip")
+    # Submit gemmer og indsender i een handling - Save draft foerst kraeves ikke.
+    assert s.save_fx(notify=False).replace("\n", "\n    ") in s.submit_fx()
+    assert "varFlDirty" not in s.SUBMIT_OK
+    assert "saved and submitted in one step" in _yaml()

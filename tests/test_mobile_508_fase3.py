@@ -207,15 +207,13 @@ def test_rows_toolbar_fits_320_with_icon_buttons():
 def test_classes_are_folded_cards_on_a_phone():
     assert fl("galFlClassRows", "TemplateSize", 360) == 76
     assert fl("galFlClassRows", "TemplateSize", 1366) == 44
-    assert fl("conFlClassesFold", "Visible", 360) == 1
-    assert fl("conFlClassesFold", "Visible", 1366) == 0
-    # Lukket som standard paa telefonen; uaendret fra Tablet.
+    # Issue #533: chevronlinjen ses paa ALLE skaermbredder, og Classes er
+    # lukket som standard overalt (tests/test_fl_classes_532_533.py).
+    assert fl("conFlClassesFold", "Visible", 360) is None
     vis = _p("galFlTabs", "Visible")
     assert "Coalesce(varFlClassesOpen, false)" in vis
     assert fl("btnFlTab", "Height", 360) == 42 and fl("btnFlTab", "Height", 1366) == 34
     assert fl("galFlTabs", "ShowScrollbar", 360) == 0
-    assert fl("txtFlClassesH", "Visible", 360) == 0
-    assert fl("txtFlClassesH", "Visible", 1366) not in (0, False)
 
 
 # ---------------------------------------------------------------------------
