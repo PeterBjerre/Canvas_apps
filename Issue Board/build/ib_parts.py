@@ -85,7 +85,8 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
                            ICON_W, modern_badge, spinner, panel_save_fx, panel_save_mode,
                            panel_save_status, panel_save_block, panel_save_text,
-                           act_fx, act_mark, act_button, act_status, act_layers, icon_only_when)
+                           act_fx, act_mark, act_button, act_status, act_layers, icon_only_when,
+                           mobile_pad, mobile_footer)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex as _hex
 import icons
@@ -94,6 +95,8 @@ import status_chip as sc
 import app_icons
 import layout_tokens as lay
 from layout_tokens import SHELL_W, below, at_least, if_below
+import mobile
+from gen_screen import SCROLLBAR_NOT_MOBILE, MOBILE_GALLERY_RESERVE
 
 import ib_config as cfg
 import doc_upload as du
@@ -101,6 +104,16 @@ import attflows
 
 P = "Ib"
 NARROW = below("Tablet")
+TOUCH = lay.TOUCH_MIN
+
+
+def _ph(c, h=TOUCH):
+    """En anden hoejde paa en telefon (issue #508) - saettes FOER
+    foraelderen bygges, saa dens hoejde regner med den. Tablet og desktop
+    er uaendrede."""
+    c.props["Height"] = lay.mobile_or(h, c.props["Height"])
+    c.h = c.props["Height"]
+    return c
 
 # ---------------------------------------------------------------------------
 # Tilstand
@@ -639,7 +652,8 @@ def build_bar():
                  accessible=tips.NEW_ISSUE)
     # Under Tablet er knappen kun sit ikon (issue #515).
     new.props["Tooltip"] = tips.NEW_ISSUE
-    icon_on_mobile(new)
+    icon_on_mobile(new, w=TOUCH)
+    _ph(new)                           # 44 x 44 paa en telefon (issue #508)
     # Refresh er ikke laengere en del af det normale arbejde - hver aendring
     # opdaterer selv det, den roerer (issue #212). Den henter andres
     # aendringer stille, uden at filtrene eller en aaben sag roeres.
@@ -791,6 +805,40 @@ FLT_ROOMY = f"{TB_W} >= {FLT_ROOMY_NEED}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
+# TELEFONEN (issue #508): soegefeltet og fanerne staar fremme; listerne
+# (Application, Section, Status, Priority) og sorteringen ligger bag
+# knappen "Filters" ved soegefeltet - den er udfyldt, naar et filter er
+# sat, og siger hvor mange. Alt er 44 px hoejt. Fra Tablet og op er
+# vaerktoejslinjen uaendret.
+FILTERS_VAR = "varIbFiltersOpen"
+FILTERS_OPEN = mobile.state(FILTERS_VAR)
+N_FILTERS = ("(If(IsBlank(varIbApp), 0, 1) + If(IsBlank(varIbSection), 0, 1) + "
+             "If(IsBlank(varIbStatusF), 0, 1) + If(IsBlank(varIbPriF), 0, 1))")
+
+
+def _filters_button():
+    """Knappen "Filters (n)" - kun paa en telefon."""
+    n = N_FILTERS
+    b = button("btnIbFiltersM", f'If({n} > 0, "Filters (" & {n} & ")", "Filters")',
+               f"Set({FILTERS_VAR}, !{FILTERS_OPEN})",
+               width=fit_button_width('"Filters (4)"', size=lay.SIZE_SMALL) + ICON_W,
+               height=TOUCH, visible=mobile.MOBILE)
+    b.props["Icon"] = (f'If({FILTERS_OPEN}, "{icons.FLUENT["collapse"]}", '
+                       f'"{icons.FLUENT["expand"]}")')
+    b.props["Layout"] = "ButtonLayout.IconAfter"
+    b.props["Size"] = str(lay.SIZE_SMALL)
+    lab = (f'If({FILTERS_OPEN}, "Hide filters and sorting", "Show filters and sorting") & '
+           f'If({n} > 0, " - " & {n} & " active", "")')
+    b.props["AccessibleLabel"] = lab
+    b.props["Tooltip"] = lab
+    on = f"({FILTERS_OPEN} || {n} > 0)"
+    b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+    b.props["BasePaletteColor"] = C_PRIMARY
+    b.props["BorderColor"] = f"If({on}, {C_PRIMARY}, {C_CARD_BORDER})"
+    b.props["Color"] = f"If({on}, {_t('text-on-primary')}, {C_TITLE})"
+    b.props["LayoutMinWidth"] = b.props["Width"]
+    return b
+
 
 def build_filters():
     """Vaerktoejslinjens to raekker - de staar direkte i listekortet."""
@@ -805,22 +853,27 @@ def build_filters():
         # Smalt: fanerne faar hele linjen (de staar til venstre i den).
         width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {TB_W})")
     scope.props["LayoutMinWidth"] = "0"
+    _ph(scope)
 
     state = tab_list("tabIbState", "varIbState", [(k, f'"{t}"') for k, t in STATE_TABS],
                      label="Show issues by state",
                      width=f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})")
     state.props["LayoutMinWidth"] = "0"
+    _ph(state)
 
     search = text_input("inpIbSearch", '""', placeholder='"Search issues"',
                         label='"Search issues"', height=TB_LINE_H)
     # Listen filtreres i hukommelsen - et lille ophold, saa den ikke regnes
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
+    _ph(search)
     grow(search, 0)
     # Lupen er Fluents "Search" (issue #306) - pynt ved feltet, ingen klik.
     ico = fluent_icon("icoIbSearchIcon", fluent("search"), C_MUTED, '"Search"', size=20)
     ico.props["AlignInContainer"] = "AlignInContainer.Center"
     ico.props["LayoutMinWidth"] = "20"
+    # Paa en telefon: knappen Filters i lupens sted (pladsen er til feltet).
+    mobile.hide_on_mobile(ico)
     # Issue #301: vandret er soegefeltet hoejst SEARCH_W bredt - kun paa en
     # smal Desktop giver det efter (ned til SEARCH_MIN), saa listerne kan
     # staa paa samme linje. Under hinanden faar det hele linjen. Bredden er
@@ -828,8 +881,8 @@ def build_filters():
     # egen bredde ud af den.
     sw = (f"If({FLT_ROOMY}, {SEARCH_W}, {FLT_OK}, "
           f"Min({SEARCH_W}, ({TB_W}) - {PAIR_A_W + PAIR_B_W + 2 * TB_GAP + 2}), {TB_W})")
-    search_row = group("conIbSearchRow", [search, ico], direction="Horizontal", gap=8,
-                       height=TB_LINE_H, align_items="Center",
+    search_row = group("conIbSearchRow", [search, ico, _filters_button()], direction="Horizontal",
+                       gap=8, height=lay.mobile_or(TOUCH, TB_LINE_H), align_items="Center",
                        width=sw, align_in_container="Start")
 
     # Application og den afhaengige Section, status og prioritet - to og
@@ -876,14 +929,20 @@ def build_filters():
         c.props["AlignInContainer"] = "AlignInContainer.Start"
         c.props["Height"] = str(TB_LINE_H)
         c.h = TB_LINE_H
+        _ph(c)
+    pair_h = lay.mobile_or(TOUCH, TB_LINE_H)
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Start",
+                   height=pair_h, align_items="Start",
                    width=f"Min(If({FLT_ROOMY}, {PAIR_A_ROOMY}, {PAIR_A_W}), {TB_W})",
                    align_in_container="Start")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_B_W}, {TB_W})",
+                   height=pair_h, align_items="Start", width=f"Min({PAIR_B_W}, {TB_W})",
                    align_in_container="Start")
     drp_sort.props["LayoutMinWidth"] = drp_sort.props["Width"]
+    _ph(drp_sort)
+    # Paa en telefon bag knappen Filters (FILTERS_VAR).
+    for c in (pair_a, pair_b, drp_sort):
+        mobile._and_vis(c, mobile.shown(FILTERS_VAR))
     # Issue #301: sorteringen staar kort efter kontakterne - en fast,
     # usynlig luft (SORT_GAP) skiller dem, og resten af linjen er tom til
     # hoejre. Luften giver efter paa en smal Desktop, saa graensen for een
@@ -1035,6 +1094,12 @@ LIST_ITEMS = (
     "    )\n"
     ")"
 )
+
+# Telefonen (issue #508): listen viser de foerste raekker (mobile.show_more)
+# og taeller dem alle - samme raekker som galleriet, som navngiven formel.
+FORMULAS += ("\n// Listens raekker - galleriets Items fra Tablet og op; paa en telefon\n"
+             "// viser galleriet de foerste (Show more) og taelleren dem alle (issue #508).\n"
+             "IbListRows = " + " ".join(LIST_ITEMS.split()) + ";")
 
 # Datoer som i resten af appen (layout_tokens.DATE_FMT, UX-review B5): her
 # stod "dd mmm yyyy", og maaneden kom paa brugerens sprog ("08 okt 2026").
@@ -1336,6 +1401,26 @@ def _list_head():
                  align_items="Center", pad=(0, ROW_PAD, 0, ROW_PAD), visible=TABLE_ON)
 
 
+# TELEFONEN (issue #508): kortet paa tre linjer, ingen indre scroll.
+#
+#   [ISS-000123] [Status ]
+#   Titlen ......................................
+#   UFFES  ·  Materials  ·  ...       [(3)] [clip]
+#
+# Nummer og status staar til venstre (ved 320 px er der ikke plads til
+# begge i hver sin side), taleboblen og papirclipsen er 44 px hoeje paa
+# tredje linje, og metadata giver plads til dem. Samme kontroller og klik
+# som paa tablet - kun placeringen (mobile.gallery_place).
+M_ROW_H = 108
+M_PAD = 8
+M_NO_W = 86
+# Skabelonen paa en telefon: kortets indhold (SHELL_W minus kortets 2 x 12)
+# minus MOBILE_GALLERY_RESERVE - en nedre graense som tablettens.
+M_TW = f"(({SHELL_W}) - {2 * lay.MOBILE_CARD_PAD} - {MOBILE_GALLERY_RESERVE})"
+M_BTN_Y = M_ROW_H - TOUCH - 4
+LIST_SHOW_VAR = "varIbShowN"
+
+
 def _compact_row():
     """Under Desktop: nummer, prioritet og status; titlen; hvem og hvor
     (rapportoeren foerst - samme raekkefoelge som tabellen, issue #244)."""
@@ -1358,6 +1443,15 @@ def _compact_row():
     room = group("conIbRowAttRoomC", [], direction="Horizontal", height=0, width=ACT_BTN + 4)
     line3 = group("conIbRowLineC3", [meta, room], direction="Horizontal", gap=8, height=18,
                   align_items="Center")
+    # Telefonen - se M_ROW_H.
+    mobile.gallery_place(no, x=M_PAD, y=10, w=M_NO_W)
+    mobile.gallery_place(chip, x=M_PAD + M_NO_W + 8, y=10)
+    mobile.gallery_place(title, x=M_PAD, y=40, w=f"{M_TW} - {2 * M_PAD}")
+    btns = (f"If({ROW_SEE_ACT}, {ACTV_W} + 4, 0) + If({ROW_HAS_FILES}, {TOUCH} + 4, 0)")
+    mobile.gallery_place(meta, x=M_PAD, y=M_BTN_Y + (TOUCH - 18) // 2,
+                         w=f"Max(0, {M_TW} - {2 * M_PAD} - ({btns}))")
+    mobile.gallery_place(act.children[0], y=M_BTN_Y, h=TOUCH,
+                         x=f"{M_TW} - {M_PAD} - {ACTV_W} - If({ROW_HAS_FILES}, {TOUCH} + 4, 0)")
     return group("conIbRowC", [line1, title, line3], direction="Vertical", gap=4,
                  height="Parent.TemplateHeight - 1", width="Parent.TemplateWidth",
                  pad=(10, 12, 10, 12), visible=below("Desktop"))
@@ -1385,21 +1479,25 @@ def build_list():
     att_c.props["X"] = "Parent.TemplateWidth - 12 - Self.Width"
     att_c.props["Y"] = f"{CMP_ROW_H - 1 - 10 + 7} - Self.Height"
     att_c.props.pop("_OnTop")
+    mobile.gallery_place(att_c, x=f"{M_TW} - {M_PAD} - {TOUCH}", y=M_BTN_Y)
 
-    row_h = if_below("Desktop", str(CMP_ROW_H), str(TBL_ROW_H))
+    row_h = lay.mobile_or(M_ROW_H, if_below("Desktop", str(CMP_ROW_H), str(TBL_ROW_H)))
     # Issue #291: EEN taeller - antallet i listen, som den staar efter
     # visningen, soegningen og filtrene ("3 issues").
+    # Paa en telefon viser listen de foerste (Show more) - taelleren dem alle.
     count = grow(text_ctrl(
         "txtIbCount",
-        'With({ n: galIbList.AllItemsCount }, n & If(n = 1, " issue", " issues"))',
+        lay.mobile_or('With({ n: CountRows(IbListRows) }, n & If(n = 1, " issue", " issues"))',
+                      'With({ n: galIbList.AllItemsCount }, n & If(n = 1, " issue", " issues"))'),
         size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20))
     clear = button("btnIbClearFlt", '"Clear filters"', CLEAR_FILTERS,
                    width=fit_button_width('"Clear filters"', size=lay.SIZE_SMALL), height=30,
                    visible=FILTERED, accessible='"Clear all filters and the search"')
     clear.props["Size"] = str(lay.SIZE_SMALL)
     clear.props["LayoutMinWidth"] = clear.props["Width"]
-    count_row = group("conIbCountRow", [count, clear], direction="Horizontal", gap=8, height=30,
-                      align_items="Center")
+    _ph(clear)
+    count_row = group("conIbCountRow", [count, clear], direction="Horizontal", gap=8,
+                      height=lay.mobile_or(TOUCH, 30), align_items="Center")
     head = _list_head()
     head_rule = group("conIbListRule", [], direction="Horizontal", height=1, fill=C_DIVIDER,
                       visible=TABLE_ON)
@@ -1425,6 +1523,7 @@ def build_list():
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
+    _ph(retry)
 
     # Pladsen, galleriet har: skaermen minus mobilbjaelken, sidens bjaelke,
     # kroppens luft, kortets polstring og kant og kortets andre linjer.
@@ -1434,19 +1533,27 @@ def build_list():
     room = (f"App.Height - {lay.BAR_OFFSET} - ({header_h}) - {lay.BODY_PAD_T} - {lay.BODY_PAD_B} - "
             f"{2 * 18} - 2 - ({stack_height(before, 8)}) - 8")
     # Saa hoej som raekkerne - hoejst pladsen (dog mindst tre raekker).
-    gal_h = f"Min(galIbList.AllItemsCount * ({row_h}), Max(3 * ({row_h}), {room}))"
+    # Telefonen (issue #508): ingen indre scroll - galleriet er saa hoejt
+    # som de viste kort (siden scroller), og Show more viser flere.
+    gal_h = lay.mobile_or(f"galIbList.AllItemsCount * {M_ROW_H}",
+                          f"Min(galIbList.AllItemsCount * ({mobile.desk(row_h)}), "
+                          f"Max(3 * ({mobile.desk(row_h)}), {room}))")
     gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
-        "Height": gal_h, "Items": LIST_ITEMS, "LayoutMinWidth": "0",
+        "Height": gal_h,
+        "Items": lay.mobile_or(f"FirstN(IbListRows, {mobile.show_count(LIST_SHOW_VAR)})", LIST_ITEMS),
+        "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "ShowScrollbar": SCROLLBAR_NOT_MOBILE, "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": row_h, "Width": "Parent.Width", "WrapCount": "1",
     }, children=[row, crow, rule, hit, att_c], h=gal_h, vis="galIbList.AllItemsCount > 0")
+    more = mobile.show_more("btnIbShowMore", LIST_SHOW_VAR, "CountRows(IbListRows)",
+                            label="issues")
     # Pladsholder-raekker mens sagerne hentes (UX-review M7) - i stedet for
     # hjulet over hele skaermen. Saa mange raekker, som listen ville vise.
     loading = skeleton_rows("conIbSkeleton", "varIbLoading", label="Loading issues...")
-    return card("conIbListCard", before + [loading, gal, empty, retry], gap=8)
+    return card("conIbListCard", before + [loading, gal, more, empty, retry], gap=8)
 
 
 # ---------------------------------------------------------------------------
@@ -1527,6 +1634,10 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
         modal.props["RadiusTopRight"] = "0"
         modal.props["RadiusBottomRight"] = "0"
         modal.props["AlignInContainer"] = "AlignInContainer.Start"
+        # Telefonen (issue #508): panelet er hele skaermen (PANEL_W_AT) med
+        # MOBILE_PAD_X i siderne - som de andre sidepaneler (FORM_IN og
+        # DETAIL_PANEL_IN regner med det).
+        mobile_pad(modal, x=lay.MOBILE_PAD_X)
         # Panelet staar frit paa skaermen (ikke i sloeret), saa det skal
         # selv skjules. Uden det stod Description- og New issue-panelet
         # altid halvt synlige over listen (screenshots 2026-10-13).
@@ -1785,11 +1896,13 @@ SIMILAR_ITEMS = (
 )
 
 SIM_ROW_H = 44
+SIM_ROW_H_M = 74     # telefonen: tre linjer (issue #508)
 
 
 FORM_W = lay.PANEL_W_AT
 # Indholdet staar i popuppens scrollende krop - scrollbaren er trukket fra.
-FORM_IN = f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})"
+FORM_IN = lay.mobile_or(f"(App.Width - {2 * lay.MOBILE_PAD_X} - {lay.SCROLLBAR_W})",
+                        f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})")
 
 
 def _pair(name, a, b, inner=FORM_IN):
@@ -1898,6 +2011,13 @@ def build_form():
                       'issue and your name; only you and the administrators can see the comments. '
                       'Add screenshots and files after you submit.")',
                       size=lay.SIZE_BODY, color=C_MUTED, height=40, wrap="true")
+    # Telefonen (issue #508): kortere tekst, og hoejden foelger den (foer
+    # blev den lange tekst skaaret af ved 40 px).
+    intro_m = (f'If({EDITING}, "Change what is needed and select Save changes. Every change is '
+               'recorded.", "Fields marked * are required. Add screenshots and files after you '
+               'submit.")')
+    intro.props["Text"] = lay.mobile_or(intro_m, intro.props["Text"])
+    _ph(intro, _lines_h(intro_m, FORM_IN))
 
     app = themed_dropdown("drpIbFormApp", APPS_FX, "varIbFormApp", value_col="Application",
                           required_formula="true", label='"Application, required"',
@@ -1908,6 +2028,8 @@ def build_form():
                           label='"Section, required"',
                           display_mode="If(IsBlank(varIbFormApp), DisplayMode.Disabled, DisplayMode.Edit)",
                           onchange="Set(varIbFormSection, Self.Selected.Section)")
+    _ph(app)
+    _ph(sec)
     where = _pair("conIbFormWhere", _field("conIbFormApp", "Application", app, required=True),
                   _field("conIbFormSec", "Section", sec, required=True))
     sec_hint = text_ctrl("txtIbFormSecHint", '"Pick an application first."', size=lay.SIZE_SMALL,
@@ -1916,11 +2038,13 @@ def build_form():
     other = text_input("inpIbOther", _dflt("Other"), placeholder='"Which application or part of the app?"',
                        max_length=250, required_formula="true",
                        label='"Describe the application or section, required"')
+    _ph(other)
     other_f = _field("conIbFormOther", "Describe where it happened", other, required=True,
                      visible="IbOtherNeeded")
 
     title = text_input("inpIbTitle", _dflt("Title"), placeholder='"A short summary, e.g. Save draft does nothing"',
                        max_length=120, required_formula="true", label='"Title, required"')
+    _ph(title)
     title_f = _field("conIbFormTitleF", "Title", title, required=True)
 
     # Lignende sager - fra alle sager (issue #193).
@@ -1941,14 +2065,23 @@ def build_form():
     s_hit = row_hit("btnIbSimOpen", open_ticket("ThisItem.Row", "true"),
                     '"Open similar issue " & ThisItem.TicketNo & " - " & ThisItem.Title',
                     tw, SIM_ROW_H - 2, radius=8)
-    sim_h = f"galIbSimilar.AllItemsCount * {SIM_ROW_H}"
+    # Telefonen (issue #508): nummer og status, titlen og hvor - tre linjer
+    # i hele bredden (foer var titlen ca. 7 px bred ved 360).
+    sim_tw = f"({FORM_IN} - 20 - {lay.GALLERY_RESERVE})"
+    mobile.gallery_place(s_no, y=6, w=78)
+    mobile.gallery_place(s_chip, x=94, y=4)
+    mobile.gallery_place(s_title, x=8, y=30, w=f"{sim_tw} - 16")
+    mobile.gallery_place(s_where, x=8, y=52, w=f"{sim_tw} - 16")
+    mobile.gallery_place(s_hit, h=SIM_ROW_H_M - 2)
+    sim_size = lay.mobile_or(SIM_ROW_H_M, SIM_ROW_H)
+    sim_h = f"galIbSimilar.AllItemsCount * {sim_size}"
     sim = Ctrl("galIbSimilar", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Similar issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": sim_h, "Items": SIMILAR_ITEMS, "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "0",
-        "TemplateSize": str(SIM_ROW_H), "Width": "Parent.Width", "WrapCount": "1",
+        "TemplateSize": sim_size, "Width": "Parent.Width", "WrapCount": "1",
     }, children=[s_no, s_title, s_where, s_chip, s_hit], h=sim_h)
     similar = group("conIbSimilar", [sim_head, sim], direction="Vertical", gap=6,
                     fill=C_INFO_BG, radius=10, pad=(10, 10, 10, 10),
@@ -1971,10 +2104,13 @@ def build_form():
                   accessible='If(varIbMore, "Hide the optional details", "Show the optional details")')
     more.props["AlignInContainer"] = "AlignInContainer.Start"
     more.props["Width"] = str(fit_button_width('"Add more details (optional)"') + ICON_W)
+    _ph(more)
 
     def area(name, label, placeholder, field):
         c = text_input(name, _dflt(field), placeholder=f'"{placeholder}"', max_length=4000,
                        height=72, ttype="Multiline", label=f'"{label}"')
+        # Telefonen: 16 px skrift - tre linjer kraever lidt mere hoejde.
+        _ph(c, 88)
         return _field(f"con{name[3:]}F", label, c)
 
     steps = area("inpIbSteps", "Steps to reproduce", "1. Open ... 2. Select ... 3. ...", "Steps")
@@ -1982,10 +2118,12 @@ def build_form():
     actual = area("inpIbActual", "Actual result", "What happened instead?", "Actual")
     related = text_input("inpIbRelated", _dflt("RelatedNo"), placeholder='"e.g. MP0142"',
                          max_length=40, label='"Related request number"')
+    _ph(related)
     severity = themed_dropdown("drpIbSeverity", _table(cfg.SEVERITY),
                                f'If({EDITING} && !IsBlank({SEL_REF}.Severity), {SEL_REF}.Severity, '
                                f'"{cfg.SEVERITY_DEFAULT}")',
                                label='"How serious is it?"')
+    _ph(severity)
     extra_row = _pair("conIbFormExtra", _field("conIbFormRelated", "Related request number", related),
                       _field("conIbFormSeverity", "How serious is it?", severity))
     details = group("conIbFormMore", [steps, expected, actual, extra_row], direction="Vertical",
@@ -2012,15 +2150,19 @@ def build_form():
                           f'Coalesce(LookUp(colIbAdmins, Email = {SEL_REF}.AssignedEmail).Name, '
                           f'{SEL_REF}.Assigned, "Not assigned"))',
                           value_col="Name", label='"Assigned to"')
+    for c in (st, pr, asg):
+        _ph(c)
     res = text_input("inpIbResolution", f"{SEL_REF}.Resolution",
                      placeholder='"What was done - shown to everyone with the issue"',
                      max_length=4000, height=72, ttype="Multiline", label='"Resolution"')
+    _ph(res, 88)
     manage_head = text_ctrl("txtIbManageHead", '"Administration"', size=lay.SIZE_BODY,
                             weight="Semibold", height=20)
     manage_hint = text_ctrl("txtIbManageHint",
                             f'"The reporter gets an email when the status changes to {cfg.STATUS_RETEST} '
                             f'or {cfg.STATUS_CLOSED}."',
                             size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+    _ph(manage_hint, _lines_h(manage_hint.props["Text"], f"{FORM_IN} - 24", px=6.6, line_h=17))
     manage = group("conIbManage", [
         manage_head,
         _pair("conIbManage1", _field("conIbFormStatus", "Status", st),
@@ -2036,6 +2178,7 @@ def build_form():
                         'LayoutContext & " layout, " & Host.OSType & ", and the date and time."',
                         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
                         visible=f"!({EDITING})")
+    _ph(context, _lines_h(context.props["Text"], FORM_IN, px=6.6, line_h=17))
     # Hvad mangler der? Staar i foden lige under Submit - og i beskeden, hvis
     # man trykker for tidligt (issue #177).
     missing_text = f'If({EDITING}, "To save, add ", "To submit, add ") & {MISSING_FX} & "."'
@@ -2065,8 +2208,12 @@ def build_form():
     # "Saving..." / "Submitting..." i knappen, mens der gemmes (issue #420).
     panel_save_text(submit, IB_SAVE, "Submitting...",
                     f'If({EDITING}, "Saving...", "Submitting...")')
+    # Telefonen (issue #508): Submit i hele bredden og 44 px - den faste
+    # bundhandling.
+    _ph(submit)
+    submit.props["Width"] = lay.mobile_or(f"App.Width - {2 * lay.MOBILE_PAD_X}", submit.props["Width"])
     footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
-                   height=36, justify="End", align_items="Center")
+                   height=lay.mobile_or(TOUCH, 36), justify="End", align_items="Center")
     status = panel_save_status("Ib", IB_SAVE, submit_fx, idle)
     foot = group("conIbFormFoot", [footer, status, missing], direction="Vertical", gap=8)
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
@@ -2082,7 +2229,9 @@ def build_form():
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
 DETAIL_PANEL_W = lay.PANEL_W_AT
-DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
+# Telefonen (issue #508): panelet har MOBILE_PAD_X i siderne (_popup).
+DETAIL_PANEL_IN = lay.mobile_or(f"(App.Width - {2 * lay.MOBILE_PAD_X})",
+                                f"({DETAIL_PANEL_W} - {2 * POP_PAD})")
 # KANTER, DER IKKE KLIPPES (issue #503 - samme aarsag som #492 i
 # tools/feedback_popup.py og SPLIT_PAD i tools/submission_notes.py). En
 # container tegner sin kant paa yderkanten, og foraelderen skjuler sit
@@ -2422,6 +2571,7 @@ def _tab(name, label_fx, key, accessible, onselect=None):
     b.props["Height"] = str(TAB_H)
     b.props["Size"] = str(lay.SIZE_BODY)
     b.h = TAB_H
+    _ph(b)                             # 44 paa en telefon (issue #508)
     b.props["LayoutMinWidth"] = "0"
     return b
 
@@ -2546,8 +2696,9 @@ def _files_panel():
                               "varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)"))
     # "Saving..." i knappen og hjulet/beskeden lige foran den (issue #420).
     act_button(up, IB_ACT, "upload")
+    _ph(up)
     up_row = group("conIbFileSave", [*act_status("IbFilesAct", IB_ACT, ("upload",)), up],
-                   direction="Horizontal", gap=8, height=36, justify="End",
+                   direction="Horizontal", gap=8, height=lay.mobile_or(TOUCH, 36), justify="End",
                    align_items="Center")
     hint = text_ctrl("txtIbFilesHint",
                      f'"Up to {cfg.MAX_FILES} files, {cfg.MAX_FILE_MB} MB each. Everyone '
@@ -2736,6 +2887,19 @@ def build_detail():
     head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
                  lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {3 * lay.HIT_TOUCH} - 30",
                  close_icon=True, nav=nav)
+    # TELEFONEN (issue #508): ved siden af nummeret og de tre ikoner var
+    # der ca. 70 px til titlen (tre linjer, saa klippet). Paa en telefon er
+    # hovedet [nummer ... forrige naeste luk], og titlen staar i hele
+    # bredden oeverst i toppen (txtIbDetTitleM) - hele titlen, ombrudt.
+    # Hovedets titel er da tom og fylder kun linjen ud.
+    h_title = head.children[1]
+    h_title.props["Text"] = lay.mobile_or('""', h_title.props["Text"])
+    _ph(h_title, 26)
+    _ph(head, lay.HIT_TOUCH)
+    title_m = text_ctrl("txtIbDetTitleM", f"{SEL}.Title", size=lay.SIZE_CARD_TITLE,
+                        weight="Semibold", wrap="true", visible=mobile.MOBILE,
+                        height=_lines_h(f"{SEL}.Title", f"{DETAIL_PANEL_IN} - {2 * EDGE}",
+                                        px=9.2, line_h=23))
 
     # 2. Status som maerke lige under titlen (issue #369) og handlingerne
     #    paa samme linje, til hoejre (issue #475 - som mockuppen: status
@@ -2777,10 +2941,12 @@ def build_detail():
         _tab("btnIbTabActivity", f'"Activity (" & {n_act} & ")"', "activity",
              '"Show the activity and comments, " & ' + n_act + ' & " entries"'),
         _tab("btnIbTabFiles",
-             '"Attachments" & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")', "files",
+             lay.mobile_or('"Files"', '"Attachments"') +
+             ' & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")', "files",
              '"Show the attachments"',
              onselect='Set(varIbTab, "files");\nIf(varIbFilesFor <> varIbSelId, ' + LOAD_FILES + ")"),
-    ], direction="Horizontal", gap=8, height=TAB_H, align_items="Center", justify="Center")
+    ], direction="Horizontal", gap=8, height=lay.mobile_or(TOUCH, TAB_H), align_items="Center",
+        justify="Center")
     # Activity (kommentarerne) kun for rapportoeren og admins (issue #193).
     tabs.children[1].props["Visible"] = "IbSeeActivity"
     tabs.children[1].vis = "IbSeeActivity"
@@ -2816,7 +2982,13 @@ def build_detail():
     # Toppen og indholdsfladens hoejde (content_h - se STABIL HOEJDE
     # nederst). Toppen har EDGE luft hele vejen rundt (issue #503), saa
     # kortenes og fanernes kanter ikke klippes af toppens kant.
-    top = group("conIbDetTop", [meta, peek_note, retest, info, facts, tabs],
+    # Telefonen (issue #508): de to kort (Issue information og Ticket
+    # details) er klappet sammen bag "Issue details" med en kort
+    # opsummering - fanernes indhold faar pladsen. Status og handlingerne
+    # staar altid fremme.
+    fold = mobile.collapsible("IbDetFacts", "Issue details", [info, facts], "varIbDetFactsOpen",
+                              summary=f'{SEL}.Application & "  ·  " & {SEL}.Section')
+    top = group("conIbDetTop", [title_m, meta, peek_note, retest, *fold, tabs],
                 direction="Vertical", gap=10, pad=EDGE)
     room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
             f"({top.h}) - {POP_GAP} - 4")
@@ -3033,8 +3205,9 @@ def build_detail():
                    icon="ArrowClockwise", accessible='"Retry posting the comment"',
                    display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
                                  "DisplayMode.Disabled, DisplayMode.Edit)"))
+    _ph(retry)
     failed = group("conIbPostFailed", [fail_text, retry], direction="Horizontal", gap=8,
-                   height=f"({fail_h}) + 16", align_items="Center", fill=C_MUTED_BG, radius=10,
+                   height=lay.mobile_or(f"Max({TOUCH}, {fail_h}) + 16", f"({fail_h}) + 16"), align_items="Center", fill=C_MUTED_BG, radius=10,
                    pad=(8, 8, 8, 12), visible=f"IbCanComment && ({POST_FAILED_HERE})")
     archived_hint = text_ctrl("txtIbArchivedHint",
                               '"This issue is archived. Its history is kept, and comments are '
@@ -3048,7 +3221,10 @@ def build_detail():
     rest = [act_state, posted, failed, composer, archived_hint]
     rest_h = " + ".join(f"If({c.vis}, ({c.h}) + 8, 0)" if c.vis else f"({c.h}) + 8"
                         for c in rest)
-    feed_h = f"Max(80, Parent.Height - ({rest_h}))"
+    # Telefonen (issue #508): feeden er saa hoej som sine linjer, og hele
+    # fanen scroller - ingen lille scroll inden i fanens scroll. Kommentar-
+    # feltet staar lige under den nyeste linje.
+    feed_h = lay.mobile_or(gal_h, f"Max(80, Parent.Height - ({rest_h}))")
     feed = group("conIbActFeed", [gal], direction="Vertical", gap=0, height=feed_h,
                  overflow_y="Scroll", visible="!IsEmpty(colIbActivity)")
     activity = group("conIbDetActivity", [act_state, feed, posted, failed, composer,
@@ -3092,6 +3268,7 @@ def build_delete():
     confirm = text_input("inpIbDelConfirm", '""', placeholder=f'{SEL}.TicketNo', max_length=20,
                          label=f'"Type " & {SEL}.TicketNo & " to confirm"')
     confirm.props["TriggerOutput"] = "TriggerOutput.Keypress"
+    _ph(confirm)
     confirm_f = group("conIbDelConfirmF", [
         text_ctrl("txtIbDelConfirmLabel", f'"Type " & {SEL}.TicketNo & " to confirm"',
                   size=lay.SIZE_BODY, weight="Semibold", height=20),
@@ -3106,8 +3283,15 @@ def build_delete():
     footer = group("conIbDelFooter", [*act_status("IbDelAct", IB_ACT, ("delete",)), ok],
                    direction="Horizontal", gap=8, height=36,
                    justify="End", align_items="Center")
-    return [_popup("IbDel", [head, warn, confirm_f], del_on, width="Min(480, App.Width - 24)",
-                   foot=footer)]
+    # Telefonen (issue #508): knappen i hele bredden og 44 px, og popuppen
+    # naesten hele skaermens bredde.
+    mobile_footer(footer)
+    pop = _popup("IbDel", [head, warn, confirm_f], del_on, width=lay.popup_w(480, 24),
+                 foot=footer)
+    mobile_pad(pop.children[0], x=lay.MOBILE_CARD_PAD)
+    pop.props["PaddingLeft"] = lay.mobile_or(lay.MOBILE_POP_MARGIN, pop.props.get("PaddingLeft", "0"))
+    pop.props["PaddingRight"] = lay.mobile_or(lay.MOBILE_POP_MARGIN, pop.props.get("PaddingRight", "0"))
+    return [pop]
 
 
 def _post_timer():
