@@ -2430,11 +2430,12 @@ def _phone_tabs(selector):
     stak ud over en 360 px skaerm. Uden flueben (den valgte har den
     lyseblaa kant og moerkeblaa, halvfed tekst - build_helpers.seg_style)
     og med den korte tekst, saa ingen tekst klippes ved 320 px."""
-    from build_helpers import SEG_PAD, SEG_GAP
+    from build_helpers import SEG_EDGE, SEG_GAP
     tabs = selector.children
     n = len(tabs)
     inner = mobile.phone(PANEL_FORM_W)
-    each = f"(({inner}) - {2 * SEG_PAD + (n - 1) * SEG_GAP}) / {n}"
+    # SEG_EDGE: skinnens polstring OG kant (issue #550).
+    each = f"(({inner}) - {2 * SEG_EDGE + (n - 1) * SEG_GAP}) / {n}"
     for b in tabs:
         b.props["Width"] = mobile.mobile_or(each, b.props["Width"])
         b.props["LayoutMinWidth"] = b.props["Width"]
