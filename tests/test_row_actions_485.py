@@ -69,7 +69,11 @@ def test_the_row_icons_have_the_same_order_size_and_icon_on_all_three_pages():
         for a in order:
             name = f"btn{p}Row{a}"
             assert _prop(p, name, "Layout") == "ButtonLayout.IconOnly", name
-            assert _prop(p, name, "Icon") == f'"{ICONS[a]}"', name
+            # Issue #551: Open er blyanten kun, naar raekken kan rettes -
+            # ellers View-ikonet (icons.edit_or_view).
+            want = (f'If((var{p}ViewOnly || ThisItem.Status = "submitted"), '
+                    f'"DocumentText", "{ICONS[a]}")' if a == "Open" else f'"{ICONS[a]}"')
+            assert _prop(p, name, "Icon") == want, name
             assert _prop(p, name, "Width") == "44", name
             # Hvert ikon har et tooltip med handlingen (issue #515); raekkens
             # noegle staar i AccessibleLabel - den ses i forvejen i raekken.

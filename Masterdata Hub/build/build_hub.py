@@ -1489,9 +1489,9 @@ def _icon_rows():
         ("timeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), **act))),
         ("note", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"), **act))),
         ("edit", _svg_uri(_icon_svg(EDIT_ICON, _hx("text-muted"), **act))),
-        # Deaktiveret: samme ikon, falmet (icons.DISABLED_OPACITY)
-        ("edit-off", _svg_uri(_icon_svg(EDIT_ICON, _hx("text-muted"),
-                                        opacity=icons.DISABLED_OPACITY, **act))),
+        # Kan anmodningen ikke rettes, er det et oeje - aldrig en falmet
+        # blyant (issue #551). Samme oeje som View mode-pillen (icons.EYE).
+        ("view", _svg_uri(_icon_svg(VIEW_ICON, _hx("text-muted"), **act))),
         ("delete", _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), **act))),
         ("close", _svg_uri(_icon_svg(icons.ARCHIVE, _hx("text-muted"), **act))),
         # SAP OBJECT (issue #471): kaedeleddet i brandfarven - et link.
@@ -1763,32 +1763,31 @@ def build_list():
 # planen afgoer ogsaa Edit paa indeksets status (build_load.py), saa
 # MaintenancePlans' egen status skal ikke slaas op - intet kald pr. raekke.
 EDIT_ICON = icons.EDIT
-EDIT_LOCKED_TIP = '"This request can no longer be edited because it has been submitted."'
+VIEW_ICON = icons.EYE
 
 
 def _owner_buttons(act, suffix):
     """Edit and Delete: shown for the creator's own requests (and an admin's).
-    Edit is enabled only while the request app would open it in Edit."""
+    The pencil only while the request app would open it in Edit; otherwise a
+    View icon that opens the request read-only (issue #551)."""
     own = perm.may_change_ui("ThisItem", "varMdMe")
     # En VH-plan, der er sendt retur, kan ejeren rette og indsende igen.
     can_edit = perm.may_change_row("ThisItem", "varMdMe")
+    # BLYANT = KAN RETTES, OEJE = KUN LAESE (issue #551). Foer stod en falmet,
+    # deaktiveret blyant paa en indsendt anmodning (issue #138). Nu er den et
+    # oeje, der aabner anmodningen i View - samme handling som raekken selv
+    # (_open_action("view")). Den skifter aldrig til Edit.
+    view_act = _open_action("view")
+    locked = f"!({can_edit})"
     edit = _image("btnMdRowEdit" + suffix,
-                  # Deaktiveret: samme ikon, falmet (MdIcons "edit-off").
                   f"If(\n    {can_edit},\n    {icon(chr(34) + 'edit' + chr(34))},\n    "
-                  f"{icon(chr(34) + 'edit-off' + chr(34))}\n)",
-                  TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+                  f"{icon(chr(34) + 'view' + chr(34))}\n)",
+                  TL_W, TL_W,
+                  onselect=f"If(\n    {can_edit},\n    {act},\n    {view_act}\n)",
+                  label=f'{tips.verb(locked)} & " request " & ThisItem.{COL_NO}',
+                  hover=C_ROW_HOVER)
     ensure_hit(edit)
-    edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
-    # DEAKTIVERET EDIT ER KUN ET FALMET IKON (issue #138). Ingen ramme,
-    # flade, hover, tryk eller fokus, naar Edit ikke kan bruges - kun den
-    # graa blyant med nedsat opacitet. Aktiv Edit er uaendret.
-    edit.props["DisabledBorderColor"] = C_TRANSPARENT
-    edit.props["DisabledFill"] = C_TRANSPARENT
-    edit.props["HoverFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
-    edit.props["PressedFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
-    edit.props["FocusedBorderThickness"] = f"If({can_edit}, 2, 0)"
-    edit.props["TabIndex"] = f"If({can_edit}, 0, -1)"
-    edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
+    edit.props["Tooltip"] = tips.edit_or_view("request", locked)
     dele = _image("btnMdRowDelete" + suffix, icon('"delete"'),
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",
                   label=f'"Delete " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)

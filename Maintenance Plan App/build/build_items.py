@@ -1402,7 +1402,10 @@ def build_item_editor():
             + act_fx(ACT, "item", save_fx) + "\n"
             ")"
         ), primary=True, width=110, icon=f'If({ITEM_LOCKED}, "Edit", "Checkmark")',
-        display_mode=DM_ITEM)
+        display_mode=DM_ITEM,
+        # Issue #551: ingen blyant i View mode - knappen er der kun i Edit
+        # mode, som Plan headers Save/Edit (build_plan_header.btnVhpPlanSave).
+        visible="!varVhpViewOnly")
     btnSaveItem.props["AccessibleLabel"] = (f'If({ITEM_LOCKED}, "Edit item ", "Save item ") & '
                                             'Text(varVhpActiveItemId)')
     # RESET (issue #54): Item Editorens usavede aendringer tilbage til det,
@@ -1445,6 +1448,14 @@ def build_item_editor():
     # Object list og Reset laases, som i View mode, til der trykkes Edit.
     lock_section([fieldsGrid, flRow, footer], "varVhpViewOnly", ITEM_LOCKED,
                  keep={"btnVhpSaveItem"})
+    # Issue #551: Save/Edit er kun synlig i Edit mode (!varVhpViewOnly), og
+    # den er undtaget laasen. Reset's bredde taeller fodens synlige knapper
+    # med SAMME udtryk - lock_section maa ikke goere det til "(View || laast)",
+    # ellers regner Reset paa mobil med een knap, mens Save/Edit staar der.
+    for k, v in list(btnResetItem.props.items()):
+        if isinstance(v, str):
+            btnResetItem.props[k] = v.replace(f"If(!(varVhpViewOnly || {ITEM_LOCKED}), 1, 0)",
+                                              "If(!varVhpViewOnly, 1, 0)")
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.

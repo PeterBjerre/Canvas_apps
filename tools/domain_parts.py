@@ -2880,15 +2880,17 @@ class RowAction:
     width    fast bredde - tekstens LAENGSTE form skal kunne staa i den
     mode     DisplayMode-udtryk eller None (altid aktiv)
     danger   destruktiv knap (roed kant)
-    icon     Fluent-ikon; icon_only goer knappen til kun ikonet
+    icon     Fluent-ikon; icon_only goer knappen til kun ikonet. Et Power
+             Fx-udtryk (fx icons.edit_or_view) gives som icon_fx=True
     label    AccessibleLabel/Tooltip; standard er teksten + raekkens noegle
     tip      Tooltip, naar det skal vaere kortere end label (issue #515:
              tooltippet gentager ikke raekkens noegle - tools/action_tips.py)
     line     1 eller 2 - linjen i mobilkortet"""
 
     def __init__(self, name, text, fx, width, mode=None, danger=False, icon=None,
-                 icon_only=False, label=None, line=1, tip=None):
+                 icon_only=False, label=None, line=1, tip=None, icon_fx=False):
         self.name, self.text, self.fx, self.width = name, text, fx, width
+        self.icon_fx = icon_fx
         self.mode, self.danger, self.icon, self.icon_only = mode, danger, icon, icon_only
         self.label, self.line, self.tip = label, line, tip
 
@@ -2903,7 +2905,7 @@ def _action_button(a, suffix=""):
                height=ROW_BTN_H, display_mode=a.mode, accessible=who, tooltip=a.tip or who)
     b.props["Size"] = "13"
     if a.icon:
-        b.props["Icon"] = f'"{a.icon}"'
+        b.props["Icon"] = a.icon if a.icon_fx else f'"{a.icon}"'
         b.props["Layout"] = ("ButtonLayout.IconOnly" if a.icon_only
                              else "ButtonLayout.IconBefore")
         if a.icon_only:
@@ -2917,7 +2919,8 @@ def _action_button(a, suffix=""):
 # Materials, Equipment og Measuring Point har de SAMME handlinger paa en
 # gemt raekke, i den samme raekkefoelge, som ikoner af samme stoerrelse:
 #
-#     Edit (blyant)  Documents (papirclips)  Objects (link)  Copy  Delete
+#     Edit (blyant; View-ikon naar raekken kun kan ses - issue #551)
+#     Documents (papirclips)  Objects (link)  Copy  Delete
 #
 # Documents og Objects kun, hvor appen har dem: Objects kun i Materials
 # (Equipment og Measuring Point sidder paa EEN funktionsplads, der vaelges
@@ -2947,8 +2950,10 @@ def standard_row_actions(docs_fx=None, docs_n=None, objects_fx=None, objects_n=N
         return RowAction(name, text, fx, ROW_ICON_W, icon_only=True, tip=tip,
                          label=tips.label(tip, key), **kw)
 
-    acts = [act("btnDomRowOpen", '"Edit"', load_row_fx(), tips.edit_row(ROW_LOCKED),
-                icon=icons.FLUENT["edit"])]
+    # Issue #551: blyanten kun, naar raekken kan rettes - ellers View-ikonet.
+    # Knappen aabner det SAMME sidepanel og skifter aldrig tilstand.
+    acts = [act("btnDomRowOpen", tips.verb(ROW_LOCKED), load_row_fx(), tips.edit_row(ROW_LOCKED),
+                icon=icons.edit_or_view(ROW_LOCKED), icon_fx=True)]
     if docs_fx:
         acts.append(act("btnDomRowDocs", '"Documents"', docs_fx,
                         tips.documents(docs_n or "0", ROW_LOCKED),
