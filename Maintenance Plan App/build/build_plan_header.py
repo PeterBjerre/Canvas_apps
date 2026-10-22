@@ -2,7 +2,7 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, C_DISABLED_BG, C_DIVIDER,
-                        C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG)
+                        C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG, C_WARN_FG, C_WARN_BG)
 import icons
 import build_help as bh
 import build_status as st
@@ -331,11 +331,44 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
-# Planens samlede omkostning: alle items' operationer (som build_tasklist.
-# PLAN_COST - den kan ikke importeres herfra, build_tasklist importerer os).
-# Blank (ingen operationer) og 0 giver begge false.
+# Planens samlede omkostning: alle items' operationer. Den er det,
+# omkostningsgodkendelsen sammenligner med graensen (docs/32 §2 #7).
+# build_tasklist importerer herfra. Blank (ingen operationer) og 0 giver
+# begge false.
 PLAN_COST = "Sum(colVhpOperations, Cost)"
 FOLD_COST_ON = f"IfError({PLAN_COST} > 0, false)"
+PLAN_COST_TEXT = '"Total cost: " & ' + lay.num_text(PLAN_COST) + ' & " DKK"'
+
+# OVER OMKOSTNINGSGRAENSEN (docs/32, R2-082; issue #529). PLANENS sum over
+# graensen fra AppSettings (sp_config: VhpCostThreshold). Kun information -
+# godkendelsesflowet (COST-trinnet paa hele planen) regner selv.
+COST_OVER_ON = f"IfError({PLAN_COST} > VhpCostThreshold, false)"
+COST_OVER_TEXT = ('"Plan over " & ' + lay.num_text("VhpCostThreshold") +
+                  ' & " DKK - needs cost approval"')
+
+
+def plan_cost_badge(name, visible):
+    """Planens Total cost-maerke (issue #529), i Plan header - udfoldet og
+    foldet. Over graensen staar maerket i advarselsfarverne (state-warn-fg
+    paa state-warn-bg - de farver, advarslen i Task list-kortet havde), og
+    hele advarslen er maerkets Tooltip (hover og fokus) - ikke en ekstra
+    linje. Under graensen: de normale farver og intet tooltip.
+
+    ModernBadge har Tooltip efter Microsoft Learn ("Badge modern control in
+    canvas apps", den opdaterede Badge; check_layout regel 16e tillader
+    den). Skaermlaeseren faar advarslen i AccessibleLabel."""
+    return modern_badge(
+        name, PLAN_COST_TEXT,
+        color=f"If({COST_OVER_ON}, {C_WARN_FG}, {C_TITLE})",
+        fill=f"If({COST_OVER_ON}, {C_WARN_BG}, {C_NEUTRAL_BG})",
+        width=f"Len({PLAN_COST_TEXT}) * 7 + 24", height=24, size=12,
+        pad=(10, 10),
+        accessible=(f'"Plan " & {PLAN_COST_TEXT} & '
+                    f'If({COST_OVER_ON}, ". " & {COST_OVER_TEXT}, "")'),
+        visible=visible,
+        extra={"AlignInContainer": "AlignInContainer.Center",
+               "Tooltip": f'If({COST_OVER_ON}, {COST_OVER_TEXT}, "")'})
+
 
 FOLD_H = 24                  # titelraekken: ikon og titel (Show staar nu ved resumeet)
 
@@ -359,12 +392,8 @@ def plan_fold_row(fold, toggle_set, show):
     # KUN NAAR DER ER EN SUM (issue #421): uden operationer - eller med en
     # sum paa 0 - stod der et tomt maerke over Show-knappen. Nu er det
     # skjult, og en skjult kontrol fylder intet i en auto-layout-raekke.
-    cost_text = ('"Total cost: " & ' + lay.num_text(PLAN_COST) + ' & " DKK"')
-    cost = modern_badge("bdgVhpPlanFoldCost", cost_text, color=C_TITLE, fill=C_NEUTRAL_BG,
-                        width=f"Len({cost_text}) * 7 + 24", height=24, size=12,
-                        pad=(10, 10), accessible='"Plan " & ' + cost_text,
-                        visible=FOLD_COST_ON,
-                        extra={"AlignInContainer": "AlignInContainer.Center"})
+    # Over graensen: advarselsfarver og advarslen som tooltip (issue #529).
+    cost = plan_cost_badge("bdgVhpPlanFoldCost", FOLD_COST_ON)
     top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
     # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og
@@ -426,11 +455,20 @@ def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
     legend = required_legend()
+    # PLANENS TOTAL COST OGSAA UDFOLDET (issue #529): samme maerke som i den
+    # foldede linje, hoejrestillet foran Valid-maerket. Over graensen i
+    # advarselsfarverne med advarslen som tooltip (plan_cost_badge).
+    costHead = plan_cost_badge("bdgVhpPlanHeadCost", FOLD_COST_ON)
     header = section_header("conVhpPlanHead", "Plan header", "Step 1", valid_fx="VhpPlanValid",
-                            extra_left=[legend])
+                            extra_left=[legend], extra_right=[costHead])
     # Telefonen: stjernerne ved felterne bliver; forklaringen "* Required"
     # skjules, saa titel og badge kan staa paa een linje (issue #508).
-    mobile_head(header, hide=[legend])
+    # Total cost-maerket (op til ~200 px) er der heller ikke plads til ved
+    # titlen og Valid i et kort paa 248-288 px - telefonen har det paa sin
+    # egen linje lige under overskriften (bdgVhpPlanHeadCostPhone).
+    mobile_head(header, hide=[legend, costHead])
+    costPhone = plan_cost_badge("bdgVhpPlanHeadCostPhone", lay.mobile_or(FOLD_COST_ON, "false"))
+    costPhone.props["AlignInContainer"] = "AlignInContainer.Start"
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
     # Statusbanneret ("Plan is open for editing" / "Plan locked ...") er
@@ -698,10 +736,10 @@ def build_plan_header():
 
     # Foldet: kun foldRow (check, titel, nogletal som chips, Show). Udfoldet:
     # overskrift, hjaelp, felter og fod som foer.
-    for part in (header, helpPanel, grid):
+    for part in (header, costPhone, helpPanel, grid):
         v = part.props.get("Visible")
         part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
         part.vis = part.props["Visible"]
 
-    return card("conVhpPlanCard", [header, helpPanel, grid, foldCard, footer], gap=10,
+    return card("conVhpPlanCard", [header, costPhone, helpPanel, grid, foldCard, footer], gap=10,
                 pad_y=12)

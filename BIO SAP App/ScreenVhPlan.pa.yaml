@@ -2422,7 +2422,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =24 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (26), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
+                            =24 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (26), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false)), 10 + (24), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * (If(LayoutRank < 2, 136, 88))) + If(CountRows(Sort(
@@ -2648,7 +2648,64 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((111) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, true), (83) + If(LayoutRank < 2, 8, 12), 0)) - (If((VhpPlanValid), (72) + If(LayoutRank < 2, 8, 12), 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((111) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, true), (83) + If(LayoutRank < 2, 8, 12), 0)) - (If(If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false)), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + If(LayoutRank < 2, 8, 12), 0)) - (If((VhpPlanValid), (72) + If(LayoutRank < 2, 8, 12), 0)) - 2)
+                              - bdgVhpPlanHeadCost:
+                                  Control: ModernBadge@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =BadgeAppearance.Filled
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
+                                    Content: |-
+                                        ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                    Fill: |-
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =24
+                                    Intent: |-
+                                        =BadgeIntent.Neutral
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =10
+                                    PaddingRight: |-
+                                        =10
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
+                                        =12
+                                    RadiusBottomRight: |-
+                                        =12
+                                    RadiusTopLeft: |-
+                                        =12
+                                    RadiusTopRight: |-
+                                        =12
+                                    Shape: |-
+                                        =BadgeShape.Circular
+                                    Size: |-
+                                        =T.small
+                                    Tooltip: |-
+                                        =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false))
+                                    Width: |-
+                                        =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
                               - bdgVhpPlanHeadBadge:
                                   Control: ModernBadge@1.0.0
                                   Properties:
@@ -2704,6 +2761,63 @@ Screens:
                                         =(VhpPlanValid)
                                     Width: |-
                                         =72
+                        - bdgVhpPlanHeadCostPhone:
+                            Control: ModernBadge@1.0.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              Appearance: |-
+                                  =BadgeAppearance.Filled
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
+                              Content: |-
+                                  ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                              Fill: |-
+                                  =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =24
+                              Intent: |-
+                                  =BadgeIntent.Neutral
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =10
+                              PaddingRight: |-
+                                  =10
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =12
+                              RadiusBottomRight: |-
+                                  =12
+                              RadiusTopLeft: |-
+                                  =12
+                              RadiusTopRight: |-
+                                  =12
+                              Shape: |-
+                                  =BadgeShape.Circular
+                              Size: |-
+                                  =T.small
+                              Tooltip: |-
+                                  =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false))
+                              Width: |-
+                                  =Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24
                         - conVhpPlanHelp:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -4916,7 +5030,7 @@ Screens:
                                         Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                              ="Plan " & "Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK" & If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), ". " & "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -4928,11 +5042,11 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')
                                           Content: |-
                                               ="Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
                                           Fill: |-
-                                              =C.'state-neutral-bg'
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -4961,6 +5075,8 @@ Screens:
                                               =BadgeShape.Circular
                                           Size: |-
                                               =T.small
+                                          Tooltip: |-
+                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", "")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
@@ -9873,13 +9989,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =36 + (0 + (Max((20), (26), (0), (If(LayoutRank < 2, 0, If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 60, 0))))) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
                             )), 1) * (If(LayoutRank < 2, 136, 88))) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (If(LayoutRank < 2, 44, 36)), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + 12 + (0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 12 + (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 64 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (If(LayoutRank < 2, 44, 36)), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (If(LayoutRank < 2, 60, 0))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + If(If(LayoutRank < 2, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), false), 12 + (If(LayoutRank < 2, 60, 0)), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 64 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
                             )), 1) * (If(LayoutRank < 2, 136, 88))) + If(CountRows(Sort(
@@ -9928,7 +10044,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =26
+                                  =0 + (Max((20), (26), (0), (If(LayoutRank < 2, 0, If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 60, 0))))) * 1 + 0
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -9944,6 +10060,25 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
+                              - icoVhpOpsHeadStatus:
+                                  Control: ModernIcon@1.1.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(VhpOpsValid, "Task list and operations: valid", "Needs attention")
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Height: |-
+                                        =20
+                                    Icon: |-
+                                        =If(VhpOpsValid, "CheckmarkCircle", "ErrorCircle")
+                                    IconColor: |-
+                                        =If(VhpOpsValid, C.'state-ok-fg', C.'state-error-fg')
+                                    IconStyle: |-
+                                        =IconStyle.Outline
+                                    Visible: |-
+                                        =IfError(VhpOpsValid, false)
+                                    Width: |-
+                                        =20
                               - txtVhpOpsHeadTitle:
                                   Control: ModernText
                                   Properties:
@@ -9964,7 +10099,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank < 2, 85, 228)
+                                        =If(LayoutRank < 2, 85, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 514, 85, 228))
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -9976,9 +10111,9 @@ Screens:
                                     Size: |-
                                         =T.cardTitle
                                     Text: |-
-                                        =If(LayoutRank < 2, "Task list", "Task list and operations")
+                                        =If(LayoutRank < 2, "Task list", If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 514, "Task list", "Task list and operations"))
                                     Width: |-
-                                        =If(LayoutRank < 2, 85, 228)
+                                        =If(LayoutRank < 2, 85, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 514, 85, 228))
                                     Wrap: |-
                                         =false
                               - conVhpOpsHeadGap:
@@ -10006,62 +10141,44 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((If(LayoutRank < 2, 85, 228)) + If(LayoutRank < 2, 8, 12)) - (If((VhpOpsValid), (72) + If(LayoutRank < 2, 8, 12), 0)) - 2)
-                              - bdgVhpOpsHeadBadge:
-                                  Control: ModernBadge@1.0.0
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - (If(IfError(VhpOpsValid, false), (20) + If(LayoutRank < 2, 8, 12), 0)) - ((If(LayoutRank < 2, 85, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 514, 85, 228))) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)), (230) + If(LayoutRank < 2, 8, 12), 0)) - 2)
+                              - crdVhpOpsTotals:
+                                  Control: ModernCard@1.0.0
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(VhpOpsValid, "Step 3: valid", "Step 3: not complete yet")
-                                    Align: |-
-                                        =Align.Center
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
-                                    Appearance: |-
-                                        =BadgeAppearance.Filled
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(VhpOpsValid, C.'state-ok-fg', C.'text-muted')
-                                    Content: |-
-                                        =If(VhpOpsValid, "Valid", "")
+                                    Description: |-
+                                        =Blank()
+                                    DescriptionColor: |-
+                                        =C.'text-muted'
+                                    DescriptionSize: |-
+                                        =11
                                     Fill: |-
-                                        =If(VhpOpsValid, C.'state-ok-bg', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
+                                        =C.'state-neutral-bg'
+                                    HeaderImage: |-
+                                        =Blank()
                                     Height: |-
-                                        =22
-                                    Intent: |-
-                                        =BadgeIntent.Neutral
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =10
-                                    PaddingRight: |-
-                                        =10
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
+                                        =60
+                                    Image: |-
+                                        =Blank()
+                                    LayoutMinWidth: |-
+                                        =230
+                                    Subtitle: |-
+                                        ="Duration: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), DurationHours) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " h"
+                                    SubtitleColor: |-
+                                        =C.'text-muted'
+                                    SubtitleSize: |-
                                         =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Shape: |-
-                                        =BadgeShape.Circular
-                                    Size: |-
-                                        =T.micro
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                    Title: |-
+                                        ="Total cost: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK"
+                                    TitleColor: |-
+                                        =C.'text-primary'
+                                    TitleSize: |-
+                                        =13
                                     Visible: |-
-                                        =(VhpOpsValid)
+                                        =If(LayoutRank < 2, false, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false))
                                     Width: |-
-                                        =72
+                                        =230
                         - conVhpOpsHelp:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -10308,7 +10425,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =26 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + 12 + (0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 12 + (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 64 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)
+                                  =26 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (If(LayoutRank < 2, 60, 0))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + If(If(LayoutRank < 2, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), false), 12 + (If(LayoutRank < 2, 60, 0)), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 64 + 2), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10337,11 +10454,11 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (0), (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + 12 + (0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 12 + (If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)), 0))
+                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, Max((20 + 6 + (If(LayoutRank < 2, 44, 36))), (If(LayoutRank < 2, 44, 36)), (If(LayoutRank < 2, 44, 36)), (36), (If(LayoutRank < 2, 60, 0))), (20 + 6 + (If(LayoutRank < 2, 44, 36))) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, true, LayoutRank >= 2), 12 + (If(LayoutRank < 2, 44, 36)), 0) + If(If(LayoutRank < 2, false, LayoutRank < 2), 12 + (36), 0) + If(If(LayoutRank < 2, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), false), 12 + (If(LayoutRank < 2, 60, 0)), 0))
                                     LayoutAlignItems: |-
-                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                                     LayoutDirection: |-
-                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                        =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                                     LayoutGap: |-
                                         =12
                                     LayoutMinWidth: |-
@@ -10374,7 +10491,7 @@ Screens:
                                           LayoutGap: |-
                                               =6
                                           LayoutMinWidth: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360), 0)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360), 0)
                                           LayoutOverflowX: |-
                                               =LayoutOverflow.Hide
                                           LayoutOverflowY: |-
@@ -10548,7 +10665,7 @@ Screens:
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, AlignInContainer.End, AlignInContainer.Start)
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
@@ -10570,7 +10687,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, 232, 0)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, 232, 0)
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
@@ -10611,7 +10728,7 @@ Screens:
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, AlignInContainer.End, AlignInContainer.Start)
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
@@ -10633,7 +10750,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, 186, 0)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, 186, 0)
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
@@ -10688,7 +10805,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Task list actions"
                                           AlignInContainer: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, AlignInContainer.End, AlignInContainer.Start)
                                           Appearance: |-
                                               =Appearance.FilledDarker
                                           BasePaletteColor: |-
@@ -10716,7 +10833,7 @@ Screens:
                                           Items: |-
                                               =Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" })
                                           LayoutMinWidth: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, 190, 0)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, 190, 0)
                                           OnChange: |-
                                               =Switch(
                                                   Self.Selected.Value,
@@ -10776,41 +10893,15 @@ Screens:
                                               =If(LayoutRank < 2, false, LayoutRank < 2)
                                           Width: |-
                                               =190
-                                    - conVhpOpsToolbarGap:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =0
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =8
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)))) - ((If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + 12) - (If(If(LayoutRank < 2, true, LayoutRank >= 2), (232) + 12, 0)) - (If(If(LayoutRank < 2, true, LayoutRank >= 2), (186) + 12, 0)) - (If(If(LayoutRank < 2, false, LayoutRank < 2), (190) + 12, 0)) - (If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), (230) + 12, 0)) - 2)
-                                    - crdVhpOpsTotals:
+                                    - crdVhpOpsTotalsPhone:
                                         Control: ModernCard@1.0.0
                                         Properties:
                                           AlignInContainer: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, AlignInContainer.End, AlignInContainer.Start)
+                                              =AlignInContainer.Center
                                           Description: |-
-                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), "Plan over " & With({ _n: VhpCostThreshold }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK - needs cost approval", Blank())
+                                              =Blank()
                                           DescriptionColor: |-
-                                              =C.'state-warn-fg'
+                                              =C.'text-muted'
                                           DescriptionSize: |-
                                               =11
                                           Fill: |-
@@ -10818,11 +10909,11 @@ Screens:
                                           HeaderImage: |-
                                               =Blank()
                                           Height: |-
-                                              =If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), 80, 60)
+                                              =60
                                           Image: |-
                                               =Blank()
                                           LayoutMinWidth: |-
-                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (230) + (0) + 60, 230, 0)
+                                              =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)) + 48, If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0), 0)
                                           Subtitle: |-
                                               ="Duration: " & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), DurationHours) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " h"
                                           SubtitleColor: |-
@@ -10836,9 +10927,9 @@ Screens:
                                           TitleSize: |-
                                               =13
                                           Visible: |-
-                                              =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
+                                              =If(LayoutRank < 2, IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), false)
                                           Width: |-
-                                              =230
+                                              =If(LayoutRank < 2, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 0)
                               - txtVhpTasklistMeta:
                                   Control: ModernText
                                   Properties:
