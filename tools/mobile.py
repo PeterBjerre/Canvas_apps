@@ -32,6 +32,10 @@ HER
   refit()            regn en containers hoejde om efter en mobilhoejde
   gallery_place()    X/Y/bredde/hoejde i en galleriraekke paa mobil (kort)
   hide_on_mobile()   skjul en kontrol paa mobil
+  restack()          regn containernes hoejder om paa mobil (efter mobilhoejder)
+  phone_stack()      en vandret raekke, der staar lodret paa mobil
+  set_phone_h()      en anden hoejde paa mobil (Height + mh)
+  split()/phone()/desk()  grenene af If(LayoutRank < 2, m, d)
 """
 import os
 import sys
@@ -237,3 +241,145 @@ def touch(btn):
     btn.props["Height"] = mobile_or(TOUCH, h)
     btn.h = btn.props["Height"]
     return btn
+
+
+# ---------------------------------------------------------------------------
+# HOEJDER PAA EN TELEFON (fase 4: Materials, Equipment, Measuring Point)
+#
+# group() regner en containers hoejde af boernene, NAAR den bygges. Faar et
+# barn bagefter en anden hoejde paa mobil (felterne 44 i stedet for 36, en
+# sektion, der er klappet sammen), passer foraelderens hoejde ikke laengere.
+# restack() regner hele traeet om nedefra - kun mobilgrenen:
+#
+#     Height = If(LayoutRank < 2, <mobilhoejden>, <som foer>)
+#
+# og kun dér, hvor de to er forskellige. Tablet og desktop er uroerte.
+# Containere med en FAST hoejde (scroll, popupper, flow_row) springes over -
+# de skal have deres mobilhoejde (mh) givet af den, der byggede dem.
+# ---------------------------------------------------------------------------
+def split(expr):
+    """(mobil, ellers) for et udtryk af formen If(LayoutRank < 2, m, d) -
+    ellers None. Kun et If, der er HELE udtrykket."""
+    s = str(expr).strip()
+    pre = "If(%s, " % MOBILE
+    if not (s.startswith(pre) and s.endswith(")")):
+        return None
+    inner = s[len(pre):-1]
+    depth, quote, parts, start = 0, False, [], 0
+    for i, ch in enumerate(inner):
+        if ch == '"':
+            quote = not quote
+        elif quote:
+            continue
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+            if depth < 0:
+                return None
+        elif ch == "," and depth == 0:
+            parts.append(inner[start:i].strip())
+            start = i + 1
+    parts.append(inner[start:].strip())
+    return (parts[0], parts[1]) if len(parts) == 2 else None
+
+
+def phone(expr):
+    """Vaerdien paa en telefon: mobilgrenen, hvis udtrykket er en mobil-If."""
+    sp = split(expr)
+    return sp[0] if sp else expr
+
+
+def desk(expr):
+    """Vaerdien fra Tablet og op: ellers-grenen af en mobil-If."""
+    sp = split(expr)
+    return sp[1] if sp else expr
+
+
+def _num(v):
+    try:
+        f = float(str(v))
+    except ValueError:
+        return v
+    return int(f) if f.is_integer() else f
+
+
+def phone_h(ctrl):
+    """Kontrollens hoejde paa en telefon (mh, ellers h's mobilgren)."""
+    if ctrl.mh is not None:
+        return ctrl.mh
+    return _num(phone(ctrl.h if ctrl.h is not None else ctrl.props.get("Height", 0)))
+
+
+def set_phone_h(ctrl, h):
+    """Giv ctrl en anden hoejde paa en telefon. Height bliver en mobil-If om
+    den hoejde, den har fra Tablet og op; h (foraeldrenes algebra) roeres
+    ikke, saa tablet og desktop regner som foer."""
+    cur = ctrl.props.get("Height", ctrl.h)
+    d = desk(cur)
+    if str(_num(h)).replace(" ", "") == str(d).replace(" ", ""):
+        ctrl.props["Height"] = str(d)
+    else:
+        ctrl.props["Height"] = mobile_or(h, d)
+    ctrl.mh = _num(h)
+    return ctrl
+
+
+class _Proxy:
+    """Et barn, som hoejde-algebraen ser det paa en telefon."""
+    __slots__ = ("h", "vis")
+
+    def __init__(self, h, vis):
+        self.h, self.vis = h, vis
+
+
+def restack(node):
+    """Regn mobilhoejderne om i hele traeet under node (node selv med) og
+    returner nodes hoejde paa en telefon. Se afsnittet ovenfor."""
+    from gen_screen import stack_height, row_height
+    kids = node.children or []
+    hs = [restack(c) for c in kids]
+    if node.control != "GroupContainer" or not kids or not node._auto:
+        return phone_h(node)
+    direction, built = node._auto
+    if str(node.props.get("Height")) != str(built) and node.mh is None:
+        # Nogen har givet containeren en anden hoejde efter group() - den
+        # er ikke laengere boernenes, saa den roeres ikke.
+        return phone_h(node)
+    p = node.props
+    pt, pb = _num(phone(p.get("PaddingTop", 0))), _num(phone(p.get("PaddingBottom", 0)))
+    gap = _num(phone(p.get("LayoutGap", 0)))
+    lay_dir = phone(p.get("LayoutDirection", "LayoutDirection.%s" % direction))
+    if not all(isinstance(x, (int, float)) for x in (pt, pb, gap)):
+        return phone_h(node)
+    proxies = [_Proxy(h, c.vis) for c, h in zip(kids, hs)]
+    wraps = str(phone(p.get("LayoutWrap", "false"))).lower() == "true"
+    if "Vertical" in lay_dir or (wraps and direction == "Vertical"):
+        # En raekke, der ombryder paa mobil, og som er markeret lodret
+        # (_auto), har boern i hele bredden: een pr. linje.
+        h = stack_height(proxies, gap, pt, pb)
+    elif wraps:
+        return phone_h(node)   # ombrydning: kan ikke regnes her
+    else:
+        h = row_height(proxies, pt, pb)
+    if str(_num(h)).replace(" ", "") != str(_num(desk(p["Height"]))).replace(" ", ""):
+        set_phone_h(node, h)
+    return _num(h)
+
+
+def phone_stack(box, gap=None):
+    """En vandret (evt. ombrydende) container, der staar LODRET paa en
+    telefon - eet barn pr. linje. restack regner dens hoejde paa mobil.
+    gap: mellemrummet paa mobil (standard: det samme som ellers)."""
+    p = box.props
+    p["LayoutDirection"] = mobile_or("LayoutDirection.Vertical",
+                                     desk(p.get("LayoutDirection", "LayoutDirection.Horizontal")))
+    if "LayoutWrap" in p:
+        p["LayoutWrap"] = mobile_or("false", desk(p["LayoutWrap"]))
+    if gap is not None:
+        p["LayoutGap"] = mobile_or(gap, desk(p.get("LayoutGap", "0")))
+    p["LayoutAlignItems"] = mobile_or("LayoutAlignItems.Stretch",
+                                      desk(p.get("LayoutAlignItems", "LayoutAlignItems.Start")))
+    # Som om group() havde regnet hoejden: restack maa regne den om.
+    box._auto = ("Vertical", p["Height"])
+    return box

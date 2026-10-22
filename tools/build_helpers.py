@@ -138,6 +138,7 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
     else:
         pt = pr = pb = pl = 0
 
+    auto = height is None
     if height is None:
         if direction == "Vertical":
             height = stack_height(children, gap, pt, pb)
@@ -186,8 +187,12 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
     if align_in_container is not None:
         props["AlignInContainer"] = f"AlignInContainer.{align_in_container}"
     props = {k: v for k, v in props.items() if v is not None}
-    return Ctrl(name, "GroupContainer", variant="AutoLayout", props=props, children=children,
-                h=height, vis=visible)
+    box = Ctrl(name, "GroupContainer", variant="AutoLayout", props=props, children=children,
+               h=height, vis=visible)
+    if auto:
+        # Hoejden er boernenes - mobile.restack kan regne den om (#508).
+        box._auto = (direction, props["Height"])
+    return box
 
 
 # Ikonerne paa gem- og indsend-knapperne i hele BIO SAP (issue #54). Navnene

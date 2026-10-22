@@ -177,8 +177,13 @@ class Ctrl:
     #       som .Height i en formel.
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
+    # mh    = hoejden PAA EN TELEFON, naar den er en anden end h (issue #508,
+    #         tools/mobile.restack). None = som h's mobilgren.
+    # _auto = (retning, hoejde) for en container, hvis hoejde group() regnede
+    #         af boernene - kun dem kan mobile.restack regne om.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w")
+                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w",
+                 "mh", "_auto")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -192,6 +197,8 @@ class Ctrl:
         self._grow = None      # mindstebredde, naar barnet tager resten
         self._fit = None       # (naturlig bredde, reserve): se build_helpers.fit
         self._vis = None
+        self.mh = None
+        self._auto = None
         if vis is not None:
             self.vis = vis
 
