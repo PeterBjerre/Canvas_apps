@@ -1,0 +1,544 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWOCClientSecret"
+          }
+        },
+        "BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWoeDevApiKey"
+          }
+        },
+        "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapInventoryDevApiKey"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Ordrenummer (WOE)",
+                  "type": "string",
+                  "description": "Fx 25711067. Tom = eksemplet fra API-teamet",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "title": "Plant (lager)",
+                  "type": "string",
+                  "description": "Fx 2806. Tom = eksemplet fra API-teamet",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_2": {
+                  "title": "Materiale (lager)",
+                  "type": "string",
+                  "description": "Fx 1019. Tom = eksemplet fra API-teamet",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": []
+            }
+          }
+        }
+      },
+      "actions": {
+        "Opsaetning": {
+          "runAfter": {},
+          "type": "Compose",
+          "inputs": {
+            "tokenUrl": "https://login.microsoftonline.com/100b3c99-f3e2-4da0-9c8a-b9d345742c36/oauth2/v2.0/token",
+            "clientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
+            "woeScope": "https://Dongenergy.onmicrosoft.com/b6608a78-4d04-462b-a5da-d5488f8b164c/.default",
+            "woeBaseUrl": "https://dev.api.orsted.dk/woe/api",
+            "lagerScope": "https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default",
+            "lagerBaseUrl": "https://dev.api.orsted.dk/inventorymanagement",
+            "standardOrdre": "25711067",
+            "standardPlant": "2806",
+            "standardMateriale": "1019"
+          }
+        },
+        "Initialize_variable_Ordre": {
+          "runAfter": {
+            "Opsaetning": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Ordre",
+                "type": "string",
+                "value": "@{if(empty(trim(coalesce(triggerBody()?['text'], ''))), outputs('Opsaetning')?['standardOrdre'], trim(triggerBody()?['text']))}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_Plant": {
+          "runAfter": {
+            "Initialize_variable_Ordre": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Plant",
+                "type": "string",
+                "value": "@{if(empty(trim(coalesce(triggerBody()?['text_1'], ''))), outputs('Opsaetning')?['standardPlant'], trim(triggerBody()?['text_1']))}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_Materiale": {
+          "runAfter": {
+            "Initialize_variable_Plant": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Materiale",
+                "type": "string",
+                "value": "@{if(empty(trim(coalesce(triggerBody()?['text_2'], ''))), outputs('Opsaetning')?['standardMateriale'], trim(triggerBody()?['text_2']))}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_WoeStatus": {
+          "runAfter": {
+            "Initialize_variable_Materiale": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "WoeStatus",
+                "type": "string",
+                "value": "Ikke koert"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_LagerStatus": {
+          "runAfter": {
+            "Initialize_variable_WoeStatus": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "LagerStatus",
+                "type": "string",
+                "value": "Ikke koert"
+              }
+            ]
+          }
+        },
+        "Tjek_miljoevariabler": {
+          "runAfter": {
+            "Initialize_variable_LagerStatus": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "or": [
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')",
+                  "REDACTED"
+                ]
+              },
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "REDACTED"
+                ]
+              },
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                  "REDACTED"
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Stop_mangler_vaerdi": {
+              "runAfter": {},
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "ManglerVaerdi",
+                  "message": "Saet Current value paa BioSap-WOC-Client-Secret, BioSap-WOE-Dev-ApiKey og BioSap-Inventory-Dev-ApiKey (Solutions > BIO SAP > Environment variables)."
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {}
+          }
+        },
+        "Hent_token_Woe": {
+          "runAfter": {
+            "Tjek_miljoevariabler": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{outputs('Opsaetning')?['tokenUrl']}",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Opsaetning')?['clientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Opsaetning')?['woeScope'])}",
+            "retryPolicy": {
+              "type": "none"
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Token_ok_Woe": {
+          "runAfter": {
+            "Hent_token_Woe": [
+              "Succeeded",
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Hent_token_Woe')?['statusCode']",
+                  200
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Kald_Woe": {
+              "runAfter": {},
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Opsaetning')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('Ordre'))}/objects",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Hent_token_Woe')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Svar_Woe": {
+              "runAfter": {
+                "Kald_Woe": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "ordre": "@variables('Ordre')",
+                "url": "@{outputs('Opsaetning')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('Ordre'))}/objects",
+                "status": "@outputs('Kald_Woe')?['statusCode']",
+                "svar": "@body('Kald_Woe')"
+              }
+            },
+            "Saet_WoeStatus": {
+              "runAfter": {
+                "Svar_Woe": [
+                  "Succeeded"
+                ]
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "WoeStatus",
+                "value": "API @{outputs('Kald_Woe')?['statusCode']}"
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Token_fejl_Woe": {
+                "runAfter": {},
+                "type": "Compose",
+                "inputs": {
+                  "status": "@outputs('Hent_token_Woe')?['statusCode']",
+                  "error": "@body('Hent_token_Woe')?['error']",
+                  "error_description": "@body('Hent_token_Woe')?['error_description']"
+                }
+              },
+              "Saet_WoeStatus_token": {
+                "runAfter": {
+                  "Token_fejl_Woe": [
+                    "Succeeded"
+                  ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "WoeStatus",
+                  "value": "Token @{outputs('Hent_token_Woe')?['statusCode']}"
+                }
+              }
+            }
+          }
+        },
+        "Hent_token_Lager": {
+          "runAfter": {
+            "Tjek_miljoevariabler": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{outputs('Opsaetning')?['tokenUrl']}",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Opsaetning')?['clientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Opsaetning')?['lagerScope'])}",
+            "retryPolicy": {
+              "type": "none"
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Token_ok_Lager": {
+          "runAfter": {
+            "Hent_token_Lager": [
+              "Succeeded",
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Hent_token_Lager')?['statusCode']",
+                  200
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Kald_Lager": {
+              "runAfter": {},
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Opsaetning')?['lagerBaseUrl']}/materialonstocks/@{encodeUriComponent(variables('Plant'))}/@{encodeUriComponent(variables('Materiale'))}",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Hent_token_Lager')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Svar_Lager": {
+              "runAfter": {
+                "Kald_Lager": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "plant": "@variables('Plant')",
+                "materiale": "@variables('Materiale')",
+                "url": "@{outputs('Opsaetning')?['lagerBaseUrl']}/materialonstocks/@{encodeUriComponent(variables('Plant'))}/@{encodeUriComponent(variables('Materiale'))}",
+                "status": "@outputs('Kald_Lager')?['statusCode']",
+                "svar": "@body('Kald_Lager')"
+              }
+            },
+            "Saet_LagerStatus": {
+              "runAfter": {
+                "Svar_Lager": [
+                  "Succeeded"
+                ]
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "LagerStatus",
+                "value": "API @{outputs('Kald_Lager')?['statusCode']}"
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Token_fejl_Lager": {
+                "runAfter": {},
+                "type": "Compose",
+                "inputs": {
+                  "status": "@outputs('Hent_token_Lager')?['statusCode']",
+                  "error": "@body('Hent_token_Lager')?['error']",
+                  "error_description": "@body('Hent_token_Lager')?['error_description']"
+                }
+              },
+              "Saet_LagerStatus_token": {
+                "runAfter": {
+                  "Token_fejl_Lager": [
+                    "Succeeded"
+                  ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "LagerStatus",
+                  "value": "Token @{outputs('Hent_token_Lager')?['statusCode']}"
+                }
+              }
+            }
+          }
+        },
+        "Begge_ok": {
+          "runAfter": {
+            "Token_ok_Woe": [
+              "Succeeded",
+              "Failed",
+              "TimedOut",
+              "Skipped"
+            ],
+            "Token_ok_Lager": [
+              "Succeeded",
+              "Failed",
+              "TimedOut",
+              "Skipped"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@variables('WoeStatus')",
+                  "API 200"
+                ]
+              },
+              {
+                "equals": [
+                  "@variables('LagerStatus')",
+                  "API 200"
+                ]
+              }
+            ]
+          },
+          "actions": {},
+          "else": {
+            "actions": {
+              "Stop_fejl": {
+                "runAfter": {},
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "ApiFejl",
+                    "message": "WOE: @{variables('WoeStatus')}, Lager: @{variables('LagerStatus')}. Forventet API 200. Se Svar_* eller Token_fejl_* i historikken."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
