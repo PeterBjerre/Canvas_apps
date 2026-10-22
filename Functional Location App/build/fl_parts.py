@@ -821,8 +821,8 @@ def _mobile_card(fl, desc, meta_cells, vals, atex, pops, status, copy, delete):
         ph = '"' + lbl[:1] + lbl[1:].lower() + '"'
         inp.props["Placeholder"] = lay.mobile_or(ph, inp.props.get("Placeholder", '""'))
         _more(inp)
-    mobile.gallery_place(atex, x=f"({tw}) - {M_ATEX_W}", y=_m_y(3) + (M_LINE - 36) // 2,
-                         w=M_ATEX_W, h=36)
+    # Hele linjens hoejde (44) er klikfladen (issue #508, fase 6).
+    mobile.gallery_place(atex, x=f"({tw}) - {M_ATEX_W}", y=_m_y(3), w=M_ATEX_W, h=M_LINE)
     atex.props["Label"] = lay.mobile_or('"ATEX"', atex.props["Label"])
     _more(atex)
     # E/F: Class data, Manufacturer, Warranty - og Copy (med tekst).
@@ -1255,7 +1255,7 @@ def build_rows():
                      gap=12, align_items="Center", height=lay.mobile_or(mobile.TOUCH, 36))
     # "Row details" (kun telefonen): kortenes ekstra linjer - se M_CARD_W.
     more, = mobile.collapsible("FlRowsMore", "Row details", [], ROWS_MORE,
-                               summary='"Room, sort, class data, manufacturer, warranty"')
+                               summary='"Room, sort, class, maker, warranty"')
 
     head = mobile.hide_on_mobile(table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W))
     n = "CountRows(colFlRows)"

@@ -260,7 +260,8 @@ def build_popup(after=""):
     # raekken er et lille kort - [x] kode + status / beskrivelse.
     tw = f"App.Width - {2 * mobile.POP_MARGIN + 2 * mobile.CARD_PAD}"
     bw = chip.table_width(LIST_STATUS)
-    mobile.gallery_place(chk, x=0, y=6)
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chk, x=0, y=2, w=LIST_CHK_W + 8, h=mobile.TOUCH)
     mobile.gallery_place(code, x=LIST_CHK_W + 8, y=6, w=f"{tw} - {LIST_CHK_W + 16} - {bw}")
     mobile.gallery_place(status, x=f"{tw} - {bw}", y=5)
     mobile.gallery_place(desc, x=LIST_CHK_W + 8, y=28, w=f"{tw} - {LIST_CHK_W + 8}")

@@ -873,7 +873,7 @@ def strip_hits(act_width, x_expr, compact=None):
 # ---------------------------------------------------------------------------
 # Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
 POP_W = lay.popup_w(POP_MAX_W, 24)
-GW = f"({POP_W} - {2 * POP_PAD})"
+GW = f"({POP_W} - {lay.mobile_or(2 * lay.MOBILE_CARD_PAD, 2 * POP_PAD)})"
 TW = f"({GW} - 20)"
 CHIP_W = 92
 CHIP_H = 22
@@ -1159,6 +1159,10 @@ def build_popup():
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=POP_W, drop_shadow="ExtraBold",
                   align_in_container="Center")
+    # Samme sidepolstring som appens andre popupper paa en telefon (issue
+    # #508, fase 6): MOBILE_CARD_PAD (12). GW regner med den.
+    from build_helpers import mobile_pad
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["Height"] = (f"{2 * POP_PAD + lay.HIT_TOUCH + 2 * 10} + If({busy}, 110, 20 + 10 + {gh}) + "
                              f"If({note_vis}, {note_h} + 10, 0)")
     backdrop = group(n("con", "Backdrop"), [modal], direction="Vertical", gap=0,

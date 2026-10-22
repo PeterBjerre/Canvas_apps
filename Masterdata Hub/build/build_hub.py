@@ -644,12 +644,17 @@ def _view_switch():
           None)
          for sfx, txt, key in (("Mine", "My", "mine"), ("All", "All", "queue"))],
         label="View requests", fit=True)
+    ws = []
     for b in t.children:
         w = text_px(b.props["Text"].strip('"'), size) + 20
-        b.props["Width"] = b.props["LayoutMinWidth"] = str(w)
+        # Mindst 44 bred paa en telefon (klikflade, issue #508 fase 6).
+        wm = max(mobile.TOUCH, w)
+        ws.append((wm, w))
+        b.props["Width"] = b.props["LayoutMinWidth"] = lay.mobile_or(wm, w)
         b.props["Size"] = str(size)
         b.props["Layout"] = "ButtonLayout.TextOnly"
-    t.props["Width"] = str(sum(int(b.props["Width"]) for b in t.children) + SEG_GAP + 2 * SEG_PAD)
+    t.props["Width"] = lay.mobile_or(sum(m for m, _ in ws) + SEG_GAP + 2 * SEG_PAD,
+                                     sum(d for _, d in ws) + SEG_GAP + 2 * SEG_PAD)
     t.props["AlignInContainer"] = "AlignInContainer.Center"
     t.vis = below("Tablet")
     return [t]

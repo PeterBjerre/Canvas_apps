@@ -124,8 +124,14 @@ def collapsible(prefix, title, children, var, default_open=False, summary=None,
     t.props["LayoutMinWidth"] = t.props["Width"]
     kids = [t]
     if summary:
+        # To linjer (fase 6): ved 320 px er der ofte kun ca. 110 px til
+        # opsummeringen ved siden af titlen og chevronen.
         s = grow(text_ctrl("txt%sFoldSummary" % prefix, summary, size=lay.SIZE_SMALL,
                            color=C_MUTED, height=20, wrap="false", align="Right"))
+        # Overskriften ses kun paa mobil; grenene holder Tablet/Desktop ens.
+        s.props["Height"] = mobile_or(TOUCH - 8, 20)
+        s.h = s.props["Height"]
+        s.props["Wrap"] = mobile_or("true", "false")
         s.vis = "!%s" % (open_expr or state(var, default_open))
         s.props["Visible"] = s.vis
         kids.append(s)

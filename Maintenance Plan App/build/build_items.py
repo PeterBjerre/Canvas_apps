@@ -1635,7 +1635,9 @@ def build_object_list_modal():
     tpl_w_m = f"(({OBJ_LIST_W}) - {2 * OBJ_TPL_PAD} - {OBJ_SCROLL})"
     text_x = OBJ_ROW_PAD + OBJ_CHK_W + OBJ_COL_GAP
     text_w = f"{tpl_w_m} - {text_x + OBJ_ROW_PAD}"
-    mobile.gallery_place(chkObj, x=OBJ_ROW_PAD, y=(OBJ_ROW_H_M - 2 - 24) // 2)
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chkObj, x=OBJ_ROW_PAD, y=(OBJ_ROW_H_M - 2 - mobile.TOUCH) // 2, w=36,
+                         h=mobile.TOUCH)
     mobile.gallery_place(txtCode, x=text_x, y=6, w=text_w)
     mobile.gallery_place(txtDesc, x=text_x, y=28, w=text_w)
     mobile.gallery_place(status, x=text_x, y=50)

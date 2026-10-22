@@ -231,7 +231,8 @@ def build_tasklist_picker_modal():
     # arbejdscenter, kontrolnoegle og timer i een linje under.
     ROW_M = 56
     tpl_w_m = f"(({POP_CW_M}) - 4 - {lay.SCROLLBAR_W})"
-    mobile.gallery_place(chkRowSel, x=4, y=(ROW_M - 2 - 24) // 2)
+    # Afkrydsningen er en 44 px hoej klikflade paa en telefon (issue #508, fase 6).
+    mobile.gallery_place(chkRowSel, x=4, y=(ROW_M - 2 - mobile.TOUCH) // 2, w=36, h=mobile.TOUCH)
     mobile.gallery_place(txtRowOpNo, x=40, y=4, w=54, h=24)
     mobile.gallery_place(txtRowShort, x=98, y=4, w=f"{tpl_w_m} - 102", h=24)
     mobile.gallery_place(txtRowMwc, x=40, y=28, w=f"{tpl_w_m} - 44", h=22)

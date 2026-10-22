@@ -551,8 +551,14 @@ def missing_modal():
                     accessible=go_txt)
         go.props["Size"] = str(lay.SIZE_SMALL)
         go.props["LayoutMinWidth"] = go.props["Width"]
-        # 44 px paa en telefon (issue #508).
+        # 44 px paa en telefon (issue #508). Kun "Go to" paa en telefon, saa
+        # overskriften kan staa ved 320 px (fase 6); skaermlaeseren faar
+        # den fulde tekst (accessible).
         mobile.touch(go)
+        go.props["Text"] = lay.mobile_or('"Go to"', go_txt)
+        go.props["Width"] = lay.mobile_or(fit_button_width('"Go to"', size=lay.SIZE_SMALL),
+                                          go.props["Width"])
+        go.props["LayoutMinWidth"] = go.props["Width"]
         h = group(f"con{name[3:]}Top", [h, go], direction="Horizontal", gap=8,
                   height=lay.mobile_or(mobile.TOUCH, 30), align_items="Center")
         body_fx = f"With(\n    {{ t: {fx} }},\n    If(IsBlank(t), \"\", {bullets('t')})\n)"
@@ -813,7 +819,10 @@ def build_top_bar():
                   layout_min_width=steps_w)
     steps.vis = at_least("Desktop")
     # Mobile: the same step images (same STEPS logic) in a full-width row above the buttons.
-    m_h = f"Min({STEP_H}, ({SHELL_W}) / {n} * {STEP_H} / {STEP_W})"
+    # Mindst 44 hoeje (klikflade, issue #508 fase 6) - billederne er Fit,
+    # saa et smalt trin ved 320 px tegnes bare med luft over og under.
+    m_h = lay.mobile_or(f"Max({mobile.TOUCH}, Min({STEP_H}, ({SHELL_W}) / {n} * {STEP_H} / {STEP_W}))",
+                        f"Min({STEP_H}, ({SHELL_W}) / {n} * {STEP_H} / {STEP_W})")
     m_imgs = [_step_image(i, _label(i), done[i], done[i - 1] if i else "false",
                           f"(!{done[i]} && {' && '.join(done[:i]) or 'true'})", STEPS[i][4],
                           f"{SHELL_W} / {n}", suffix="M", height=m_h)

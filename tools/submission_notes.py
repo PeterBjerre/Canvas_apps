@@ -145,7 +145,8 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
     vis = f"IfError({open_var}, false)"
     # Naesten fuld bredde paa en telefon (issue #508, layout_tokens.popup_w).
     pop_w = lay.popup_w(POP_MAX_W, 24)
-    inner = f"({pop_w} - {2 * PAD})"
+    # Paa en telefon 12 i siderne som appens andre popupper (issue #508, fase 6).
+    inner = f"({pop_w} - {lay.mobile_or(2 * lay.MOBILE_CARD_PAD, 2 * PAD)})"
     # Sektionernes bredde: raekken minus dens luft paa begge sider.
     pane_area = f"({inner} - {2 * SPLIT_PAD})"
     narrow = below("Tablet")
@@ -199,6 +200,8 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(PAD, PAD, PAD, PAD), width=pop_w, drop_shadow="ExtraBold",
                   align_in_container="Center")
+    from build_helpers import mobile_pad
+    mobile_pad(modal, x=lay.MOBILE_CARD_PAD)
     modal.props["Height"] = f"{2 * PAD} + {head.h} + 12 + ({body_h}) + {foot_h}"
     backdrop = group(f"con{prefix}NotesBackdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,

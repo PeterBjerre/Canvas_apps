@@ -419,8 +419,8 @@ def build(p):
     # TELEFONEN (issue #508, fase 6): popuppen skal kunne staa paa skaermen
     # uden at sloeret scroller - ellers scroller baade siden og emnelisten.
     # Det faste paa mobil er PHONE_FIXED (se nedenfor); beskeden faar resten,
-    # mindst 120 og hoejst de 220, den havde.
-    msg_h = (f"If({lay.below('Tablet')}, Max(120, Min(220, App.Height - {PHONE_FIXED + EDGE})), "
+    # mindst 100 og hoejst de 220, den havde.
+    msg_h = (f"If({lay.below('Tablet')}, Max(100, Min(220, App.Height - {PHONE_FIXED + EDGE})), "
              f"Max(160, Min(272, App.Height - 40 - {366 + EDGE})))")
     # Listens hoejde under vaelgerens knap: mellemrummet, beskedens etiket
     # og beskeden minus 4 px luft over listen. Rammens EDGE i bunden

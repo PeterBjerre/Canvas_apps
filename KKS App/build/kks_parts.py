@@ -51,7 +51,9 @@ P = "Kks"
 # Bredder
 # ---------------------------------------------------------------------------
 # Indholdet i et kort: SHELL_W minus kortets 2 x 18 px polstring.
-CARD_W = f"({SHELL_W} - 2 * {lay.CARD_PAD})"
+# Kortets indre bredde - 12 i siderne paa en telefon (build_helpers.card,
+# issue #508 fase 6); foer regnede KKS med 18 dér og spildte 12 px.
+CARD_W = lay.CARD_INNER_W
 # Results: no card on a phone, so the content is as wide as the page.
 RES_W = f"If({lay.below('Tablet')}, {SHELL_W}, {CARD_W})"
 
@@ -898,8 +900,10 @@ def build_fl_search():
     vis = f"IfError({FL_OPEN}, false)"
     close = f"Set({FL_OPEN}, false)"
     backdrop = tap_backdrop("conKksFlBackdrop", vis, close)
-    title = text_ctrl("txtKksFlTitle", '"Search Functional Locations"',
+    # Kortere titel paa en telefon - den lange klippedes ved 320 px (fase 6).
+    title = text_ctrl("txtKksFlTitle", lay.mobile_or('"Search FL in SAP"', '"Search Functional Locations"'),
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
+    title.props["AccessibleLabel"] = '"Search Functional Locations"'
     head = popup_head("conKksFlHead", title, "btnKksFlClose", close,
                       accessible='"Close the Functional Location search"')
     intro = text_ctrl("txtKksFlIntro",
