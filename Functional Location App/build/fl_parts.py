@@ -452,12 +452,24 @@ FL_MIN = 140
 # og Warranty-knapper maa ikke goere raekken bredere: pladsen tages fra
 # Description's minimum (den kolonne med mest luft over sin overskrift),
 # og Sort Field er 72 px i stedet for 88 (ROW_VALS; overskriften er 56 px).
-V_BASE_MAX = 1258 + 12 + 54
+V_BASE_MAX = 1258 + 12 + 54 + 6 * 6
 # Actions: Copy og Delete, hver en ikonknap paa ACT_BTN (issue #467). De
 # 54 px og StrIndicators 12 ekstra (overskriften er bredere end "KKS type")
-# laegges til V_BASE_MAX, saa Description beholder sit minimum.
+# laegges til V_BASE_MAX, saa Description beholder sit minimum. Issue #532:
+# + 6 x COL_AIR (de seks kompakte faelles kolonner).
 ACT_BTN = 48
 ACT_W = 2 * ACT_BTN + VGAP
+# LIDT MERE LUFT MELLEM DE KOMPAKTE FAELLES KOLONNER (issue #532).
+# StrIndicator, Class, Room, Sort field, ABC indicator og ATEX faar hver
+# COL_AIR px mere (V_SHARED herunder). Cellerne staar til venstre i deres
+# kolonne, saa luften staar til hoejre for vaerdien: det synlige mellemrum
+# mellem dem gaar fra VGAP (6) til 12 px. Room og Sort fields felter bliver
+# ogsaa 6 px bredere. De 6 x 6 = 36 px tages fra FL og Description: ved
+# 1920 (1080p) har de kun ca. 47 px over deres lofter (FL_MAX, DESC_MAX),
+# saa de beholder begge deres loft (tests/test_fl_columns_532.py).
+# Tabellens mindstebredde (V_BASE) vokser tilsvarende - FL og Description
+# kan ikke give mere under deres minimum uden at klippe overskrifterne.
+COL_AIR = 6
 # (navn, overskrift, bredde) efter Description.
 #
 # EET TABELMOENSTER FOR ROWS OG CLASSES (issue #468). Foerst de FAELLES
@@ -473,11 +485,13 @@ ACT_W = 2 * ACT_BTN + VGAP
 # Class er saa bred som det laengste klassenavn ("NO CLASS", 13 px semibold)
 # og ikke bredere (issue #479 - foer 96 px).
 CLS_W = max(text_px("Class", 11), *(text_px(c, 13) for c in V.R["classes"])) + 4
-V_SHARED = ([("Kks", "StrIndicator", 76), ("Cls", "Class", CLS_W)]
-            # Reglernes etiket ("Sort Field") i appens sentence case (F1).
-            + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
-               for n, f, w in ROW_VALS]
-            + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40)])
+V_SHARED = [(n, lbl, w + COL_AIR) for n, lbl, w in
+            ([("Kks", "StrIndicator", 76), ("Cls", "Class", CLS_W)]
+             # Reglernes etiket ("Sort Field") i appens sentence case (F1).
+             + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
+                for n, f, w in ROW_VALS]
+             + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40)])]
+assert COL_AIR * len(V_SHARED) == 6 * 6
 V_FIXED = (V_SHARED
            + [("ClsData", "Class data", _pop_w("Class data")),
               ("Mfr", "Manufacturer", MFR_WAR_W),
@@ -1387,8 +1401,12 @@ def build_classes():
         "WrapCount": "1",
     }, children=[tab], h=lay.mobile_or(TAB_H_M + 6, 40), vis=HAS_CLASSES)
 
-    note_txt = lay.mobile_or('"The pencil opens the class data of the row."',
-                             '"Compact view - the Edit pencil opens the class data of the row."')
+    # Issue #533: i View er blyanten et View-ikon (CLS_VIEW_ICON).
+    note_txt = lay.mobile_or(
+        f'If({CLS_LOCKED}, "The view icon opens the class data of the row.", '
+        '"The pencil opens the class data of the row.")',
+        f'If({CLS_LOCKED}, "Compact view - the view icon opens the class data of the row.", '
+        '"Compact view - the Edit pencil opens the class data of the row.")')
     note = text_ctrl("txtFlClassNote", note_txt, accessible=note_txt,
                      size=12, color=C_MUTED, height=18, wrap="false", visible=HAS_CLASSES)
 
@@ -1427,11 +1445,20 @@ def build_classes():
     # Blyanten (issue #490): samme ikonknap som Rows' Copy og Delete -
     # ACT_BTN bred, IconOnly, klikflade H.hit - i sin egen gruppe, saa den
     # ikke straekkes til kolonnens bredde.
-    open_ = button("btnFlCOpen", '"Edit"',
+    #
+    # BLYANTEN KUN NAAR DER KAN RETTES (issue #533). I View (eller naar
+    # anmodningen er indsendt - CLS_LOCKED, samme regel som sidepanelets
+    # felter) aabnede blyanten et skrivebeskyttet panel og lovede noget,
+    # der ikke var der. Nu er knappen et View-ikon med tooltippet "View
+    # class data"; den aabner det SAMME panel (kun til at laese) og skifter
+    # ikke tilstand - sidehovedets Edit er stadig eneste vej til Edit mode.
+    verb = f'If({CLS_LOCKED}, "View", "Edit")'
+    open_ = button("btnFlCOpen", f'{verb}',
                    open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=ACT_BTN,
-                   height=30, icon="Edit",
-                   accessible='"Edit class data of " & ThisItem.FL',
-                   tooltip=(f'With({{ m: {info_msg} }}, "Edit class data of " & ThisItem.FL & '
+                   height=30,
+                   icon=f'If({CLS_LOCKED}, "{CLS_VIEW_ICON}", "{icons.FLUENT["edit"]}")',
+                   accessible=f'{verb} & " class data of " & ThisItem.FL',
+                   tooltip=(f'With({{ m: {info_msg} }}, {verb} & " class data of " & ThisItem.FL & '
                             'If(IsBlank(m), "", " - " & m))'))
     open_.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(open_, square=False)
@@ -1518,6 +1545,10 @@ def build_classes():
 # anmodning.
 CLS_TEST = 'Section in ["Class", "TRM"]'
 CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
+# Classes' View-ikon (issue #533): et ikon, appen allerede bruger paa
+# ModernButton - "DocumentText" (Long text: laes teksten). Oejet (icons.EYE)
+# findes kun som SVG i View mode-pillen, ikke som ModernButton-ikon.
+CLS_VIEW_ICON = icons.FLUENT["long_text"]
 
 
 # Dropdownens valg: tom, den gemte vaerdi hvis den er ugyldig, og listen
