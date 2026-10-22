@@ -244,8 +244,52 @@ NO_X = 18            # nummerets felt, fra niveauets x
 NO_H = 32
 LINK = 32
 # Open in SAP-knappen (issue #504, pictures/sap_popup_copy.png): SAP-maerket
-# og et "aaben eksternt"-ikon i een indrammet knap.
-SAP_LOGO_W = 78
+# og et "aaben eksternt"-ikon i een indrammet knap. Billedet er en SVG, der
+# bygges her (der er ingen billedfil); dens maal udledes nedenfor
+# (_sap_btn_geometry), og Image-kontrollen er praecis lige saa bred.
+#
+# Issue #521: maerket og ikonet staar om SAMME vandrette midterlinje
+# (SVG'ens midte, LINK / 2), ikonet er mindre end maerket (ca. 2/3 af dets
+# hoejde), og luften er afbalanceret: samme blaek-fri kant til venstre for
+# maerket og til hoejre for ikonet (SAP_BTN_PAD). SAP-maerkets hoejre side
+# er skraa (bunden er SAP_LOGO_CUT kortere end toppen), saa det tomme
+# trekantsrum under det skraa snit maales med: afstanden til ikonet regnes
+# fra maerkets kant PAA midterlinjen (SAP_ICON_GAP) - ellers ser ikonet
+# loesrevet ud. Ikonets streg (SAP_ICON_STROKE) stikker en halv streg ud
+# over dets tegnede felt og er regnet med i blaek-kanten.
+SAP_BTN_PAD = 10      # knapkant -> maerkets venstre kant og ikonets hoejre blaek
+SAP_LOGO_LW = 40      # maerkets bredde (toppen)
+SAP_LOGO_H = 20       # maerkets hoejde
+SAP_LOGO_CUT = 20     # det skraa snit: bunden er saa meget kortere end toppen
+SAP_TEXT_SIZE = 13
+SAP_CAP = 0.716       # Arials versalhoejde (em) - "SAP" centreres paa den
+SAP_ICON = 12         # "aaben eksternt"-ikonets tegnede felt (kvadrat)
+SAP_ICON_STROKE = 1.5
+SAP_ICON_GAP = 12.5   # maerkets kant paa midterlinjen -> ikonets venstre blaek
+
+
+def _sap_btn_geometry():
+    """Tal for knapbilledet: blaek-kasser (x0, y0, x1, y1) for maerket og
+    ikonet, ikonets tegne-origo og billedets bredde. Testene bruger dem til
+    at efterproeve midterlinje og luft."""
+    mid = LINK / 2
+    lx0, ly0 = SAP_BTN_PAD, mid - SAP_LOGO_H / 2
+    lx1, ly1 = lx0 + SAP_LOGO_LW, ly0 + SAP_LOGO_H
+    # Maerkets hoejre kant paa midterlinjen (halvvejs ned ad snittet).
+    edge_mid = lx1 - SAP_LOGO_CUT * (mid - ly0) / SAP_LOGO_H
+    half = SAP_ICON_STROKE / 2
+    ix0 = edge_mid + SAP_ICON_GAP            # ikonets venstre blaek
+    ox, oy = ix0 + half, mid - SAP_ICON / 2  # tegne-origo (stregmidte)
+    ink = (ix0, oy - half, ox + SAP_ICON + half, oy + SAP_ICON + half)
+    width = ink[2] + SAP_BTN_PAD
+    return {"logo": (lx0, ly0, lx1, ly1), "icon": ink, "origin": (ox, oy),
+            "width": width, "height": LINK, "baseline": mid + SAP_CAP * SAP_TEXT_SIZE / 2}
+
+
+_GEO = _sap_btn_geometry()
+SAP_LOGO_W = int(round(_GEO["width"]))   # knappens (og billedets) bredde
+if abs(SAP_LOGO_W - _GEO["width"]) > 1e-9:
+    raise SystemExit("sap_objects: knapbilledets bredde skal vaere et helt tal")
 # Kopier-ikonet lige ved nummeret - kun et almindeligt mellemrums afstand
 # (issue #504; Segoe UI's mellemrum er ca. 0,27 em = 4 px ved 14 px).
 # Nummerfeltet er saa bredt som teksten (skoen nedenfor), og kopier-
@@ -261,9 +305,15 @@ COPY_GAP = 4
 COPY_ICON = 20
 NO_SEP_GAP = 14      # kopier-symbolet -> skillestregen (uden for knappens touch-flade)
 DESC_GAP = 14        # skillestregen -> beskrivelsen
-SB = 12              # plads til galleriets scrollbar
-EDGE = f"({GW} - {SB})"            # bjaelkernes hoejre kant
-RIGHT = f"({EDGE} - 8)"            # SAP-knappens hoejre kant - alle niveauer
+# Plads til galleriets scrollbar: skabelonen er GW - SCROLLBAR_W bred
+# (gen_screen, regel 26). Bjaelker, raekkestreg og SAP-knap slutter alle
+# praecis dér (issue #521) - foer stod bjaelkerne 6 px inde i scrollbarens
+# plads og knappen 8 px inden for dem.
+SB = lay.SCROLLBAR_W
+EDGE = f"({GW} - {SB})"            # bjaelkernes og raekkens hoejre kant
+# SAP-knappens hoejre kant - alle niveauer: flugter med bjaelkernes og
+# raekkestregens hoejre kant, yderst i raekken (issue #521).
+RIGHT = EDGE
 
 # Knapindholdet: SAP-fladen med "SAP" i hvidt og et "aaben eksternt"-ikon
 # til hoejre. I appens brandfarve, saa den foelger temaet - farver staar
@@ -272,16 +322,33 @@ RIGHT = f"({EDGE} - 8)"            # SAP-knappens hoejre kant - alle niveauer
 OPEN_LABEL = '"Open in SAP"'
 COPY_LABEL = '"Copy SAP number"'
 COPIED_LABEL = '"Copied"'
+def _n(v):
+    """Et SVG-tal uden overfloedige decimaler."""
+    return f"{round(v, 2):g}"
+
+
 def _sap_logo_uri():
     fill = '" & ' + _ref("color-brand-primary") + ' & "'
     ink = '" & ' + _ref("text-on-primary") + ' & "'
+    g = _GEO
+    lx0, ly0, lx1, ly1 = g["logo"]
+    ox, oy = g["origin"]
+    i = SAP_ICON
+    # Ikonet: en aaben kasse (nederst til venstre) og en pil op til hoejre.
+    icon = (f"M{_n(ox + i * 5 / 12)} {_n(oy + i * 2 / 12)}H{_n(ox)}V{_n(oy + i)}"
+            f"H{_n(ox + i * 10 / 12)}V{_n(oy + i * 7 / 12)}"
+            f"M{_n(ox + i * 7 / 12)} {_n(oy)}H{_n(ox + i)}V{_n(oy + i * 5 / 12)}"
+            f"M{_n(ox + i)} {_n(oy)}L{_n(ox + i * 5 / 12)} {_n(oy + i * 7 / 12)}")
     svg = (f"<svg xmlns='http://www.w3.org/2000/svg' width='{SAP_LOGO_W}' height='{LINK}' "
            f"viewBox='0 0 {SAP_LOGO_W} {LINK}'>"
-           f"<path d='M10 6h40L30 26H10Z' fill='{fill}'/>"
-           "<text x='12.5' y='20.5' font-family='Arial, Helvetica, sans-serif' font-size='13' "
+           f"<path d='M{_n(lx0)} {_n(ly0)}H{_n(lx1)}L{_n(lx1 - SAP_LOGO_CUT)} {_n(ly1)}"
+           f"H{_n(lx0)}Z' fill='{fill}'/>"
+           f"<text x='{_n(lx0 + 2.5)}' y='{_n(g['baseline'])}' "
+           f"font-family='Arial, Helvetica, sans-serif' font-size='{SAP_TEXT_SIZE}' "
            f"font-weight='700' font-style='italic' fill='{ink}'>SAP</text>"
-           f"<path d='M60 10h-5v13h13v-5M62 9h7v7M69 9l-8 8' fill='none' stroke='{fill}' "
-           "stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>")
+           f"<path d='{icon}' fill='none' stroke='{fill}' "
+           f"stroke-width='{_n(SAP_ICON_STROKE)}' stroke-linecap='round' "
+           "stroke-linejoin='round'/></svg>")
     return '"data:image/svg+xml;utf8," & EncodeUrl("' + svg + '")'
 
 
