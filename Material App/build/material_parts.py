@@ -391,6 +391,14 @@ def _ven_popup():
         min_len=vs.MIN_SEARCH_LEN, kind="Ven", searcher=vs.search_action,
         placeholder=vs.PLACEHOLDER, search_accessible='"Search supplier"',
         stack_search=True)
+    # Telefonen (issue #508): 44 px klikflader som Vendor-popuppen paa
+    # tasklisten (Maintenance Plan App/build/build_tasklist._vendor_modal).
+    for nm in (VEN_COMBO, "btnDomVenSearch", "spnDomVenBusy"):
+        mobile.touch(mobile.find(picker, nm))
+    ven_row = mobile.find(picker, "conDomVenInput")
+    ven_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + 8 + 4, ven_row.props["Height"])
+    ven_row.h = ven_row.props["Height"]
+    mobile.refit(picker)
     picker.vis = f"!{READ_ONLY}"
     msg = text_ctrl("txtDomVenMsg", VEN_MSG, size=12, color=C_MUTED, height=32,
                     wrap="true", visible=f"!IsBlank({VEN_MSG})")
