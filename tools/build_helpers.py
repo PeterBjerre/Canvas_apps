@@ -3070,10 +3070,18 @@ def input_fill(display_mode):
 
 def text_input(name, default, placeholder="\"\"", max_length=None, required_formula="false",
                width="Parent.Width", height=36, display_mode=None, ttype=None,
-               onchange=None, label=None):
+               onchange=None, label=None, invalid=None):
+    """invalid: et udtryk, der er sandt, naar feltets tekst er FORKERT (fx
+    ikke et tal, issue #527). Feltet er da roedt - uanset om det er kraevet.
+    Uden invalid er feltet praecis som foer."""
+    border = border_rule("IsBlank(Trim(Self.Text))", required_formula)
+    state = f"{required_formula} && IsBlank(Trim(Self.Text))"
+    if invalid:
+        border = f"If({invalid}, {C_BORDER_ERROR}, {border})"
+        state = f"({state}) || ({invalid})"
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
-        "BorderColor": border_rule("IsBlank(Trim(Self.Text))", required_formula),
+        "BorderColor": border,
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Default": default,
@@ -3081,7 +3089,7 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
         **lay.radius(lay.RADIUS_INPUT),
-        "ValidationState": f"If({required_formula} && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)",
+        "ValidationState": f"If({state}, ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
 
@@ -3114,7 +3122,8 @@ def num_value(ref="Self"):
 
 
 def number_field(name, default, required_formula="false", width="Parent.Width", height=36,
-                 display_mode=None, label=None, onchange=None, unit=None, placeholder='""'):
+                 display_mode=None, label=None, onchange=None, unit=None, placeholder='""',
+                 max_length=None, invalid=None):
     """Talfeltet: ModernTextInput (praefiks inp) med tallet som tekst.
 
     default: Power Fx-tallet (variablen/kolonnen). onchange: formlen, der
@@ -3127,7 +3136,7 @@ def number_field(name, default, required_formula="false", width="Parent.Width", 
     c = text_input(name, f"If(IsBlank({default}), \"\", Text({default}))",
                    placeholder=placeholder, required_formula=required_formula,
                    width=in_w, height=height, display_mode=display_mode, onchange=onchange,
-                   label=label)
+                   label=label, max_length=max_length, invalid=invalid)
     if not unit:
         return c
     u = text_ctrl(f"txt{name[3:]}Unit", f'"{unit}"', size=lay.SIZE_BODY, color=C_MUTED,

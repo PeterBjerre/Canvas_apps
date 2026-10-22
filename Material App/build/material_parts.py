@@ -12,18 +12,22 @@ FORMULAREN (issue #228)
 -----------------------
     Material Editor  * Required
     Start with the four key fields ...
-    [ Plant       ][ Description  ][ Stock item  No|Yes ][ Replace existing  No|Yes ]
+    [ Plant       ][ Description                ]
+    [ Stock item  No|Yes ][ Replace existing  No|Yes ]
     [ Min stock * ][ Max stock *  ][ Storage bin ]                 <- kun lagervare
     [ Replaced material no. * ]                                    <- kun ved Replace
     [ Manufacturer][ Model number ][ Manuf. part no. ]
-    [ Supplier    ][ Supp. part no][ Delivery time   ][ [Add text] ]
+    [ Supplier [Search...] ][ Supp. part no][ Delivery time ]
+    [ [Add text] ]
     [ Price       ][ Price unit   ][ Stock unit      ]
-    [ Strategic   ][ Wear part    ][ Maintenance order no. ]
+    [ Strategic No|Yes ][ Wear part No|Yes ]
+    [ Maintenance order no. ]
     (Plant: X) (Row status: ...)  [Save row draft][Save row][Reset]
 
-Den FOERSTE raekke er fast: Plant, beskrivelse og de to til/fra-valg. De
-to valg aabner hver deres raekke lige under sig, saa det, de styrer, staar
-hvor brugeren kigger. Skjult koster en raekke ingen plads (gitterets og
+Den FOERSTE raekke er fast: Plant og beskrivelsen side om side (issue
+#527 - beskrivelsen fylder resten af linjen i sidepanelet), og under dem de
+to til/fra-valg. De to valg aabner hver deres raekke lige under sig, saa
+det, de styrer, staar hvor brugeren kigger. Skjult koster en raekke ingen plads (gitterets og
 kortets hoejde regnes af de synlige boern). Resten er grupper: producent,
 leverandoer og indkoeb, pris og enhed, klassifikation og ordre.
 
@@ -72,6 +76,8 @@ import layout_tokens as lay
 import mobile
 from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT
 import domain_objects as dobj
+import vendor_search as vs
+from fl_picker import fl_picker
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
                            section_header, tap_backdrop, text_min_height,
                            fit_button_width, text_px, popup_head, ICON_W)
@@ -134,7 +140,11 @@ MIN_FL_LEN = 16
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
 EXTRA_STATE = (f"{dobj.STATE};\n"
                f"Set({PO_OPEN}, false);\n"
-               f"Set({PO_SAVING}, false)")
+               f"Set({PO_SAVING}, false);\n"
+               # Leverandoersoegningen (issue #527) - se _ven_popup.
+               'Set(varDomVenOpen, false);\nSet(varDomVenBusy, false);\n'
+               'Set(varDomVenQuery, "");\nSet(varDomVenLast, "");\n'
+               'Set(varDomVenPick, "");\nSet(varDomVenMsg, "")')
 
 
 def _indent(text, n):
@@ -189,9 +199,11 @@ def save_fx(status):
 # Skaermens raekkefoelge (issue #228). Hver liste er een raekke i gitteret;
 # (navn, celler, synlighed). Den FOERSTE er fast. TEXT, PLANT, PO og SEG_*
 # er de celler, der ikke er et almindeligt felt fra SECTIONS.
-SPECIAL = {"TEXT", "PLANT", "PO", "SEG_IsStockItem", "SEG_ReplacesExisting"}
+SPECIAL = {"TEXT", "PLANT", "PO", "SUPPLIER", "SEG_IsStockItem", "SEG_ReplacesExisting"}
 FORM_ROWS = [
-    ("conDomGridMain", ["PLANT", "TEXT", "SEG_IsStockItem", "SEG_ReplacesExisting"], None),
+    # Plant og beskrivelsen paa samme linje (issue #527), de to valg under.
+    ("conDomGridMain", ["PLANT", "TEXT"], None),
+    ("conDomGridToggles", ["SEG_IsStockItem", "SEG_ReplacesExisting"], None),
     # Lager - kun for en lagervare
     ("conDomGridStock", ["MinStock", "MaxStock", "StorageBin"], IS_STOCK),
     # Erstatning - kun naar materialet erstatter et andet
@@ -199,13 +211,17 @@ FORM_ROWS = [
     # Producent og model
     ("conDomGridMfr", ["Manufacturer", "ModelNumber", "ManufacturerPartNo"], None),
     # Leverandoer og indkoeb
-    ("conDomGridSupplier", ["Supplier", "SupplierPartNo", "DeliveringTime"], None),
+    # Supplier soeges frem som Vendor paa VH-planens taskliste (issue #527).
+    ("conDomGridSupplier", ["SUPPLIER", "SupplierPartNo", "DeliveringTime"], None),
     # Purchase order text - sin egen sektion med overskrift (issue #429)
     ("conDomGridPo", ["PO"], None),
     # Pris og enhed
     ("conDomGridPrice", ["Price", "PriceUnit", "StockUnit"], None),
-    # Klassifikation og vedligeholdelsesordre
-    ("conDomGridClass", ["StrategicPart", "WearPart", "MaintenanceOrderNo"], None),
+    # Klassifikation: de to ja/nej-valg paa deres egen linje, saa de har
+    # samme bredde som Stock item og ikke klippes (issue #525/#527).
+    ("conDomGridClass", ["StrategicPart", "WearPart"], None),
+    # Vedligeholdelsesordre
+    ("conDomGridOrder", ["MaintenanceOrderNo"], None),
 ]
 FORM_ORDER = [k for _n, keys, _v in FORM_ROWS for k in keys]
 # SEKTIONERNE (UX-review M2): overskriften staar foer den raekke, der
@@ -216,9 +232,9 @@ SECTION_STARTS = {
     "conDomGridPo": ("Po", "Purchase order text"),
     "conDomGridPrice": ("Price", "Price and classification"),
 }
-# Felter, der ikke er en almindelig celle: de to valg er SEG_*, og
-# Purchase order text (Remarks) er PO.
-NOT_IN_GRID = {"IsStockItem", "ReplacesExisting", "Remarks"}
+# Felter, der ikke er en almindelig celle: de to valg er SEG_*, Purchase
+# order text (Remarks) er PO, og Supplier er leverandoersoegningen.
+NOT_IN_GRID = {"IsStockItem", "ReplacesExisting", "Remarks", "Supplier"}
 
 # Feltets krav, hvor det afhaenger af et andet felt. Et krav, der ikke
 # gaelder lige nu, viser ingen stjerne og giver ingen roed kant
@@ -291,6 +307,146 @@ def _po_cell(width=CELL_W):
                  fill_portions="0", align_in_container="Start")
 
 
+# ---------------------------------------------------------------------------
+# Supplier - soeges frem som Vendor paa VH-planens taskliste (issue #527)
+# ---------------------------------------------------------------------------
+# Samme flow (BioSap-Integration-VendorsAll), samme vaelger (tools/fl_picker.py
+# med tools/vendor_search.py) og samme gemte tekst ("101985 - NAVN") som
+# Vendor paa PM02-operationerne (PR #269, Maintenance Plan App/build/
+# build_tasklist.py). Feltet er en knap med den valgte leverandoers nummer;
+# et tryk aabner popuppen. Kolonnen Supplier er tekst og bliver det:
+# gamle raekker med fri tekst vises og gemmes som de staar, til en
+# leverandoer vaelges.
+SUP = dp._var("Supplier")
+VEN_OPEN = "varDomVenOpen"
+VEN_COMBO = "cmbDomVendor"
+VEN_RESULTS = "colDomVendors"
+VEN_BUSY = "varDomVenBusy"
+VEN_QUERY = "varDomVenQuery"
+VEN_LAST = "varDomVenLast"
+VEN_PICK = "varDomVenPick"
+VEN_MSG = "varDomVenMsg"
+VEN_RAW = "varDomVenRaw"
+VEN_CLOSE = f"Set({VEN_OPEN}, false)"
+SUP_V = f'Trim(Coalesce({SUP}, ""))'
+# Nummeret - teksten foer " - " (som Vendor-knappen paa tasklisten).
+SUP_NO = f'Trim(First(Split({SUP_V}, " - ")).Value)'
+
+
+def _ven_open_fx():
+    """Aabn soegningen. Den gemte leverandoer ligger i listen og staar
+    valgt, saa man kan se, hvad der er nu; en ny soegning rydder den."""
+    return (
+        f"With(\n"
+        f"    {{ v: {SUP_V} }},\n"
+        f'    Set({VEN_QUERY}, ""); Set({VEN_LAST}, ""); Set({VEN_MSG}, "");\n'
+        f"    Clear({VEN_RESULTS});\n"
+        f"    If(!IsBlank(v), Collect({VEN_RESULTS}, {{ Code: v, Description: v, Display: v, "
+        f'Maintainable: true, Level: "" }}));\n'
+        f"    Set({VEN_PICK}, v);\n"
+        f"    Reset({VEN_COMBO});\n"
+        f"    Set({VEN_OPEN}, true)\n"
+        f")"
+    )
+
+
+def _supplier_cell(width=CELL_W):
+    """Supplier: en knap med leverandoerens nummer. Hele teksten ("nummer -
+    navn") staar i tooltip'en og i popuppen. I visning kan knappen stadig
+    aabne popuppen og vise leverandoeren, men intet kan aendres dér."""
+    label = next(l for c, l, _k, _ch in dp.FIELDS if c == "Supplier")
+    btn = button("btnDomSupplier",
+                 f'If(IsBlank({SUP_V}), If({READ_ONLY}, "-", "Search..."), {SUP_NO})',
+                 _ven_open_fx(), width=str(width), height=PO_BTN_H,
+                 accessible=f'"{label}: " & If(IsBlank({SUP_V}), "none", {SUP_V})',
+                 tooltip=f'If(IsBlank({SUP_V}), "Search for a supplier", {SUP_V})')
+    btn.props["Size"] = "13"
+    btn.props["LayoutMinWidth"] = "0"
+    return dp.grid_cell("conDomSupplier", label, btn, width=width)
+
+
+def _ven_popup():
+    """Popuppen med leverandoersoegningen - som Vendor-popuppen paa
+    tasklisten: "Use vendor" skriver det valgte paa formularens raekke,
+    "Remove vendor" toemmer feltet, X og sloeret lukker uden aendring.
+    Leverandoeren gemmes med raekken (Save i sidepanelet)."""
+    vis = f"IfError({VEN_OPEN}, false)"
+    back = tap_backdrop("conDomVenBackdrop", vis, VEN_CLOSE)
+    title = grow(text_ctrl("txtDomVenH", '"Supplier"', size=lay.SIZE_CARD_TITLE,
+                           weight="Semibold", height=text_min_height(lay.SIZE_CARD_TITLE),
+                           wrap="false"))
+    head = popup_head("conDomVenHead", title, "btnDomVenClose", VEN_CLOSE,
+                      accessible='"Close without changing the supplier"',
+                      mode=f"If({VEN_BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
+    cur = text_ctrl("txtDomVenCurrent",
+                    f'"Current supplier: " & If(IsBlank({SUP_V}), "(none)", {SUP_V})',
+                    size=12, color=C_MUTED, height=18, wrap="false")
+    edit = f"If({READ_ONLY}, DisplayMode.Disabled, DisplayMode.Edit)"
+    picker = fl_picker(
+        "Dom", combo=VEN_COMBO, results=VEN_RESULTS, raw_var=VEN_RAW,
+        msg_var=VEN_MSG, busy_var=VEN_BUSY, query_var=VEN_QUERY,
+        last_var=VEN_LAST, pick_var=VEN_PICK,
+        default_items=f"Filter({VEN_RESULTS}, Code = {VEN_PICK})",
+        display_mode=edit, label="Supplier", width="Parent.Width",
+        min_len=vs.MIN_SEARCH_LEN, kind="Ven", searcher=vs.search_action,
+        placeholder=vs.PLACEHOLDER, search_accessible='"Search supplier"',
+        stack_search=True)
+    # Telefonen (issue #508): 44 px klikflader som Vendor-popuppen paa
+    # tasklisten (Maintenance Plan App/build/build_tasklist._vendor_modal).
+    for nm in (VEN_COMBO, "btnDomVenSearch", "spnDomVenBusy"):
+        mobile.touch(mobile.find(picker, nm))
+    ven_row = mobile.find(picker, "conDomVenInput")
+    ven_row.props["Height"] = lay.mobile_or(2 * mobile.TOUCH + 8 + 4, ven_row.props["Height"])
+    ven_row.h = ven_row.props["Height"]
+    mobile.refit(picker)
+    picker.vis = f"!{READ_ONLY}"
+    msg = text_ctrl("txtDomVenMsg", VEN_MSG, size=12, color=C_MUTED, height=32,
+                    wrap="true", visible=f"!IsBlank({VEN_MSG})")
+    sel = f"{VEN_COMBO}.Selected.Code"
+    use = button("btnDomVenUse", '"Use vendor"', f"Set({SUP}, {sel});\n{VEN_CLOSE}",
+                 primary=True, width=fit_button_width('"Use vendor"'), height=lay.HIT_TOUCH,
+                 display_mode=(f'If({READ_ONLY} || {VEN_BUSY} || IsBlank({sel}) || '
+                               f'{sel} = "?search", DisplayMode.Disabled, DisplayMode.Edit)'),
+                 tooltip='"Use the selected vendor on this row - it is saved when you save the row"')
+    remove = button("btnDomVenRemove", '"Remove vendor"', f'Set({SUP}, "");\n{VEN_CLOSE}',
+                    danger=True, width=fit_button_width('"Remove vendor"'), height=lay.HIT_TOUCH,
+                    display_mode=(f"If({READ_ONLY} || {VEN_BUSY} || IsBlank({SUP_V}), "
+                                  "DisplayMode.Disabled, DisplayMode.Edit)"))
+    for b in (use, remove):
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    foot = group("conDomVenFooter", [remove, use], direction="Horizontal", gap=PO_FOOT_GAP,
+                 height=lay.HIT_TOUCH, align_items="Start", justify="End")
+    foot.vis = f"!{READ_ONLY}"
+    modal = group("conDomVenModal", [head, cur, picker, msg, foot], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                  radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18), width=PO_W,
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = dp.MODAL_X
+    modal.props["Y"] = dp.MODAL_Y
+    mobile.mobile_popup(modal, top=True)
+    return [back, modal]
+
+
+# Felter, der deler panelets linje med et andet (issue #527): beskrivelsen
+# fylder ikke laengere hele linjen alene, men resten af Plant's linje.
+PANEL_FULL_NAMES = dp.PANEL_FULL_NAMES - {"conDomText"}
+# Ja/nej-valgene: cellen er mindst saa bred som skinnen, saa No og Yes - med
+# fluebenet - altid staar helt (issue #525). De staar to og to, saa det
+# kan altid vaere paa linjen.
+SEG_KEYS = {"SEG_IsStockItem", "SEG_ReplacesExisting", "StrategicPart", "WearPart"}
+
+
+def _cell_width(key, cell_width, panel):
+    if not panel:
+        return cell_width
+    if key == "TEXT":
+        # Resten af linjen efter Plant; hele bredden, naar de staar under
+        # hinanden (cellen er da selv hele bredden).
+        return f"Max({cell_width}, ({dp.PANEL_FORM_W}) - ({cell_width}) - {dp.GRID_GAP})"
+    return dp.panel_cell_w(key, cell_width)
+
+
 def _cell(key, width=CELL_W):
     if key == "TEXT":
         return dp.text_cell(width)
@@ -298,9 +454,21 @@ def _cell(key, width=CELL_W):
         return dp.plant_cell(width)
     if key == "PO":
         return _po_cell(width)
+    if key == "SUPPLIER":
+        return _supplier_cell(width)
     if key.startswith("SEG_"):
         return _seg_cell(key[4:], width)
     return dp.field_grid_cell(key, width=width, **CONDITIONAL.get(key, {}))
+
+
+def _fit_seg(cell, panel):
+    """Et ja/nej-valgs celle er mindst saa bred som sin skinne (issue #525)."""
+    seg = cell.children[-1]
+    track = seg.props["Width"]
+    if panel:
+        cell.props["Width"] = f"Max({cell.props['Width']}, {track})"
+    cell.props["LayoutMinWidth"] = str(track)
+    return cell
 
 
 # UX-review F2: Save gemmer raekken (som kladde, til kravene er
@@ -355,9 +523,12 @@ def build_form(panel=False):
         if name in SECTION_STARTS:
             key, title = SECTION_STARTS[name]
             rows.append(dp.form_section(key, title, first=not rows))
-        row = dp.grid_row(name, [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
-                          container_w=form_width, columns=2 if panel else None,
-                  cell_width=cell_width)
+        cells = []
+        for k in keys:
+            c = _cell(k, _cell_width(k, cell_width, panel))
+            cells.append(_fit_seg(c, panel) if k in SEG_KEYS else c)
+        row = dp.grid_row(name, cells, container_w=form_width, columns=2 if panel else None,
+                          cell_width=cell_width, full_names=PANEL_FULL_NAMES)
         if vis:
             row.vis = vis
         rows.append(row)
@@ -493,12 +664,12 @@ def _po_popup():
 
 
 def build_popups():
-    """Materials' egne popupper (domain_app.build_screen): indkoebsteksten
-    og Objects-fanens Object list (issue #513) - [sloer, popup] hver.
+    """Materials' egne popupper (domain_app.build_screen): indkoebsteksten,
+    leverandoersoegningen (issue #527) og Objects-fanens Object list (issue #513) - [sloer, popup] hver.
     Objektlisten er Objects-fanen i sidepanelet (#485), og Reset's
     bekraeftelse er den faelles (domain_parts.build_reset_confirm, issue
     #450)."""
-    return _po_popup() + dobj.build_popup(_objects_after())
+    return _po_popup() + _ven_popup() + dobj.build_popup(_objects_after())
 
 
 # ---------------------------------------------------------------------------
