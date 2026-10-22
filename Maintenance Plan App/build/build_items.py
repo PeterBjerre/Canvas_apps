@@ -634,7 +634,7 @@ def build_items_rail():
             "            ItemId: varVhpNextItemId, ShortText: \"\", FunctionalLocation: \"\", FlDescription: \"\",\n"
             "            MainWorkCenter: \"\", ActivityType: \"\", ObjectList: \"\", Revision: \"\",\n"
             "            OrstedResponsible: \"\", Initials: Upper(First(Split(varVhpMe, \"@\")).Value), LongText: \"\", NonFlowUserStatus: \"\", TasklistKey: \"\", TasklistName: \"\",\n"
-            "            Status: \"draft\", SpId: 0, ItemGuid: Text(GUID())\n"
+            "            Status: \"draft\", SpId: 0, ItemGuid: Text(GUID()), SystemNo: \"\", SystemFL: \"\"\n"
             "        }\n"
             "    );\n"
             "    Set(varVhpActiveItemId, varVhpNextItemId);\n"
@@ -677,7 +677,9 @@ def build_items_rail():
             "                NonFlowUserStatus: src.NonFlowUserStatus,\n"
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\",\n"
             # En kopi er et NYT item: ny identitet, ikke kildens (docs/32 §6).
-            "                SpId: 0, ItemGuid: Text(GUID())\n"
+            "                SpId: 0, ItemGuid: Text(GUID()),\n"
+            # Systemet hoerer til FL'en: beholdes FL'en, beholdes systemet.
+            "                SystemNo: If(keepFl, src.SystemNo, \"\"), SystemFL: If(keepFl, src.SystemFL, \"\")\n"
             "            }\n"
             "        );\n"
             # Collect UDEN OM ForAll. ForAll returnerer en tabel, og Collect
@@ -766,9 +768,14 @@ def build_items_rail():
         "txtVhpItemCardTitle",
         f"If(IsBlank(ThisItem.ShortText), \"Item \" & Text({CARD_NO}), ThisItem.ShortText)",
         size=14, weight="Bold", height=20, wrap="false")
+    # Systemet staar efter FL'en, naar flowet BioSap-VhPlan-ItemSystem har
+    # slaaet det op for netop den FL (SystemFL). Er FL'en aendret siden,
+    # vises intet, til itemet er gemt og slaaet op igen. Ingen datakald.
     cardFl = text_ctrl(
         "txtVhpItemCardFl",
-        "\"FL: \" & If(IsBlank(ThisItem.FunctionalLocation), \"No FL\", ThisItem.FunctionalLocation)",
+        "\"FL: \" & If(IsBlank(ThisItem.FunctionalLocation), \"No FL\", ThisItem.FunctionalLocation)"
+        " & If(!IsBlank(Trim(ThisItem.FunctionalLocation)) && Upper(Trim(ThisItem.SystemFL)) = Upper(Trim(ThisItem.FunctionalLocation)),"
+        " \" | \" & If(IsBlank(ThisItem.SystemNo), \"No system\", \"System \" & ThisItem.SystemNo), \"\")",
         size=12, color=C_MUTED, height=18, wrap="false")
     cardTasklist = text_ctrl(
         "txtVhpItemCardTasklist",

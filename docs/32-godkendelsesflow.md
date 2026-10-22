@@ -665,6 +665,23 @@ Modellen opdateres efter sin egen tidsplan. Et FL, der lige er oprettet i
 SAP, er måske ikke kommet med endnu. Det er grunden til, at et ukendt FL
 sender planen retur med en forklaring i stedet for at fejle stille.
 
+### Systemet på itemet – `BioSap-VhPlan-ItemSystem`
+
+Samme opslag kører også i baggrunden, så systemet kan ses i appen, før
+planen indsendes. Flowet `BioSap-VhPlan-ItemSystem` starter, når et item i
+`MaintenanceItems` er oprettet eller ændret, og dets `FunctionalLocation`
+er en anden end `SystemFL`. Det slår FL'en op i `'Functional Locations'`
+(`[Plant Section Key]`, foranstillede nuller fjernet som i F1) og skriver
+`SystemNo` og `SystemFL` på rækken. Findes FL'en ikke i modellen, bliver
+`SystemNo` tom. Flowets egen opdatering gør `SystemFL` lig FL'en, så
+triggerbetingelsen stopper næste kørsel.
+
+Appen henter ikke noget ekstra: kolonnerne følger med itemet, og item-kortet
+viser "FL: … | System 123" (eller "No system"), så længe `SystemFL` er
+itemets FL. FL-søgningen og Save draft røres ikke. Systemet kommer ca. et
+minut efter gem og ses, næste gang planen åbnes. F1 slår stadig selv op,
+fordi den også kontrollerer værket.
+
 ## 9. Ændringer i appen
 
 Alt sker i builderne i `Maintenance Plan App/build/`. Kolonnenavnene lægges
