@@ -167,6 +167,14 @@ LIGHT = {
     'domain-mat-soft': "RGBA(243, 238, 237, 1)",
     'domain-vhp-soft': "RGBA(243, 236, 245, 1)",
 
+    # --- segmenterede vaelgere og faner (issue #526, build_helpers.seg_style).
+    #     Skinnen er en naesten hvid, let gennemsigtig flade; det valgte
+    #     segment er markeret med en lyseblaa kant og moerkeblaa tekst (og
+    #     fluebenet), ikke en fyldt, moerkeblaa pille ---
+    'seg-track-bg':  "RGBA(255, 255, 255, 0.72)",
+    'seg-on-fg':     "RGBA(28, 62, 104, 1)",
+    'seg-on-border': "RGBA(96, 140, 190, 1)",
+
     # --- Issue Boards Applications uden en app (issue #415,
     #     tools/app_icons.py): kompasset, skyderne og prikkerne. Indigo,
     #     en blaagraa og en ren graa - ikonfarver (3:1), ikke domaener ---
@@ -289,6 +297,12 @@ DARK = {
     'domain-mp-soft':  "RGBA(41, 52, 53, 1)",
     'domain-mat-soft': "RGBA(49, 45, 53, 1)",
     'domain-vhp-soft': "RGBA(48, 40, 70, 1)",
+
+    # --- segmenterede vaelgere og faner (issue #526): en anelse lysere end
+    #     kortet; den valgte tekst og kant er lyseblaa ---
+    'seg-track-bg':  "RGBA(30, 41, 59, 0.72)",
+    'seg-on-fg':     "RGBA(176, 204, 238, 1)",
+    'seg-on-border': "RGBA(110, 150, 204, 1)",
 
     # --- Issue Boards Applications uden en app (issue #415) ---
     'app-nav':     "RGBA(150, 156, 246, 1)",
@@ -414,7 +428,12 @@ CONTRAST = (
     [("domain-%s" % d, "domain-%s-soft" % d, UI_MIN)
      for d in ("fl", "eq", "mp", "mat", "vhp")] +
     # Issue Boards Application-ikoner (issue #415): ikonet paa kortet.
-    [(fg, "bg-card", UI_MIN) for fg in ("app-nav", "app-general", "app-other")]
+    [(fg, "bg-card", UI_MIN) for fg in ("app-nav", "app-general", "app-other")] +
+    # Segmenterne (issue #526): teksten paa skinnen og paa kortet (faner
+    # uden skinne), og det valgte segments kant mod de samme flader.
+    [(fg, bg, TEXT_MIN) for fg in ("seg-on-fg", "text-muted")
+     for bg in ("seg-track-bg", "bg-card", "bg-surface", "bg-app")] +
+    [("seg-on-border", bg, UI_MIN) for bg in ("seg-track-bg", "bg-card", "bg-surface")]
 )
 
 
