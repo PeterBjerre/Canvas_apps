@@ -37,12 +37,11 @@ BADGES = {
     "ScreenVhPlan.pa.yaml": {
         "bdgVhpNumber": ("varVhpPlanKey", "ColorValue(C.'hex-domain-vhp')",
                          "ColorValue(C.'hex-domain-vhp' & \"1F\")"),
-        "bdgVhpPlanHeadBadge": ('If(VhpPlanValid, "Valid", "")', None, None),
-        # Planens samlede pris i det foldede planhoved (Peter 2026-10-19).
-        # Over omkostningsgraensen i advarselsfarverne (issue #529) - ogsaa
-        # udfoldet og paa telefonen (tests/test_cost_summary_529.py).
-        "bdgVhpPlanFoldCost": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
-                               "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
+        # Plan header har intet Valid-maerke (issue #548) - kun fluebenet.
+        # Planens samlede pris (Peter 2026-10-19), foldet og udfoldet i den
+        # samme overskrift (issue #548). Over omkostningsgraensen i
+        # advarselsfarverne (issue #529) - ogsaa paa telefonen
+        # (tests/test_cost_summary_529.py).
         "bdgVhpPlanHeadCost": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
                                "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-bg', C.'state-neutral-bg')"),
         "bdgVhpPlanHeadCostPhone": (None, "If(IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false), C.'state-warn-fg', C.'text-primary')",
@@ -115,8 +114,10 @@ def test_every_badge_is_modern_badge_with_our_colors():
     # rollemaerke (issue #475 - rollen staar nu i typen); - 1: Task list and
     # operations' Valid-maerke (issue #529 - nu et flueben foran titlen);
     # + 2: planens Total cost udfoldet og paa telefonen (issue #529);
-    # - 2: Items- og Item-sektionens Valid-badge (issue #530 - flueben).
-    assert total == 16
+    # - 2: Items- og Item-sektionens Valid-badge (issue #530 - flueben);
+    # - 2: Plan headers Valid-maerke og det foldede Total cost-maerke
+    # (issue #548 - flueben, og een overskrift foldet og udfoldet).
+    assert total == 14
 
 
 def test_old_controls_are_gone():
@@ -129,10 +130,8 @@ def test_old_controls_are_gone():
 def test_status_colors_are_unchanged():
     """Hvert maerke har samme farvepar pr. status som teksten foer."""
     vhp = _read("ScreenVhPlan.pa.yaml")
-    b = _block(vhp, "bdgVhpPlanHeadBadge")
-    # Uden Self.Content (#331): farven vaelges af samme betingelse som teksten.
-    assert _prop(b, "Fill") == "If(VhpPlanValid, C.'state-ok-bg', C.'state-neutral-bg')"
-    assert _prop(b, "Color") == "If(VhpPlanValid, C.'state-ok-fg', C.'text-muted')"
+    # Plan headers Valid-maerke er vaek (issue #548).
+    assert "- bdgVhpPlanHeadBadge:" not in vhp
     for screen in ("ScreenVhPlan.pa.yaml", "ScreenIssueBoard.pa.yaml"):
         assert "Self.Content" not in _read(screen), screen
     ib = _read("ScreenIssueBoard.pa.yaml")

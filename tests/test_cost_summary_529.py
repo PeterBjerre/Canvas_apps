@@ -12,7 +12,8 @@ Task list and operations
   * Task listen og de to knapper staar paa samme linje.
 
 Plan header
-  * Total cost-maerket staar baade foldet og udfoldet (telefon: egen linje).
+  * Total cost-maerket staar baade foldet og udfoldet (telefon: egen linje)
+    - i den ene overskrift, foran chevronen (issue #548).
   * Over graensen (planens samlede sum > VhpCostThreshold): advarselsfarver
     og hele advarslen som Tooltip; ellers de normale farver og intet tooltip.
 
@@ -29,7 +30,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml")
 OVER = "IfError(Sum(colVhpOperations, Cost) > VhpCostThreshold, false)"
-PLAN_COST_BADGES = ("bdgVhpPlanFoldCost", "bdgVhpPlanHeadCost", "bdgVhpPlanHeadCostPhone")
+PLAN_COST_BADGES = ("bdgVhpPlanHeadCost", "bdgVhpPlanHeadCostPhone")
 
 
 def _text():
@@ -106,10 +107,13 @@ def test_buttons_stay_on_the_tasklist_row():
 def test_plan_cost_badge_in_expanded_and_folded_header():
     t = _text()
     head = _children(_block(t, "conVhpPlanHead"))
-    assert head[-2:] == ["bdgVhpPlanHeadCost", "bdgVhpPlanHeadBadge"], head
-    assert "bdgVhpPlanFoldCost" in _children(_block(t, "conVhpPlanFoldTop"))
+    assert head[-2:] == ["bdgVhpPlanHeadCost", "btnVhpPlanFold"], head
+    assert "- bdgVhpPlanFoldCost:" not in t
     card = _children(_block(t, "conVhpPlanCard"))
-    assert card[:2] == ["conVhpPlanHead", "bdgVhpPlanHeadCostPhone"], card
+    assert card[:2] == ["conVhpPlanHeadFold", "bdgVhpPlanHeadCostPhone"], card
+    # Begge tilstande: hverken maerket eller telefonlinjen foelger folden.
+    for name in ("bdgVhpPlanHeadCost", "bdgVhpPlanHeadCostPhone"):
+        assert "varVhpPlanShow" not in _prop(_block(t, name), "Visible"), name
     # Udfoldet: fra Tablet i overskriften, paa telefonen paa egen linje.
     assert _prop(_block(t, "bdgVhpPlanHeadCost"), "Visible").startswith("If(LayoutRank < 2, false, ")
     assert "If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false)" in \

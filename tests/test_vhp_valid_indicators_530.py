@@ -35,8 +35,8 @@ def test_no_valid_badges_in_items_and_item_headers():
     y = _yaml()
     for name in ("bdgVhpItemsHeadBadge", "bdgVhpEditorHeadBadge"):
         assert f"- {name}:" not in y, name
-    # Plan header og Task list and operations er ikke en del af #530.
-    assert "- bdgVhpPlanHeadBadge:" in y
+    # Plan header mistede sit Valid-maerke i issue #548.
+    assert "- bdgVhpPlanHeadBadge:" not in y
 
 
 def test_card_has_no_valid_text_but_keeps_checkmark_and_to_fix():

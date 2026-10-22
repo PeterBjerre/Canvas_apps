@@ -35,16 +35,8 @@ def test_the_summary_wraps_and_its_height_follows_the_text():
     assert "Wrap: |-\n" in s and "=true" in s[s.index("Wrap:"):s.index("Wrap:") + 60]
     h = s[s.index("Height:"):s.index("Height:") + 900]
     assert "RoundUp(Len(Self.Text)" in h
-    row = _block(y, "conVhpPlanFoldRow", 1200)
-    assert "Len(txtVhpPlanFoldSummary.Text)" in row
-    assert "LayoutDirection.Vertical" in row
-
-
-def test_show_stays_in_the_folded_header():
-    y, _ = _summary()
-    show = _block(y, "btnVhpPlanShow", 3000)
-    assert '"Show the plan header fields"' in show
-    assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in show
+    card = _block(y, "conVhpPlanCard", 20000)
+    assert "Len(txtVhpPlanFoldSummary.Text)" in card
 
 
 def _children(block):
@@ -63,40 +55,15 @@ def _children(block):
     return out
 
 
-def test_show_sits_right_of_the_summary_not_in_the_title_row():
-    """Issue #292: Show (med chevron) staar hoejrestillet i samme raekke som
-    resumeet, lodret centreret - titelraekken er ikon, titel og planens
-    samlede omkostning (Peter 2026-10-19)."""
-    y, _ = _summary()
-    top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "bdgVhpPlanFoldCost"]
-    body = _block(y, "conVhpPlanFoldBody", 40000)
-    assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
-    head = body[:body.index("Children:")]
-    assert "LayoutDirection.Horizontal" in head
-    assert "LayoutAlignItems.Center" in head
-    assert "LayoutJustifyContent.SpaceBetween" in head
-    row = _block(y, "conVhpPlanFoldRow", 40000)
-    assert _children(row) == ["conVhpPlanFoldTop", "conVhpPlanFoldBody"]
-    show = _block(y, "btnVhpPlanShow", 3000)
-    assert "AlignInContainer.Center" in show
-
-
-def test_summary_width_and_height_leave_room_for_show():
-    """Resumeet er kortets bredde minus Show (96) og gap (8), og hoejden
-    regnes af den smallere bredde. Raekken er mindst knappens hoejde - ingen
-    ekstra raekke. Paa en telefon falder indrykningen bort."""
+def test_summary_has_the_full_card_width():
+    """Issue #548: Show er vaek, saa resumeet har kortets fulde bredde.
+    Indrykket under titlen, naar fluebenet staar foran den (20 + gap 12);
+    paa en telefon og uden flueben ingen indrykning."""
     y, s = _summary()
     w = s[s.index(" Width:"):s.index(" Width:") + 600]
-    assert "- 96 - 8)" in w
-    h = s[s.index("Height:"):s.index("Height:") + 900]
-    assert "- 96 - 8) - If(LayoutRank < 2, 0, 30))" in h
-    pad = s[s.index("PaddingLeft:"):s.index("PaddingLeft:") + 160]
-    assert "If(LayoutRank < 2, 0, 30)" in pad
-    body = _block(y, "conVhpPlanFoldBody", 2000)
-    bh = body[body.index("Height:"):body.index("Height:") + 1200]
-    # Issue #508: Show er 44 hoej paa en telefon, 36 som foer ellers.
-    assert "(If(LayoutRank < 2, 44, 36)))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
+    assert "- 96 - 8)" not in w
+    pad = s[s.index("PaddingLeft:"):s.index("PaddingLeft:") + 200]
+    assert "If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)" in pad
 
 
 def _prop(block, prop):
@@ -105,17 +72,10 @@ def _prop(block, prop):
     return block[i:].splitlines()[1].strip()
 
 
-def test_fold_cost_badge_is_hidden_without_a_total():
-    """Issue #421: Total cost i det foldede planhoved stod som en tom kasse
-    over Show. Maerket (bdgVhpPlanFoldCost, PR #424) er nu kun synligt, naar
-    planen har en sum over 0, og titlen regner kun med maerkets bredde, naar
-    det ses."""
+def test_cost_badge_is_hidden_without_a_total():
+    """Issue #421: Total cost stod som en tom kasse. Maerket er kun synligt,
+    naar planen har en sum over 0 - nu i den ene overskrift (issue #548)."""
     y, _ = _summary()
-    badge = _block(y, "bdgVhpPlanFoldCost", 6000)
-    assert _prop(badge, "Visible") == "=IfError(Sum(colVhpOperations, Cost) > 0, false)"
-    title = _block(y, "txtVhpPlanFoldTitle", 3000)
-    assert "If(IfError(Sum(colVhpOperations, Cost) > 0, false), (" in _prop(title, "Width")
-    # Show bliver i resumeets raekke, hoejrestillet - uberoert af maerket.
-    body = _block(y, "conVhpPlanFoldBody", 40000)
-    assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
-    assert "LayoutJustifyContent.SpaceBetween" in body[:body.index("Children:")]
+    assert "- bdgVhpPlanFoldCost:" not in y
+    badge = _block(y, "bdgVhpPlanHeadCost", 6000)
+    assert "IfError(Sum(colVhpOperations, Cost) > 0, false)" in _prop(badge, "Visible")
