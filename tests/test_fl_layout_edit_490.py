@@ -68,12 +68,13 @@ def test_description_is_uppercase():
 
 def test_edit_is_a_pencil_icon_button():
     b = "btnFlCOpen"
-    assert T._prop(b, "Icon") == '"Edit"'
+    # Issue #533: blyanten kun naar der kan rettes - ellers et View-ikon.
+    assert T._prop(b, "Icon") == 'If(varFlViewOnly || varFlStatus = "Indsendt", "DocumentText", "Edit")'
     assert T._prop(b, "Layout") == "ButtonLayout.IconOnly"
     assert T._prop(b, "Width") == T._prop("btnFlRowCopy", "Width")
     assert T._prop(b, "Height") == T._prop("btnFlRowCopy", "Height")
     assert T._prop(b, "Appearance") == T._prop("btnFlRowCopy", "Appearance")
     assert T._prop(b, "Tooltip").startswith('With(')
-    assert '"Edit class data of "' in T._prop(b, "Tooltip")
-    assert '"Edit class data of "' in T._prop(b, "AccessibleLabel")
+    assert '"Edit") & " class data of "' in T._prop(b, "Tooltip")
+    assert '"Edit") & " class data of "' in T._prop(b, "AccessibleLabel")
     assert T._prop("txtFlClsHeadOpen", "Text") == '"Actions"'
