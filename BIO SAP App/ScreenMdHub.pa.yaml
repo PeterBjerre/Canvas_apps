@@ -1802,7 +1802,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =36
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =If(LayoutRank >= 2, Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 253, 96)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset)) >= 1070, 6, 4)) * 8)), 0)
                                     OnChange: |-
@@ -2598,7 +2598,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =36
+                                        =If(LayoutRank < 2, 44, 36)
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
@@ -2705,7 +2705,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2, 36 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + 8 + (Min(galMdRequests.AllItemsCount, 100) * 100) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), If(LayoutRank < 4, 828 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), 772 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0)))
+                            =If(LayoutRank < 2, 36 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + 8 + (Min(galMdRequests.AllItemsCount, Coalesce(varMdShowN, 50)) * 100) + If(LayoutRank < 2 && galMdRequests.AllItemsCount >= Coalesce(varMdShowN, 50), 8 + (44), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40)) + 8 + (If(LayoutRank < 2, 44, 36))), 0), If(LayoutRank < 4, 828 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(LayoutRank < 2 && galMdRequests.AllItemsCount >= Coalesce(varMdShowN, 50), 8 + (44), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40)) + 8 + (If(LayoutRank < 2, 44, 36))), 0), 772 + If(IfError(varMdDomain in ["FunctionalLocation", "MaintenancePlan", "Material", "Equipment", "MeasuringPoint"], false), 0 + (If(LayoutRank < 2, 44, 30)), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(LayoutRank < 2 && galMdRequests.AllItemsCount >= Coalesce(varMdShowN, 50), 8 + (44), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (64 + 8 + (If(LayoutRank < 2, 60, 40)) + 8 + (If(LayoutRank < 2, 44, 36))), 0)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3903,9 +3903,9 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If(LayoutRank < 2, Min(galMdRequests.AllItemsCount, 100) * 100, If(LayoutRank < 4, 784, 728))
+                                  =If(LayoutRank < 2, Min(galMdRequests.AllItemsCount, Coalesce(varMdShowN, 50)) * 100, If(LayoutRank < 4, 784, 728))
                               Items: |-
-                                  =Switch(
+                                  =If(LayoutRank < 2, FirstN(Switch(
                                       Coalesce(varMdSort, "UPDATED"),
                                       "REQUEST",
                                       SortByColumns(
@@ -4014,7 +4014,116 @@ Screens:
                                       ),
                                           "LastActionOn", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
                                       )
-                                  )
+                                  ), Coalesce(varMdShowN, 50)), Switch(
+                                      Coalesce(varMdSort, "UPDATED"),
+                                      "REQUEST",
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "Title", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      "PLANT",
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "Plant", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      "STATUS",
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "StatusStep", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "LastActionOn", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      )
+                                  ))
                               LayoutMinWidth: |-
                                   =0
                               LoadingSpinner: |-
@@ -6454,6 +6563,55 @@ Screens:
                                         =Parent.Width - 18 - 12 - 32 - 8 - 80 + 40
                                     Y: |-
                                         =6
+                        - btnMdShowMore:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Show 50 more requests"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Stretch
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Icon: |-
+                                  ="ChevronDown"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =0
+                              OnSelect: |-
+                                  =Set(varMdShowN, Coalesce(varMdShowN, 50) + 50)
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Show 50 more"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =LayoutRank < 2 && galMdRequests.AllItemsCount >= Coalesce(varMdShowN, 50)
+                              Width: |-
+                                  =200
                         - conMdEmpty:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -6465,7 +6623,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =156
+                                  =64 + 8 + (If(LayoutRank < 2, 60, 40)) + 8 + (If(LayoutRank < 2, 44, 36))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -6532,7 +6690,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =40
+                                        =If(LayoutRank < 2, 60, 40)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -6571,7 +6729,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =36
+                                        =If(LayoutRank < 2, 44, 36)
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
@@ -12789,13 +12947,13 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Scroll
             PaddingBottom: |-
-                =20
+                =If(LayoutRank < 2, 8, 20)
             PaddingLeft: |-
                 =0
             PaddingRight: |-
                 =0
             PaddingTop: |-
-                =20
+                =If(LayoutRank < 2, 8, 20)
             Visible: |-
                 =IfError(gblFbOpen, false)
             Width: |-
@@ -12822,7 +12980,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =254 + 12 + (0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368))))))
+                      =206 + 12 + (0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))))) + 12 + (If(LayoutRank < 2, (44 + 52), 36))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -12838,9 +12996,9 @@ Screens:
                   PaddingBottom: |-
                       =18
                   PaddingLeft: |-
-                      =18
+                      =If(LayoutRank < 2, 12, 18)
                   PaddingRight: |-
-                      =18
+                      =If(LayoutRank < 2, 12, 18)
                   PaddingTop: |-
                       =18
                   RadiusBottomLeft: |-
@@ -12852,7 +13010,7 @@ Screens:
                   RadiusTopRight: |-
                       =R.modal
                   Width: |-
-                      =Min(560, App.Width - 40)
+                      =If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))
                 Children:
                   - conMdFbHead:
                       Control: GroupContainer
@@ -12917,7 +13075,7 @@ Screens:
                               Text: |-
                                   ="Message SAP maintenance"
                               Width: |-
-                                  =Max(0, (((Min(560, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                                  =Max(0, (((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((44) + 12) - 2)
                               Wrap: |-
                                   =false
                         - btnMdFbClose:
@@ -12969,7 +13127,7 @@ Screens:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com."
+                            =If(LayoutRank < 2, "Questions, ideas or issues? Sent to sapvedligehold@orsted.com.", "Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com.")
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -12993,7 +13151,7 @@ Screens:
                         Size: |-
                             =T.body
                         Text: |-
-                            ="Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com."
+                            =If(LayoutRank < 2, "Questions, ideas or issues? Sent to sapvedligehold@orsted.com.", "Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com.")
                         Wrap: |-
                             =true
                   - conMdFbWho:
@@ -13047,6 +13205,8 @@ Screens:
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
+                              Visible: |-
+                                  =If(LayoutRank < 2, false, true)
                               Width: |-
                                   =110
                             Children:
@@ -13143,7 +13303,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((Min(560, App.Width - 40)) - 18 - 18)) - ((110) + 12) - 2)
+                                  =Max(0, (((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - (If(If(LayoutRank < 2, false, true), (110) + 12, 0)) - 2)
                             Children:
                               - txtMdFbEmailCellLabel:
                                   Control: ModernText
@@ -13224,7 +13384,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))))
+                            =0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))))
                         LayoutMinWidth: |-
                             =0
                         Width: |-
@@ -13239,7 +13399,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))))
+                                  =0 + (20 + 6 + (2 + (H.control))) + 12 + (20 + 6 + (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -13446,7 +13606,7 @@ Screens:
                                                       FontWeight: |-
                                                           =FontWeight.Normal
                                                       Height: |-
-                                                          =34
+                                                          =If(LayoutRank < 2, 44, 34)
                                                       LayoutMinWidth: |-
                                                           =0
                                                       OnSelect: |-
@@ -13474,7 +13634,7 @@ Screens:
                                                       VerticalAlign: |-
                                                           =VerticalAlign.Middle
                                                       Width: |-
-                                                          =Max(0, (((((((Min(560, App.Width - 40)) - 18 - 18)))) - 2 - 2) - 12 - 4) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((H.hit) + 8) - 2)
+                                                          =Max(0, (((((((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))))) - 2 - 2) - 12 - 4) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((H.hit) + 8) - 2)
                                                 - imgMdFbSubjectChevron:
                                                     Control: Image
                                                     Properties:
@@ -13511,7 +13671,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368))))
+                                        =20 + 6 + (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368))))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -13584,7 +13744,7 @@ Screens:
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
-                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))
+                                              =If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
@@ -13616,7 +13776,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =4 + (12 + If(CountRows(colFbRequests) > 6, 0 + (44), 0) + (Min(Min(galMdFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 44, 0))))
+                                  =4 + (12 + If(CountRows(colFbRequests) > 6, 0 + (8 + (If(LayoutRank < 2, 44, 36))), 0) + (Min(Min(galMdFbSubject.AllItemsCount, 7) * If(LayoutRank < 2, 44, 36), (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 8 + (If(LayoutRank < 2, 44, 36)), 0))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -13659,7 +13819,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =12 + If(CountRows(colFbRequests) > 6, 0 + (44), 0) + (Min(Min(galMdFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 44, 0)))
+                                        =12 + If(CountRows(colFbRequests) > 6, 0 + (8 + (If(LayoutRank < 2, 44, 36))), 0) + (Min(Min(galMdFbSubject.AllItemsCount, 7) * If(LayoutRank < 2, 44, 36), (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 8 + (If(LayoutRank < 2, 44, 36)), 0)))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -13702,7 +13862,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =44
+                                              =8 + (If(LayoutRank < 2, 44, 36))
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -13752,7 +13912,7 @@ Screens:
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
-                                                    =36
+                                                    =If(LayoutRank < 2, 44, 36)
                                                 LayoutMinWidth: |-
                                                     =0
                                                 Placeholder: |-
@@ -13784,7 +13944,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =Min(Min(galMdFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 44, 0))
+                                              =Min(Min(galMdFbSubject.AllItemsCount, 7) * If(LayoutRank < 2, 44, 36), (If(LayoutRank < 2, Max(120, Min(220, App.Height - 452)), Max(160, Min(272, App.Height - 40 - 368)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 8 + (If(LayoutRank < 2, 44, 36)), 0))
                                           Items: |-
                                               =With({q: Trim(inpMdFbSubjectFind.Text)},
                                                   With({
@@ -13811,7 +13971,7 @@ Screens:
                                           TemplatePadding: |-
                                               =0
                                           TemplateSize: |-
-                                              =36
+                                              =If(LayoutRank < 2, 44, 36)
                                           Width: |-
                                               =Parent.Width
                                           WrapCount: |-
@@ -13851,13 +14011,13 @@ Screens:
                                                 Visible: |-
                                                     =ThisItem.Kind = "H"
                                                 Width: |-
-                                                    =((((((Min(560, App.Width - 40)) - 18 - 18)) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40) - 24
+                                                    =((((((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40) - 24
                                                 Wrap: |-
                                                     =false
                                                 X: |-
                                                     =12
                                                 Y: |-
-                                                    =14
+                                                    =If(LayoutRank < 2, 22, 14)
                                           - rctMdFbSubjectAccent:
                                               Control: Rectangle
                                               Properties:
@@ -13882,7 +14042,7 @@ Screens:
                                                 X: |-
                                                     =0
                                                 Y: |-
-                                                    =6
+                                                    =If(LayoutRank < 2, 10, 6)
                                           - imgMdFbSubjectRowIcon:
                                               Control: Image
                                               Properties:
@@ -13911,7 +14071,7 @@ Screens:
                                                 X: |-
                                                     =12
                                                 Y: |-
-                                                    =8
+                                                    =If(LayoutRank < 2, 12, 8)
                                           - txtMdFbSubjectRow:
                                               Control: ModernText
                                               Properties:
@@ -13946,13 +14106,13 @@ Screens:
                                                 Visible: |-
                                                     =ThisItem.Kind <> "H"
                                                 Width: |-
-                                                    =((((((Min(560, App.Width - 40)) - 18 - 18)) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40) - If(ThisItem.Kind = "R", 40, 12) - 12
+                                                    =((((((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40) - If(ThisItem.Kind = "R", 40, 12) - 12
                                                 Wrap: |-
                                                     =false
                                                 X: |-
                                                     =If(ThisItem.Kind = "R", 40, 12)
                                                 Y: |-
-                                                    =8
+                                                    =If(LayoutRank < 2, 12, 8)
                                           - btnMdFbSubjectPick:
                                               Control: Classic/Button
                                               Properties:
@@ -13977,7 +14137,7 @@ Screens:
                                                 FocusedBorderThickness: |-
                                                     =2
                                                 Height: |-
-                                                    =36
+                                                    =If(LayoutRank < 2, 44, 36)
                                                 HoverBorderColor: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 HoverColor: |-
@@ -14007,7 +14167,7 @@ Screens:
                                                 Visible: |-
                                                     =ThisItem.Kind = "G" || ThisItem.Kind = "R"
                                                 Width: |-
-                                                    =((((((Min(560, App.Width - 40)) - 18 - 18)) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40)
+                                                    =((((((If(LayoutRank < 2, App.Width - 16, Min(560, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - 2 - 2) - 6 - 6) - 2 * 0 - 18 - 40)
                                                 X: |-
                                                     =0
                                                 Y: |-
@@ -14023,11 +14183,11 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36
+                            =If(LayoutRank < 2, (44 + 52), 36)
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
+                            =If(LayoutRank < 2, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
                         LayoutGap: |-
                             =8
                         LayoutJustifyContent: |-
@@ -14049,7 +14209,7 @@ Screens:
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
+                                  =If(LayoutRank < 2, AlignInContainer.Stretch, AlignInContainer.Center)
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
@@ -14065,7 +14225,7 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =36
+                                  =If(LayoutRank < 2, 44, 36)
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
@@ -14099,7 +14259,7 @@ Screens:
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
+                                  =If(LayoutRank < 2, AlignInContainer.Stretch, AlignInContainer.Center)
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               Color: |-
@@ -14111,7 +14271,7 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =36
+                                  =If(LayoutRank < 2, 44, 36)
                               Icon: |-
                                   ="Send"
                               Layout: |-
@@ -14250,11 +14410,11 @@ Screens:
             Visible: |-
                 =!IsBlank(IfError(gblToast.Text, ""))
             Width: |-
-                =Min(420, App.Width - 32)
+                =If(LayoutRank < 2, App.Width - 16, Min(420, App.Width - 32))
             X: |-
-                =Max(16, App.Width - Self.Width - 24)
+                =If(LayoutRank < 2, (App.Width - Self.Width) / 2, Max(16, App.Width - Self.Width - 24))
             Y: |-
-                =App.Height - Self.Height - 24
+                =If(LayoutRank < 2, App.Height - Self.Height - 68, App.Height - Self.Height - 24)
           Children:
             - icoMdToastIcon:
                 Control: ModernIcon@1.1.0
@@ -14311,7 +14471,7 @@ Screens:
                   VerticalAlign: |-
                       =VerticalAlign.Middle
                   Width: |-
-                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((H.hit) + 10) - 2)
+                      =Max(0, ((If(LayoutRank < 2, App.Width - 16, Min(420, App.Width - 32))) - 14 - 8) - ((20) + 10) - ((H.hit) + 10) - 2)
                   Wrap: |-
                       =true
             - btnMdToastClose:
