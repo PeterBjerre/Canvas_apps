@@ -548,11 +548,7 @@ WORKING_COLLECTIONS = [
       # Itemets identitet paa tvaers af gem (MaintenanceItems.ItemGuid,
       # docs/32 §6). Dannes ved Add/Copy item og ved indlaesning af et item
       # uden; godkendelserne i MD_ApprovalLog peger paa den (R2-034).
-      "ItemGuid": '""',
-      # Itemets system og den FL, det blev slaaet op for (MaintenanceItems.
-      # SystemNo/SystemFL). Skrives kun af flowet BioSap-VhPlan-ItemSystem;
-      # appen viser SystemNo, saa laenge SystemFL er itemets FL.
-      "SystemNo": '""', "SystemFL": '""'}),
+      "ItemGuid": '""'}),
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
       # Persons er SAP's "No." (ANZZL). DurationHours regnes af de to og

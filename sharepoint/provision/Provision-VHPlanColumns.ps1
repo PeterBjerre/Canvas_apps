@@ -117,16 +117,6 @@ Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 New-MdField 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
     -Description 'Samme person som OrstedResponsible, men som indekseret tekst. Person-kolonner kan ikke filtreres delegerbart.'
 
-# Itemets system. Flowet BioSap-VhPlan-ItemSystem slaar det op i Power BI
-# (Plant Section Key, samme opslag som BioSap-VhPlan-SystemApproval) i
-# baggrunden, naar et item er gemt med en ny FL. SystemFL er den FL,
-# opslaget blev lavet for: er den lig FunctionalLocation, er SystemNo
-# aktuel, og flowet koerer ikke igen. Appen viser kun SystemNo i det tilfaelde.
-New-MdField 'MaintenanceItems' 'SystemNo' Text `
-    -Description 'Itemets system (Plant Section Key uden foranstillede nuller). Skrives af flowet BioSap-VhPlan-ItemSystem. Tom = FL findes ikke i systemmodellen.'
-New-MdField 'MaintenanceItems' 'SystemFL' Text `
-    -Description 'Den FL, SystemNo blev slaaet op for. Skrives af flowet BioSap-VhPlan-ItemSystem.'
-
 # Non Flow User Status (issue #112). Kolonnen FINDES (valg: ZBOW); her
 # tilfoejes de manglende SAP-koder. Valget er koden alene: SAP-ordre-flowet
 # sender NonFlowUserStatus.Value direkte til SAP. Beskrivelserne vises af
