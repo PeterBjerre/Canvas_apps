@@ -32,14 +32,14 @@ har *Secure inputs* slået til, og token-kaldet også *Secure outputs*, så
 secret, nøgler og token ikke kan ses i kørselshistorikken.
 
 Client ID, tenant, scopes og URL'er er ikke hemmelige og står i handlingen
-`Opsaetning`. Ret dem der, hvis API-teamet giver nye.
+`Setup`. Ret dem der, hvis API-teamet giver nye.
 
-| Nøgle i `Opsaetning` | Værdi |
+| Nøgle i `Setup` | Værdi |
 |---|---|
 | `tokenUrl` | `https://login.microsoftonline.com/100b3c99-…/oauth2/v2.0/token` |
 | `clientId` | `6b699286-72e8-4e8a-8e93-ce166f5c22d0` |
 | `woeScope` | `https://Dongenergy.onmicrosoft.com/b6608a78-4d04-462b-a5da-d5488f8b164c/.default` |
-| `lagerScope` | `https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default` |
+| `inventoryScope` | `https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default` |
 
 De to API'er har hver sit scope, så flowet henter to tokens.
 
@@ -55,12 +55,12 @@ De to API'er kaldes parallelt, så en fejl i det ene stopper ikke det andet.
 
 | Handling | Hvad den viser |
 |---|---|
-| `Tjek_miljoevariabler` | Stopper, hvis en af de tre miljøvariabler mangler |
-| `Hent_token_Woe` / `Hent_token_Lager` | POST til Entra ID (skjult i historikken) |
-| `Token_fejl_Woe` / `Token_fejl_Lager` | Kun ved fejl: status og `error_description` fra Entra ID |
-| `Kald_Woe` / `Kald_Lager` | GET med `Authorization: Bearer …` og `x-apikey` |
-| `Svar_Woe` / `Svar_Lager` | URL, HTTP-status og hele svaret |
-| `Begge_ok` | Kørslen ender som **Failed**, hvis ikke begge svarer 200, med fx `WOE: API 200, Lager: Token 401` |
+| `Check_environment_variables` | Stopper, hvis en af de tre miljøvariabler mangler |
+| `Get_token_Woe` / `Get_token_Inventory` | POST til Entra ID (skjult i historikken) |
+| `Token_error_Woe` / `Token_error_Inventory` | Kun ved fejl: status og `error_description` fra Entra ID |
+| `Call_Woe` / `Call_Inventory` | GET med `Authorization: Bearer …` og `x-apikey` |
+| `Response_Woe` / `Response_Inventory` | URL, HTTP-status og hele svaret |
+| `Both_ok` | Kørslen ender som **Failed**, hvis ikke begge svarer 200, med fx `WOE: API 200, Inventory: Token 401` |
 
 Der er ingen genforsøg, så fejlen kommer med det samme.
 
@@ -69,7 +69,7 @@ Der er ingen genforsøg, så fejlen kommer med det samme.
 | Resultat | Årsag |
 |---|---|
 | `Token 401` / `invalid_client` | Forkert eller udløbet client secret |
-| `Token 400` / `invalid_scope` | Forkert scope i `Opsaetning` |
+| `Token 400` / `invalid_scope` | Forkert scope i `Setup` |
 | `API 401` | Mangler eller forkert `x-apikey`, eller tokenet er til det forkerte scope |
 | `API 403` | App-registreringen har ikke rollen til netop det endpoint |
 | `API 404` | Ordren eller materialet findes ikke i DEV |
