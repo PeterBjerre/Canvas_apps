@@ -2990,6 +2990,13 @@ def build_detail():
                               summary=f'{SEL}.Application & "  ·  " & {SEL}.Section')
     top = group("conIbDetTop", [title_m, meta, peek_note, retest, *fold, tabs],
                 direction="Vertical", gap=10, pad=EDGE)
+    # Fra Tablet og op er hoejden PRAECIS som foer fase 5 (issue #508, fase 6):
+    # med titlen (kun mobil) som foerste barn fik Status-linjen et mellemrum
+    # paa 10 px, ogsaa naar titlen var skjult - toppen blev 10 px for hoej.
+    from gen_screen import stack_height as _stack_h
+    desk_h = _stack_h([meta, peek_note, retest, *fold, tabs], 10, EDGE, EDGE)
+    top.props["Height"] = lay.mobile_or(top.props["Height"], desk_h)
+    top.h = top.props["Height"]
     room = (f"App.Height - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
             f"({top.h}) - {POP_GAP} - 4")
     content_h = f"Max({DET_SAFE_MIN_H}, {room})"
