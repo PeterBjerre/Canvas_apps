@@ -16,14 +16,15 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_NEUTRAL_BG, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
-                        C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE,
+                        C_PRIMARY, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
+                        C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER,
                         C_OVERLAY, SCROLLBAR_NOT_MOBILE)
 import layout_tokens as lay
 from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown,
                            confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented,
-                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H, mobile_pad)
+                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H, mobile_pad,
+                           seg_style, seg_track)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -573,30 +574,20 @@ _SEG_KIDS = {}   # skinne -> dens segmenter
 
 
 def _seg_style(b, selected):
-    """Et segment som build_helpers.segmented (UX-review, hubbens mockup):
-    valgt = udfyldt i primaerfarven med hvid tekst og flueben, ellers
-    kantloes med daempet tekst paa skinnens flade. Layout (flueben eller
-    ej) saettes i build_filters, der kender filterlinjens trin."""
+    """Et segment som build_helpers.segmented - det FAELLES udtryk
+    (build_helpers.seg_style, issue #526). Layout (flueben eller ej)
+    saettes i build_filters, der kender filterlinjens trin."""
     _SEG_SEL[b.name] = selected
-    b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-    b.props["BasePaletteColor"] = C_PRIMARY
-    b.props["BorderColor"] = f"If({selected}, {C_PRIMARY}, {C_TRANSPARENT})"
-    b.props["BorderThickness"] = "1"
-    b.props["Color"] = f"If({selected}, {C_WHITE}, {C_MUTED})"
-    b.props["FontWeight"] = f"If({selected}, FontWeight.Semibold, FontWeight.Normal)"
-    b.props["Icon"] = f'If({selected}, "Checkmark", "")'
+    seg_style(b, selected)
     b.props["Height"] = str(SEG_BTN_H)
     b.h = SEG_BTN_H
-    b.props.update(lay.radius(SEG_BTN_H // 2))
     return b
 
 
 def _seg_track(name, kids):
-    """Skinnen om segmenterne. Bredden saettes i build_filters (summen af
-    segmenternes bredde i hvert trin)."""
-    g = group(name, kids, direction="Horizontal", gap=SEG_GAP, height=SEG_H,
-              align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
-              radius=SEG_H // 2, pad=SEG_PAD)
+    """Skinnen om segmenterne (build_helpers.seg_track). Bredden saettes i
+    build_filters (summen af segmenternes bredde i hvert trin)."""
+    g = seg_track(name, kids, "Parent.Width", height=SEG_H)
     g.props["AlignInContainer"] = "AlignInContainer.Center"
     _SEG_KIDS[name] = kids
     _FLT_LV[name] = {k: (sum(_FLT_LV[c.name][k][0] for c in kids) + (len(kids) - 1) * SEG_GAP

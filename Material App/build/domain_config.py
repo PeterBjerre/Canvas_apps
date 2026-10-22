@@ -148,8 +148,27 @@ SECTIONS = [
 # afviser en laengere vaerdi (tools/domain_parts.py). Laengderne er
 # SAP-standard og ikke efterproevet mod Oersteds SAP. Beskrivelsen (40) er
 # faelles og staar i domain_parts.TEXT_MAX.
-MAX_LEN = {"ManufacturerPartNo": 40, "StorageBin": 10, "StockUnit": 3, "PriceUnit": 3,
-           "ReplacedMaterialNo": 18, "MaintenanceOrderNo": 12}
+#
+# Manufacturer, Model number og Manufacturer part no. har hoejst 30 tegn og
+# Maintenance order no. hoejst 8 (issue #527). Kolonnerne er stadig tekst
+# (255) i SharePoint - graensen er appens, ikke listens.
+MAX_LEN = {"Manufacturer": 30, "ModelNumber": 30, "ManufacturerPartNo": 30,
+           "StorageBin": 10, "StockUnit": 3, "PriceUnit": 3,
+           "ReplacedMaterialNo": 18, "MaintenanceOrderNo": 8}
+
+# KUN TAL (issue #527, opt-in i tools/domain_parts.py)
+# ---------------------------------------------------
+# { kolonne: hoejeste vaerdi eller None }. "num"-felterne maa kun indeholde
+# cifre. Foer blev tekst som "ti" stiltiende gemt som tom. Nu er feltet
+# roedt, mens der staar andet end cifre, og Gem (ogsaa som kladde) siger
+# hvilket felt. En hoejeste vaerdi giver ogsaa MaxLength (999 -> 3).
+# Price ("dec") er roed, mens teksten ikke er et tal; Gem stoppes allerede
+# af material_parts.PRICE_BAD.
+NUM_ONLY = {"MinStock": None, "MaxStock": None, "DeliveringTime": 999, "Price": None}
+
+# Ja/nej-segmenterne [ No | Yes ] i samme kompakte bredde som Stock item og
+# Replace existing material (issue #525/#527). Andre apps er uaendrede.
+SEG_COMPACT = ("StrategicPart", "WearPart")
 
 # Kolonner appen LAESER, men formularen ikke skriver (issue #204):
 #

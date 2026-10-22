@@ -177,6 +177,19 @@ _unknown = sorted(c for c in MAX_LEN
 if _unknown:
     raise SystemExit("domain_config.MAX_LEN naevner felter, der ikke er et "
                      "'text'-felt i SECTIONS: %s" % ", ".join(_unknown))
+# KUN TAL (issue #527, opt-in): { kolonne: hoejeste vaerdi eller None }.
+# Et "num"-felt maa kun have cifre - feltet er roedt, og Gem stopper det
+# (length_rules). Et "dec"-felt er roedt, mens teksten ikke er et tal; Gem
+# stoppes af appens egen regel (Materials' PRICE_BAD). Se Materials'
+# domain_config.NUM_ONLY.
+NUM_ONLY = dict(getattr(cfg, "NUM_ONLY", {}))
+_unknown = sorted(c for c in NUM_ONLY
+                  if c not in {f for f, _l, k, _ch in FIELDS if k in ("num", "dec")})
+if _unknown:
+    raise SystemExit("domain_config.NUM_ONLY naevner felter, der ikke er et "
+                     "'num'- eller 'dec'-felt i SECTIONS: %s" % ", ".join(_unknown))
+# Ja/nej-segmenter i kompakt bredde (issue #525, opt-in).
+SEG_COMPACT = set(getattr(cfg, "SEG_COMPACT", ()))
 _READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
 _unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
 if _unknown:
@@ -615,6 +628,16 @@ def _input_for(col, kind, choices, required_formula="false"):
     name = {"date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
+        if col in NUM_ONLY:
+            # Kun cifre (issue #527): feltet er roedt, mens der staar andet,
+            # og Gem stopper det (length_rules). En hoejeste vaerdi giver
+            # MaxLength: 999 -> 3 cifre.
+            top = NUM_ONLY[col]
+            return number_field(name, v, display_mode=DM_ROW,
+                                required_formula=required_formula,
+                                onchange=f"Set({v}, {num_value()})",
+                                max_length=len(str(top)) if top else None,
+                                invalid=num_bad("Self", top))
         return number_field(name, v, display_mode=DM_ROW, required_formula=required_formula,
                             onchange=f"Set({v}, {num_value()})")
     if kind == "date":
@@ -638,9 +661,14 @@ def _input_for(col, kind, choices, required_formula="false"):
         # til tre decimaler. Feltet er derfor et tekstfelt, og _patch_value
         # sender Value(...) til Number-kolonnen. Variablen er TEKST, saa
         # "ikke udfyldt" kan skelnes fra 0.
+        bad = None
+        if col in NUM_ONLY:
+            # Roedt, mens teksten ikke er et tal (issue #527).
+            bad = (f'(!IsBlank(Trim(Self.Text)) && '
+                   f'IsBlank(IfError({dec_value("Self.Text")}, Blank())))')
         return text_input(name, v, max_length=20, display_mode=DM_ROW,
                           placeholder=DEC_PLACEHOLDER,
-                          onchange=f"Set({v}, Self.Text)")
+                          onchange=f"Set({v}, Self.Text)", invalid=bad)
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste
@@ -651,7 +679,7 @@ def _input_for(col, kind, choices, required_formula="false"):
                           ttype="Multiline",
                           onchange=f"Set({v}, Self.Text)")
     if kind == "choice" and set(choices or ()) == set(YES_NO):
-        return yes_no(col)
+        return yes_no(col, compact=col in SEG_COMPACT)
     if kind == "choice":
         # themed_dropdown tager TEKSTEN og slaar selv recorden op til
         # ModernDropdown.Default.
@@ -687,15 +715,28 @@ def _input_for(col, kind, choices, required_formula="false"):
 YES_NO = ("No", "Yes")
 
 
-def yes_no(col, tip=None, extra_fx=None):
-    """[ No | Yes ] for et tekst-/valgfelt, der gemmer "No"/"Yes"."""
+def num_bad(ref, top=None):
+    """Sand, naar talfeltet ref (en kontrol, fx Self) har tekst, der ikke
+    kun er cifre - eller et tal over top (issue #527)."""
+    t = f"Trim({ref}.Text)"
+    bad = f'!IsBlank({t}) && !IsMatch({t}, "[0-9]+")'
+    if top:
+        bad = f"({bad}) || IfError(Value({t}) > {top}, false)"
+    return f"({bad})"
+
+
+def yes_no(col, tip=None, extra_fx=None, compact=False):
+    """[ No | Yes ] for et tekst-/valgfelt, der gemmer "No"/"Yes".
+
+    compact: samme smalle segmenter som Materials' Stock item (issue #525)."""
     v = _var(col)
     label = next(l for c, l, _k, _ch in FIELDS if c == col)
     opts = []
     for val in YES_NO:
         fx = f'Set({v}, "{val}")' + (f";\n{extra_fx(val)}" if extra_fx else "")
         opts.append((val, val, f'Coalesce({v}, "") = "{val}"', fx, tip))
-    return segmented(f"conDom{col}Seg", opts, display_mode=DM_ROW, label=label)
+    return segmented(f"conDom{col}Seg", opts, display_mode=DM_ROW, label=label,
+                     compact=compact)
 
 
 def _plant_dropdown():
@@ -1409,6 +1450,19 @@ def length_rules():
         if col in MAX_LEN:
             rules.append((f'Len(Trim(Coalesce({_var(col)}, ""))) > {MAX_LEN[col]}',
                           f"{label} can have at most {MAX_LEN[col]} characters."))
+    # Kun cifre (issue #527). Variablen er allerede tom for tekst, der ikke
+    # er et tal (num_value), saa det er FELTETS tekst, der tjekkes - kun
+    # naar feltet vises (WHEN), for et skjult felt gemmes tomt.
+    for col, label, kind, _ch in FIELDS:
+        if col in NUM_ONLY and kind == "num":
+            top = NUM_ONLY[col]
+            bad = num_bad(f"inpDom{col}")
+            if col in WHEN:
+                bad = f"({WHEN[col]}) && {bad}"
+            rules.append((bad, f"{label} can only contain digits."))
+            if top:
+                over = f"!IsBlank({_var(col)}) && {_var(col)} > {top}"
+                rules.append((over, f"{label} can be at most {top}."))
     # Decimaltal: komma er ikke decimaltegn i en-US (R2-075).
     for col, label, kind, _ch in FIELDS:
         if kind == "dec":
@@ -2118,8 +2172,13 @@ def _chunk_h(heights, k):
             + " + %d" % (GRID_GAP * (len(lines) - 1)))
 
 
-def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
+def grid_row(name, cells, container_w=None, columns=None, cell_width=None,
+             full_names=None):
     """Op til fire celler (eller kolonner), der ombryder til to og een.
+
+    full_names: navnene paa de celler, der staar alene paa en linje i
+    panelet. Standard er PANEL_FULL_NAMES; en app kan give sine egne
+    (Materials: beskrivelsen deler linje med Plant, issue #527).
 
     Hoejden regnes for hver af de tre tilstande af cellernes egne hoejder
     - check_layout regel 4c spiller ombrydningen og efterproever den."""
@@ -2137,7 +2196,7 @@ def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
         # naar det er smalt. Felter, der fylder hele bredden, deler gitteret.
         runs, cur = [], []
         for cell in cells:
-            if cell.name in PANEL_FULL_NAMES:
+            if cell.name in (PANEL_FULL_NAMES if full_names is None else full_names):
                 if cur:
                     runs.append(cur)
                     cur = []
@@ -2368,8 +2427,9 @@ PHONE_TAB_TEXT = {"Documents": "Docs"}
 def _phone_tabs(selector):
     """Fanerne paa en telefon (issue #508): skinnen er hele panelets bredde,
     og fanerne deler den ligeligt - foer var Materials' tre 382 px brede og
-    stak ud over en 360 px skaerm. Uden flueben (den valgte er udfyldt og
-    halvfed) og med den korte tekst, saa ingen tekst klippes ved 320 px."""
+    stak ud over en 360 px skaerm. Uden flueben (den valgte har den
+    lyseblaa kant og moerkeblaa, halvfed tekst - build_helpers.seg_style)
+    og med den korte tekst, saa ingen tekst klippes ved 320 px."""
     from build_helpers import SEG_PAD, SEG_GAP
     tabs = selector.children
     n = len(tabs)

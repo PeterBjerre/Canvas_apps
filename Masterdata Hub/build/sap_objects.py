@@ -153,11 +153,46 @@ def _plan_rows():
              "                Sort(Filter(MaintenanceItems, MaintenancePlanNo.Value = varMdSapKey), ID) As I,\n"
              f"                {{ r: Table(\n                    {item},\n                    {task}\n                ) }}\n"
              "            ),\n            r\n        )")
-    return (f"Set({p}, LookUp(MaintenancePlans, ID = varMdSapSp));\n"
-            f"ClearCollect(\n    {ROWS},\n    Filter(\n        Ungroup(\n            Table(\n"
+    rows = (f"Filter(\n        Ungroup(\n            Table(\n"
             f"                {{ r: Table({plan}) }},\n"
             f"                {{ r: {items} }}\n"
-            "            ),\n            r\n        ),\n        !IsBlank(No)\n    )\n)")
+            "            ),\n            r\n        ),\n        !IsBlank(No)\n    )")
+    return f"Set({p}, LookUp(MaintenancePlans, ID = varMdSapSp));\n" + _collect(rows)
+
+
+# Hierarkiets streger (issue #524). Hver raekke faar tre flag, regnet EFTER
+# at raekker uden nummer er faldet fra - saa stregerne altid foelger de
+# raekker, der faktisk vises:
+#   Kids  naeste raekke er et niveau dybere (raekken har boern): stregen
+#         under bjaelken fortsaetter til raekkens bund og moeder barnets "L".
+#   More  der kommer en soeskende senere (foer et hoejere niveau): "L"-ets
+#         lodrette streg fortsaetter til raekkens bund. Den sidste soeskende
+#         slutter i knaekket - ingen hale.
+#   Pass  forfaderen et niveau over har en soeskende senere: dens streg
+#         loeber lodret igennem raekken (opgavelisten under item 1, naar der
+#         er et item 2). Niveauerne er 0-2, saa een gennemgaaende streg er nok.
+
+
+def _collect(rows):
+    """ClearCollect af ROWS fra en tabel med Lvl/Kind/No/Desc/Url - med
+    flagene Kids, More og Pass. Lokal beregning paa de faa raekker, der
+    allerede er hentet (ingen ekstra kald)."""
+    body = "\n".join("        " + l for l in rows.split("\n"))
+    return (f"With(\n    {{\n        t: {body.strip()}\n    }},\n"
+            f"    ClearCollect(\n        {ROWS},\n"
+            "        ForAll(\n            Sequence(CountRows(t)) As S,\n"
+            "            With(\n"
+            "                { cur: Index(t, S.Value), rest: LastN(t, CountRows(t) - S.Value) },\n"
+            "                {\n"
+            "                    Lvl: cur.Lvl, Kind: cur.Kind, No: cur.No, Desc: cur.Desc, Url: cur.Url,\n"
+            "                    Kids: Coalesce(First(rest).Lvl, -1) = cur.Lvl + 1,\n"
+            "                    More: Coalesce(First(Filter(rest, Lvl <= cur.Lvl)).Lvl, -1) = cur.Lvl,\n"
+            "                    Pass: cur.Lvl > 1 && Coalesce(First(Filter(rest, Lvl <= cur.Lvl - 1)).Lvl, -1) = cur.Lvl - 1\n"
+            "                }\n"
+            "            )\n"
+            "        )\n"
+            "    )\n"
+            ")")
 
 
 def _domain_rows():
@@ -179,7 +214,7 @@ def _domain_rows():
             "MeasuringPointItems", "RequestGuid", "RowId", '"Measuring point"',
             "R.CreatedMeasuringPointNo", 'Coalesce(R.Description, "")', "mp")
     for k, fx in flat.items():
-        out[k] = f"ClearCollect(\n    {ROWS},\n    {fx}\n)"
+        out[k] = _collect(fx)
     return out
 
 
@@ -374,10 +409,21 @@ def build_popup():
     n = lambda kind, base: f"{kind}MdSap{base}"
     x0 = f"ThisItem.Lvl * {INDENT}"
     line_y = BAR_Y + BAR_H
-    # Hierarkiet: et "L" fra forrige niveaus streg ind til bjaelken.
+    # Hierarkiet (issue #524): et "L" fra foraelderens streg ind til
+    # bjaelken. Har raekken en senere soeskende (More), fortsaetter den
+    # lodrette del til raekkens bund, saa foraelderens streg er een
+    # sammenhaengende linje ned til det SIDSTE barn og stopper dér.
     up_x = f"(ThisItem.Lvl - 1) * {INDENT} + {GUIDE}"
-    l_v = _line(n("rct", "TreeV"), up_x, 0, 1, BAR_Y + BAR_H // 2, visible="ThisItem.Lvl > 0",
+    knee = BAR_Y + BAR_H // 2
+    l_v = _line(n("rct", "TreeV"), up_x, 0, 1, knee, visible="ThisItem.Lvl > 0",
                 label="Hierarchy")
+    l_v.props["Height"] = f"If(ThisItem.More, Parent.TemplateHeight, {knee})"
+    # Bedsteforaelderens streg loeber igennem raekken, naar den fortsaetter
+    # til en senere soeskende af foraelderen (Pass).
+    pass_x = f"(ThisItem.Lvl - 2) * {INDENT} + {GUIDE}"
+    l_pass = _line(n("rct", "TreePass"), pass_x, 0, 1, ROW_H,
+                   visible="ThisItem.Lvl > 1 && ThisItem.Pass", label="Hierarchy")
+    l_pass.props["Height"] = "Parent.TemplateHeight"
     l_h = _line(n("rct", "TreeH"), up_x, BAR_Y + BAR_H // 2, INDENT - GUIDE - 4,
                 1, visible="ThisItem.Lvl > 0", label="Hierarchy")
     # Den graa sektionsbjaelke med objekttypen. Een tekst med fyld og runde
@@ -389,9 +435,14 @@ def build_popup():
                            "VerticalAlign": "VerticalAlign.Middle",
                            "RadiusTopLeft": "6", "RadiusTopRight": "6",
                            "RadiusBottomLeft": "6", "RadiusBottomRight": "6"})
-    # Den lodrette streg foran nummeret - under bjaelkens venstre kant.
+    # Den lodrette streg foran nummeret - under bjaelkens venstre kant. Har
+    # raekken boern (Kids), er den foraelderens streg: den starter ved
+    # bjaelkens bund og gaar til raekkens bund, hvor barnets "L" tager over.
     guide = _line(n("rct", "Guide"), f"{x0} + {GUIDE}", line_y + 8, 1, LINE_H - 16,
                   label="Hierarchy")
+    guide.props["Y"] = f"If(ThisItem.Kids, {line_y}, {line_y + 8})"
+    guide.props["Height"] = (f"If(ThisItem.Kids, Parent.TemplateHeight - {line_y}, "
+                             f"{LINE_H - 16})")
     # Nummeret: et skrivebeskyttet tekstfelt (View), saa det kan markeres
     # og kopieres - en ModernText kan ikke markeres. Uden ramme og fyld
     # (issue #488): det ser ud som almindelig tekst.
@@ -487,7 +538,7 @@ def build_popup():
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Visible": f"!{BUSY} && !IsEmpty({ROWS})",
         "Width": GW, "WrapCount": "1",
-    }, children=[l_v, l_h, bar, guide, no, desc, copied, sep, copy, logo, rule],
+    }, children=[l_pass, l_v, l_h, bar, guide, no, desc, copied, sep, copy, logo, rule],
        h=MAX_ROWS * ROW_H)
 
     title = text_ctrl(n("txt", "Title"), '"SAP objects"', size=lay.SIZE_CARD_TITLE, weight="Semibold",

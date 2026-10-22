@@ -154,6 +154,10 @@ C_INFO_FG = _t("state-info-fg")
 C_INFO_BG = _t("state-info-bg")
 C_NEUTRAL_FG = _t("state-neutral-fg")
 C_NEUTRAL_BG = _t("state-neutral-bg")
+# Segmenterede vaelgere og faner (issue #526) - se build_helpers.seg_style.
+C_SEG_TRACK_BG = _t("seg-track-bg")
+C_SEG_ON_FG = _t("seg-on-fg")
+C_SEG_ON_BORDER = _t("seg-on-border")
 
 FONT = "Font.'Segoe UI'"
 

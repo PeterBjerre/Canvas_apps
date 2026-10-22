@@ -24,8 +24,8 @@ app-functional-location.js:67-73).
 import fl_config as cfg
 import fl_validation as V
 import fl_save as S
-from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
-                        C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
+from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_MUTED,
+                        C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
                         C_CARD_BG, C_DIVIDER, C_INFO_BG)
 import layout_tokens as lay
@@ -38,7 +38,7 @@ from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_reque
                            act_fx, act_button, act_status, act_layers, panel_save_text,
                            confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
-                           mobile_pad,
+                           mobile_pad, seg_style,
                            panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
                            panel_save_block, reset_click_fx, reset_confirm)
 
@@ -1360,9 +1360,8 @@ def build_classes():
     tab = button("btnFlTab", "ThisItem.Label", "Set(varFlTab, ThisItem.Key)", width=130,
                  height=lay.mobile_or(TAB_H_M, 34))
     sel = "varFlTab = ThisItem.Key"
-    tab.props["Appearance"] = f"If({sel}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-    tab.props["BasePaletteColor"] = C_PRIMARY
-    tab.props["Color"] = f"If({sel}, {C_WHITE}, {C_TITLE})"
+    # Det faelles segment-udtryk (build_helpers.seg_style, issue #526).
+    seg_style(tab, sel, icon=False, standalone=True)
     # FL65: klassens hjaelpetekst (resolveClassHelpText :2353-2357).
     tab.props["Tooltip"] = ('With({ hp: LookUp(colFlClassHelp, Key = ThisItem.Key).Help }, '
                             'If(IsBlank(hp), "", ThisItem.Key & ": " & hp))')

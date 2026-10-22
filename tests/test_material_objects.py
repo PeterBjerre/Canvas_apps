@@ -185,8 +185,9 @@ def test_stock_item_requires_min_and_max_and_min_below_max():
 
 
 def test_the_first_row_is_plant_description_stock_item_and_replace():
-    assert _grid_cells("conMatGridMain") == [
-        "conMatPlant", "conMatText", "conMatIsStockItem", "conMatReplacesExisting"]
+    # Plant og beskrivelsen paa een linje, de to valg under (issue #527).
+    assert _grid_cells("conMatGridMain") == ["conMatPlant", "conMatText"]
+    assert _grid_cells("conMatGridToggles") == ["conMatIsStockItem", "conMatReplacesExisting"]
     # Begge valg er segmenterede [ No | Yes ] - som Revision i Item Editor.
     assert _children("conMatIsStockItemSeg") == ["conMatIsStockItemSegNo",
                                                  "conMatIsStockItemSegYes"]

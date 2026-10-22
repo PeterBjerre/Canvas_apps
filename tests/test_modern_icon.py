@@ -46,6 +46,11 @@ ICONS = {
         "icoVhpEditorStatus": ('If(VhpActiveItemValid, "CheckmarkCircle", "ErrorCircle")',
                                "If(VhpActiveItemValid, C.'state-ok-fg', C.'state-error-fg')",
                                "20", None),
+        # Task list and operations: fluebenet foran titlen, kun naar
+        # sektionen er gyldig (issue #529 - afloeser Valid-maerket).
+        "icoVhpOpsHeadStatus": ('If(VhpOpsValid, "CheckmarkCircle", "ErrorCircle")',
+                                "If(VhpOpsValid, C.'state-ok-fg', C.'state-error-fg')",
+                                "20", "IfError(VhpOpsValid, false)"),
     },
     "ScreenMdHub.pa.yaml": {
         "icoMdAprPerson": ('"Person"', "C.'text-muted'", "16",
@@ -102,8 +107,9 @@ def test_every_icon_is_modern_icon_in_the_token_color():
             # Det gamle billede er vaek.
             assert f"- img{name[3:]}:" not in text, name
             total += 1
-    # 15 foer issue #469 (Activity-ikonerne blev en knap); + 1 issue #530.
-    assert total == 14
+    # 15 foer issue #469 (Activity-ikonerne blev en knap); + 1 issue #529;
+    # + 1 issue #530.
+    assert total == 15
 
 
 def test_item_card_status_follows_the_same_rule_as_its_text():

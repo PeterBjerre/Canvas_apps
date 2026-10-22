@@ -5,9 +5,10 @@ moenster som Materials (domain_parts.editor_tabs). Objects-fanen er fjernet
 igen (issue #485): udstyret har EEN funktionsplads, og dens soegning staar
 paa Details, som i Measuring Point.
 
-- Details: felterne uden garantien - med funktionspladsen og soegningen.
-- Documents: Warranty from/to, antallet af dokumenter og
-  ModernAttachments-kontrollen. Ingen dokumentpopup laengere.
+- Details: felterne - med funktionspladsen og soegningen og (issue #531)
+  garantien.
+- Documents: antallet af dokumenter og ModernAttachments-kontrollen.
+  Ingen dokumentpopup laengere.
 - Bundbjaelken (Delete row, Reset, Cancel, Save) er faelles for fanerne.
 - Gem, Patch og kravene er de samme.
 
@@ -103,13 +104,16 @@ def test_fields_moved_out_of_details_and_not_duplicated():
     details = _names(_find(EQ, "conEqEditorDetails"))
     assert _find(EQ, "conEqEditorObjects") is None
     documents = _names(_find(EQ, "conEqEditorDocuments"))
-    for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd", "inpEqDocsInfo", "attEqPicker"):
+    for name in ("inpEqDocsInfo", "attEqPicker"):
         assert name not in details, name
+    # Garantien staar paa Details (issue #531) - ikke paa Documents.
+    for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd"):
+        assert name in details, name
+        assert name not in documents, name
     # Funktionspladsen og dens soegning staar paa Details (issue #485).
     for name in ("conEqFl", "cmbEqFl", "btnEqFlSearch", "txtEqFlMsg"):
         assert name in details, name
-    for name in ("dteEqWarrantyStart", "dteEqWarrantyEnd", "inpEqDocsInfo",
-                 "attEqPicker", "btnEqAttUpload", "txtEqAttReadOnly"):
+    for name in ("inpEqDocsInfo", "attEqPicker", "btnEqAttUpload", "txtEqAttReadOnly"):
         assert name in documents, name
     # De andre felter staar stadig under Details.
     for name in ("conEqRequestType", "conEqEquipmentCategory", "conEqRoomCoordinates",

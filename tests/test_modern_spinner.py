@@ -33,6 +33,8 @@ SPINNERS = {
     "ScreenMaterial.pa.yaml": {
         "spnMatLoadIcon": ("!IfError(varMatLoadFailed, false)", '""'),
         "spnMatFlBusy": ("varMatFlBusy", '"Searching..."'),
+        # Supplier-soegningen (issue #527) - som Vendor paa tasklisten.
+        "spnMatVenBusy": ("varMatVenBusy", '"Searching..."'),
     },
     "ScreenMeasuringPoint.pa.yaml": {
         "spnMpLoadIcon": ("!IfError(varMpLoadFailed, false)", '""'),
@@ -143,7 +145,8 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
     # 20 foer #420, minus 5 hjul over sidepanelets bundbjaelke, + 5 hjul
     # ved rene ikonknapper (ACT_SPINNERS, issue #441).
     # + 1 i SAP OBJECT-popuppen (issue #471).
-    assert total == 21
+    # + 1 i Materials' Supplier-soegning (issue #527).
+    assert total == 22
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():

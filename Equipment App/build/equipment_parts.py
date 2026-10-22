@@ -19,8 +19,10 @@ FORMULAREN - I SEKTIONER (issue #160, UX-review M2)
     [ Func. location][ Room coordinates ][ Placement text    ]
     ─ Manufacturer
     [ Manufacturer  ][ Type designation ][ Serial number     ][ Class data     ]
-    ─ Warranty and documents
-    [ Warranty from ][ Warranty to      ][ Documentation     ]
+    ─ Warranty
+    [ Warranty from ][ Warranty to      ]
+    ─ Documents
+    [ Documentation ]
     (Plant: X) (Row status: ...)   [Add row][New row]
 
 Sektionerne er Equipment-mockuppens. Hver sektions raekke er sin egen
@@ -38,11 +40,21 @@ SIDEPANELETS FANER (issue #430)
 -------------------------------
 I sidepanelet staar formularen under to faner - samme moenster som
 Materials (domain_parts.editor_tabs), men uden Objects-fanen:
-    Details    Identification, Location (med FL-soegningen), Manufacturer
-    Documents  Warranty from/to, antallet af dokumenter og
+    Details    Identification, Location (med FL-soegningen), Manufacturer,
+               Warranty (Warranty from/to - issue #531)
+    Documents  Documents: antallet af dokumenter og
                ModernAttachments-kontrollen (Save documents)
 Felterne, variablerne og Patch er de samme - de staar bare paa en anden
 fane. Gem-tjekkene er Notify-beskeder, saa de ses paa alle faner.
+
+GARANTIEN PAA DETAILS (issue #531)
+----------------------------------
+Warranty from/to stod foer paa Documents-fanen under "Warranty and
+documents". Nu staar de i deres egen sektion, Warranty, sidst paa Details,
+og Documents-fanen er kun dokumenterne (sektionen hedder Documents). Samme
+datovaelgere, variabler, tjek (WARRANTY_BAD) og visning; paa en telefon er
+Warranty-sektionen stadig klappet sammen, og den aabner sig selv, naar
+garantien slutter foer den starter.
 
 EEN FUNKTIONSPLADS (issue #485)
 -------------------------------
@@ -67,7 +79,8 @@ SECTIONS = [
     ("Ident", "Identification", ["RequestType", "PLANT", "EquipmentCategory", "EQNO", "TEXT"]),
     ("Loc", "Location", ["FL", "RoomCoordinates", "Placement"]),
     ("Mfr", "Manufacturer", ["Manufacturer", "TypeDesignation", "SerialNumber", "ClassData"]),
-    ("Warranty", "Warranty and documents", ["WarrantyStart", "WarrantyEnd", "DOCS"]),
+    ("Warranty", "Warranty", ["WarrantyStart", "WarrantyEnd"]),
+    ("Docs", "Documents", ["DOCS"]),
 ]
 FORM_ORDER = [k for _k, _t, keys in SECTIONS for k in keys]
 NOT_IN_GRID = {cfg.FL_FIELD}
@@ -77,12 +90,13 @@ TABBED = bool(getattr(cfg, "ROW_PANEL_ENABLED", False)
               and getattr(cfg, "ROW_EDITOR_TAB_VAR", None))
 # Ingen Objects-fane (issue #485): FL bliver paa Details.
 OBJECT_KEYS = []
-DOC_KEYS = ["WarrantyStart", "WarrantyEnd", "DOCS"]
+# Garantien staar paa Details (issue #531) - Documents er kun dokumenterne.
+DOC_KEYS = ["DOCS"]
 
 
 def _detail_sections():
     """Details-fanens sektioner: SECTIONS uden det, Objects og Documents
-    har. En sektion, der bliver tom, udelades."""
+    har. En sektion, der bliver tom, udelades (Documents)."""
     moved = set(OBJECT_KEYS) | set(DOC_KEYS)
     out = []
     for key, title, keys in SECTIONS:
@@ -177,12 +191,12 @@ def editor_panel_content(form, extras=()):
     """Fanerne Details og Documents (issue #430) - Materials' moenster
     (domain_parts.editor_tabs) uden Objects-fanen (issue #485): udstyret
     har een funktionsplads, og dens soegning staar paa Details. Documents:
-    garantien, antallet af dokumenter og ModernAttachments-kontrollen."""
-    warranty = dp.sectioned([("Warranty", "Warranty and documents", None,
-                              _panel_rows("Warranty", DOC_KEYS))])
-    # Dokumentkontrollen under garantien - samme krop og hoejde som
+    antallet af dokumenter og ModernAttachments-kontrollen - garantien
+    staar paa Details (issue #531)."""
+    docs = dp.sectioned([("Docs", "Documents", None, _panel_rows("Docs", DOC_KEYS))])
+    # Dokumentkontrollen under antallet - samme krop og hoejde som
     # Materials' Documents-fane; panelet scroller, hvis der mangler plads.
-    documents = warranty + [dp.docs_tab_body()]
+    documents = docs + [dp.docs_tab_body()]
     return dp.editor_tabs(form, extras, objects=None, documents=documents)
 
 
@@ -222,7 +236,7 @@ dp.configure(row_actions=dp.standard_row_actions(
     docs_fx=((dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
               + dp.open_active_docs_fx()) if TABBED else dp.open_docs_fx()),
     docs_n="ThisItem.FileCount"))
-# Paa en telefon (issue #508): producenten og garantien (Documents-fanen)
-# er klappet sammen - ingen kraevede felter. En garanti, der slutter foer
+# Paa en telefon (issue #508): producenten og garantien (begge paa
+# Details, issue #531) er klappet sammen - ingen kraevede felter. En garanti, der slutter foer
 # den starter, holder sin sektion aaben.
 dp.configure(mobile_folds={"Mfr": (None, None), "Warranty": (WARRANTY_BAD, None)})

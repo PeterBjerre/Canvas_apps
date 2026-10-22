@@ -36,7 +36,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_DIVIDER, C_INFO_BG,
 from build_helpers import (fluent, fluent_icon, button, card, concurrent, fit_button_width, flow_row, group, grow,
                            loading_overlay, row_hit, row_rule, text_ctrl,
                            text_modal, top_bar, app_frame, text_input,
-                           ensure_hit, hit_size)
+                           ensure_hit, hit_size, seg_style)
 from fl_picker import HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD
 import layout_tokens as lay
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
@@ -441,7 +441,10 @@ def _key_tabs():
         # Fast i raekken - den skifter aldrig retning.
         b.props["LayoutMinWidth"] = b.props["Width"]
         _phone_h(b, mobile.TOUCH)      # touch paa en telefon (issue #508)
-        tabs.append(_selected(b, f'varKksKey = "{key}"', radius=14))
+        # Det faelles segment-udtryk (build_helpers.seg_style, issue #526) -
+        # fanerne staar direkte i raekken (ingen skinne), saa de ikke valgte
+        # har en diskret kant.
+        tabs.append(seg_style(b, f'varKksKey = "{key}"', icon=False, standalone=True))
     return tabs
 
 
