@@ -3091,6 +3091,248 @@ Screens:
                                               =0 + 0 + 0 + (99) + 6 + (153 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + (115 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + (169 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 2, 108, If(LayoutRank < 3, 156, 56))) - 2) - 0 - 0) - (20)) / 2
+                                    - txtMatRowKeyC:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =22
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
+                                          Visible: |-
+                                              =LayoutRank < 3
+                                          Width: |-
+                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 28 - 89, Max(0, (((((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2))
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =If(LayoutRank < 2, 10, 0 + 10 + 0 + 0)
+                                          Y: |-
+                                              =If(LayoutRank < 2, 8, 0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2)
+                                    - imgMatRowStatusC:
+                                        Control: Image
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Status: " & Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "submitted", "Submitted", ThisItem.Status)
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Height: |-
+                                              =22
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                                  ThisItem.Status,
+                                                  "draft", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>",
+                                                  "valid", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Valid</text></svg>",
+                                                  "submitted", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Submitted</text></svg>",
+                                                  "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>"
+                                              ))
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =0
+                                          Visible: |-
+                                              =LayoutRank < 3
+                                          Width: |-
+                                              =89
+                                          X: |-
+                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 10 - 89, 0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)) + 8)
+                                          Y: |-
+                                              =If(LayoutRank < 2, 8, 0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2)
+                                    - txtMatRowMetaC:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =18
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.small
+                                          Text: |-
+                                              =Text(ThisItem.Manufacturer) & "  ·  " & Text(ThisItem.ManufacturerPartNo) & "  ·  " & Text(ThisItem.Supplier)
+                                          Visible: |-
+                                              =LayoutRank < 3
+                                          Width: |-
+                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 20, (((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =If(LayoutRank < 2, 10, 0 + 10)
+                                          Y: |-
+                                              =If(LayoutRank < 2, 34, 0 + 8 + 0 + (22) + 4)
+                                    - rctMatRowRule:
+                                        Control: Rectangle
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Row divider"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Fill: |-
+                                              =C.'border-subtle'
+                                          Height: |-
+                                              =1
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =0
+                                          Width: |-
+                                              =(((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0)
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =If(LayoutRank < 2, 108, If(LayoutRank < 3, 156, 56)) - 1
+                                    - btnMatRowHit:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =2
+                                          Color: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FocusedBorderColor: |-
+                                              =C.'color-brand-primary'
+                                          FocusedBorderThickness: |-
+                                              =2
+                                          Height: |-
+                                              =(If(LayoutRank < 2, 108, If(LayoutRank < 3, 156, 56))) - 1
+                                          HoverBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          HoverColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          HoverFill: |-
+                                              =C.'row-hover'
+                                          OnSelect: |-
+                                              =Set(varMatActiveRowId, ThisItem.RowId);
+                                              Set(varMatRowStatus, ThisItem.Status);
+                                              Set(varMatValidated, false);
+                                              Set(varMatFText, ThisItem.MaterialDescription);
+                                              Set(varMatFPlant, ThisItem.Plant);
+                                              Set(varMatEditorOpen, true);
+                                              Set(varMatPanelSave, "");
+                                              Set(varMatEditorTab, "Details");
+                                              If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
+                                              Set(varMatFManufacturer, ThisItem.Manufacturer);
+                                              Set(varMatFModelNumber, ThisItem.ModelNumber);
+                                              Set(varMatFManufacturerPartNo, ThisItem.ManufacturerPartNo);
+                                              Set(varMatFSupplier, ThisItem.Supplier);
+                                              Set(varMatFSupplierPartNo, ThisItem.SupplierPartNo);
+                                              Set(varMatFDeliveringTime, ThisItem.DeliveringTime);
+                                              Set(varMatFPrice, ThisItem.Price);
+                                              Set(varMatFPriceUnit, ThisItem.PriceUnit);
+                                              Set(varMatFStockUnit, ThisItem.StockUnit);
+                                              Set(varMatFIsStockItem, ThisItem.IsStockItem);
+                                              Set(varMatFMinStock, ThisItem.MinStock);
+                                              Set(varMatFMaxStock, ThisItem.MaxStock);
+                                              Set(varMatFStorageBin, ThisItem.StorageBin);
+                                              Set(varMatFStrategicPart, ThisItem.StrategicPart);
+                                              Set(varMatFWearPart, ThisItem.WearPart);
+                                              Set(varMatFRemarks, ThisItem.Remarks);
+                                              Set(varMatFMaintenanceOrderNo, ThisItem.MaintenanceOrderNo);
+                                              Set(varMatFReplacesExisting, ThisItem.ReplacesExisting);
+                                              Set(varMatFReplacedMaterialNo, ThisItem.ReplacedMaterialNo);
+                                              Clear(colMatObjects);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                                  Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
+                                              );
+                                              Set(varMatObjPick, "");
+                                              Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
+                                              Reset(inpMatDetCreatedNo)
+                                          PressedBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          PressedColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          PressedFill: |-
+                                              =C.'row-pressed'
+                                          RadiusBottomLeft: |-
+                                              =0
+                                          RadiusBottomRight: |-
+                                              =0
+                                          RadiusTopLeft: |-
+                                              =0
+                                          RadiusTopRight: |-
+                                              =0
+                                          TabIndex: |-
+                                              =0
+                                          Text: |-
+                                              =If((varMatViewOnly || ThisItem.Status = "submitted"), "View", "Edit") & " row " & ThisItem.ItemKey
+                                          Width: |-
+                                              =(((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0)
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =0
                                     - btnMatRowOpen:
                                         Control: ModernButton
                                         Properties:
@@ -3764,119 +4006,6 @@ Screens:
                                               =0 + 0 + 0 + (99) + 6 + (153 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + (115 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + (169 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + (100 + Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)) - 912) / 4) + 6 + 10 + 0 + (44) + 4 + (44) + 4 + (44) + 4 + (44) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 2, 108, If(LayoutRank < 3, 156, 56))) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (H.hit)) / 2
-                                    - txtMatRowKeyC:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =22
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
-                                          Visible: |-
-                                              =LayoutRank < 3
-                                          Width: |-
-                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 28 - 89, Max(0, (((((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2))
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =If(LayoutRank < 2, 10, 0 + 10 + 0 + 0)
-                                          Y: |-
-                                              =If(LayoutRank < 2, 8, 0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2)
-                                    - imgMatRowStatusC:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Status: " & Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "submitted", "Submitted", ThisItem.Status)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Height: |-
-                                              =22
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                                  ThisItem.Status,
-                                                  "draft", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>",
-                                                  "valid", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Valid</text></svg>",
-                                                  "submitted", "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Submitted</text></svg>",
-                                                  "<svg xmlns='http://www.w3.org/2000/svg' width='89' height='22' viewBox='0 0 89 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>"
-                                              ))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Visible: |-
-                                              =LayoutRank < 3
-                                          Width: |-
-                                              =89
-                                          X: |-
-                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 10 - 89, 0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)) + 8)
-                                          Y: |-
-                                              =If(LayoutRank < 2, 8, 0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2)
-                                    - txtMatRowMetaC:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.small
-                                          Text: |-
-                                              =Text(ThisItem.Manufacturer) & "  ·  " & Text(ThisItem.ManufacturerPartNo) & "  ·  " & Text(ThisItem.Supplier)
-                                          Visible: |-
-                                              =LayoutRank < 3
-                                          Width: |-
-                                              =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 20, (((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =If(LayoutRank < 2, 10, 0 + 10)
-                                          Y: |-
-                                              =If(LayoutRank < 2, 34, 0 + 8 + 0 + (22) + 4)
                                     - btnMatRowOpenC:
                                         Control: ModernButton
                                         Properties:
@@ -4550,29 +4679,6 @@ Screens:
                                               =If(LayoutRank < 2, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 4) - 4 - 44, 0 + 10 + 0 + 0 + (44) + 4)
                                           Y: |-
                                               =If(LayoutRank < 2, 58, 0 + 8 + 0 + (22) + 4 + (18) + 4 + (H.hit) + 4 + 0 + (((H.hit) - 0 - 0) - (H.hit)) / 2)
-                                    - rctMatRowRule:
-                                        Control: Rectangle
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Row divider"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =C.'border-subtle'
-                                          Height: |-
-                                              =1
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =(((If(LayoutRank < 3, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18), Max(912, ((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0)
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =If(LayoutRank < 2, 108, If(LayoutRank < 3, 156, 56)) - 1
                         - txtMatRowsCap:
                             Control: ModernText
                             Properties:

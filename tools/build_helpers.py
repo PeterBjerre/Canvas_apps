@@ -3086,6 +3086,37 @@ def row_hit(name, onselect, label, width, height, radius=0, hover_border=False):
     return Ctrl(name, "Classic/Button", props=props, h=height)
 
 
+# Felter, der aldrig maa ligge under row_hit_under_actions' lag.
+ROW_FIELD_TYPES = {"ModernTextInput", "ModernNumberInput", "ModernDatePicker", "ModernDropdown",
+                   "ModernCombobox", "Classic/ComboBox", "Classic/TextInput", "Classic/DropDown",
+                   "Classic/CheckBox", "ModernCheckbox", "Classic/Toggle", "ModernToggle"}
+
+
+def row_hit_under_actions(name, onselect, label, rows):
+    """HELE RAEKKEN AABNER SIDEPANELET (issue #573) - row_hit som i hubben
+    og Issue Board, til Materials, Equipment, Measuring Point og FL's
+    Classes.
+
+    Laget daekker hele skabelonen (alle bredder, ogsaa mobilkortet), og
+    hver kontrol i rows med sin EGEN handling (OnSelect, der ikke er
+    "false": raekkens ikoner) laegges OVEN PAA laget ("_OnTop",
+    gen_screen.flatten_galleries) - et klik paa et ikon er kun ikonets.
+    Et redigerbart felt (ROW_FIELD_TYPES) laegges ogsaa oven paa, saa
+    laget aldrig snupper et klik i et felt - de fire tabeller har i dag
+    ingen felter i raekken (de rettes i sidepanelet)."""
+    def walk(n):
+        yield n
+        for c in n.children or ():
+            yield from walk(c)
+
+    for row in rows:
+        for c in walk(row):
+            if c.control in ROW_FIELD_TYPES or (
+                    c.control != "GroupContainer" and c.props.get("OnSelect", "false") != "false"):
+                c.props["_OnTop"] = "true"
+    return row_hit(name, onselect, label, "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
+
+
 def table_surface(gal, rule_name, surface=C_CARD_BG):
     """Goer et galleri til en tabel med neutral flade og streger mellem
     raekkerne: fyldet er fladens, TemplatePadding 0, og stregen er en

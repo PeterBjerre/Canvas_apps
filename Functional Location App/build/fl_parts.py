@@ -27,7 +27,7 @@ import fl_save as S
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_MUTED,
                         C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
-                        C_CARD_BG, C_DIVIDER, C_INFO_BG)
+                        C_CARD_BG, C_DIVIDER, C_INFO_BG, C_ROW_PRESSED)
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
@@ -41,7 +41,8 @@ from build_helpers import (C_INPUT_BORDER, label_px, ACT_NOTE_SIZE, act_running,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
                            mobile_pad, seg_style,
                            panel_save_fx, panel_save_mode, panel_save_status, panel_save_space,
-                           panel_save_block, reset_click_fx, reset_confirm)
+                           panel_save_block, reset_click_fx, reset_confirm,
+                           row_hit_under_actions)
 
 # Under Desktop er headerens Edit, Save draft og Submit kun deres ikon
 # (_bar_btn). FL har ingen bundbjaelke (issue #392), saa knapperne SKAL
@@ -1556,11 +1557,23 @@ def build_classes():
     meta.props["X"] = "0"
     meta.props["Y"] = "50"
     meta.props["Width"] = f"Max(0, {text_w})"
+    # HELE RAEKKEN ER KLIKBAR (issue #573) - hubbens og Issue Boards
+    # moenster (build_helpers.row_hit): et klik, tryk eller Enter paa
+    # raekken aabner det SAMME Class data-panel som blyanten/View-ikonet, i
+    # den aktuelle View/Edit-tilstand. Ikonet ligger oven paa laget og goer
+    # kun sit eget. Panelets raekke er markeret (TemplateFill nedenfor).
+    hit = row_hit_under_actions(
+        "btnFlCRowHit", open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'),
+        f'{verb} & " class data of " & ThisItem.FL', cells)
     # Samme raekkehoejde og mellemrum som Rows (issue #468).
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
                         cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP,
                         width=lay.mobile_or(M_CARD_W, C_GAL_W),
-                        row_h=V_ROW_H, tpl_h=ROW_TOP_F, extra=[meta])
+                        row_h=V_ROW_H, tpl_h=ROW_TOP_F, extra=[meta, hit])
+    # Den aabne raekke staar i trykkets tone - som Materials/Equipment/MP.
+    gal.props["TemplateFill"] = (
+        f"If(IfError(varFlPanelOpen, false) && ThisItem.RowGuid = varFlDetailRow, "
+        f"{C_ROW_PRESSED}, {C_TRANSPARENT})")
     gal.props["TemplateSize"] = lay.mobile_or(C_ROW_H_M, gal.props["TemplateSize"])
     c_mob_h = f"Min({VIEW_N}, {C_ROWS_MAX}) * {C_ROW_H_M}"
     gal.props["Height"] = lay.mobile_or(c_mob_h, gal.props["Height"])

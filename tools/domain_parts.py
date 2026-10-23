@@ -61,7 +61,7 @@ from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_h
                            act_fx, act_mark, act_button, act_status, act_layers, icon_only_when,
                            confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
-                           request_actions, row_list, reset_click_fx, reset_confirm)
+                           request_actions, row_list, row_hit_under_actions, reset_click_fx, reset_confirm)
 
 # Knappernes ventetilstand (issue #420, build_helpers.act_fx): handlingens
 # noegle ("save", "submit", "duplicate", "delete", "add"), mens den koerer,
@@ -3409,8 +3409,16 @@ def build_list(slots, badge_head, search_placeholder, search_w=None):
                                 if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2))))
     tpl = mobile.mobile_or(M_ROW_H, if_below("Desktop", str(ROW_H_C), str(ROW_H)))
     rule = row_rule("rctDomRowRule", tpl)
+    # HELE RAEKKEN ER KLIKBAR (issue #573) - hubbens og Issue Boards
+    # moenster (build_helpers.row_hit): hover, tryk, fokus og Enter aabner
+    # raekken i sidepanelet - samme handling som Edit/View-ikonet, i den
+    # aktuelle View/Edit-tilstand (panelets felter laaser sig selv).
+    # Ikonerne ligger oven paa laget og goer kun deres eget.
+    hit = row_hit_under_actions(
+        "btnDomRowHit", load_row_fx(),
+        f'{tips.verb(ROW_LOCKED)} & " row " & ThisItem.ItemKey', [row, row_c])
     gal = row_list("Dom", f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
-                   [row, row_c, rule], gal_h, tpl,
+                   [row, row_c, rule, hit], gal_h, tpl,
                    onselect=load_row_fx(), width=f"({table_w}) + 4 + {SCROLLBAR_W}",
                    accessible="Saved rows")
     if panel_on:
