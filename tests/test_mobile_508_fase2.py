@@ -79,7 +79,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
     assert x.lstrip("=").startswith("If(LayoutRank < 2,")
     assert _ev(x, 360) == 8 and _ev(y, 360) == 52
     for w in TABLET_UP:
-        assert _ev(x, w) == 0 + 110 + 10 + 210 + 10
+        assert _ev(x, w) == 0 + 130 + 10 + 260 + 10  # issue #574
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
 # ---------------------------------------------------------------------------
 CARD_GALLERIES = {
     # galleri: (mobil skabelonhoejde, desktop skabelonhoejde, desktop bredde)
-    "galVhpMaterials": (116, 46, 804),
+    "galVhpMaterials": (116, 46, 874),  # issue #574: bredere kolonner
     "galVhpItemObjects": (80, 40, 724),
     "galVhpPicker": (54, 34, 636),
     "galVhpPkgRows": (88, 44, 472),
@@ -131,7 +131,10 @@ def test_materials_list_has_no_inner_scroll_on_a_phone():
         assert vh("galVhpMaterials", "Height", 360, n) == n * 118
     assert vh("galVhpMaterials", "ShowScrollbar", 360) == 0
     assert vh("galVhpMaterials", "ShowScrollbar", 1366) == 1
-    assert vh("galVhpMaterials", "Height", 1366) == 276
+    # Issue #574: saa hoej som linjerne - scroller foerst, naar de ikke er der.
+    assert vh("galVhpMaterials", "Height", 1366) == 3 * 46
+    assert vh("galVhpMaterials", "Height", 1366, 0) == 0
+    assert vh("galVhpMaterials", "Height", 1366, 40) == 900 - 323
 
 
 def test_operations_are_two_line_cards_on_a_phone():
@@ -149,7 +152,7 @@ def test_operations_are_two_line_cards_on_a_phone():
 POPUPS = {
     "conVhpPickerModal": 740,
     "conVhpObjListModal": 760,
-    "conVhpMatModal": 840,
+    "conVhpMatModal": 910,
     "conVhpLongTextModal": 620,
     "conVhpMissingModal": 520,
 }
