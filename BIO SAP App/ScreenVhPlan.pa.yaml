@@ -2422,13 +2422,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =24 + (44) + If(If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false), 10 + (24), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
+                            =24 + (0 + (Max((20), (26), (20), (If(Len(txtVhpPlanFoldSummary.Text) = 0, 20, Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown((txtVhpPlanFoldSummary.Width) / 7.5, 0)), 0)) * 20 + 2)), (24), (44))) * 1 + 0) + If(If(LayoutRank < 2, IfError(Sum(colVhpOperations, Cost) > 0, false), false), 10 + (24), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * (If(LayoutRank < 2, 136, 88))) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (0 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), 0) + If(varVhpPlanLocked && !IfError(varVhpPlanShow, false), 10 + (Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)) / 7.5, 0)), 0)) * 20 + 2), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (If(LayoutRank < 2, If(true, (0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0)) + 8, 0) + If(LayoutRank < 2, 44, 36), Max(If(true, 0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0), 0), If(LayoutRank < 2, 44, 36)))), 0)
+                            )) = 0, 4 + (32), 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (0 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (20 + 6 + (If(LayoutRank < 2, 44, 36)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), 0) + If(LayoutRank < 2 && (varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (Max(1, RoundUp(Len(txtVhpPlanFoldSummaryM.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)))) / 7.5, 0)), 0)) * 20 + 2), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (If(LayoutRank < 2, If(true, (0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0)) + 8, 0) + If(LayoutRank < 2, 44, 36), Max(If(true, 0 + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 0 + (24), 0), 0), If(LayoutRank < 2, 44, 36)))), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -2471,7 +2471,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =44
+                                  =0 + (Max((20), (26), (20), (If(Len(txtVhpPlanFoldSummary.Text) = 0, 20, Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown((txtVhpPlanFoldSummary.Width) / 7.5, 0)), 0)) * 20 + 2)), (24), (44))) * 1 + 0
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
@@ -2486,7 +2486,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     Height: |-
-                                        =44
+                                        =0 + (Max((20), (26), (20), (If(Len(txtVhpPlanFoldSummary.Text) = 0, 20, Max(1, RoundUp(Len(txtVhpPlanFoldSummary.Text) / Max(12, RoundDown((txtVhpPlanFoldSummary.Width) / 7.5, 0)), 0)) * 20 + 2)), (24), (44))) * 1 + 0
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -2657,32 +2657,45 @@ Screens:
                                                     =70
                                                 Wrap: |-
                                                     =false
-                                    - conVhpPlanHeadGap:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
+                                    - txtVhpPlanFoldSummary:
+                                        Control: ModernText
                                         Properties:
+                                          AccessibleLabel: |-
+                                              =If(!(LayoutRank < 2) && (varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "Plan header summary: " & "Plan type " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "") & "  ·  " & "Status " & Coalesce(drpVhpStatus.Selected.Value, "-") & "  ·  " & "Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & "Plan text " & Coalesce(Trim(inpVhpPlanText.Text), "-") & "  ·  " & "Sort field " & Coalesce(drpVhpSortField.Selected.Value, "-") & "  ·  " & "Cycle " & If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle)) & "  ·  " & "Unit " & Coalesce(drpVhpUnit.Selected.Value, "-") & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy")), "")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
                                           FillPortions: |-
                                               =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
                                           Height: |-
-                                              =0
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =8
+                                              =If(Len(Self.Text) = 0, 20, Max(1, RoundUp(Len(Self.Text) / Max(12, RoundDown((Self.Width) / 7.5, 0)), 0)) * 20 + 2)
                                           LayoutMinWidth: |-
                                               =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =If(!(LayoutRank < 2) && (varVhpPlanLocked && !IfError(varVhpPlanShow, false)), "·  " & "Plan type " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "") & "  ·  " & "Status " & Coalesce(drpVhpStatus.Selected.Value, "-") & "  ·  " & "Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & "Plan text " & Coalesce(Trim(inpVhpPlanText.Text), "-") & "  ·  " & "Sort field " & Coalesce(drpVhpSortField.Selected.Value, "-") & "  ·  " & "Cycle " & If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle)) & "  ·  " & "Unit " & Coalesce(drpVhpUnit.Selected.Value, "-") & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy")), "")
                                           Width: |-
                                               =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - If(LayoutRank < 2, 12, 24) - If(LayoutRank < 2, 12, 16) - 18) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)))) - (If(IfError(VhpPlanValid, false), (20) + If(LayoutRank < 2, 8, 12), 0)) - ((111) + If(LayoutRank < 2, 8, 12)) - (If(If(LayoutRank < 2, false, !(varVhpPlanLocked && !IfError(varVhpPlanShow, false))), (83) + If(LayoutRank < 2, 8, 12), 0)) - (If(If(LayoutRank < 2, false, IfError(Sum(colVhpOperations, Cost) > 0, false)), (Len("Total cost: " & With({ _n: Sum(colVhpOperations, Cost) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & " DKK") * 7 + 24) + If(LayoutRank < 2, 8, 12), 0)) - (If(varVhpPlanLocked, (44) + If(LayoutRank < 2, 8, 12), 0)) - 2)
+                                          Wrap: |-
+                                              =true
                                     - bdgVhpPlanHeadCost:
                                         Control: ModernBadge@1.0.0
                                         Properties:
@@ -5007,7 +5020,7 @@ Screens:
                                               =IfError(varVhpShowHints, false)
                                           Wrap: |-
                                               =true
-                        - txtVhpPlanFoldSummary:
+                        - txtVhpPlanFoldSummaryM:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
@@ -5023,13 +5036,13 @@ Screens:
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
-                                  =Max(1, RoundUp(Len(Self.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) - If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)) / 7.5, 0)), 0)) * 20 + 2
+                                  =Max(1, RoundUp(Len(Self.Text) / Max(12, RoundDown(((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)))) / 7.5, 0)), 0)) * 20 + 2
                               LayoutMinWidth: |-
                                   =0
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
-                                  =If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)
+                                  =0
                               PaddingRight: |-
                                   =0
                               PaddingTop: |-
@@ -5039,7 +5052,7 @@ Screens:
                               Text: |-
                                   ="Plan type " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "") & "  ·  " & "Status " & Coalesce(drpVhpStatus.Selected.Value, "-") & "  ·  " & "Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & "Plan text " & Coalesce(Trim(inpVhpPlanText.Text), "-") & "  ·  " & "Sort field " & Coalesce(drpVhpSortField.Selected.Value, "-") & "  ·  " & "Cycle " & If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle)) & "  ·  " & "Unit " & Coalesce(drpVhpUnit.Selected.Value, "-") & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy"))
                               Visible: |-
-                                  =varVhpPlanLocked && !IfError(varVhpPlanShow, false)
+                                  =LayoutRank < 2 && (varVhpPlanLocked && !IfError(varVhpPlanShow, false))
                               Width: |-
                                   =(If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)))
                               Wrap: |-
