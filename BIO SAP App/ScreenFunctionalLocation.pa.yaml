@@ -4501,6 +4501,8 @@ Screens:
                                               =If(LayoutRank < 2, CountRows(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), varFlTab = "ALL" || AssignedClass = varFlTab)) > 50, CountRows(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), varFlTab = "ALL" || AssignedClass = varFlTab)) > 12)
                                           TabIndex: |-
                                               =0
+                                          TemplateFill: |-
+                                              =If(IfError(varFlPanelOpen, false) && ThisItem.RowGuid = varFlDetailRow, C.'row-pressed', RGBA(0, 0, 0, 0))
                                           TemplatePadding: |-
                                               =0
                                           TemplateSize: |-
@@ -4863,6 +4865,148 @@ Screens:
                                                     =0 + 0 + 0 + If(If(LayoutRank < 2, false, LayoutRank >= 2), (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + If(If(LayoutRank < 2, false, true), (82) + 6, 0) + If(If(LayoutRank < 2, false, true), (87) + 6, 0) + If(If(LayoutRank < 2, false, true), (62) + 6, 0) + If(If(LayoutRank < 2, false, true), (78) + 6, 0) + If(If(LayoutRank < 2, false, true), (94) + 6, 0)
                                                 Y: |-
                                                     =0 + 0 + (((Max(40, H.hit)) - 0 - 0) - (20)) / 2
+                                          - txtFlCMetaM:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =18
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.small
+                                                Text: |-
+                                                    =With({ c: ThisItem.AssignedClass, k: ThisItem.KksType, r: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ROOM").Value, so: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "SORT FIELD").Value, a: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ABC INDIC.").Value, x: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ATEX").Value }, Coalesce(c, "-") & If(IsBlank(k), "", "  ·  Str. " & k) & If(IsBlank(r), "", "  ·  Room " & r) & If(IsBlank(so), "", "  ·  Sort " & so) & If(IsBlank(a), "", "  ·  ABC " & a) & If(Upper(Trim(x)) = "X", "  ·  ATEX", ""))
+                                                Visible: |-
+                                                    =LayoutRank < 2
+                                                Width: |-
+                                                    =Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 56)
+                                                Wrap: |-
+                                                    =false
+                                                X: |-
+                                                    =0
+                                                Y: |-
+                                                    =50
+                                          - btnFlCRowHit:
+                                              Control: Classic/Button
+                                              Properties:
+                                                BorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =2
+                                                Color: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                DisabledBorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                DisabledColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                DisabledFill: |-
+                                                    =C.'row-pressed'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                FocusedBorderColor: |-
+                                                    =C.'color-brand-primary'
+                                                FocusedBorderThickness: |-
+                                                    =2
+                                                Height: |-
+                                                    =(If(LayoutRank < 2, 76, 44 + (Max(40, H.hit) - 40))) - 1
+                                                HoverBorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                HoverColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                HoverFill: |-
+                                                    =C.'row-hover'
+                                                OnSelect: |-
+                                                    =Set(varFlDetailRow, ThisItem.RowGuid);
+                                                    Set(varFlPanelJump, "Class");
+                                                    Set(varFlDetCls, Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS"));
+                                                    ClearCollect(colFlDet, With(
+                                                        { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
+                                                        ForAll(
+                                                            Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
+                                                            With(
+                                                                { pm: LookUp(colFlPane, Field = K.Field) },
+                                                                {
+                                                                    Column: Coalesce(pm.Label, K.Column), Field: K.Field, Editable: K.Editable,
+                                                                    List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
+                                                                    Pane: Coalesce(pm.Pane, K.Section), PaneOrd: Coalesce(pm.Ord, 100 + K.Ord),
+                                                                    Value: "", Issue: ""
+                                                                }
+                                                            )
+                                                        )
+                                                    ));
+                                                    Collect(colFlDet, { Column: "Class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                                                    ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                                                    ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
+                                                    Set(varFlPanelSave, "");
+                                                    Set(varFlDirtyAtOpen, Coalesce(varFlDirty, false));
+                                                    Set(varFlPanelOpen, true)
+                                                PressedBorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                PressedColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                PressedFill: |-
+                                                    =C.'row-pressed'
+                                                RadiusBottomLeft: |-
+                                                    =0
+                                                RadiusBottomRight: |-
+                                                    =0
+                                                RadiusTopLeft: |-
+                                                    =0
+                                                RadiusTopRight: |-
+                                                    =0
+                                                TabIndex: |-
+                                                    =0
+                                                Text: |-
+                                                    =If(varFlViewOnly || varFlStatus = "Indsendt", "View", "Edit") & " class data of " & ThisItem.FL
+                                                Width: |-
+                                                    =((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (Min(497, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (102) + 6 - 6) - 6))) + 6 + (102) + 6 - 6)) + 18 + 40)) - 2 * 0 - 0)
+                                                X: |-
+                                                    =0
+                                                Y: |-
+                                                    =0
+                                          - rctFlCRowRule:
+                                              Control: Rectangle
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Row divider"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Fill: |-
+                                                    =C.'border-subtle'
+                                                Height: |-
+                                                    =1
+                                                OnSelect: |-
+                                                    =false
+                                                TabIndex: |-
+                                                    =0
+                                                Width: |-
+                                                    =((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (Min(497, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (102) + 6 - 6) - 6))) + 6 + (102) + 6 - 6)) + 18 + 40)) - 2 * 0 - 0)
+                                                X: |-
+                                                    =0
+                                                Y: |-
+                                                    =(If(LayoutRank < 2, 76, 44 + (Max(40, H.hit) - 40))) - 1
                                           - btnFlCOpen:
                                               Control: ModernButton
                                               Properties:
@@ -4935,68 +5079,6 @@ Screens:
                                                     =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 48, 0 + 0 + 0 + If(If(LayoutRank < 2, false, LayoutRank >= 2), (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + If(If(LayoutRank < 2, false, true), (82) + 6, 0) + If(If(LayoutRank < 2, false, true), (87) + 6, 0) + If(If(LayoutRank < 2, false, true), (62) + 6, 0) + If(If(LayoutRank < 2, false, true), (78) + 6, 0) + If(If(LayoutRank < 2, false, true), (94) + 6, 0) + If(If(LayoutRank < 2, false, true), (46) + 6, 0) + (Min(497, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (102) + 6 - 6) - 6))) + 6 + 0 + 0)
                                                 Y: |-
                                                     =If(LayoutRank < 2, 16, 0 + 0 + (((Max(40, H.hit)) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (H.hit)) / 2)
-                                          - txtFlCMetaM:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =18
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =With({ c: ThisItem.AssignedClass, k: ThisItem.KksType, r: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ROOM").Value, so: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "SORT FIELD").Value, a: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ABC INDIC.").Value, x: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ATEX").Value }, Coalesce(c, "-") & If(IsBlank(k), "", "  ·  Str. " & k) & If(IsBlank(r), "", "  ·  Room " & r) & If(IsBlank(so), "", "  ·  Sort " & so) & If(IsBlank(a), "", "  ·  ABC " & a) & If(Upper(Trim(x)) = "X", "  ·  ATEX", ""))
-                                                Visible: |-
-                                                    =LayoutRank < 2
-                                                Width: |-
-                                                    =Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24)) - 56)
-                                                Wrap: |-
-                                                    =false
-                                                X: |-
-                                                    =0
-                                                Y: |-
-                                                    =50
-                                          - rctFlCRowRule:
-                                              Control: Rectangle
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Row divider"
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Fill: |-
-                                                    =C.'border-subtle'
-                                                Height: |-
-                                                    =1
-                                                OnSelect: |-
-                                                    =false
-                                                TabIndex: |-
-                                                    =0
-                                                Width: |-
-                                                    =((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (Min(497, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, (28) + 6, 0) + (140 + Min(80, Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) + RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (94 + Min(245, Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 80)) + (Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) - RoundDown((Max(0, (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1336))) - 325)) * 0.4, 0)) + 6 + (82) + 6 + (87) + 6 + (62) + 6 + (78) + 6 + (94) + 6 + (46) + 6 + (102) + 6 - 6) - 6))) + 6 + (102) + 6 - 6)) + 18 + 40)) - 2 * 0 - 0)
-                                                X: |-
-                                                    =0
-                                                Y: |-
-                                                    =(If(LayoutRank < 2, 76, 44 + (Max(40, H.hit) - 40))) - 1
                               - txtFlNoClassRows:
                                   Control: ModernText
                                   Properties:
