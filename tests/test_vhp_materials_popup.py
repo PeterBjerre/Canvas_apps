@@ -41,8 +41,8 @@ def test_layout_follows_the_mockup():
     c = _controls()
     for name in ("chkVhpMatSel", "btnVhpRemoveMaterial", "imgVhpMatStatus"):
         assert name not in c, name
-    for name in ("cmbVhpMaterial", "btnVhpMatSearch", "inpVhpMatNewDesc", "inpVhpMatNewQty",
-                 "inpVhpMatNewUnit", "inpVhpMatNewTotal", "inpVhpMatNewRop",
+    for name in ("cmbVhpMaterial", "btnVhpMatSearch", "txtVhpMatNewDesc", "inpVhpMatNewQty",
+                 "txtVhpMatNewUnit", "txtVhpMatNewTotal", "txtVhpMatNewRop",
                  "btnVhpAddMaterial", "btnVhpMatEdit", "btnVhpMatDelete", "txtVhpMatTotal",
                  "txtVhpMatRop", "btnVhpMatCancel", "btnVhpMatSave", "txtVhpMatChanges",
                  "btnVhpMatDiscardConfirm"):
@@ -55,9 +55,10 @@ def test_layout_follows_the_mockup():
     assert "Materials – operation" in c["txtVhpMatTitle"]["Text"]
     assert "Search and add materials for this operation." in c["txtVhpMatNote"]["Text"]
     assert '" added"' in c["txtVhpMatChanges"]["Text"]
-    # Opslaget giver beskrivelse og enhed - de kan ikke skrives i.
+    # Opslaget giver beskrivelse og enhed - de kan ikke skrives i (tekst,
+    # ikke felter, issue #577).
     for name in ("inpVhpMatNewDesc", "inpVhpMatNewUnit", "inpVhpMatNewTotal", "inpVhpMatNewRop"):
-        assert "DisplayMode.View" in c[name]["DisplayMode"], name
+        assert name not in c, name
 
 
 def test_lookup_calls_the_stock_flow_with_the_sap_plant_number():
@@ -155,9 +156,10 @@ def test_issue_574_search_field_is_the_search_and_fetch_combobox():
     for part in ("Set(varVhpMatPick, \"\")", "Clear(colVhpMatHits)", "Clear(colVhpMatFound)",
                  "Reset(cmbVhpMaterial)", "Reset(inpVhpMatNewQty)"):
         assert part in tail, part
-    # Opslagets felter kan ikke skrives i, og enheden er tekst.
-    for name in ("inpVhpMatNewDesc", "inpVhpMatNewUnit", "inpVhpMatNewTotal", "inpVhpMatNewRop"):
-        assert "DisplayMode.View" in c[name]["DisplayMode"], name
+    # Opslagets felter kan ikke skrives i (issue #577: tekst i en
+    # skrivebeskyttet flade), og enheden er tekst.
+    for name in ("txtVhpMatNewDesc", "txtVhpMatNewUnit", "txtVhpMatNewTotal", "txtVhpMatNewRop"):
+        assert "DisplayMode" not in c[name], name
     assert "drpVhpMatNewUnit" not in c
 
 

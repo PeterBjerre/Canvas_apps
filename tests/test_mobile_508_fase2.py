@@ -79,7 +79,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
     assert x.lstrip("=").startswith("If(LayoutRank < 2,")
     assert _ev(x, 360) == 8 and _ev(y, 360) == 52
     for w in TABLET_UP:
-        assert _ev(x, w) == 0 + 130 + 10 + 260 + 10  # issue #574
+        assert _ev(x, w) == 0 + 290 + 10 + 280 + 10  # issue #577: eet gitter
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
 # ---------------------------------------------------------------------------
 CARD_GALLERIES = {
     # galleri: (mobil skabelonhoejde, desktop skabelonhoejde, desktop bredde)
-    "galVhpMaterials": (116, 46, 874),  # issue #574: bredere kolonner
+    "galVhpMaterials": (116, 46, 1064),  # issue #577: eet bredere gitter
     "galVhpItemObjects": (80, 40, 724),
     "galVhpPicker": (54, 34, 636),
     "galVhpPkgRows": (88, 44, 472),
@@ -152,7 +152,7 @@ def test_operations_are_two_line_cards_on_a_phone():
 POPUPS = {
     "conVhpPickerModal": 740,
     "conVhpObjListModal": 760,
-    "conVhpMatModal": 910,
+    "conVhpMatModal": 1100,  # issue #577: smallere skaerm -> App.Width - 40
     "conVhpLongTextModal": 620,
     "conVhpMissingModal": 520,
 }
@@ -163,7 +163,7 @@ def test_popups_are_nearly_full_screen_on_a_phone():
         for w in PHONES:
             assert vh(c, "Width", w) == w - 2 * lay.MOBILE_POP_MARGIN, (c, w)
         for w in (1024, 1366, 1920):
-            assert vh(c, "Width", w) == d_w, (c, w)
+            assert vh(c, "Width", w) == min(d_w, w - 40), (c, w)
 
 
 # ---------------------------------------------------------------------------
