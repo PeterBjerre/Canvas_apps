@@ -420,10 +420,11 @@ def set_phone_h(ctrl, h):
 
 class _Proxy:
     """Et barn, som hoejde-algebraen ser det paa en telefon."""
-    __slots__ = ("h", "vis")
+    __slots__ = ("h", "vis", "clear")
 
-    def __init__(self, h, vis):
-        self.h, self.vis = h, vis
+    def __init__(self, h, vis, clear=0):
+        # clear: luften under barnet (gen_screen.footprint, issue #560).
+        self.h, self.vis, self.clear = h, vis, clear
 
 
 def restack(node):
@@ -448,7 +449,7 @@ def restack(node):
     if not all(isinstance(x, (int, float)) for x in (pt, pb, gap)):
         return phone_h(node)
     pt, pb = pt + edge, pb + edge
-    proxies = [_Proxy(h, c.vis) for c, h in zip(kids, hs)]
+    proxies = [_Proxy(h, c.vis, getattr(c, "clear", 0)) for c, h in zip(kids, hs)]
     wraps = str(phone(p.get("LayoutWrap", "false"))).lower() == "true"
     if "Vertical" in lay_dir or (wraps and direction == "Vertical"):
         # En raekke, der ombryder paa mobil, og som er markeret lodret
