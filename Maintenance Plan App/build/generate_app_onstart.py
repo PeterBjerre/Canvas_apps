@@ -133,6 +133,11 @@ Set(varVhpMatTried, false);
 Set(varVhpMatDiscardOpen, false);
 // Materialeopslaget koerer (lagerflowet) - forstoerrelsesglas og + er slaaet fra.
 Set(varVhpMatBusy, false);
+// Materialets soegefelt (issue #574, tools/fl_picker.py): vaelgerens tilstand.
+Set(varVhpMatQuery, "");
+Set(varVhpMatLast, "");
+Set(varVhpMatPick, "");
+Set(varVhpMatMsg, "");
 Set(varVhpAttOpNo, "");
 // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
 // operationen i popup'en (tom = lukket) og vaelgerens tilstand.

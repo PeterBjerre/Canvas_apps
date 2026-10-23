@@ -8,7 +8,7 @@ from gen_screen import (Ctrl, row_height, C_CARD_BG, C_MUTED,
                         C_NEUTRAL_BG, C_TITLE)
 import layout_tokens as lay
 import icons
-from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, flow_row, text_ctrl,
+from build_helpers import (ensure_hit, hit_size, popup_head, empty_state, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
@@ -35,7 +35,8 @@ BG_HEX = ref_hex("bg-muted")
 PRI_HEX = ref_hex("text-primary")
 import build_attflows
 import doc_upload as du
-from fl_picker import fl_picker
+from fl_picker import fl_picker, reset_fx
+import fl_picker as fl_picker_mod
 import vendor_search as vs
 from build_modal import NEXT_OP_BASE
 
@@ -475,7 +476,9 @@ PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
 # materialet slaas op. De gemmes ikke i SharePoint - en gemt linje viser
 # "-", til materialet slaas op igen.
 MAT_ACT_W = 2 * lay.HIT_TOUCH + 4
-MAT_COLS = [("MATERIAL", 110), ("DESCRIPTION", 210), ("QUANTITY", 80), ("UNIT", 60),
+# Issue #574 (mockup'en): MATERIAL og DESCRIPTION er bredere, saa hele
+# materialenummeret og beskrivelsen kan laeses.
+MAT_COLS = [("MATERIAL", 130), ("DESCRIPTION", 260), ("QUANTITY", 80), ("UNIT", 60),
             ("TOTAL", 70), ("REORDER POINT", 100), ("ACTIONS", MAT_ACT_W)]
 MAT_GAP = 10
 MAT_TABLE_W = sum(w for _, w in MAT_COLS) + MAT_GAP * (len(MAT_COLS) - 1)
@@ -492,46 +495,75 @@ MAT_OP = ("Filter(colVhpMaterials, ItemId = varVhpActiveItemId && "
 MAT_FLOW = "'BioSap-Integration-MaterialStock'"
 MAT_RAW = "varVhpMatStock"
 MAT_BUSY = "varVhpMatBusy"
-MAT_SEARCH = "inpVhpMatSearch"
 MAT_NEW_QTY = "inpVhpMatNewQty"
-# Opslagets svar: hoejst een raekke, og kun for det nummer, der STAAR i
-# feltet - rettes nummeret, er beskrivelsen ikke laengere dens.
+# SOEGEFELTET (issue #574): samme soege-og-hent-vaelger som leverandoeren og
+# Functional Location (tools/fl_picker.py) - EEN ModernCombobox, et
+# forstoerrelsesglas (Search) og hjulet i dets plads. Listen viser
+# "nummer - beskrivelse", saa det, der skrives bagefter, filtrerer paa
+# baade nummer og beskrivelse (comboboksens egen lokale soegning). Selve
+# opslaget er paa materialenummer - lagerflowet kan ikke soege paa tekst.
+MAT_COMBO = "cmbVhpMaterial"
+# Vaelgerens raekker i FL-vaelgerens skema (Code, Description, Display,
+# Maintainable, Level), saa fl_picker kan vise dem uaendret. Code er
+# materialenummeret.
+MAT_HITS = "colVhpMatHits"
+MAT_QUERY = "varVhpMatQuery"
+MAT_LAST = "varVhpMatLast"
+MAT_PICK = "varVhpMatPick"
+MAT_MSG = "varVhpMatMsg"
+MAT_MIN_LEN = 1
+# Lagerets tal for det valgte materiale: hoejst een raekke pr. opslag.
 MAT_FOUND_COL = "colVhpMatFound"
-MAT_FOUND = f"LookUp({MAT_FOUND_COL}, MaterialNo = Upper(Trim({MAT_SEARCH}.Text)))"
+MAT_FOUND = f"LookUp({MAT_FOUND_COL}, MaterialNo = {MAT_PICK})"
 # SAP-plantnummeret til flowet (PlantList.PlantNumber, Provision-PlantList.ps1)
 # for det vaerk, planen staar paa.
 MAT_PLANT_NO = f'Trim(Coalesce(LookUp(colVhpPlantCodes, Value = {PLANT}).PlantNumber, ""))'
+# Ryd vaelgeren og opslaget - ved aabning, efter + og naar popuppen lukkes.
+MAT_PICKER_RESET = reset_fx(combo=MAT_COMBO, results=MAT_HITS, msg_var=MAT_MSG,
+                            query_var=MAT_QUERY, last_var=MAT_LAST, pick_var=MAT_PICK,
+                            extra=f"Clear({MAT_FOUND_COL})")
 
 
-def mat_lookup_fx():
-    """Forstoerrelsesglasset: slaa materialenummeret op paa lageret.
+def mat_search_action(query_ctrl, target, msg_var, *, raw_var, busy_var=None,
+                      query_expr=None, last_var=None, min_len=None, on_start=None,
+                      on_found=None, **_kw):
+    """Search (forstoerrelsesglasset) og Enter: slaa materialenummeret op
+    paa lageret - fl_pickers searcher (samme signatur som
+    build_flsearch.search_action).
 
     Flowet svarer ok/status/message/details. details har een raekke pr.
     lagerplacering med det andet kalds svar i stock. Placeringer, hvor det
     andet kald ikke gav 200, taeller ikke med. Beskrivelse og enhed er den
     foerste placerings; Total og Reorder point er summen over placeringerne."""
+    q_src = query_expr or f"{query_ctrl}.SearchText"
+    n_min = min_len or MAT_MIN_LEN
     return (
         "With(\n"
-        f"    {{ m: Upper(Trim({MAT_SEARCH}.Text)), p: {MAT_PLANT_NO} }},\n"
+        f"    {{ m: Upper(Trim({q_src})), p: {MAT_PLANT_NO} }},\n"
         "    If(\n"
-        "        IsBlank(m),\n"
+        f"        Len(m) < {n_min},\n"
         "        Notify(\"Type a material number first.\", NotificationType.Warning),\n"
         "        IsBlank(p),\n"
         f"        Notify(\"Plant \" & {PLANT} & \" has no SAP plant number in PlantList, so the "
         "material cannot be looked up.\", NotificationType.Error),\n"
-        f"        Set({MAT_BUSY}, true);\n"
+        f"        Set({busy_var}, true);\n"
+        + (f"        Set({last_var}, m);\n" if last_var else "")
+        + f"        Clear({target});\n"
         f"        Clear({MAT_FOUND_COL});\n"
+        + (f"        {on_start};\n" if on_start else "")
+        + f"        Set({msg_var}, \"\");\n"
         "        IfError(\n"
-        f"            Set({MAT_RAW}, {MAT_FLOW}.Run(p, m));\n"
+        f"            Set({raw_var}, {MAT_FLOW}.Run(p, m));\n"
         "            If(\n"
-        f"                {MAT_RAW}.ok <> \"yes\",\n"
-        f"                Notify(\"Material \" & m & \" could not be looked up: \" & "
-        f"Coalesce({MAT_RAW}.message, \"no answer\"), NotificationType.Error),\n"
+        f"                {raw_var}.ok <> \"yes\",\n"
+        f"                Set({msg_var}, \"Material \" & m & \" could not be looked up: \" & "
+        f"Coalesce({raw_var}.message, \"no answer\"));\n"
+        f"                Notify({msg_var}, NotificationType.Error),\n"
         "                With(\n"
         "                    {\n"
         "                        rows: Filter(\n"
-        f"                            ForAll(\n"
-        f"                                Table(ParseJSON({MAT_RAW}.details)) As R,\n"
+        "                            ForAll(\n"
+        f"                                Table(ParseJSON({raw_var}.details)) As R,\n"
         "                                {\n"
         "                                    St: Value(R.Value.status),\n"
         "                                    Desc: Text(R.Value.stock.materialDescription),\n"
@@ -545,17 +577,24 @@ def mat_lookup_fx():
         "                    },\n"
         "                    If(\n"
         "                        CountRows(rows) = 0,\n"
-        "                        Notify(\"Material \" & m & \" was not found in plant \" & p & \".\", "
-        "NotificationType.Warning),\n"
-        f"                        Collect({MAT_FOUND_COL}, {{ MaterialNo: m, "
-        "Description: First(rows).Desc, Unit: First(rows).Uom, "
-        "Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) })\n"
+        f"                        Set({msg_var}, \"Material \" & m & \" was not found in plant \" & p & \".\");\n"
+        f"                        Notify({msg_var}, NotificationType.Warning),\n"
+        "                        With(\n"
+        "                            { d: Trim(Coalesce(First(rows).Desc, \"\")) },\n"
+        f"                            Collect({MAT_FOUND_COL}, {{ MaterialNo: m, "
+        "Description: d, Unit: First(rows).Uom, "
+        "Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) });\n"
+        f"                            Collect({target}, {{ Code: m, Description: d, "
+        "Display: If(IsBlank(d), m, m & \" - \" & d), Maintainable: true, Level: \"\" })"
+        + (f";\n                            {on_found}\n" if on_found else "\n")
+        + "                        )\n"
         "                    )\n"
         "                )\n"
         "            ),\n"
-        "            Notify(\"The material lookup failed. Try again.\", NotificationType.Error)\n"
+        f"            Set({msg_var}, \"The material lookup failed. Try again.\");\n"
+        f"            Notify({msg_var}, NotificationType.Error)\n"
         "        );\n"
-        f"        Set({MAT_BUSY}, false)\n"
+        f"        Set({busy_var}, false)\n"
         "    )\n"
         ")"
     )
@@ -573,7 +612,8 @@ def mat_open_fx(op_no):
     """Materials-knappen: kladden er operationens gemte linjer, som de staar."""
     return (
         "Set(varVhpMatTried, false);\n"
-        f"Clear({MAT_FOUND_COL});\n"
+        f"{MAT_PICKER_RESET};\n"
+        f"Reset({MAT_NEW_QTY});\n"
         "ClearCollect(\n"
         "    colVhpMatDraft,\n"
         "    ForAll(\n"
@@ -592,7 +632,7 @@ def mat_open_fx(op_no):
 
 # Luk uden at gemme: kladden glemmes.
 MAT_DISCARD_FX = ("Set(varVhpMatTried, false);\nClear(colVhpMatDraft);\n"
-                  f"Clear({MAT_FOUND_COL});\nSet(varVhpMatOpNo, \"\")")
+                  f"{MAT_PICKER_RESET};\nSet(varVhpMatOpNo, \"\")")
 # Cancel, X (og sloeret paa mobil): med ugemte aendringer spoerges der foerst.
 MAT_CLOSE_FX = (f"If(\n    {MAT_DIRTY},\n    Set(varVhpMatDiscardOpen, true),\n"
                 + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + "\n)")
@@ -682,17 +722,22 @@ MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
 # Materials-popuppen er bredere end de andre: tabellen har syv kolonner.
 MAT_MODAL_W = MAT_TABLE_W + 4 + SCROLLBAR_W + 36
 
-# Indtastningsraekkens felter (mockup'en): bredderne fylder omtrent
-# tabellens bredde. Paa en telefon staar felterne under hinanden.
-MAT_ENTRY = [("MaterialNo", "Material", 200, True), ("Desc", "Description", 190, False),
+# Indtastningsraekkens felter (mockup'en, issue #574): Material er det
+# bredeste felt, og raekken er lige saa bred som tabellen under den. Paa en
+# telefon staar felterne under hinanden.
+MAT_ENTRY = [("MaterialNo", "Material", 240, True), ("Desc", "Description", 198, False),
              ("NewQty", "Quantity", 80, True), ("NewUnit", "Unit", 60, False),
              ("NewTotal", "Total", 70, False), ("NewRop", "Reorder point", 100, False)]
 MAT_ADD_W = lay.HIT_TOUCH
+# Felterne er saa hoeje som soegefeltet (fl_picker.HEIGHT), saa de flugter.
+MAT_FIELD_H = fl_picker_mod.HEIGHT
+# Forstoerrelsesglasset og hjulet i dets plads: kun ikonet (mockup'en).
+MAT_FIND_W = 40
+# Soegeraekken: comboboksen eller glasset (H.hit), det hoejeste, og luften.
+MAT_PICK_ROW_H = f"Max({fl_picker_mod.HEIGHT}, {lay.HIT}) + {2 * fl_picker_mod.ROW_PAD}"
 
 
-# Hver celle: etiketten (20) og et felt. Soegefeltet staar i en raekke paa
-# H.hit (44) med forstoerrelsesglasset; de andre felter (32) staar midt ud
-# for det, saa felterne flugter.
+# Hver celle: etiketten (20) og et felt, midt ud for +, som er H.hit (44).
 MAT_ENTRY_H = 20 + 4 + lay.HIT_TOUCH
 
 
@@ -704,11 +749,57 @@ def _mat_entry_cell(key, label, width, required, field):
         mobile.touch(field)
     box = group(f"conVhpMat{key}Cell", [lbl, field], direction="Vertical", gap=4,
                 width=width, height=MAT_ENTRY_H, align_items="Stretch")
-    if not search:
-        half = (lay.HIT_TOUCH - 32) // 2
+    half = (lay.HIT_TOUCH - MAT_FIELD_H) // 2
+    if search:
+        # Comboboksen staar ROW_PAD nede i sin raekke (fl_picker); raekken er
+        # hoejere, hvor H.hit er 44 (tablet, telefon). + 1: timeren.
+        gap = lay.mobile_or(4, 4 + half - fl_picker_mod.ROW_PAD)
+        box.props["LayoutGap"] = gap
+        box.props["Height"] = f"20 + {gap} + {MAT_PICK_ROW_H} + 1"
+        box.h = box.props["Height"]
+    else:
         box.props["LayoutGap"] = lay.mobile_or(4, 4 + half)
         box.props["PaddingBottom"] = lay.mobile_or(0, half)
     return box
+
+
+def _mat_picker():
+    """Materialets soege-og-hent-felt (issue #574): fl_picker med
+    lagerflowet bag (mat_search_action) - samme moenster som
+    leverandoersoegningen. Search er et forstoerrelsesglas."""
+    picker = fl_picker(
+        "Vhp", combo=MAT_COMBO, results=MAT_HITS, raw_var=MAT_RAW,
+        msg_var=MAT_MSG, busy_var=MAT_BUSY, query_var=MAT_QUERY,
+        last_var=MAT_LAST, pick_var=MAT_PICK,
+        default_items=f"Filter({MAT_HITS}, Code = {MAT_PICK})",
+        display_mode=VIEW_LOCK, label="Material", width="Parent.Width",
+        min_len=MAT_MIN_LEN, kind="Mat", searcher=mat_search_action,
+        placeholder='"Search by material number"',
+        search_accessible='"Look up the material number on stock"')
+    cmb = mobile.find(picker, MAT_COMBO)
+    cmb.props["AccessibleLabel"] = ('"Material - type the material number, then the '
+                                    'magnifier or Enter"')
+    btn = mobile.find(picker, "btnVhpMatSearch")
+    btn.props["Text"] = '""'
+    btn.props["Icon"] = '"Search"'
+    btn.props["Layout"] = "ButtonLayout.IconOnly"
+    # Tooltip'en husker, hvorfor det sidste opslag ikke gav et materiale.
+    btn.props["Tooltip"] = (f'If(IsBlank({MAT_MSG}), "Look up the material number on stock", '
+                            f'{MAT_MSG})')
+    spin = mobile.find(picker, "spnVhpMatBusy")
+    spin.props["Label"] = '""'
+    for c in (btn, spin):
+        # Klikfladen er mindst H.hit, som alle ikonknapper.
+        c.props["Width"] = hit_size(MAT_FIND_W)
+        c.props["LayoutMinWidth"] = c.props["Width"]
+        c.props["Height"] = lay.HIT
+        c.h = c.props["Height"]
+    mobile.touch(cmb)
+    row = mobile.find(picker, "conVhpMatInput")
+    row.props["Height"] = MAT_PICK_ROW_H
+    row.h = row.props["Height"]
+    mobile.refit(picker)
+    return picker
 
 
 def _mat_entry_row():
@@ -718,34 +809,24 @@ def _mat_entry_row():
     found = MAT_FOUND
     busy = f"IfError({MAT_BUSY}, false)"
 
-    search = text_input(MAT_SEARCH, '""', placeholder='"Search material number or text..."',
-                        label='"Material number"', display_mode=VIEW_LOCK, height=32)
-    grow(search)
-    mobile.touch(search)
-    btnFind = button(
-        "btnVhpMatLookup", '""', mat_lookup_fx(), width=40, height=32, icon="Search",
-        display_mode=f"If(varVhpViewOnly || {busy}, DisplayMode.Disabled, DisplayMode.Edit)",
-        accessible='"Look up the material"')
-    btnFind.props["Layout"] = "ButtonLayout.IconOnly"
-    btnFind.props["Tooltip"] = '"Look up the material number on stock"'
-    ensure_hit(btnFind)
-    find_row = group("conVhpMatSearchRow", [search, btnFind], direction="Horizontal", gap=4,
-                     height=lay.HIT_TOUCH, align_items="Center")
-
     def ro_field(name, value, label):
-        return text_input(name, value, label=f'"{label}"', display_mode="DisplayMode.View",
-                          height=32)
+        f = text_input(name, value, label=f'"{label}"', display_mode="DisplayMode.View",
+                       height=MAT_FIELD_H)
+        # Hele teksten, ogsaa naar feltet er for smalt til den.
+        f.props["Tooltip"] = value
+        return f
 
     desc = ro_field("inpVhpMatNewDesc",
                     f'If({busy}, "Looking up...", Coalesce({found}.Description, ""))',
                     "Description")
-    qty = number_field(MAT_NEW_QTY, "1", label='"Quantity"', height=32, display_mode=VIEW_LOCK)
+    qty = number_field(MAT_NEW_QTY, "1", label='"Quantity"', height=MAT_FIELD_H,
+                       display_mode=VIEW_LOCK)
     unit = ro_field("inpVhpMatNewUnit", f'Coalesce({found}.Unit, "")', "Unit")
     total = ro_field("inpVhpMatNewTotal",
                      f'If(IsBlank({found}), "", Text({found}.Total))', "Total")
     rop = ro_field("inpVhpMatNewRop",
                    f'If(IsBlank({found}), "", Text({found}.ReorderPoint))', "Reorder point")
-    fields = {"MaterialNo": find_row, "Desc": desc, "NewQty": qty, "NewUnit": unit,
+    fields = {"MaterialNo": _mat_picker(), "Desc": desc, "NewQty": qty, "NewUnit": unit,
               "NewTotal": total, "NewRop": rop}
     cells = [_mat_entry_cell(k, lbl, wd, req, fields[k]) for k, lbl, wd, req in MAT_ENTRY]
 
@@ -754,10 +835,11 @@ def _mat_entry_row():
         "btnVhpAddMaterial", '""',
         (
             "With(\n"
-            f"    {{ m: Upper(Trim({MAT_SEARCH}.Text)), q: {new_qty}, f: {found} }},\n"
+            f"    {{ m: Upper(Trim(Coalesce({MAT_PICK}, \"\"))), q: {new_qty}, f: {found} }},\n"
             "    If(\n"
-            "        IsBlank(m),\n"
-            "        Notify(\"Type a material number first.\", NotificationType.Warning),\n"
+            "        IsBlank(m) || IsBlank(f),\n"
+            "        Notify(\"Search for the material and select it first.\", "
+            "NotificationType.Warning),\n"
             "        IsBlank(q) || q <= 0,\n"
             "        Notify(\"The quantity must be above 0.\", NotificationType.Warning),\n"
             "        !IsBlank(LookUp(colVhpMatDraft, MaterialNo = m)),\n"
@@ -781,8 +863,8 @@ def _mat_entry_row():
             "                Editing: false\n"
             "            }\n"
             "        );\n"
-            f"        Clear({MAT_FOUND_COL});\n"
-            f"        Reset({MAT_SEARCH});\n"
+            # Indtastningsraekken er tom igen, klar til det naeste materiale.
+            f"        {MAT_PICKER_RESET};\n"
             f"        Reset({MAT_NEW_QTY})\n"
             "    )\n"
             ")"
@@ -790,8 +872,8 @@ def _mat_entry_row():
         display_mode=f"If(varVhpViewOnly || {busy}, DisplayMode.Disabled, DisplayMode.Edit)",
         accessible='"Add the material to the operation"')
     btnAdd.props["Layout"] = "ButtonLayout.IconOnly"
-    btnAdd.props["Tooltip"] = ('"Add the material. Description and unit come from the lookup - '
-                               'without a lookup they stay empty."')
+    btnAdd.props["Tooltip"] = ('"Add the material with the quantity. Description, unit, total '
+                               'and reorder point come from the lookup."')
     ensure_hit(btnAdd)
     # + staar ud for felterne, ikke ud for etiketterne.
     add_cell = group("conVhpMatAddCell", [btnAdd], direction="Vertical", width=MAT_ADD_W,
@@ -829,13 +911,16 @@ def _materials_modal():
     row_mode = f"If({ro} || !ThisItem.Editing, DisplayMode.View, DisplayMode.Edit)"
     tried = "varVhpMatTried"
 
-    def cell(name, text, width, weight=None, color=C_TITLE):
-        return text_ctrl(name, text, size=12, color=color, weight=weight, height=30,
-                         width=width, wrap="false")
+    def cell(name, text, width, weight=None, color=C_TITLE, wrap="false", height=30):
+        return text_ctrl(name, text, size=12, color=color, weight=weight, height=height,
+                         width=width, wrap=wrap)
 
+    # Hele materialenummeret og beskrivelsen kan laeses (issue #574): kolonnerne
+    # er bredere, og en lang beskrivelse braekker om paa to linjer i raekken.
     txtNo = cell("txtVhpMatNo", "ThisItem.MaterialNo", w["MATERIAL"], weight="Semibold")
     txtDesc = cell("txtVhpMatDesc", 'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
-                   w["DESCRIPTION"])
+                   w["DESCRIPTION"], wrap=lay.mobile_or("false", "true"), height=MAT_ROW_H - 4)
+
     numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QUANTITY"], height=32,
                           label='"Quantity"', required_formula=tried, display_mode=row_mode,
                           onchange=f"Patch(colVhpMatDraft, ThisItem, {{ Quantity: {NV} }})")
@@ -877,7 +962,12 @@ def _materials_modal():
                 direction="Horizontal", gap=MAT_GAP, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
-    MAT_ROWS = 6
+    # Ingen tom plads under listen (issue #574): galleriet er saa hoejt som
+    # sine linjer og scroller FOERST, naar de ikke kan vaere i popuppen.
+    # Pladsen er popuppens indhold (_modal, cap) minus noten, indtastnings-
+    # raekken, kolonneoverskriften og bunden; mindst MAT_ROWS_MIN linjer.
+    MAT_ROWS_MIN = 3
+    mat_fixed = (40 + 36 + HEAD_H + 12) + (32 + 8 + MAT_ENTRY_H + 8 + 22 + 4 + 1 + 4 + 8 + 36)
     # TELEFONEN (issue #508): tabellen er et kort pr. linje - materialet og
     # Edit/Delete oeverst, antal, enhed, total og genbestillingspunkt under,
     # beskrivelsen nederst. Galleriet er saa hoejt som sine kort og scroller
@@ -885,7 +975,9 @@ def _materials_modal():
     # Tablet og op er det en tabel.
     MAT_ROW_H_M = 118
     n_mat = "CountRows(colVhpMatDraft)"
-    gal_h = lay.mobile_or(f"{n_mat} * {MAT_ROW_H_M}", MAT_ROWS * (MAT_ROW_H + 2))
+    gal_h = lay.mobile_or(f"{n_mat} * {MAT_ROW_H_M}",
+                          f"Min({n_mat} * {MAT_ROW_H + 2}, "
+                          f"Max({MAT_ROWS_MIN * (MAT_ROW_H + 2)}, App.Height - {mat_fixed}))")
     tpl_w_m = f"(({MODAL_CW}) - 4)"
     pad_m = 8
     act_w = 2 * lay.HIT_TOUCH + 4
@@ -923,12 +1015,8 @@ def _materials_modal():
     for c in (header, divider):
         mobile.hide_on_mobile(c)
 
-    # Tom tilstand (UX-review F4) - indtastningsraekken staar lige over.
-    empty = empty_state("conVhpMatEmpty",
-                        f'If({ro}, "No materials on this operation.", '
-                        '"No materials on this operation yet - search for one above and choose +.")',
-                        icon_path=icons.MATERIAL,
-                        visible="IfError(CountRows(colVhpMatDraft) = 0, false)")
+    # Ingen separat tom tilstand (issue #574): den tomme indtastningsraekke
+    # og kolonneoverskriften er nok. Bunden siger "0 materials added".
 
     note = text_ctrl("txtVhpMatNote",
                      '"Search and add materials for this operation. Description and unit are '
@@ -937,7 +1025,7 @@ def _materials_modal():
 
     # Start, ikke Stretch: tabellen har sin egen bredde og scroller vandret
     # paa en smal skaerm i stedet for at blive klemt sammen.
-    table = group("conVhpMatTableWrap", [header, divider, gallery, empty],
+    table = group("conVhpMatTableWrap", [header, divider, gallery],
                   direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                   align_items="Start")
 
