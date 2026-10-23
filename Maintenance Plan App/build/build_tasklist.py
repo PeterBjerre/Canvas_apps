@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import display_text as dt
-import status_chip as sc
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, row_height, C_CARD_BG, C_MUTED,
@@ -13,7 +12,7 @@ from build_helpers import (ensure_hit, popup_head, empty_state, table_surface, f
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            card, pin_widths, grow, row_hit,
                            fit_button_width, ICON_W, flow_ok, mark_done,
-                           tab_list, tabs_w, confirm_modal)
+                           tab_list, tabs_w, confirm_modal, label_row)
 from build_plan_header import section_header, help_panel, section_footer, mobile_head, status_icon
 from build_helpers import mobile_pad
 from build_helpers import modern_badge  # issue #545: Duration-maerket
@@ -457,37 +456,27 @@ PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
 # ---------------------------------------------------------------------------
 # Materialer
 # ---------------------------------------------------------------------------
-# Description og Unit er tomme i dag. De fyldes ud af et materialeopslag mod
-# SAP senere - kolonnerne staar der allerede, saa opslaget kun skal skrive i
-# dem og ikke flytte rundt paa tabellen.
-# OPERATION-kolonnen er vaek: materialerne vises nu pr. operation, i en
-# popup fra operationens egen raekke (issue #54), saa operationen ER givet.
+# OPERATION-kolonnen er vaek: materialerne vises pr. operation, i en popup
+# fra operationens egen raekke (issue #54), saa operationen ER givet.
 #
-# EN KLADDE MED SAVE (issue #451). Popuppen rettede foer direkte i
-# colVhpMaterials, og en SEL-kolonne + "Remove material" slettede. Man kunne
-# ikke se, hvad der var nyt, rettet eller gemt. Nu foelger den appens andre
-# popupper (Long text: kladde + "Save text"; Object list: kladde + "Use
-# selected"; X kasserer, issue #237): popuppen arbejder i colVhpMatDraft,
-# og foerst Save skriver i colVhpMaterials. Hver linje har en statuschip
-# (tools/status_chip.py - den ene statuschip i appen):
-#   Saved    staar i colVhpMaterials og er uaendret
-#   New      tilfoejet, ikke gemt endnu
-#   Edited   rettet, ikke gemt endnu
-#   Deleted  slettes ved Save - kan fortrydes til da
-# En gemt linje er skrivebeskyttet, til der trykkes Edit paa den - samme
-# model som en gemt sektion (issue #433). SEL er erstattet af ACTIONS:
-# Edit/Undo og Delete paa selve linjen. Delete af en gemt linje er en
-# ugemt aendring (chip + Undo), ikke en sletning med det samme, saa den
-# kraever ingen bekraeftelse; X med ugemte aendringer goer (confirm_modal).
-MAT_LINE = [
-    ("saved", "Saved", icons.STATUS_READY, "ok"),
-    ("new", "New", icons.STATUS_DRAFT, "info"),
-    ("edited", "Edited", icons.EDIT, "warn"),
-    ("deleted", "Deleted", icons.DELETE, "error"),
-]
+# EN KLADDE MED SAVE (issue #451): popuppen arbejder i colVhpMatDraft, og
+# foerst Save skriver i colVhpMaterials. Cancel og X kasserer kladden - med
+# en bekraeftelse, naar der er ugemte aendringer (confirm_modal).
+#
+# MATERIALEOPSLAGET (Peter 2026-10-23, efter hans mockup): oeverst er en
+# indtastningsraekke. Materialenummeret slaas op med flowet
+# BioSap-Integration-MaterialStock (docs/44-dev-api-test.md), som giver
+# beskrivelse, enhed, lagerbeholdning (Total) og genbestillingspunkt pr.
+# lagerplacering. + laegger linjen i kladden. Tabellen har ingen
+# statuskolonne; blyanten retter antallet, skraldespanden fjerner linjen
+# fra kladden.
+#
+# Total og Reorder point er et OEJEBLIKSBILLEDE fra lageret, naar
+# materialet slaas op. De gemmes ikke i SharePoint - en gemt linje viser
+# "-", til materialet slaas op igen.
 MAT_ACT_W = 2 * lay.HIT_TOUCH + 4
-MAT_COLS = [("MATERIAL", 120), ("DESCRIPTION", 150), ("QTY", 60), ("UNIT", 50),
-            ("STATUS", sc.table_width(MAT_LINE)), ("ACTIONS", MAT_ACT_W)]
+MAT_COLS = [("MATERIAL", 110), ("DESCRIPTION", 210), ("QUANTITY", 80), ("UNIT", 60),
+            ("TOTAL", 70), ("REORDER POINT", 100), ("ACTIONS", MAT_ACT_W)]
 MAT_GAP = 10
 MAT_TABLE_W = sum(w for _, w in MAT_COLS) + MAT_GAP * (len(MAT_COLS) - 1)
 # Een linje: et felt (32) og Edit/Delete paa H.hit (44 paa touch).
@@ -497,40 +486,103 @@ MAT_ACTIVE = "Filter(colVhpMaterials, ItemId = varVhpActiveItemId)"
 MAT_OP = ("Filter(colVhpMaterials, ItemId = varVhpActiveItemId && "
           "OperationNo = varVhpMatOpNo)")
 
+# Flowet og dets svar (solution/BIOSAP/src/Workflows/
+# BioSap-Integration-MaterialStock-*.json). Navnet staar i lige
+# anfoerselstegn, fordi det har bindestreger (tools/build_flsearch.py).
+MAT_FLOW = "'BioSap-Integration-MaterialStock'"
+MAT_RAW = "varVhpMatStock"
+MAT_BUSY = "varVhpMatBusy"
+MAT_SEARCH = "inpVhpMatSearch"
+MAT_NEW_QTY = "inpVhpMatNewQty"
+# Opslagets svar: hoejst een raekke, og kun for det nummer, der STAAR i
+# feltet - rettes nummeret, er beskrivelsen ikke laengere dens.
+MAT_FOUND_COL = "colVhpMatFound"
+MAT_FOUND = f"LookUp({MAT_FOUND_COL}, MaterialNo = Upper(Trim({MAT_SEARCH}.Text)))"
+# SAP-plantnummeret til flowet (PlantList.PlantNumber, Provision-PlantList.ps1)
+# for det vaerk, planen staar paa.
+MAT_PLANT_NO = f'Trim(Coalesce(LookUp(colVhpPlantCodes, Value = {PLANT}).PlantNumber, ""))'
 
-def mat_changed(r=""):
-    """Er linjen en ugemt aendring? r: "ThisItem." eller "" (i Filter)."""
-    return (f"({r}Deleted || {r}IsNew || {r}MaterialNo <> {r}OrigMaterialNo || "
-            f"{r}Quantity <> {r}OrigQuantity)")
+
+def mat_lookup_fx():
+    """Forstoerrelsesglasset: slaa materialenummeret op paa lageret.
+
+    Flowet svarer ok/status/message/details. details har een raekke pr.
+    lagerplacering med det andet kalds svar i stock. Placeringer, hvor det
+    andet kald ikke gav 200, taeller ikke med. Beskrivelse og enhed er den
+    foerste placerings; Total og Reorder point er summen over placeringerne."""
+    return (
+        "With(\n"
+        f"    {{ m: Upper(Trim({MAT_SEARCH}.Text)), p: {MAT_PLANT_NO} }},\n"
+        "    If(\n"
+        "        IsBlank(m),\n"
+        "        Notify(\"Type a material number first.\", NotificationType.Warning),\n"
+        "        IsBlank(p),\n"
+        f"        Notify(\"Plant \" & {PLANT} & \" has no SAP plant number in PlantList, so the "
+        "material cannot be looked up.\", NotificationType.Error),\n"
+        f"        Set({MAT_BUSY}, true);\n"
+        f"        Clear({MAT_FOUND_COL});\n"
+        "        IfError(\n"
+        f"            Set({MAT_RAW}, {MAT_FLOW}.Run(p, m));\n"
+        "            If(\n"
+        f"                {MAT_RAW}.ok <> \"yes\",\n"
+        f"                Notify(\"Material \" & m & \" could not be looked up: \" & "
+        f"Coalesce({MAT_RAW}.message, \"no answer\"), NotificationType.Error),\n"
+        "                With(\n"
+        "                    {\n"
+        "                        rows: Filter(\n"
+        f"                            ForAll(\n"
+        f"                                Table(ParseJSON({MAT_RAW}.details)) As R,\n"
+        "                                {\n"
+        "                                    St: Value(R.Value.status),\n"
+        "                                    Desc: Text(R.Value.stock.materialDescription),\n"
+        "                                    Uom: Text(R.Value.stock.unitMeasurement),\n"
+        "                                    Tot: Value(R.Value.stock.total),\n"
+        "                                    Rop: Value(R.Value.stock.reorderPoint)\n"
+        "                                }\n"
+        "                            ),\n"
+        "                            St = 200\n"
+        "                        )\n"
+        "                    },\n"
+        "                    If(\n"
+        "                        CountRows(rows) = 0,\n"
+        "                        Notify(\"Material \" & m & \" was not found in plant \" & p & \".\", "
+        "NotificationType.Warning),\n"
+        f"                        Collect({MAT_FOUND_COL}, {{ MaterialNo: m, "
+        "Description: First(rows).Desc, Unit: First(rows).Uom, "
+        "Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) })\n"
+        "                    )\n"
+        "                )\n"
+        "            ),\n"
+        "            Notify(\"The material lookup failed. Try again.\", NotificationType.Error)\n"
+        "        );\n"
+        f"        Set({MAT_BUSY}, false)\n"
+        "    )\n"
+        ")"
+    )
 
 
-def mat_state(r="ThisItem."):
-    return (f'If({r}Deleted, "deleted", {r}IsNew, "new", '
-            f'{r}MaterialNo <> {r}OrigMaterialNo || {r}Quantity <> {r}OrigQuantity, '
-            f'"edited", "saved")')
-
-
-# Antallet af ugemte aendringer i kladden.
-MAT_CHANGES = f"CountRows(Filter(colVhpMatDraft, {mat_changed()}))"
-MAT_DIRTY = f"IfError({MAT_CHANGES} > 0, false)"
-# Linjer, Save afviser: intet materialenummer eller intet antal over 0.
-MAT_INVALID = ("Filter(colVhpMatDraft, !Deleted && (IsBlank(Trim(MaterialNo)) || "
-               "IsBlank(Quantity) || Quantity <= 0))")
+# Ugemte aendringer: en ny linje, et rettet antal, eller en gemt linje,
+# der er fjernet fra kladden.
+MAT_DIRTY = ("IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || "
+             f"CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows({MAT_OP}), false)")
+# Linjer, Save afviser: intet antal over 0.
+MAT_INVALID = "Filter(colVhpMatDraft, IsBlank(Quantity) || Quantity <= 0)"
 
 
 def mat_open_fx(op_no):
     """Materials-knappen: kladden er operationens gemte linjer, som de staar."""
     return (
         "Set(varVhpMatTried, false);\n"
+        f"Clear({MAT_FOUND_COL});\n"
         "ClearCollect(\n"
         "    colVhpMatDraft,\n"
         "    ForAll(\n"
         f"        Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = {op_no}) As M,\n"
         "        {\n"
         "            LineId: M.LineId, MaterialNo: M.MaterialNo, Description: M.Description,\n"
-        "            Unit: M.Unit, Quantity: M.Quantity,\n"
-        "            OrigMaterialNo: M.MaterialNo, OrigQuantity: M.Quantity,\n"
-        "            IsNew: false, Editing: false, Deleted: false\n"
+        "            Unit: M.Unit, Quantity: M.Quantity, OrigQuantity: M.Quantity,\n"
+        "            Total: Blank(), ReorderPoint: Blank(),\n"
+        "            IsNew: false, Editing: false\n"
         "        }\n"
         "    )\n"
         ");\n"
@@ -539,8 +591,9 @@ def mat_open_fx(op_no):
 
 
 # Luk uden at gemme: kladden glemmes.
-MAT_DISCARD_FX = 'Set(varVhpMatTried, false);\nClear(colVhpMatDraft);\nSet(varVhpMatOpNo, "")'
-# X (og sloeret paa mobil): med ugemte aendringer spoerges der foerst.
+MAT_DISCARD_FX = ("Set(varVhpMatTried, false);\nClear(colVhpMatDraft);\n"
+                  f"Clear({MAT_FOUND_COL});\nSet(varVhpMatOpNo, \"\")")
+# Cancel, X (og sloeret paa mobil): med ugemte aendringer spoerges der foerst.
 MAT_CLOSE_FX = (f"If(\n    {MAT_DIRTY},\n    Set(varVhpMatDiscardOpen, true),\n"
                 + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + "\n)")
 
@@ -626,8 +679,129 @@ MODAL_CW = lay.mobile_or(f"App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBI
 
 
 MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
-# Materials-popuppen er bredere: STATUS og ACTIONS skal vaere der (#451).
+# Materials-popuppen er bredere end de andre: tabellen har syv kolonner.
 MAT_MODAL_W = MAT_TABLE_W + 4 + SCROLLBAR_W + 36
+
+# Indtastningsraekkens felter (mockup'en): bredderne fylder omtrent
+# tabellens bredde. Paa en telefon staar felterne under hinanden.
+MAT_ENTRY = [("MaterialNo", "Material", 200, True), ("Desc", "Description", 190, False),
+             ("NewQty", "Quantity", 80, True), ("NewUnit", "Unit", 60, False),
+             ("NewTotal", "Total", 70, False), ("NewRop", "Reorder point", 100, False)]
+MAT_ADD_W = lay.HIT_TOUCH
+
+
+# Hver celle: etiketten (20) og et felt. Soegefeltet staar i en raekke paa
+# H.hit (44) med forstoerrelsesglasset; de andre felter (32) staar midt ud
+# for det, saa felterne flugter.
+MAT_ENTRY_H = 20 + 4 + lay.HIT_TOUCH
+
+
+def _mat_entry_cell(key, label, width, required, field):
+    lbl = label_row(f"conVhpMat{key}Cell", label, required=required, cell_w=width)
+    search = key == "MaterialNo"
+    if not search:
+        # Paa en telefon er feltet H.hit hoejt (touch) og fylder cellen.
+        mobile.touch(field)
+    box = group(f"conVhpMat{key}Cell", [lbl, field], direction="Vertical", gap=4,
+                width=width, height=MAT_ENTRY_H, align_items="Stretch")
+    if not search:
+        half = (lay.HIT_TOUCH - 32) // 2
+        box.props["LayoutGap"] = lay.mobile_or(4, 4 + half)
+        box.props["PaddingBottom"] = lay.mobile_or(0, half)
+    return box
+
+
+def _mat_entry_row():
+    """Materiale*, beskrivelse, antal*, enhed, total, genbestillingspunkt og +.
+    Beskrivelse, enhed, total og genbestillingspunkt kommer fra opslaget og
+    kan ikke skrives i."""
+    found = MAT_FOUND
+    busy = f"IfError({MAT_BUSY}, false)"
+
+    search = text_input(MAT_SEARCH, '""', placeholder='"Search material number or text..."',
+                        label='"Material number"', display_mode=VIEW_LOCK, height=32)
+    grow(search)
+    mobile.touch(search)
+    btnFind = button(
+        "btnVhpMatLookup", '""', mat_lookup_fx(), width=40, height=32, icon="Search",
+        display_mode=f"If(varVhpViewOnly || {busy}, DisplayMode.Disabled, DisplayMode.Edit)",
+        accessible='"Look up the material"')
+    btnFind.props["Layout"] = "ButtonLayout.IconOnly"
+    btnFind.props["Tooltip"] = '"Look up the material number on stock"'
+    ensure_hit(btnFind)
+    find_row = group("conVhpMatSearchRow", [search, btnFind], direction="Horizontal", gap=4,
+                     height=lay.HIT_TOUCH, align_items="Center")
+
+    def ro_field(name, value, label):
+        return text_input(name, value, label=f'"{label}"', display_mode="DisplayMode.View",
+                          height=32)
+
+    desc = ro_field("inpVhpMatNewDesc",
+                    f'If({busy}, "Looking up...", Coalesce({found}.Description, ""))',
+                    "Description")
+    qty = number_field(MAT_NEW_QTY, "1", label='"Quantity"', height=32, display_mode=VIEW_LOCK)
+    unit = ro_field("inpVhpMatNewUnit", f'Coalesce({found}.Unit, "")', "Unit")
+    total = ro_field("inpVhpMatNewTotal",
+                     f'If(IsBlank({found}), "", Text({found}.Total))', "Total")
+    rop = ro_field("inpVhpMatNewRop",
+                   f'If(IsBlank({found}), "", Text({found}.ReorderPoint))', "Reorder point")
+    fields = {"MaterialNo": find_row, "Desc": desc, "NewQty": qty, "NewUnit": unit,
+              "NewTotal": total, "NewRop": rop}
+    cells = [_mat_entry_cell(k, lbl, wd, req, fields[k]) for k, lbl, wd, req in MAT_ENTRY]
+
+    new_qty = num_value(MAT_NEW_QTY)
+    btnAdd = button(
+        "btnVhpAddMaterial", '""',
+        (
+            "With(\n"
+            f"    {{ m: Upper(Trim({MAT_SEARCH}.Text)), q: {new_qty}, f: {found} }},\n"
+            "    If(\n"
+            "        IsBlank(m),\n"
+            "        Notify(\"Type a material number first.\", NotificationType.Warning),\n"
+            "        IsBlank(q) || q <= 0,\n"
+            "        Notify(\"The quantity must be above 0.\", NotificationType.Warning),\n"
+            "        !IsBlank(LookUp(colVhpMatDraft, MaterialNo = m)),\n"
+            "        Notify(\"Material \" & m & \" is already on this operation - change its "
+            "quantity in the list.\", NotificationType.Warning),\n"
+            "        Collect(\n"
+            "            colVhpMatDraft,\n"
+            "            {\n"
+            # LineId er unik pr. ITEM, ikke pr. operation - og ikke kun
+            # blandt de gemte: kladden kan have nye linjer.
+            f"                LineId: Max(Coalesce(Max({MAT_ACTIVE}, LineId), 0), "
+            "Coalesce(Max(colVhpMatDraft, LineId), 0)) + 1,\n"
+            "                MaterialNo: m,\n"
+            "                Description: Coalesce(f.Description, \"\"),\n"
+            "                Unit: Coalesce(f.Unit, \"\"),\n"
+            "                Quantity: q,\n"
+            "                OrigQuantity: q,\n"
+            "                Total: f.Total,\n"
+            "                ReorderPoint: f.ReorderPoint,\n"
+            "                IsNew: true,\n"
+            "                Editing: false\n"
+            "            }\n"
+            "        );\n"
+            f"        Clear({MAT_FOUND_COL});\n"
+            f"        Reset({MAT_SEARCH});\n"
+            f"        Reset({MAT_NEW_QTY})\n"
+            "    )\n"
+            ")"
+        ), primary=True, width=MAT_ADD_W, height=32, icon="Add",
+        display_mode=f"If(varVhpViewOnly || {busy}, DisplayMode.Disabled, DisplayMode.Edit)",
+        accessible='"Add the material to the operation"')
+    btnAdd.props["Layout"] = "ButtonLayout.IconOnly"
+    btnAdd.props["Tooltip"] = ('"Add the material. Description and unit come from the lookup - '
+                               'without a lookup they stay empty."')
+    ensure_hit(btnAdd)
+    # + staar ud for felterne, ikke ud for etiketterne.
+    add_cell = group("conVhpMatAddCell", [btnAdd], direction="Vertical", width=MAT_ADD_W,
+                     pad=(24, 0, 0, 0), height=MAT_ENTRY_H, justify="Center",
+                     align_items="Center")
+    # Vandret, naar felterne kan staa paa een linje i popuppen; ellers
+    # (tablet, telefon) under hinanden i fuld bredde (flow_row).
+    content_w = f"({lay.popup_w(MAT_MODAL_W, 40)}) - 36 - {SCROLLBAR_W}"
+    return flow_row("conVhpMatEntry", cells + [add_cell], content_w, gap=MAT_GAP,
+                    visible="!varVhpViewOnly")
 
 
 def _materials_modal():
@@ -640,33 +814,7 @@ def _materials_modal():
     w = {t: wd for t, wd in MAT_COLS}
     ro = "varVhpViewOnly"
 
-    btnAdd = button(
-        "btnVhpAddMaterial", '"Add material"',
-        (
-            "Collect(\n"
-            "    colVhpMatDraft,\n"
-            "    {\n"
-            # LineId er unik pr. ITEM, ikke pr. operation - og ikke kun
-            # blandt de gemte: kladden kan have nye linjer.
-            f"        LineId: Max(Coalesce(Max({MAT_ACTIVE}, LineId), 0), "
-            "Coalesce(Max(colVhpMatDraft, LineId), 0)) + 1,\n"
-            "        MaterialNo: \"\",\n"
-            "        Description: \"\",\n"
-            "        Unit: \"\",\n"
-            "        Quantity: 1,\n"
-            "        OrigMaterialNo: \"\",\n"
-            "        OrigQuantity: 1,\n"
-            "        IsNew: true,\n"
-            "        Editing: true,\n"
-            "        Deleted: false\n"
-            "    }\n"
-            ")"
-        ), primary=True, width=fit_button_width('"Add material"') + ICON_W, icon="Add",
-        display_mode=VIEW_LOCK, visible=f"!{ro}")
-
-    mobile.touch(btnAdd)
-    actions = group("conVhpMatActions", [btnAdd], direction="Horizontal", gap=8,
-                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center", visible=f"!{ro}")
+    entry = _mat_entry_row()
 
     header = Ctrl("htmVhpMatHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _mat_header_html(),
@@ -676,83 +824,78 @@ def _materials_modal():
     divider = group("conVhpMatDivider", [], height=1, fill=C_DIVIDER,
                     direction="Horizontal", width=str(MAT_TABLE_W))
 
-    # Felterne kan rettes paa en ny linje, og paa en gemt linje efter Edit.
-    # En linje, der slettes, og alt i View er skrivebeskyttet.
-    row_mode = (f"If({ro} || ThisItem.Deleted || !(ThisItem.IsNew || ThisItem.Editing), "
-                "DisplayMode.View, DisplayMode.Edit)")
-    tried = "(varVhpMatTried && !ThisItem.Deleted)"
-    txtNo = text_input("inpVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=32,
-                       required_formula=tried, display_mode=row_mode,
-                       onchange="Patch(colVhpMatDraft, ThisItem, { MaterialNo: Trim(Self.Text) })",
-                       label='"Material number"')
-    # Kommer fra materialeopslaget, ikke fra brugeren.
-    txtDesc = text_ctrl("txtVhpMatDesc",
-                        'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
-                        size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=32,
-                          label="\"Quantity\"", required_formula=tried, display_mode=row_mode,
-                          onchange=f"Patch(colVhpMatDraft, ThisItem, {{ Quantity: {NV} }})")
-    txtUnit = text_ctrl("txtVhpMatUnit",
-                        'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
-                        size=12, color=C_MUTED, height=30, width=w["UNIT"], wrap="false")
-    chip = sc.status_chip("imgVhpMatStatus", mat_state(), MAT_LINE, width=w["STATUS"])
+    # Antallet kan rettes efter et tryk paa blyanten. Resten kommer fra
+    # opslaget.
+    row_mode = f"If({ro} || !ThisItem.Editing, DisplayMode.View, DisplayMode.Edit)"
+    tried = "varVhpMatTried"
 
-    # ACTIONS: Edit (gemt linje) eller Undo (rettet eller slettet linje), og
-    # Delete. En ny linje har kun Delete - den kan rettes direkte.
-    undo = "(ThisItem.Editing || ThisItem.Deleted)"
+    def cell(name, text, width, weight=None, color=C_TITLE):
+        return text_ctrl(name, text, size=12, color=color, weight=weight, height=30,
+                         width=width, wrap="false")
+
+    txtNo = cell("txtVhpMatNo", "ThisItem.MaterialNo", w["MATERIAL"], weight="Semibold")
+    txtDesc = cell("txtVhpMatDesc", 'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
+                   w["DESCRIPTION"])
+    numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QUANTITY"], height=32,
+                          label='"Quantity"', required_formula=tried, display_mode=row_mode,
+                          onchange=f"Patch(colVhpMatDraft, ThisItem, {{ Quantity: {NV} }})")
+    txtUnit = cell("txtVhpMatUnit", 'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)', w["UNIT"])
+    txtTotal = cell("txtVhpMatTotal",
+                    lay.mobile_or('"Total " & If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))',
+                                  'If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))'),
+                    w["TOTAL"])
+    txtRop = cell("txtVhpMatRop",
+                  lay.mobile_or('"Reorder point " & If(IsBlank(ThisItem.ReorderPoint), "-", '
+                                'Text(ThisItem.ReorderPoint))',
+                                'If(IsBlank(ThisItem.ReorderPoint), "-", Text(ThisItem.ReorderPoint))'),
+                  w["REORDER POINT"])
+
+    # ACTIONS: blyanten slaar rettelse af antallet til og fra; skraldespanden
+    # fjerner linjen fra kladden. Intet er gemt foer Save.
     btnEdit = button(
         "btnVhpMatEdit", '""',
-        (f"If(\n    {undo},\n"
-         "    Patch(colVhpMatDraft, ThisItem, { MaterialNo: ThisItem.OrigMaterialNo, "
-         "Quantity: ThisItem.OrigQuantity, Editing: false, Deleted: false }),\n"
-         "    Patch(colVhpMatDraft, ThisItem, { Editing: true })\n)"),
-        width=40, height=32, icon="Edit", display_mode=VIEW_LOCK,
-        visible=f"!{ro} && (!ThisItem.IsNew || ThisItem.Deleted)",
-        accessible=(f'If(ThisItem.Deleted, "Restore material line ", {undo}, '
-                    '"Undo changes to material line ", "Edit material line ") & ThisItem.MaterialNo'))
-    btnEdit.props["Icon"] = f'If({undo}, "ArrowReset", "Edit")'
+        "Patch(colVhpMatDraft, ThisItem, { Editing: !ThisItem.Editing })",
+        width=40, height=32, icon='If(ThisItem.Editing, "Checkmark", "Edit")',
+        display_mode=VIEW_LOCK, visible=f"!{ro}",
+        accessible=('If(ThisItem.Editing, "Done editing material ", "Edit quantity of material ") '
+                    '& ThisItem.MaterialNo'))
     btnEdit.props["Layout"] = "ButtonLayout.IconOnly"
-    btnEdit.props["Tooltip"] = (f'If(ThisItem.Deleted, "Restore this line", {undo}, '
-                                '"Undo the unsaved changes to this line", "Edit this line")')
+    btnEdit.props["Tooltip"] = 'If(ThisItem.Editing, "Done", "Edit the quantity")'
     ensure_hit(btnEdit)
     btnDel = button(
-        "btnVhpMatDelete", '""',
-        ("If(\n    ThisItem.IsNew,\n    Remove(colVhpMatDraft, ThisItem),\n"
-         "    Patch(colVhpMatDraft, ThisItem, { Deleted: true, Editing: false })\n)"),
+        "btnVhpMatDelete", '""', "Remove(colVhpMatDraft, ThisItem)",
         danger=True, width=40, height=32, icon="Delete", display_mode=VIEW_LOCK,
-        visible=f"!{ro} && !ThisItem.Deleted",
-        accessible='"Delete material line " & ThisItem.MaterialNo')
+        visible=f"!{ro}", accessible='"Remove material " & ThisItem.MaterialNo')
     btnDel.props["Layout"] = "ButtonLayout.IconOnly"
-    btnDel.props["Tooltip"] = ('If(ThisItem.IsNew, "Remove this new line", '
-                               '"Delete this line - it is removed when you choose Save")')
+    btnDel.props["Tooltip"] = '"Remove this line - it is gone when you choose Save"'
     ensure_hit(btnDel)
     cellAct = group("conVhpMatRowActions", [btnEdit, btnDel], direction="Horizontal", gap=4,
                     height=lay.HIT_TOUCH, width=w["ACTIONS"], align_items="Center")
 
-    row = group("conVhpMatRow", pin_widths([txtNo, txtDesc, numQty, txtUnit, chip, cellAct]),
+    row = group("conVhpMatRow",
+                pin_widths([txtNo, txtDesc, numQty, txtUnit, txtTotal, txtRop, cellAct]),
                 direction="Horizontal", gap=MAT_GAP, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
     MAT_ROWS = 6
-    # TELEFONEN (issue #508): tabellen (620 px) er et kort pr. linje -
-    # materialenummeret og Edit/Delete oeverst, antal, enhed og status
-    # under, beskrivelsen nederst. Galleriet er saa hoejt som sine kort og
-    # scroller ikke selv; det er popuppens indhold, der scroller (een
-    # scroll). Fra Tablet og op er tabellen uaendret.
+    # TELEFONEN (issue #508): tabellen er et kort pr. linje - materialet og
+    # Edit/Delete oeverst, antal, enhed, total og genbestillingspunkt under,
+    # beskrivelsen nederst. Galleriet er saa hoejt som sine kort og scroller
+    # ikke selv; det er popuppens indhold, der scroller (een scroll). Fra
+    # Tablet og op er det en tabel.
     MAT_ROW_H_M = 118
     n_mat = "CountRows(colVhpMatDraft)"
     gal_h = lay.mobile_or(f"{n_mat} * {MAT_ROW_H_M}", MAT_ROWS * (MAT_ROW_H + 2))
     tpl_w_m = f"(({MODAL_CW}) - 4)"
     pad_m = 8
     act_w = 2 * lay.HIT_TOUCH + 4
-    for c in (txtNo, numQty):
-        mobile.touch(c)
-    mobile.gallery_place(txtNo, x=pad_m, y=4, w=f"{tpl_w_m} - {2 * pad_m + act_w + 8}",
-                         h=mobile.TOUCH)
+    mobile.touch(numQty)
+    mobile.gallery_place(txtNo, x=pad_m, y=11, w=f"{tpl_w_m} - {2 * pad_m + act_w + 8}")
     mobile.gallery_place(cellAct, x=f"{tpl_w_m} - {pad_m + act_w}", y=4)
     mobile.gallery_place(numQty, x=pad_m, y=52, w=80, h=mobile.TOUCH)
-    mobile.gallery_place(txtUnit, x=pad_m + 88, y=59, w=60)
-    mobile.gallery_place(chip, x=f"{tpl_w_m} - {pad_m} - {w['STATUS']}", y=63)
+    mobile.gallery_place(txtUnit, x=pad_m + 88, y=59, w=50)
+    mobile.gallery_place(txtTotal, x=pad_m + 146, y=59, w=80)
+    mobile.gallery_place(txtRop, x=pad_m + 234, y=59, w=f"{tpl_w_m} - {pad_m * 2 + 234}")
     mobile.gallery_place(txtDesc, x=pad_m, y=98, w=f"{tpl_w_m} - {2 * pad_m}", h=18)
     gallery = Ctrl("galVhpMaterials", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Materials for this operation"',
@@ -780,18 +923,17 @@ def _materials_modal():
     for c in (header, divider):
         mobile.hide_on_mobile(c)
 
-    # Tom tilstand (UX-review F4) - knappen Add material staar lige over.
+    # Tom tilstand (UX-review F4) - indtastningsraekken staar lige over.
     empty = empty_state("conVhpMatEmpty",
                         f'If({ro}, "No materials on this operation.", '
-                        '"No materials on this operation yet - choose Add material.")',
+                        '"No materials on this operation yet - search for one above and choose +.")',
                         icon_path=icons.MATERIAL,
                         visible="IfError(CountRows(colVhpMatDraft) = 0, false)")
 
     note = text_ctrl("txtVhpMatNote",
-                     lay.mobile_or('"Description and unit come from the material lookup later."',
-                                   '"Description and unit are filled in by the material lookup. '
-                                   'Until it is in place they stay empty."'),
-                     size=12, color=C_MUTED, height=32, wrap="true")
+                     '"Search and add materials for this operation. Description and unit are '
+                     'filled in by the material lookup."',
+                     size=12, color=C_MUTED, height=lay.mobile_or(48, 32), wrap="true")
 
     # Start, ikke Stretch: tabellen har sin egen bredde og scroller vandret
     # paa en smal skaerm i stedet for at blive klemt sammen.
@@ -799,23 +941,23 @@ def _materials_modal():
                   direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                   align_items="Start")
 
-    # Bunden: hvad der venter paa Save - og Save. X er popuppens eneste luk
-    # (issue #237) og kasserer kladden, efter en bekraeftelse.
+    # Bunden: antallet af linjer til venstre, Cancel og Save til hoejre.
     info = text_ctrl(
         "txtVhpMatChanges",
-        (f"If(\n    {ro},\n    \"Read-only.\",\n"
-         f"    With(\n        {{ c: {MAT_CHANGES} }},\n"
-         "        If(c = 0, \"No unsaved changes.\", "
-         f"{dt.plural('c', 'unsaved change')} & \" - choose Save to keep them.\")\n    )\n)"),
+        (f"{dt.plural('CountRows(colVhpMatDraft)', 'material')} & \" added\" & "
+         f"If({MAT_DIRTY}, \" - not saved yet\", \"\")"),
         size=12, color=f"If({MAT_DIRTY}, {C_WARN_FG}, {C_MUTED})", height=18, wrap="false")
     grow(info)
+    btnCancel = button("btnVhpMatCancel", f'If({ro}, "Close", "Cancel")', MAT_CLOSE_FX,
+                       width=fit_button_width('"Cancel"'), height=32)
+    mobile.touch(btnCancel)
     btnSave = button(
         "btnVhpMatSave", '"Save"',
         (
             "If(\n"
             f"    CountRows({MAT_INVALID}) > 0,\n"
             "    Set(varVhpMatTried, true);\n"
-            "    Notify(\"Each material line needs a material number and a quantity above 0.\", "
+            "    Notify(\"Each material line needs a quantity above 0.\", "
             "NotificationType.Error),\n"
             f"    !({MAT_DIRTY}),\n"
             + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + ",\n"
@@ -823,7 +965,7 @@ def _materials_modal():
             "    Collect(\n"
             "        colVhpMaterials,\n"
             "        ForAll(\n"
-            "            Filter(colVhpMatDraft, !Deleted) As D,\n"
+            "            colVhpMatDraft As D,\n"
             "            {\n"
             "                ItemId: varVhpActiveItemId, LineId: D.LineId,\n"
             "                MaterialNo: Trim(D.MaterialNo), Description: D.Description,\n"
@@ -836,17 +978,17 @@ def _materials_modal():
             "NotificationType.Success);\n"
             + "\n".join("    " + l for l in MAT_DISCARD_FX.split("\n")) + "\n"
             ")"
-        ), primary=True, width=fit_button_width('"Save"') + ICON_W, icon="Save",
+        ), primary=True, width=fit_button_width('"Save"') + ICON_W, height=32, icon="Save",
         # Altid slaaet til (uden for View): et felt skriver foerst i kladden,
         # naar det forlades, saa en Save, der var slaaet fra indtil da, ville
         # sluge det klik, der forlader feltet. Uden aendringer lukker Save blot.
         display_mode=VIEW_LOCK, visible=f"!{ro}")
     mobile.touch(btnSave)
-    footer = group("conVhpMatFooter", [info, btnSave], direction="Horizontal", gap=8,
+    footer = group("conVhpMatFooter", [info, btnCancel, btnSave], direction="Horizontal", gap=8,
                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
-    return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', MAT_OPEN,
-                  MAT_CLOSE_FX, [actions, note, table, footer], width=MAT_MODAL_W, cap=True)
+    return _modal("VhpMat", '"Materials – operation " & varVhpMatOpNo', MAT_OPEN,
+                  MAT_CLOSE_FX, [note, entry, table, footer], width=MAT_MODAL_W, cap=True)
 
 
 def build_mat_discard_confirm():
@@ -855,7 +997,7 @@ def build_mat_discard_confirm():
     bekraeftelsen lader popuppen og kladden staa."""
     return confirm_modal(
         "VhpMatDiscard", "varVhpMatDiscardOpen", "Discard unsaved changes?",
-        '"The new, edited and deleted material lines on this operation are not saved."',
+        '"The added, changed and removed material lines on this operation are not saved."',
         "Discard changes", MAT_DISCARD_FX, "btnVhpMatDiscardConfirm", icon=None, danger=True)
 
 

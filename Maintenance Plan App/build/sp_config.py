@@ -252,8 +252,10 @@ def named_formulas():
                  ("Ord", "Coalesce(R.SortOrder, 0)")]),
         "Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.")
 
+    # PlantNumber er SAP-plantnummeret (Provision-PlantList.ps1), som
+    # materialeopslaget i Materials-popuppen sender til lagerflowet.
     add("colVhpPlantCodes",
-        f"Sort({_forall(L_PLANTS, [('Value', 'R.Title')])}, Value)")
+        f"Sort({_forall(L_PLANTS, [('Value', 'R.Title'), ('PlantNumber', 'R.PlantNumber')])}, Value)")
 
     # Id baeres med, saa gem kan skrive opslaget uden at slaa op i
     # listen (REVIEW.md B7). Title er SAP's noegle (010, 020 ...), som
@@ -596,10 +598,16 @@ WORKING_COLLECTIONS = [
     # de stod, da popuppen blev aabnet (Orig*), og hvad der er sket med dem.
     # Foerst Save skriver kladden i colVhpMaterials; X kasserer den. Kun
     # skaermens tilstand; gemmes aldrig.
+    # Total og ReorderPoint er lagerets tal fra materialeopslaget (flowet
+    # BioSap-Integration-MaterialStock) - kun til visning, de gemmes aldrig.
     ("colVhpMatDraft",
      {"LineId": 0, "MaterialNo": '""', "Description": '""', "Unit": '""', "Quantity": 0,
-      "OrigMaterialNo": '""', "OrigQuantity": 0, "IsNew": "false", "Editing": "false",
-      "Deleted": "false"}),
+      "OrigQuantity": 0, "Total": 0, "ReorderPoint": 0, "IsNew": "false",
+      "Editing": "false"}),
+    # Materialeopslagets svar i Materials-popuppen: hoejst een raekke, for
+    # det nummer, der sidst er slaaet op. Kun skaermens tilstand.
+    ("colVhpMatFound",
+     {"MaterialNo": '""', "Description": '""', "Unit": '""', "Total": 0, "ReorderPoint": 0}),
     # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
     # De hentes, men gemningen skriver og sletter dem ikke laengere
     # (R2-071), og dokumentruden viser dem ikke: nye filer er vedhaeftninger

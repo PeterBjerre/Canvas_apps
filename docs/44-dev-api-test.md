@@ -19,6 +19,16 @@ slår det op i kolonnen `PlantNumber` i `PlantList`, som
 AVV 2806, ASV 2805, HEV 2810, KYV 2808, SKV 2801, SSV 2804, HCV 2807,
 SMV 2808. Fx `LookUp(PlantList, Title = "AVV").PlantNumber`.
 
+### Brugt i VH-planen
+
+Materials-popuppen på operationerne i VH-planen (BIO SAP-appen,
+`Maintenance Plan App/build/build_tasklist.py`) kalder lagerflowet, når
+man trykker på forstørrelsesglasset ved Material. Plantnummeret er
+`PlantNumber` for planens værk. Beskrivelse og enhed tages fra den første
+lagerplacering, der svarede 200; Total og Reorder point er summen over
+placeringerne. Total og Reorder point gemmes ikke i SharePoint. API'et
+kan kun slå op på materialenummer, ikke på tekst.
+
 ### Lagerflowets to kald
 
 Det første kald giver lagerplaceringerne for materialet, fx
