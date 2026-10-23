@@ -55,15 +55,15 @@ def _children(block):
     return out
 
 
-def test_summary_has_the_full_card_width():
-    """Issue #548: Show er vaek, saa resumeet har kortets fulde bredde.
-    Indrykket under titlen, naar fluebenet staar foran den (20 + gap 12);
-    paa en telefon og uden flueben ingen indrykning."""
-    y, s = _summary()
+def test_phone_summary_has_the_full_card_width():
+    """Issue #548/#559: paa en telefon staar resumeet paa sin egen linje
+    under overskriften i kortets fulde bredde, uden indrykning."""
+    y = open(SCREEN, encoding="utf-8").read()
+    s = _block(y, "txtVhpPlanFoldSummaryM")
     w = s[s.index(" Width:"):s.index(" Width:") + 600]
     assert "- 96 - 8)" not in w
     pad = s[s.index("PaddingLeft:"):s.index("PaddingLeft:") + 200]
-    assert "If(LayoutRank < 2 || !IfError(VhpPlanValid, false), 0, 32)" in pad
+    assert "=0\n" in pad
 
 
 def _prop(block, prop):

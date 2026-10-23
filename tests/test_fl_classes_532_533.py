@@ -97,16 +97,21 @@ def test_classes_fold_on_every_screen_width_closed_by_default():
     assert T._prop("btnFlClassesFold", "OnSelect") == f"Set(varFlClassesOpen, !{OPEN})"
     # Den gamle titel kun fra Tablet er vaek - titlen staar i chevronlinjen.
     assert T._ctrl("txtFlClassesH") is None
-    # Indholdet kun, mens Classes er aaben - paa alle bredder (blank = lukket).
+    # Indholdet kun, mens Classes er aaben - paa alle bredder (blank =
+    # lukket). Issue #559: det ligger i kroppen (conFlClassesBody), og det
+    # er kroppen, der foelger chevronen.
+    vis = str(T._ctrl("conFlClassesBody")["Properties"]["Visible"])
+    assert vis.lstrip("=") == OPEN
     for c in ("galFlTabs", "txtFlClassNote", "conFlClsTable", "txtFlNoClassRows"):
         vis = str(T._ctrl(c)["Properties"]["Visible"])
-        assert vis.lstrip("=").startswith(OPEN), c
+        assert OPEN not in vis, c
         assert "LayoutRank" not in vis, c
 
 
 def test_classes_summary_counts_rows_and_classes():
     p = T._parts()
-    assert T._prop("txtFlClassesFoldSummary", "Visible") == f"!{OPEN}"
+    # Issue #559: opsummeringen staar ved titlen, lukket og aaben.
+    assert "Visible" not in T._ctrl("txtFlClassesFoldSummary")["Properties"]
     text = T._prop("txtFlClassesFoldSummary", "Text")
     # Tomme raekker (den nederst) taeller ikke; klasserne er Classes' egne.
     assert "CountRows(Filter(colFlRows, !(IsBlank(FL) && IsBlank(Description))))" in text

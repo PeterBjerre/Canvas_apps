@@ -1586,15 +1586,35 @@ def build_classes():
     # brugte (mobile.collapsible). Titlen staar i chevronlinjen. Chevronen
     # staar fast yderst til hoejre, og hele linjen klapper ud og sammen
     # (issue #548, mobile.fold_head).
+    #
+    # OVERSKRIFTEN STAAR ALTID OEVERST (issue #559). Udfoldet stod titel og
+    # chevron nederst - under fanerne og tabellen. Nu har kortet praecis TO
+    # boern i fast raekkefoelge: overskriften (conFlClassesFoldHead) og
+    # kroppen (conFlClassesBody, en lodret container med faner, note, tabel
+    # og "No classified rows yet ..."). Kroppen er kun synlig, mens Classes
+    # er aaben, og hverken tabellen eller den tomme tekst kan komme foran
+    # overskriften - de ligger alle inde i kroppen, under den.
+    body = group("conFlClassesBody", [tabs, note, table, empty], direction="Vertical", gap=10)
+    # Hoejden: enten faner + note + tabel, eller den ene tomme linje - aldrig
+    # begge (stack_height regner med, at det foerste barn altid er synligt).
+    from gen_screen import stack_height
+    body.props["Height"] = (f"If({HAS_CLASSES}, {stack_height([tabs, note, table], 10)}, "
+                            f"{empty.h})")
+    body.h = body.props["Height"]
     fold = mobile.collapsible(
-        "FlClasses", "Classes", [tabs, note, table, empty], CLASSES_OPEN,
+        "FlClasses", "Classes", [body], CLASSES_OPEN,
         summary=CLASSES_SUMMARY, size=lay.SIZE_CARD_TITLE, everywhere=True)
+    assert [c.name for c in fold] == ["conFlClassesFoldHead", "conFlClassesBody"]
     # Fra Tablet staar opsummeringen lige efter titlen ("Classes . 100 ...");
     # paa telefonen som foer til hoejre for den.
     summary = mobile.find(fold[0], "txtFlClassesFoldSummary")
     assert summary is not None
     summary.props["Text"] = lay.mobile_or(CLASSES_SUMMARY, '"\u00b7  " & ' + CLASSES_SUMMARY)
     summary.props["Align"] = lay.mobile_or("Align.Right", "Align.Left")
+    # Opsummeringen staar ved titlen baade lukket og aaben (issue #559) -
+    # chevronen er stadig yderst til hoejre (SpaceBetween, issue #548).
+    summary.props.pop("Visible", None)
+    summary.vis = None
     return card("conFlClassesCard", fold, gap=10)
 
 

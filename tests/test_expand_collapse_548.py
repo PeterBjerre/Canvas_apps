@@ -102,7 +102,7 @@ def test_plan_header_is_the_same_row_folded_and_expanded():
     hit = _layer(t, "conVhpPlanHeadFold", "conVhpPlanHead", "btnVhpPlanHeadFoldHit")
     head = _block(t, "conVhpPlanHead")
     assert _children(head) == ["icoVhpPlanHeadStatus", "txtVhpPlanHeadTitle", "conVhpLegend",
-                               "conVhpPlanHeadGap", "bdgVhpPlanHeadCost", "btnVhpPlanFold"]
+                               "txtVhpPlanFoldSummary", "bdgVhpPlanHeadCost", "btnVhpPlanFold"]
     # Overskriften folder aldrig selv bort.
     assert _prop(_own(head), "Visible") is None
     assert _prop(_own(_block(t, "conVhpPlanHeadFold")), "Visible") is None
@@ -139,7 +139,12 @@ def test_plan_checkmark_only_when_valid():
 
 def test_plan_summary_shows_only_when_folded():
     t = _read(VHP)
+    # Issue #559: fra Tablet i overskriften (tom tekst udfoldet), paa en
+    # telefon paa sin egen linje - begge kun med indhold, naar foldet.
     s = _block(t, "txtVhpPlanFoldSummary")
-    assert _prop(s, "Visible") == FOLD
+    assert _prop(s, "Visible") is None
+    assert _prop(s, "Text").startswith(f"If(!(LayoutRank < 2) && ({FOLD}), ")
+    m = _block(t, "txtVhpPlanFoldSummaryM")
+    assert _prop(m, "Visible") == f"LayoutRank < 2 && ({FOLD})"
     for name in ("conVhpPlanGrid", "conVhpPlanFooter", "conVhpPlanHelp"):
         assert f"!({FOLD})" in _prop(_own(_block(t, name)), "Visible"), name
