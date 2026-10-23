@@ -210,7 +210,7 @@ def test_classes_are_folded_cards_on_a_phone():
     # Issue #533: chevronlinjen ses paa ALLE skaermbredder, og Classes er
     # lukket som standard overalt (tests/test_fl_classes_532_533.py).
     assert fl("conFlClassesFold", "Visible", 360) is None
-    vis = _p("galFlTabs", "Visible")
+    vis = _p("conFlClassesBody", "Visible")
     assert "Coalesce(varFlClassesOpen, false)" in vis
     assert fl("btnFlTab", "Height", 360) == 42 and fl("btnFlTab", "Height", 1366) == 34
     assert fl("galFlTabs", "ShowScrollbar", 360) == 0
