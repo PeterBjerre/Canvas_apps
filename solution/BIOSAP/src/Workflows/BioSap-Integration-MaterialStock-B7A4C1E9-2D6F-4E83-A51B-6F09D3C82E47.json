@@ -70,9 +70,26 @@
             "baseUrl": "https://dev.api.orsted.dk/inventorymanagement"
           }
         },
-        "Check_environment_variables": {
+        "Initialize_variable_StockDetails": {
           "runAfter": {
             "Setup": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "StockDetails",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Check_environment_variables": {
+          "runAfter": {
+            "Initialize_variable_StockDetails": [
               "Succeeded"
             ]
           },
@@ -116,7 +133,8 @@
                   "ok": "no",
                   "status": "",
                   "message": "The flow is not configured: set Current value on BioSap-WOC-Client-Secret and BioSap-Inventory-Dev-ApiKey.",
-                  "result": ""
+                  "result": "",
+                  "details": ""
                 },
                 "schema": {
                   "type": "object",
@@ -138,6 +156,11 @@
                     },
                     "result": {
                       "title": "result",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "details": {
+                      "title": "details",
                       "x-ms-dynamically-added": true,
                       "type": "string"
                     }
@@ -235,12 +258,93 @@
                 }
               }
             },
-            "Respond_result": {
+            "Locations_found": {
               "runAfter": {
                 "Call_API": [
                   "Succeeded",
                   "Failed",
                   "TimedOut"
+                ]
+              },
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@outputs('Call_API')?['statusCode']",
+                      200
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "For_each_location": {
+                  "runAfter": {},
+                  "type": "Foreach",
+                  "foreach": "@if(equals(body('Call_API'), null), json('[]'), body('Call_API'))",
+                  "runtimeConfiguration": {
+                    "concurrency": {
+                      "repetitions": 1
+                    }
+                  },
+                  "actions": {
+                    "Call_API_location": {
+                      "runAfter": {},
+                      "type": "Http",
+                      "inputs": {
+                        "method": "GET",
+                        "uri": "@{outputs('Setup')?['baseUrl']}/materialonstocks/@{encodeUriComponent(trim(triggerBody()?['text']))}/@{encodeUriComponent(items('For_each_location')?['storageLocation'])}/@{encodeUriComponent(trim(triggerBody()?['text_1']))}",
+                        "headers": {
+                          "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                          "x-apikey": "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                          "Accept": "application/json"
+                        },
+                        "retryPolicy": {
+                          "type": "none"
+                        }
+                      },
+                      "runtimeConfiguration": {
+                        "secureData": {
+                          "properties": [
+                            "inputs"
+                          ]
+                        }
+                      }
+                    },
+                    "Append_location_stock": {
+                      "runAfter": {
+                        "Call_API_location": [
+                          "Succeeded",
+                          "Failed",
+                          "TimedOut"
+                        ]
+                      },
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "StockDetails",
+                        "value": {
+                          "storageLocation": "@items('For_each_location')?['storageLocation']",
+                          "storageLocationDescription": "@items('For_each_location')?['storageLocationDescription']",
+                          "storageBin": "@items('For_each_location')?['storageBin']",
+                          "status": "@outputs('Call_API_location')?['statusCode']",
+                          "stock": "@body('Call_API_location')"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Respond_result": {
+              "runAfter": {
+                "Locations_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
                 ]
               },
               "type": "Response",
@@ -251,7 +355,8 @@
                   "ok": "@{if(equals(outputs('Call_API')?['statusCode'], 200), 'yes', 'no')}",
                   "status": "@{outputs('Call_API')?['statusCode']}",
                   "message": "@{if(equals(outputs('Call_API')?['statusCode'], 200), '', concat('The API answered ', string(outputs('Call_API')?['statusCode']), '.'))}",
-                  "result": "@{string(body('Call_API'))}"
+                  "result": "@{string(body('Call_API'))}",
+                  "details": "@{string(variables('StockDetails'))}"
                 },
                 "schema": {
                   "type": "object",
@@ -275,6 +380,11 @@
                       "title": "result",
                       "x-ms-dynamically-added": true,
                       "type": "string"
+                    },
+                    "details": {
+                      "title": "details",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
                     }
                   }
                 }
@@ -293,7 +403,8 @@
                     "ok": "no",
                     "status": "@{outputs('Get_token')?['statusCode']}",
                     "message": "@{concat('Token could not be fetched: ', coalesce(body('Get_token')?['error_description'], body('Get_token')?['error'], 'no answer'))}",
-                    "result": ""
+                    "result": "",
+                    "details": ""
                   },
                   "schema": {
                     "type": "object",
@@ -315,6 +426,11 @@
                       },
                       "result": {
                         "title": "result",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "details": {
+                        "title": "details",
                         "x-ms-dynamically-added": true,
                         "type": "string"
                       }
