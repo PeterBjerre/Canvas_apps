@@ -14,6 +14,9 @@
                                             Person-kolonnen
         MaintenanceItems.NonFlowUserStatus  de manglende valg (issue #112)
         MaintenancePlans                    CallHorizon-choicen omdoebes
+        MaintenanceItems                    fem kolonner goeres valgfri,
+                                            saa en kladde kan gemmes med
+                                            ufaerdige items (issue #566)
 
     OPERATIONSNUMMERET
     ------------------
@@ -123,6 +126,34 @@ New-MdField 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
 # appen (sp_config.NON_FLOW_STATUS_TEXT).
 Add-Choices 'MaintenanceItems' 'NonFlowUserStatus' @(
     'INCD', 'ZBUN', 'ZMOC', 'WADO', 'ZBOW', 'OPHO', 'UNEX', 'OFIX', 'REWO')
+
+# KLADDER MED UFAERDIGE ITEMS (issue #566). Save draft skal kunne gemme et
+# item, der mangler kort tekst, funktionsplads, aktivitetstype eller
+# arbejdscenter. Kolonnerne er paakraevede i listen, og SharePoint afviser
+# saa hele Items-Patch'et (R2-008). De goeres valgfri HER - ingen ny
+# kolonne. Appen haandhaever dem foer Submit (build_status, build_save.NO_REQ),
+# saa en INDSENDT plan har dem stadig. ItemDescription er med, fordi appen
+# skriver kort tekst/lang tekst i den, og begge kan vaere tomme i en kladde.
+# Kan koeres igen: en kolonne, der allerede er valgfri, roeres ikke.
+#
+# Bagefter skal MaintenanceItems opdateres som datakilde i Studio (Refresh,
+# eller fjern og tilfoej): Power Apps tjekker paakraevede kolonner mod sin
+# gemte kopi af skemaet, foer Patch sendes.
+Write-Host "`n=== MaintenanceItems: valgfri i kladder (issue #566) ===" -ForegroundColor Cyan
+foreach ($name in @('Title', 'ItemDescription', 'FunctionalLocation',
+                    'MaintenanceActivityType', 'MainWorkCenter')) {
+    $f = Get-PnPField -List 'MaintenanceItems' -Identity $name -ErrorAction SilentlyContinue
+    if (-not $f) {
+        Write-Host "    ! $name findes ikke paa MaintenanceItems - roerer intet" -ForegroundColor Yellow
+    } elseif (-not $f.Required) {
+        Write-Host "    = $name er valgfri" -ForegroundColor DarkGray
+    } elseif ($WhatIfOnly) {
+        Write-Host "    ? ville goere $name valgfri" -ForegroundColor Yellow
+    } else {
+        Set-PnPField -List 'MaintenanceItems' -Identity $name -Values @{ Required = $false }
+        Write-Host "    ~ $name er nu valgfri" -ForegroundColor Green
+    }
+}
 
 # Opslagskolonnerne, appen filtrerer paa (REVIEW.md B14). MaintenancePlanNo
 # og MaintenancePlanID findes i forvejen; de faar kun et indeks, saa
