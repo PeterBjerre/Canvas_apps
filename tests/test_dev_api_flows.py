@@ -71,14 +71,44 @@ def test_setup_token_and_call():
         assert call["runtimeConfiguration"]["secureData"]["properties"] == ["inputs"]
 
 
+SHAPE = ["ok", "status", "message", "result"]
+
+
 def test_app_always_gets_the_same_answer_shape():
     for name in FLOWS:
+        shape = SHAPE + (["details"] if name == "BioSap-Integration-MaterialStock" else [])
         for r in RESPONSES:
             a = fk.find(name, r)
             assert a["kind"] == "PowerApp", (name, r)
-            assert list(a["inputs"]["body"]) == ["ok", "status", "message", "result"], (name, r)
-            assert list(a["inputs"]["schema"]["properties"]) == ["ok", "status", "message", "result"]
-        assert fk.find(name, "Respond_result")["runAfter"] == {"Call_API": ["Succeeded", "Failed", "TimedOut"]}
+            assert list(a["inputs"]["body"]) == shape, (name, r)
+            assert list(a["inputs"]["schema"]["properties"]) == shape, (name, r)
+    assert fk.find("BioSap-Integration-WoeOrderObjects", "Respond_result")["runAfter"] == \
+        {"Call_API": ["Succeeded", "Failed", "TimedOut"]}
+
+
+def test_material_stock_calls_each_storage_location_in_series():
+    name = "BioSap-Integration-MaterialStock"
+    found = fk.find(name, "Locations_found")
+    assert found["runAfter"] == {"Call_API": ["Succeeded", "Failed", "TimedOut"]}
+    assert found["expression"] == {"and": [{"equals": ["@outputs('Call_API')?['statusCode']", 200]}]}
+    loop = fk.find(name, "For_each_location")
+    assert "body('Call_API')" in loop["foreach"]
+    assert loop["runtimeConfiguration"]["concurrency"]["repetitions"] == 1
+    call = fk.find(name, "Call_API_location")
+    assert call["inputs"]["uri"] == (
+        "@{outputs('Setup')?['baseUrl']}/materialonstocks/@{encodeUriComponent(trim(triggerBody()?['text']))}"
+        "/@{encodeUriComponent(items('For_each_location')?['storageLocation'])}"
+        "/@{encodeUriComponent(trim(triggerBody()?['text_1']))}")
+    assert call["inputs"]["headers"]["x-apikey"] == "@parameters('%s')" % FLOWS[name]["key"]
+    assert "body('Get_token')?['access_token']" in call["inputs"]["headers"]["Authorization"]
+    assert call["runtimeConfiguration"]["secureData"]["properties"] == ["inputs"]
+    app = fk.find(name, "Append_location_stock")
+    assert app["runAfter"] == {"Call_API_location": ["Succeeded", "Failed", "TimedOut"]}
+    assert set(app["inputs"]["value"]) == {"storageLocation", "storageLocationDescription",
+                                          "storageBin", "status", "stock"}
+    resp = fk.find(name, "Respond_result")
+    assert resp["runAfter"] == {"Locations_found": ["Succeeded", "Failed", "TimedOut", "Skipped"]}
+    assert resp["inputs"]["body"]["details"] == "@{string(variables('StockDetails'))}"
 
 
 def test_missing_values_answer_the_app_and_stop():

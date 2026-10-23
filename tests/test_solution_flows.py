@@ -77,7 +77,7 @@ def test_api_key_and_client_secret_come_from_environment_variables():
                 seen += 1
             if "client_secret=" in value:
                 assert re.search(r"client_secret=@\{parameters\('[^']+'\)\}", value), path
-    assert seen == 4
+    assert seen == 5
 
 
 def test_flow_environment_variables_are_defined_in_the_solution():
