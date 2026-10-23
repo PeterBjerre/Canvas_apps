@@ -144,8 +144,11 @@ def test_card_controls_fit_the_card_and_never_overlap():
                     assert None not in (x, y, wd, ht), (gal, k)
                     assert x >= 0 and x + wd <= gw + 0.01, (gal, k, w, x, wd, gw)
                     assert y >= 0 and y + ht <= th, (gal, k, w, y, ht, th)
-                for i, a in enumerate(boxes):
-                    for b in boxes[i + 1:]:
+                # Raekkens klikflade (issue #573) daekker med vilje hele
+                # kortet - den skal kun passe i det (ovenfor).
+                cells = [b for b in boxes if not b[0].endswith("RowHit")]
+                for i, a in enumerate(cells):
+                    for b in cells[i + 1:]:
                         sep = (a[1] + a[3] <= b[1] or b[1] + b[3] <= a[1]
                                or a[2] + a[4] <= b[2] or b[2] + b[4] <= a[2])
                         assert sep, (gal, w, more, a, b)
