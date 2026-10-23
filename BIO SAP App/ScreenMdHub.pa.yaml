@@ -2574,8 +2574,8 @@ Screens:
                               Width: |-
                                   =((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset))
                             Children:
-                              - ddMdFltMobile:
-                                  Control: ModernDropdown
+                              - drpMdFltMobile:
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Filter requests"
@@ -2591,8 +2591,10 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(Table({ Value: "Open" }, { Value: "Closed" }, { Value: "All" }, { Value: "My queue" }, { Value: "Stuck > 5 d" }) As _dd, _dd.Value = (Switch(varMdFlag, "me", "My queue", "stuck", "Stuck > 5 d", Switch(varMdStatusMode, "done", "Closed", "all", "All", "Open"))))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(Table({ Value: "Open" }, { Value: "Closed" }, { Value: "All" }, { Value: "My queue" }, { Value: "Stuck > 5 d" }) As _dd, _dd.Value = (Switch(varMdFlag, "me", "My queue", "stuck", "Stuck > 5 d", Switch(varMdStatusMode, "done", "Closed", "all", "All", "Open")))), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     FillPortions: |-
@@ -2601,6 +2603,10 @@ Screens:
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        =If(LayoutRank < 2, "Select", "Type to search")
+                                    IsSearchable: |-
+                                        =If(LayoutRank < 2, false, true)
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
@@ -2608,27 +2614,31 @@ Screens:
                                     LayoutMinWidth: |-
                                         =80
                                     OnChange: |-
-                                        =With({ v: Self.Selected.Value },
-                                            Set(varMdFlag, Switch(v, "My queue", "me", "Stuck > 5 d", "stuck", ""));
-                                            If(varMdFlag = "me", Set(varMdView, "queue"));
-                                            Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))
-                                        );
-                                        ClearCollect(colMdScope, ForAll(If(
-                                                varMdView = "mine",
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                                    Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                                ),
-                                                If(
-                                                    varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                    varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                    'MD_RequestIndex'
-                                                )
-                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
-                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpMdFltMobile),
+                                            With({ v: Self.Selected.Value },
+                                                Set(varMdFlag, Switch(v, "My queue", "me", "Stuck > 5 d", "stuck", ""));
+                                                If(varMdFlag = "me", Set(varMdView, "queue"));
+                                                Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))
+                                            );
+                                            ClearCollect(colMdScope, ForAll(If(
+                                                    varMdView = "mine",
+                                                    If(
+                                                        varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                                        varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                                        Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                                    ),
+                                                    If(
+                                                        varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                                        varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                                        'MD_RequestIndex'
+                                                    )
+                                                ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }));
+                                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                            Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -2637,6 +2647,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-

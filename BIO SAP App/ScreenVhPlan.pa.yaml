@@ -3305,7 +3305,7 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpPlanType:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plan type, required"
@@ -3325,8 +3325,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colVhpPlanTypeOptions As _dd, _dd.Value = (LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType).Value))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colVhpPlanTypeOptions As _dd, _dd.Value = (LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType).Value)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -3335,12 +3337,18 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
                                                     =colVhpPlanTypeOptions
                                                 LayoutMinWidth: |-
                                                     =0
+                                                OnChange: |-
+                                                    =If(CountRows(Self.SelectedItems) = 0, Reset(drpVhpPlanType))
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -3349,6 +3357,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -3518,7 +3528,7 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpStatus:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Status, required"
@@ -3534,8 +3544,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colVhpPlanStatusOptions As _dd, _dd.Value = (Coalesce(varVhpPlan.Status, "New")))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colVhpPlanStatusOptions As _dd, _dd.Value = (Coalesce(varVhpPlan.Status, "New"))), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -3544,12 +3556,18 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
                                                     =colVhpPlanStatusOptions
                                                 LayoutMinWidth: |-
                                                     =0
+                                                OnChange: |-
+                                                    =If(CountRows(Self.SelectedItems) = 0, Reset(drpVhpStatus))
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -3558,6 +3576,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -3727,7 +3747,7 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpPlant:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plant, required"
@@ -3747,8 +3767,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colVhpPlantCodes As _dd, _dd.Value = (LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colVhpPlantCodes As _dd, _dd.Value = (LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -3757,6 +3779,10 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
@@ -3764,20 +3790,24 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 OnChange: |-
-                                                    =With(
-                                                        { prev: VhpPlant, np: Self.Selected.Value },
-                                                        Set(varVhpLivePlant, np);
-                                                        If(
-                                                            !IsBlank(prev) && !IsBlank(np) && Upper(prev) <> Upper(np),
-                                                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlMsg, "");
-                                                            Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);
-                                                            With(
-                                                                { n: CountRows(Filter(VhpSaveableItems, (!IsBlank(Trim(MainWorkCenter)) && !IsBlank(np) && IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper(np) && W.Value = Trim(MainWorkCenter)).Value)) || (!IsBlank(Trim(FunctionalLocation)) && !IsBlank(np) && Upper(Left(Trim(FunctionalLocation), 3)) <> Upper(Left(Trim(np), 3))) || (!IsBlank(Trim(TasklistKey)) && !IsBlank(np) && IsBlank(LookUp(colVhpTasklists As TL, Upper(TL.Plant) = Upper(np) && TL.Key = TasklistKey).Key)))) },
-                                                                If(
-                                                                    n = 0,
-                                                                    Set(gblToast, { Text: "Plant changed to " & np & ".", Kind: "Information", At: Now() }); true,
-                                                                    Set(gblToast, { Text: "Plant changed to " & np & ". " & Text(n) & If(n = 1, " item has", " items have") &
-                                                                            " a work center, functional location or task list from another plant - marked to fix.", Kind: "Warning", At: Now() }); true
+                                                    =If(
+                                                        CountRows(Self.SelectedItems) = 0,
+                                                        Reset(drpVhpPlant),
+                                                        With(
+                                                            { prev: VhpPlant, np: Self.Selected.Value },
+                                                            Set(varVhpLivePlant, np);
+                                                            If(
+                                                                !IsBlank(prev) && !IsBlank(np) && Upper(prev) <> Upper(np),
+                                                                Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlMsg, "");
+                                                                Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);
+                                                                With(
+                                                                    { n: CountRows(Filter(VhpSaveableItems, (!IsBlank(Trim(MainWorkCenter)) && !IsBlank(np) && IsBlank(LookUp(colVhpMainWorkCenters As W, Upper(W.Plant) = Upper(np) && W.Value = Trim(MainWorkCenter)).Value)) || (!IsBlank(Trim(FunctionalLocation)) && !IsBlank(np) && Upper(Left(Trim(FunctionalLocation), 3)) <> Upper(Left(Trim(np), 3))) || (!IsBlank(Trim(TasklistKey)) && !IsBlank(np) && IsBlank(LookUp(colVhpTasklists As TL, Upper(TL.Plant) = Upper(np) && TL.Key = TasklistKey).Key)))) },
+                                                                    If(
+                                                                        n = 0,
+                                                                        Set(gblToast, { Text: "Plant changed to " & np & ".", Kind: "Information", At: Now() }); true,
+                                                                        Set(gblToast, { Text: "Plant changed to " & np & ". " & Text(n) & If(n = 1, " item has", " items have") &
+                                                                                " a work center, functional location or task list from another plant - marked to fix.", Kind: "Warning", At: Now() }); true
+                                                                    )
                                                                 )
                                                             )
                                                         )
@@ -3790,6 +3820,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -4148,7 +4180,7 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                           - drpVhpSortField:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Sort field"
@@ -4164,8 +4196,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colVhpSortFieldOptions As _dd, _dd.Name = (LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Name))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colVhpSortFieldOptions As _dd, _dd.Name = (LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Name)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -4174,12 +4208,18 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Name
                                                 Items: |-
                                                     =colVhpSortFieldOptions
                                                 LayoutMinWidth: |-
                                                     =0
+                                                OnChange: |-
+                                                    =If(CountRows(Self.SelectedItems) = 0, Reset(drpVhpSortField))
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -4188,6 +4228,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -4572,7 +4614,7 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpUnit:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Unit, required"
@@ -4592,8 +4634,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colVhpUnitOptions As _dd, _dd.Value = (LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colVhpUnitOptions As _dd, _dd.Value = (LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -4602,12 +4646,18 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
                                                     =colVhpUnitOptions
                                                 LayoutMinWidth: |-
                                                     =0
+                                                OnChange: |-
+                                                    =If(CountRows(Self.SelectedItems) = 0, Reset(drpVhpUnit))
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -4616,6 +4666,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -4937,7 +4989,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                     - drpVhpStrategy:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Maintenance strategy"
@@ -4957,8 +5009,10 @@ Screens:
                                               =1
                                           Color: |-
                                               =If(Self.DisplayMode <> DisplayMode.Edit, C.'text-muted', If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted'))
-                                          Default: |-
-                                              =LookUp(colVhpStrategyOptions As _dd, _dd.Value = (LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy).Value))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(colVhpStrategyOptions As _dd, _dd.Value = (LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy).Value)), 1)
+                                          DelayOutput: |-
+                                              =false
                                           DisplayMode: |-
                                               =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -4967,12 +5021,18 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              ="Type to search"
+                                          IsSearchable: |-
+                                              =true
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
                                               =colVhpStrategyOptions
                                           LayoutMinWidth: |-
                                               =0
+                                          OnChange: |-
+                                              =If(CountRows(Self.SelectedItems) = 0, Reset(drpVhpStrategy))
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -4981,6 +5041,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -7327,7 +7389,7 @@ Screens:
                                                                   Wrap: |-
                                                                       =false
                                                       - drpVhpItemMainWorkCenter:
-                                                          Control: ModernDropdown
+                                                          Control: ModernCombobox
                                                           Properties:
                                                             AccessibleLabel: |-
                                                                 ="Main work center, required"
@@ -7347,8 +7409,8 @@ Screens:
                                                                 =1
                                                             Color: |-
                                                                 =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                            Default: |-
-                                                                =LookUp(Sort(
+                                                            DefaultSelectedItems: |-
+                                                                =FirstN(Filter(Sort(
                                                                     If(
                                                                         IsBlank(VhpPlant),
                                                                         colVhpMainWorkCenters,
@@ -7362,7 +7424,9 @@ Screens:
                                                                         Filter(colVhpMainWorkCenters, Upper(Plant) = Upper(VhpPlant))
                                                                     ),
                                                                     Value
-                                                                ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value))
+                                                                ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value)), 1)
+                                                            DelayOutput: |-
+                                                                =false
                                                             DisplayMode: |-
                                                                 =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
@@ -7371,6 +7435,10 @@ Screens:
                                                                 =Font.'Segoe UI'
                                                             Height: |-
                                                                 =If(LayoutRank < 2, 44, 36)
+                                                            InputTextPlaceholder: |-
+                                                                ="Type to search"
+                                                            IsSearchable: |-
+                                                                =true
                                                             ItemDisplayText: |-
                                                                 =ThisItem.Value
                                                             Items: |-
@@ -7385,7 +7453,11 @@ Screens:
                                                             LayoutMinWidth: |-
                                                                 =0
                                                             OnChange: |-
-                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemMainWorkCenter.Selected.Value) && (drpVhpItemMainWorkCenter.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value }))
+                                                                =If(
+                                                                    CountRows(Self.SelectedItems) = 0,
+                                                                    Reset(drpVhpItemMainWorkCenter),
+                                                                    If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemMainWorkCenter.Selected.Value) && (drpVhpItemMainWorkCenter.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value }))
+                                                                )
                                                             RadiusBottomLeft: |-
                                                                 =R.input
                                                             RadiusBottomRight: |-
@@ -7394,6 +7466,8 @@ Screens:
                                                                 =R.input
                                                             RadiusTopRight: |-
                                                                 =R.input
+                                                            SelectMultiple: |-
+                                                                =false
                                                             Size: |-
                                                                 =If(LayoutRank < 2, 16, 14)
                                                             ValidationState: |-
@@ -7745,7 +7819,7 @@ Screens:
                                                                   Wrap: |-
                                                                       =false
                                                       - drpVhpItemActivityType:
-                                                          Control: ModernDropdown
+                                                          Control: ModernCombobox
                                                           Properties:
                                                             AccessibleLabel: |-
                                                                 ="Maintenance activity type, required"
@@ -7765,8 +7839,10 @@ Screens:
                                                                 =1
                                                             Color: |-
                                                                 =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                            Default: |-
-                                                                =LookUp(colVhpActivityTypeOptions As _dd, _dd.Value = (LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value))
+                                                            DefaultSelectedItems: |-
+                                                                =FirstN(Filter(colVhpActivityTypeOptions As _dd, _dd.Value = (LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value)), 1)
+                                                            DelayOutput: |-
+                                                                =false
                                                             DisplayMode: |-
                                                                 =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
@@ -7775,6 +7851,10 @@ Screens:
                                                                 =Font.'Segoe UI'
                                                             Height: |-
                                                                 =If(LayoutRank < 2, 44, 36)
+                                                            InputTextPlaceholder: |-
+                                                                ="Type to search"
+                                                            IsSearchable: |-
+                                                                =true
                                                             ItemDisplayText: |-
                                                                 =ThisItem.Value
                                                             Items: |-
@@ -7782,7 +7862,11 @@ Screens:
                                                             LayoutMinWidth: |-
                                                                 =0
                                                             OnChange: |-
-                                                                =If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemActivityType.Selected.Value) && (drpVhpItemActivityType.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { ActivityType: drpVhpItemActivityType.Selected.Value }))
+                                                                =If(
+                                                                    CountRows(Self.SelectedItems) = 0,
+                                                                    Reset(drpVhpItemActivityType),
+                                                                    If(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && (!IsBlank(drpVhpItemActivityType.Selected.Value) && (drpVhpItemActivityType.Selected.Value) <> (LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType & "")), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { ActivityType: drpVhpItemActivityType.Selected.Value }))
+                                                                )
                                                             RadiusBottomLeft: |-
                                                                 =R.input
                                                             RadiusBottomRight: |-
@@ -7791,6 +7875,8 @@ Screens:
                                                                 =R.input
                                                             RadiusTopRight: |-
                                                                 =R.input
+                                                            SelectMultiple: |-
+                                                                =false
                                                             Size: |-
                                                                 =If(LayoutRank < 2, 16, 14)
                                                             ValidationState: |-
@@ -10334,7 +10420,7 @@ Screens:
                                         =Parent.Width
                                   Children:
                                     - drpVhpItemTasklist:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Task list, required"
@@ -10356,8 +10442,10 @@ Screens:
                                               =1
                                           Color: |-
                                               =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)) As _dd, _dd.Name = (LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)) As _dd, _dd.Name = (LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(VhpPlant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name)), 1)
+                                          DelayOutput: |-
+                                              =false
                                           DisplayMode: |-
                                               =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -10366,6 +10454,10 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              ="Type to search"
+                                          IsSearchable: |-
+                                              =true
                                           ItemDisplayText: |-
                                               =ThisItem.Name
                                           Items: |-
@@ -10374,13 +10466,17 @@ Screens:
                                               =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, 157, 0)) + 48, If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360), 0)
                                           OnChange: |-
                                               =If(
-                                                  !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&
-                                                      Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,
-                                                  UpdateIf(
-                                                      colVhpItems, ItemId = varVhpActiveItemId,
-                                                      { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
-                                                  );
-                                                  Set(gblToast, { Text: "Task list " & drpVhpItemTasklist.Selected.Key & " selected for this item.", Kind: "Success", At: Now() }); true
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpVhpItemTasklist),
+                                                  If(
+                                                      !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&
+                                                          Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,
+                                                      UpdateIf(
+                                                          colVhpItems, ItemId = varVhpActiveItemId,
+                                                          { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
+                                                      );
+                                                      Set(gblToast, { Text: "Task list " & drpVhpItemTasklist.Selected.Key & " selected for this item.", Kind: "Success", At: Now() }); true
+                                                  )
                                               )
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -10390,6 +10486,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -10539,7 +10637,7 @@ Screens:
                                           Width: |-
                                               =186
                                     - drpVhpOpsActions:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Task list actions"
@@ -10557,8 +10655,10 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" }) As _dd, _dd.Value = (""))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" }) As _dd, _dd.Value = ("")), 1)
+                                          DelayOutput: |-
+                                              =false
                                           DisplayMode: |-
                                               =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -10567,6 +10667,10 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =36
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
@@ -10574,48 +10678,52 @@ Screens:
                                           LayoutMinWidth: |-
                                               =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) < 640, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36)), 360)) + (232) + (186) + (190) + (If(LayoutRank < 2, 157, 0)) + 48, 190, 0)
                                           OnChange: |-
-                                              =Switch(
-                                                  Self.Selected.Value,
-                                                  "Add lines from task list", If(
-                                                  IsBlank(varVhpActiveItemId),
-                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
-                                                  If(
-                                                      IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                      Set(gblToast, { Text: "Select a task list first.", Kind: "Warning", At: Now() }); true,
-                                                      Clear(colVhpPickerSelected);
-                                                      Reset(inpVhpPickerSearch);
-                                                      Set(varVhpTasklistPickerOpen, true)
+                                              =If(
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpVhpOpsActions),
+                                                  Switch(
+                                                      Self.Selected.Value,
+                                                      "Add lines from task list", If(
+                                                      IsBlank(varVhpActiveItemId),
+                                                      Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
+                                                      If(
+                                                          IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
+                                                          Set(gblToast, { Text: "Select a task list first.", Kind: "Warning", At: Now() }); true,
+                                                          Clear(colVhpPickerSelected);
+                                                          Reset(inpVhpPickerSearch);
+                                                          Set(varVhpTasklistPickerOpen, true)
+                                                      )
+                                                  ),
+                                                      "Add manual operation", If(
+                                                      IsBlank(varVhpActiveItemId),
+                                                      Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
+                                                      Collect(
+                                                          colVhpOperations,
+                                                          {
+                                                              ItemId: varVhpActiveItemId,
+                                                              OperationNo: Text(RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) / 10, 0) * 10 + 10, "0000"),
+                                                              OperationShortText: "",
+                                                              WorkHours: 1,
+                                                              Persons: 1,
+                                                              DurationHours: 1,
+                                                              MainWorkCenter: "",
+                                                              ControlKey: "",
+                                                              Vendor: "",
+                                                              Cost: 0,
+                                                              Currency: "",
+                                                              CostElement: 0,
+                                                              MaterialGroup: "",
+                                                              ServiceNo: "",
+                                                              LongText: "",
+                                                              PackagesKey: ";",
+                                                              Selected: false
+                                                          }
+                                                      );
+                                                      Set(gblToast, { Text: "Operation line added.", Kind: "Success", At: Now() }); true
                                                   )
-                                              ),
-                                                  "Add manual operation", If(
-                                                  IsBlank(varVhpActiveItemId),
-                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
-                                                  Collect(
-                                                      colVhpOperations,
-                                                      {
-                                                          ItemId: varVhpActiveItemId,
-                                                          OperationNo: Text(RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) / 10, 0) * 10 + 10, "0000"),
-                                                          OperationShortText: "",
-                                                          WorkHours: 1,
-                                                          Persons: 1,
-                                                          DurationHours: 1,
-                                                          MainWorkCenter: "",
-                                                          ControlKey: "",
-                                                          Vendor: "",
-                                                          Cost: 0,
-                                                          Currency: "",
-                                                          CostElement: 0,
-                                                          MaterialGroup: "",
-                                                          ServiceNo: "",
-                                                          LongText: "",
-                                                          PackagesKey: ";",
-                                                          Selected: false
-                                                      }
                                                   );
-                                                  Set(gblToast, { Text: "Operation line added.", Kind: "Success", At: Now() }); true
+                                                  Reset(Self)
                                               )
-                                              );
-                                              Reset(Self)
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -10624,6 +10732,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -11226,7 +11336,7 @@ Screens:
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - drpVhpOpCtrl:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Control key"
@@ -11242,8 +11352,8 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(Filter(
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(Filter(
                                                         Distinct(
                                                             Table(
                                                                 { Value: "ZB01" },
@@ -11263,7 +11373,9 @@ Screens:
                                                             Value
                                                         ),
                                                         !IsBlank(Value)
-                                                    ), Value = ThisItem.ControlKey).Value))
+                                                    ), Value = ThisItem.ControlKey).Value)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11272,6 +11384,10 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
@@ -11287,7 +11403,11 @@ Screens:
                                                         !IsBlank(Value)
                                                     )
                                                 OnChange: |-
-                                                    =Patch(colVhpOperations, ThisItem, { ControlKey: Self.Selected.Value })
+                                                    =If(
+                                                        CountRows(Self.SelectedItems) = 0,
+                                                        Reset(drpVhpOpCtrl),
+                                                        Patch(colVhpOperations, ThisItem, { ControlKey: Self.Selected.Value })
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -11296,6 +11416,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -16162,7 +16284,7 @@ Screens:
                         Wrap: |-
                             =false
                   - drpVhpOpMCtrl:
-                      Control: ModernDropdown
+                      Control: ModernCombobox
                       Properties:
                         AccessibleLabel: |-
                             ="Control key"
@@ -16178,8 +16300,10 @@ Screens:
                             =1
                         Color: |-
                             =If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                        Default: |-
-                            =LookUp(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)) As _dd, _dd.Value = (LookUp(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)), Value = LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey).Value))
+                        DefaultSelectedItems: |-
+                            =FirstN(Filter(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)) As _dd, _dd.Value = (LookUp(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)), Value = LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey).Value)), 1)
+                        DelayOutput: |-
+                            =false
                         DisplayMode: |-
                             =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
@@ -16188,6 +16312,10 @@ Screens:
                             =Font.'Segoe UI'
                         Height: |-
                             =If(LayoutRank < 2, 44, 32)
+                        InputTextPlaceholder: |-
+                            ="Type to search"
+                        IsSearchable: |-
+                            =true
                         ItemDisplayText: |-
                             =ThisItem.Value
                         Items: |-
@@ -16195,7 +16323,11 @@ Screens:
                         LayoutMinWidth: |-
                             =0
                         OnChange: |-
-                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { ControlKey: Self.Selected.Value })
+                            =If(
+                                CountRows(Self.SelectedItems) = 0,
+                                Reset(drpVhpOpMCtrl),
+                                Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { ControlKey: Self.Selected.Value })
+                            )
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -16204,6 +16336,8 @@ Screens:
                             =R.input
                         RadiusTopRight: |-
                             =R.input
+                        SelectMultiple: |-
+                            =false
                         Size: |-
                             =If(LayoutRank < 2, 16, 14)
                         ValidationState: |-
