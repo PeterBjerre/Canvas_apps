@@ -41,7 +41,7 @@ def test_layout_follows_the_mockup():
     c = _controls()
     for name in ("chkVhpMatSel", "btnVhpRemoveMaterial", "imgVhpMatStatus"):
         assert name not in c, name
-    for name in ("inpVhpMatSearch", "btnVhpMatLookup", "inpVhpMatNewDesc", "inpVhpMatNewQty",
+    for name in ("cmbVhpMaterial", "btnVhpMatSearch", "inpVhpMatNewDesc", "inpVhpMatNewQty",
                  "inpVhpMatNewUnit", "inpVhpMatNewTotal", "inpVhpMatNewRop",
                  "btnVhpAddMaterial", "btnVhpMatEdit", "btnVhpMatDelete", "txtVhpMatTotal",
                  "txtVhpMatRop", "btnVhpMatCancel", "btnVhpMatSave", "txtVhpMatChanges",
@@ -62,7 +62,7 @@ def test_layout_follows_the_mockup():
 
 def test_lookup_calls_the_stock_flow_with_the_sap_plant_number():
     c = _controls()
-    fx = c["btnVhpMatLookup"]["OnSelect"]
+    fx = c["btnVhpMatSearch"]["OnSelect"]
     assert "'BioSap-Integration-MaterialStock'.Run(p, m)" in fx
     assert "LookUp(colVhpPlantCodes, Value = VhpPlant).PlantNumber" in fx
     assert "ParseJSON(varVhpMatStock.details)" in fx
@@ -83,7 +83,7 @@ def test_popup_edits_a_draft_and_save_writes_it():
     assert "ThisItem.Editing" in c["inpVhpMatQty"]["DisplayMode"]
     add = c["btnVhpAddMaterial"]["OnSelect"]
     assert "Collect(\n            colVhpMatDraft" in add
-    assert "LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text)))" in add
+    assert "LookUp(colVhpMatFound, MaterialNo = varVhpMatPick)" in add
     save = c["btnVhpMatSave"]["OnSelect"]
     # Validering foerst, saa erstattes operationens linjer af kladden.
     assert save.index("Quantity <= 0") < save.index("RemoveIf(colVhpMaterials")
@@ -133,3 +133,38 @@ def test_buttons_are_green_with_a_summary_when_content_exists():
     assert "MaterialNo & \" x \"" in c["btnVhpOpMaterials"]["Tooltip"]
     assert "FileNames" in c["btnVhpOpDocs"]["Tooltip"]
     assert "FileCount, 0) > 0" in c["btnVhpOpDocs"]["BorderColor"]
+
+
+def test_issue_574_search_field_is_the_search_and_fetch_combobox():
+    """Issue #574: Material er fl_pickers soege-og-hent-felt (som
+    leverandoeren, #572) - ikke et tekstfelt. Listen viser "nummer -
+    beskrivelse", og + tager det valgte opslag."""
+    c = _controls()
+    assert "inpVhpMatSearch" not in c and "btnVhpMatLookup" not in c
+    cmb = c["cmbVhpMaterial"]
+    assert cmb["IsSearchable"].strip() == "=true"
+    assert cmb["ItemDisplayText"].strip() == "=ThisItem.Display"
+    assert "colVhpMatHits" in cmb["Items"]
+    fx = c["btnVhpMatSearch"]["OnSelect"]
+    assert 'Display: If(IsBlank(d), m, m & " - " & d)' in fx
+    assert "Collect(colVhpMatFound, { MaterialNo: m" in fx
+    assert c["btnVhpMatSearch"]["Layout"].strip() == "=ButtonLayout.IconOnly"
+    add = c["btnVhpAddMaterial"]["OnSelect"]
+    # Raekken nulstilles, naar materialet er lagt i listen.
+    tail = add.split("Collect(\n            colVhpMatDraft")[1]
+    for part in ("Set(varVhpMatPick, \"\")", "Clear(colVhpMatHits)", "Clear(colVhpMatFound)",
+                 "Reset(cmbVhpMaterial)", "Reset(inpVhpMatNewQty)"):
+        assert part in tail, part
+    # Opslagets felter kan ikke skrives i, og enheden er tekst.
+    for name in ("inpVhpMatNewDesc", "inpVhpMatNewUnit", "inpVhpMatNewTotal", "inpVhpMatNewRop"):
+        assert "DisplayMode.View" in c[name]["DisplayMode"], name
+    assert "drpVhpMatNewUnit" not in c
+
+
+def test_issue_574_no_empty_state_and_list_grows_with_its_lines():
+    c = _controls()
+    assert "conVhpMatEmpty" not in c
+    h = c["galVhpMaterials"]["Height"]
+    assert "Min(CountRows(colVhpMatDraft) * 46" in h
+    # Hele beskrivelsen kan laeses: to linjer i raekken.
+    assert "true" in c["txtVhpMatDesc"]["Wrap"]

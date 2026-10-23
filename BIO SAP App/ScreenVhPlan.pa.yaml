@@ -11909,7 +11909,8 @@ Screens:
                                                     =ButtonLayout.TextOnly
                                                 OnSelect: |-
                                                     =Set(varVhpMatTried, false);
-                                                    Clear(colVhpMatFound);
+                                                    Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
+                                                    Reset(inpVhpMatNewQty);
                                                     ClearCollect(
                                                         colVhpMatDraft,
                                                         ForAll(
@@ -15577,7 +15578,7 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false) && !varVhpVenBusy, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo) || !IsBlank(varVhpMgOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); If(!IsBlank(varVhpMatOpNo), If( IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo)), false), Set(varVhpMatDiscardOpen, true), Set(varVhpMatTried, false); Clear(colVhpMatDraft); Clear(colVhpMatFound); Set(varVhpMatOpNo, "") )); Set(varVhpAttOpNo, ""); Set(varVhpVenOpNo, ""); Set(varVhpMgOpNo, ""); Reset(attVhpAttPicker); Set(varVhpAttRow, Blank()), Set(varVhpOpMNo, ""))))
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false) && !varVhpVenBusy, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo) || !IsBlank(varVhpMgOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); If(!IsBlank(varVhpMatOpNo), If( IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo)), false), Set(varVhpMatDiscardOpen, true), Set(varVhpMatTried, false); Clear(colVhpMatDraft); Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial); Set(varVhpMatOpNo, "") )); Set(varVhpAttOpNo, ""); Set(varVhpVenOpNo, ""); Set(varVhpMgOpNo, ""); Reset(attVhpAttPicker); Set(varVhpAttRow, Blank()), Set(varVhpOpMNo, ""))))
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -17030,7 +17031,8 @@ Screens:
                                   =If((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) >= (137) + (106) + 8, 137, 0)
                               OnSelect: |-
                                   =Set(varVhpMatTried, false);
-                                  Clear(colVhpMatFound);
+                                  Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
+                                  Reset(inpVhpMatNewQty);
                                   ClearCollect(
                                       colVhpMatDraft,
                                       ForAll(
@@ -17212,7 +17214,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =80 + 12 + (Min(0 + (If(LayoutRank < 2, 48, 32)) + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), 8 + (If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 68, (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))), 0) + 8 + (0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, 276)) + If(IfError(CountRows(colVhpMatDraft) = 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)) + 8 + (If(LayoutRank < 2, 44, 36)), If(LayoutRank < 2, App.Height - 16 - 36 - 44 - 12, App.Height - 40 - 36 - 44 - 12)))
+                =80 + 12 + (Min(0 + (If(LayoutRank < 2, 48, 32)) + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), 8 + (If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, Max((20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1), (68), (68), (68), (68), (68), (68)), (20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))), 0) + 8 + (0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, Min(CountRows(colVhpMatDraft) * 46, Max(138, App.Height - 323))))) + 8 + (If(LayoutRank < 2, 44, 36)), If(LayoutRank < 2, App.Height - 16 - 36 - 44 - 12, App.Height - 40 - 36 - 44 - 12)))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -17244,7 +17246,7 @@ Screens:
             Visible: |-
                 =IfError(!IsBlank(varVhpMatOpNo), false)
             Width: |-
-                =If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))
+                =If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -17313,7 +17315,7 @@ Screens:
                         Text: |-
                             ="Materials – operation " & varVhpMatOpNo
                         Width: |-
-                            =Max(0, (((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((44) + 12) - 2)
+                            =Max(0, (((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18))) - ((44) + 12) - 2)
                         Wrap: |-
                             =false
                   - btnVhpMatClose:
@@ -17349,7 +17351,7 @@ Screens:
                                 Set(varVhpMatDiscardOpen, true),
                                 Set(varVhpMatTried, false);
                                 Clear(colVhpMatDraft);
-                                Clear(colVhpMatFound);
+                                Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                                 Set(varVhpMatOpNo, "")
                             )
                         PressedFill: |-
@@ -17379,7 +17381,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (If(LayoutRank < 2, 48, 32)) + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), 8 + (If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 68, (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))), 0) + 8 + (0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, 276)) + If(IfError(CountRows(colVhpMatDraft) = 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)) + 8 + (If(LayoutRank < 2, 44, 36)), If(LayoutRank < 2, App.Height - 16 - 36 - 44 - 12, App.Height - 40 - 36 - 44 - 12))
+                      =Min(0 + (If(LayoutRank < 2, 48, 32)) + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), 8 + (If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, Max((20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1), (68), (68), (68), (68), (68), (68)), (20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))), 0) + 8 + (0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, Min(CountRows(colVhpMatDraft) * 46, Max(138, App.Height - 323))))) + 8 + (If(LayoutRank < 2, 44, 36)), If(LayoutRank < 2, App.Height - 16 - 36 - 44 - 12, App.Height - 40 - 36 - 44 - 12))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -17437,11 +17439,11 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 68, (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))
+                            =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, Max((20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1), (68), (68), (68), (68), (68), (68)), (20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68) + 10 + (68))
                         LayoutAlignItems: |-
-                            =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                            =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                            =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =10
                         LayoutMinWidth: |-
@@ -17466,21 +17468,21 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =68
+                                  =20 + If(LayoutRank < 2, 4, 6) + Max(36, H.hit) + 4 + 1
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =4
+                                  =If(LayoutRank < 2, 4, 6)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 200, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 240, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =200
+                                  =240
                             Children:
                               - conVhpMatMaterialNoCellRow:
                                   Control: GroupContainer
@@ -17541,7 +17543,7 @@ Screens:
                                           Text: |-
                                               ="Material"
                                           Width: |-
-                                              =Min(52, (200) - 13)
+                                              =Min(52, (240) - 13)
                                           Wrap: |-
                                               =false
                                     - txtVhpMatMaterialNoCellStar:
@@ -17579,7 +17581,7 @@ Screens:
                                               =10
                                           Wrap: |-
                                               =false
-                              - conVhpMatSearchRow:
+                              - conVhpMatWrap:
                                   Control: GroupContainer
                                   Variant: AutoLayout
                                   Properties:
@@ -17590,13 +17592,13 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =44
+                                        =0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0)
                                     LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
+                                        =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
+                                        =LayoutDirection.Vertical
                                     LayoutGap: |-
-                                        =4
+                                        =0
                                     LayoutMinWidth: |-
                                         =0
                                     LayoutOverflowX: |-
@@ -17606,143 +17608,340 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - inpVhpMatSearch:
-                                        Control: ModernTextInput
+                                    - conVhpMatInput:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Material number"
-                                          Appearance: |-
-                                              =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                                           BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =""
-                                          DisplayMode: |-
-                                              =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
                                           FillPortions: |-
                                               =0
-                                          Font: |-
-                                              =Font.'Segoe UI'
                                           Height: |-
-                                              =If(LayoutRank < 2, 44, 32)
+                                              =Max(36, H.hit) + 4
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
                                           LayoutMinWidth: |-
                                               =0
-                                          Placeholder: |-
-                                              ="Search material number or text..."
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          PaddingBottom: |-
+                                              =2
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =2
                                           Width: |-
-                                              =Max(0, (((200))) - ((Max(40, H.hit)) + 4) - 2)
-                                    - btnVhpMatLookup:
-                                        Control: ModernButton
+                                              =Parent.Width
+                                        Children:
+                                          - cmbVhpMaterial:
+                                              Control: ModernCombobox
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Material - type the material number, then the magnifier or Enter"
+                                                Appearance: |-
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                DefaultSelectedItems: |-
+                                                    =Filter(colVhpMatHits, Code = varVhpMatPick)
+                                                DelayOutput: |-
+                                                    =false
+                                                DisplayMode: |-
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                Fill: |-
+                                                    =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                FillPortions: |-
+                                                    =0
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Search by material number"
+                                                IsSearchable: |-
+                                                    =true
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Display
+                                                Items: |-
+                                                    =With(
+                                                        { q: Trim(Self.SearchText) },
+                                                        With(
+                                                            {
+                                                                s: { Code: "?search", Description: q,
+                                                                      Display: q & "  -  press Enter to search",
+                                                                      Maintainable: true, Level: "" },
+                                                                n: CountRows(colVhpMatHits),
+                                                                ask: Len(q) >= 1 && !varVhpMatBusy &&
+                                                                     Upper(q) <> Upper(Coalesce(varVhpMatLast, "")) &&
+                                                                     IsBlank(LookUp(colVhpMatHits, Upper(Trim(Display)) = Upper(q)).Code),
+                                                                narrow: CountRows(colVhpMatHits) > 0 && !IsBlank(varVhpMatLast) &&
+                                                                        StartsWith(Upper(q), Upper(varVhpMatLast))
+                                                            },
+                                                            If(
+                                                                !ask, colVhpMatHits,
+                                                                ForAll(
+                                                                    Sequence(n + 1),
+                                                                    If(narrow, If(Value <= n, Index(colVhpMatHits, Value), s),
+                                                                        If(Value = 1, s, Index(colVhpMatHits, Value - 1)))
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnChange: |-
+                                                    =If(
+                                                        Self.Selected.Code = "?search",
+                                                        Set(varVhpMatQuery, Self.Selected.Description);
+                                                        With(
+                                                        { m: Upper(Trim(varVhpMatQuery)), p: Trim(Coalesce(LookUp(colVhpPlantCodes, Value = VhpPlant).PlantNumber, "")) },
+                                                        If(
+                                                            Len(m) < 1,
+                                                            Set(gblToast, { Text: "Type a material number first.", Kind: "Warning", At: Now() }); true,
+                                                            IsBlank(p),
+                                                            Set(gblToast, { Text: "Plant " & VhpPlant & " has no SAP plant number in PlantList, so the material cannot be looked up.", Kind: "Error", At: Now() }); true,
+                                                            Set(varVhpMatBusy, true);
+                                                            Set(varVhpMatLast, m);
+                                                            Clear(colVhpMatHits);
+                                                            Clear(colVhpMatFound);
+                                                            Set(varVhpMatPick, ""); Reset(cmbVhpMaterial);
+                                                            Set(varVhpMatMsg, "");
+                                                            IfError(
+                                                                Set(varVhpMatStock, 'BioSap-Integration-MaterialStock'.Run(p, m));
+                                                                If(
+                                                                    varVhpMatStock.ok <> "yes",
+                                                                    Set(varVhpMatMsg, "Material " & m & " could not be looked up: " & Coalesce(varVhpMatStock.message, "no answer"));
+                                                                    Set(gblToast, { Text: varVhpMatMsg, Kind: "Error", At: Now() }); true,
+                                                                    With(
+                                                                        {
+                                                                            rows: Filter(
+                                                                                ForAll(
+                                                                                    Table(ParseJSON(varVhpMatStock.details)) As R,
+                                                                                    {
+                                                                                        St: Value(R.Value.status),
+                                                                                        Desc: Text(R.Value.stock.materialDescription),
+                                                                                        Uom: Text(R.Value.stock.unitMeasurement),
+                                                                                        Tot: Value(R.Value.stock.total),
+                                                                                        Rop: Value(R.Value.stock.reorderPoint)
+                                                                                    }
+                                                                                ),
+                                                                                St = 200
+                                                                            )
+                                                                        },
+                                                                        If(
+                                                                            CountRows(rows) = 0,
+                                                                            Set(varVhpMatMsg, "Material " & m & " was not found in plant " & p & ".");
+                                                                            Set(gblToast, { Text: varVhpMatMsg, Kind: "Warning", At: Now() }); true,
+                                                                            With(
+                                                                                { d: Trim(Coalesce(First(rows).Desc, "")) },
+                                                                                Collect(colVhpMatFound, { MaterialNo: m, Description: d, Unit: First(rows).Uom, Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) });
+                                                                                Collect(colVhpMatHits, { Code: m, Description: d, Display: If(IsBlank(d), m, m & " - " & d), Maintainable: true, Level: "" });
+                                                                                Set(varVhpMatPick, First(colVhpMatHits).Code);
+                                                                        Reset(cmbVhpMaterial)
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                ),
+                                                                Set(varVhpMatMsg, "The material lookup failed. Try again.");
+                                                                Set(gblToast, { Text: varVhpMatMsg, Kind: "Error", At: Now() }); true
+                                                            );
+                                                            Set(varVhpMatBusy, false)
+                                                        )
+                                                    );
+                                                        Reset(cmbVhpMaterial),
+                                                        If(
+                                                        IsBlank(Self.Selected.Code) && !varVhpMatBusy,
+                                                        Set(varVhpMatPick, ""); Clear(colVhpMatHits); Set(varVhpMatLast, ""); Set(varVhpMatQuery, ""); Set(varVhpMatMsg, ""),
+                                                        Set(varVhpMatPick, Coalesce(Self.Selected.Code, ""))
+                                                    )
+                                                    )
+                                                RadiusBottomLeft: |-
+                                                    =R.input
+                                                RadiusBottomRight: |-
+                                                    =R.input
+                                                RadiusTopLeft: |-
+                                                    =R.input
+                                                RadiusTopRight: |-
+                                                    =R.input
+                                                SelectMultiple: |-
+                                                    =false
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
+                                                Width: |-
+                                                    =Max(0, ((((240)))) - (If(!varVhpMatBusy, (Max(40, H.hit)) + 8, 0)) - (If(varVhpMatBusy, (Max(40, H.hit)) + 8, 0)) - 2)
+                                          - btnVhpMatSearch:
+                                              Control: ModernButton
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Look up the material number on stock"
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                Appearance: |-
+                                                    =ButtonAppearance.Outline
+                                                BorderColor: |-
+                                                    =C.'border-input'
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                DisplayMode: |-
+                                                    =If(Len(Trim(Coalesce(cmbVhpMaterial.SearchText, varVhpMatQuery))) < 1, DisplayMode.Disabled, If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit))
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =H.hit
+                                                Icon: |-
+                                                    ="Search"
+                                                Layout: |-
+                                                    =ButtonLayout.IconOnly
+                                                LayoutMinWidth: |-
+                                                    =Max(40, H.hit)
+                                                OnSelect: |-
+                                                    =With(
+                                                        { m: Upper(Trim(Coalesce(cmbVhpMaterial.SearchText, varVhpMatQuery))), p: Trim(Coalesce(LookUp(colVhpPlantCodes, Value = VhpPlant).PlantNumber, "")) },
+                                                        If(
+                                                            Len(m) < 1,
+                                                            Set(gblToast, { Text: "Type a material number first.", Kind: "Warning", At: Now() }); true,
+                                                            IsBlank(p),
+                                                            Set(gblToast, { Text: "Plant " & VhpPlant & " has no SAP plant number in PlantList, so the material cannot be looked up.", Kind: "Error", At: Now() }); true,
+                                                            Set(varVhpMatBusy, true);
+                                                            Set(varVhpMatLast, m);
+                                                            Clear(colVhpMatHits);
+                                                            Clear(colVhpMatFound);
+                                                            Set(varVhpMatPick, ""); Reset(cmbVhpMaterial);
+                                                            Set(varVhpMatMsg, "");
+                                                            IfError(
+                                                                Set(varVhpMatStock, 'BioSap-Integration-MaterialStock'.Run(p, m));
+                                                                If(
+                                                                    varVhpMatStock.ok <> "yes",
+                                                                    Set(varVhpMatMsg, "Material " & m & " could not be looked up: " & Coalesce(varVhpMatStock.message, "no answer"));
+                                                                    Set(gblToast, { Text: varVhpMatMsg, Kind: "Error", At: Now() }); true,
+                                                                    With(
+                                                                        {
+                                                                            rows: Filter(
+                                                                                ForAll(
+                                                                                    Table(ParseJSON(varVhpMatStock.details)) As R,
+                                                                                    {
+                                                                                        St: Value(R.Value.status),
+                                                                                        Desc: Text(R.Value.stock.materialDescription),
+                                                                                        Uom: Text(R.Value.stock.unitMeasurement),
+                                                                                        Tot: Value(R.Value.stock.total),
+                                                                                        Rop: Value(R.Value.stock.reorderPoint)
+                                                                                    }
+                                                                                ),
+                                                                                St = 200
+                                                                            )
+                                                                        },
+                                                                        If(
+                                                                            CountRows(rows) = 0,
+                                                                            Set(varVhpMatMsg, "Material " & m & " was not found in plant " & p & ".");
+                                                                            Set(gblToast, { Text: varVhpMatMsg, Kind: "Warning", At: Now() }); true,
+                                                                            With(
+                                                                                { d: Trim(Coalesce(First(rows).Desc, "")) },
+                                                                                Collect(colVhpMatFound, { MaterialNo: m, Description: d, Unit: First(rows).Uom, Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) });
+                                                                                Collect(colVhpMatHits, { Code: m, Description: d, Display: If(IsBlank(d), m, m & " - " & d), Maintainable: true, Level: "" });
+                                                                                Set(varVhpMatPick, First(colVhpMatHits).Code);
+                                                                        Reset(cmbVhpMaterial)
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                ),
+                                                                Set(varVhpMatMsg, "The material lookup failed. Try again.");
+                                                                Set(gblToast, { Text: varVhpMatMsg, Kind: "Error", At: Now() }); true
+                                                            );
+                                                            Set(varVhpMatBusy, false)
+                                                        )
+                                                    )
+                                                RadiusBottomLeft: |-
+                                                    =R.input
+                                                RadiusBottomRight: |-
+                                                    =R.input
+                                                RadiusTopLeft: |-
+                                                    =R.input
+                                                RadiusTopRight: |-
+                                                    =R.input
+                                                Size: |-
+                                                    =T.input
+                                                Text: |-
+                                                    =""
+                                                Tooltip: |-
+                                                    =If(IsBlank(varVhpMatMsg), "Look up the material number on stock", varVhpMatMsg)
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =!varVhpMatBusy
+                                                Width: |-
+                                                    =Max(40, H.hit)
+                                          - spnVhpMatBusy:
+                                              Control: ModernSpinner@1.1.0
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Searching"
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =H.hit
+                                                Label: |-
+                                                    =""
+                                                LayoutMinWidth: |-
+                                                    =Max(40, H.hit)
+                                                Size: |-
+                                                    =T.input
+                                                Visible: |-
+                                                    =varVhpMatBusy
+                                                Width: |-
+                                                    =Max(40, H.hit)
+                                    - tmrVhpMatCapture:
+                                        Control: Timer
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Look up the material"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          DisplayMode: |-
-                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IfError(varVhpMatBusy, false), DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
+                                          AutoPause: |-
+                                              =false
+                                          AutoStart: |-
+                                              =false
+                                          Duration: |-
+                                              =300
                                           Height: |-
-                                              =H.hit
-                                          Icon: |-
-                                              ="Search"
-                                          Layout: |-
-                                              =ButtonLayout.IconOnly
-                                          OnSelect: |-
-                                              =With(
-                                                  { m: Upper(Trim(inpVhpMatSearch.Text)), p: Trim(Coalesce(LookUp(colVhpPlantCodes, Value = VhpPlant).PlantNumber, "")) },
-                                                  If(
-                                                      IsBlank(m),
-                                                      Set(gblToast, { Text: "Type a material number first.", Kind: "Warning", At: Now() }); true,
-                                                      IsBlank(p),
-                                                      Set(gblToast, { Text: "Plant " & VhpPlant & " has no SAP plant number in PlantList, so the material cannot be looked up.", Kind: "Error", At: Now() }); true,
-                                                      Set(varVhpMatBusy, true);
-                                                      Clear(colVhpMatFound);
-                                                      IfError(
-                                                          Set(varVhpMatStock, 'BioSap-Integration-MaterialStock'.Run(p, m));
-                                                          If(
-                                                              varVhpMatStock.ok <> "yes",
-                                                              Set(gblToast, { Text: "Material " & m & " could not be looked up: " & Coalesce(varVhpMatStock.message, "no answer"), Kind: "Error", At: Now() }); true,
-                                                              With(
-                                                                  {
-                                                                      rows: Filter(
-                                                                          ForAll(
-                                                                              Table(ParseJSON(varVhpMatStock.details)) As R,
-                                                                              {
-                                                                                  St: Value(R.Value.status),
-                                                                                  Desc: Text(R.Value.stock.materialDescription),
-                                                                                  Uom: Text(R.Value.stock.unitMeasurement),
-                                                                                  Tot: Value(R.Value.stock.total),
-                                                                                  Rop: Value(R.Value.stock.reorderPoint)
-                                                                              }
-                                                                          ),
-                                                                          St = 200
-                                                                      )
-                                                                  },
-                                                                  If(
-                                                                      CountRows(rows) = 0,
-                                                                      Set(gblToast, { Text: "Material " & m & " was not found in plant " & p & ".", Kind: "Warning", At: Now() }); true,
-                                                                      Collect(colVhpMatFound, { MaterialNo: m, Description: First(rows).Desc, Unit: First(rows).Uom, Total: Sum(rows, Tot), ReorderPoint: Sum(rows, Rop) })
-                                                                  )
-                                                              )
-                                                          ),
-                                                          Set(gblToast, { Text: "The material lookup failed. Try again.", Kind: "Error", At: Now() }); true
-                                                      );
-                                                      Set(varVhpMatBusy, false)
-                                                  )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              =""
-                                          Tooltip: |-
-                                              ="Look up the material number on stock"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
+                                              =1
+                                          OnTimerEnd: |-
+                                              =If(!IsBlank(cmbVhpMaterial.SearchText), Set(varVhpMatQuery, cmbVhpMaterial.SearchText))
+                                          Repeat: |-
+                                              =true
+                                          Start: |-
+                                              =!IsBlank(cmbVhpMaterial.SearchText)
+                                          Visible: |-
+                                              =false
                                           Width: |-
-                                              =Max(40, H.hit)
+                                              =1
                         - conVhpMatDescCell:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -17760,17 +17959,17 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =If(LayoutRank < 2, 4, 10)
+                                  =If(LayoutRank < 2, 4, 8)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 190, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 198, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               PaddingBottom: |-
-                                  =If(LayoutRank < 2, 0, 6)
+                                  =If(LayoutRank < 2, 0, 4)
                               Width: |-
-                                  =190
+                                  =198
                             Children:
                               - txtVhpMatDescCellLbl:
                                   Control: ModernText
@@ -17825,7 +18024,7 @@ Screens:
                                     Color: |-
                                         =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
-                                        =If(IfError(varVhpMatBusy, false), "Looking up...", Coalesce(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text))).Description, ""))
+                                        =If(IfError(varVhpMatBusy, false), "Looking up...", Coalesce(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Description, ""))
                                     DisplayMode: |-
                                         =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
@@ -17833,7 +18032,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 44, 32)
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =0
                                     Placeholder: |-
@@ -17848,6 +18047,8 @@ Screens:
                                         =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
+                                    Tooltip: |-
+                                        =If(IfError(varVhpMatBusy, false), "Looking up...", Coalesce(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Description, ""))
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
@@ -17869,15 +18070,15 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =If(LayoutRank < 2, 4, 10)
+                                  =If(LayoutRank < 2, 4, 8)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 80, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 80, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               PaddingBottom: |-
-                                  =If(LayoutRank < 2, 0, 6)
+                                  =If(LayoutRank < 2, 0, 4)
                               Width: |-
                                   =80
                             Children:
@@ -18004,7 +18205,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 44, 32)
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =0
                                     Placeholder: |-
@@ -18040,15 +18241,15 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =If(LayoutRank < 2, 4, 10)
+                                  =If(LayoutRank < 2, 4, 8)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 60, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 60, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               PaddingBottom: |-
-                                  =If(LayoutRank < 2, 0, 6)
+                                  =If(LayoutRank < 2, 0, 4)
                               Width: |-
                                   =60
                             Children:
@@ -18105,7 +18306,7 @@ Screens:
                                     Color: |-
                                         =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
-                                        =Coalesce(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text))).Unit, "")
+                                        =Coalesce(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Unit, "")
                                     DisplayMode: |-
                                         =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
@@ -18113,7 +18314,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 44, 32)
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =0
                                     Placeholder: |-
@@ -18128,6 +18329,8 @@ Screens:
                                         =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
+                                    Tooltip: |-
+                                        =Coalesce(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Unit, "")
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
@@ -18149,15 +18352,15 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =If(LayoutRank < 2, 4, 10)
+                                  =If(LayoutRank < 2, 4, 8)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 70, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 70, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               PaddingBottom: |-
-                                  =If(LayoutRank < 2, 0, 6)
+                                  =If(LayoutRank < 2, 0, 4)
                               Width: |-
                                   =70
                             Children:
@@ -18214,7 +18417,7 @@ Screens:
                                     Color: |-
                                         =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
-                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text)))), "", Text(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text))).Total))
+                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick)), "", Text(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Total))
                                     DisplayMode: |-
                                         =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
@@ -18222,7 +18425,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 44, 32)
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =0
                                     Placeholder: |-
@@ -18237,6 +18440,8 @@ Screens:
                                         =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
+                                    Tooltip: |-
+                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick)), "", Text(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).Total))
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
@@ -18258,15 +18463,15 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =If(LayoutRank < 2, 4, 10)
+                                  =If(LayoutRank < 2, 4, 8)
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 100, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 100, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               PaddingBottom: |-
-                                  =If(LayoutRank < 2, 0, 6)
+                                  =If(LayoutRank < 2, 0, 4)
                               Width: |-
                                   =100
                             Children:
@@ -18323,7 +18528,7 @@ Screens:
                                     Color: |-
                                         =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
-                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text)))), "", Text(LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text))).ReorderPoint))
+                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick)), "", Text(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).ReorderPoint))
                                     DisplayMode: |-
                                         =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
@@ -18331,7 +18536,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 44, 32)
+                                        =If(LayoutRank < 2, 44, 36)
                                     LayoutMinWidth: |-
                                         =0
                                     Placeholder: |-
@@ -18346,6 +18551,8 @@ Screens:
                                         =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
+                                    Tooltip: |-
+                                        =If(IsBlank(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick)), "", Text(LookUp(colVhpMatFound, MaterialNo = varVhpMatPick).ReorderPoint))
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
@@ -18371,7 +18578,7 @@ Screens:
                               LayoutJustifyContent: |-
                                   =LayoutJustifyContent.Center
                               LayoutMinWidth: |-
-                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - 36 - 18) >= (200) + (190) + (80) + (60) + (70) + (100) + (44) + 60, 44, 0)
+                                  =If(((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - 36 - 18) >= (240) + (198) + (80) + (60) + (70) + (100) + (44) + 60, 44, 0)
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
@@ -18414,10 +18621,10 @@ Screens:
                                         =ButtonLayout.IconOnly
                                     OnSelect: |-
                                         =With(
-                                            { m: Upper(Trim(inpVhpMatSearch.Text)), q: IfError(If(IsBlank(Trim(inpVhpMatNewQty.Text)), Blank(), Round(Value(Trim(inpVhpMatNewQty.Text)), 0)), Blank()), f: LookUp(colVhpMatFound, MaterialNo = Upper(Trim(inpVhpMatSearch.Text))) },
+                                            { m: Upper(Trim(Coalesce(varVhpMatPick, ""))), q: IfError(If(IsBlank(Trim(inpVhpMatNewQty.Text)), Blank(), Round(Value(Trim(inpVhpMatNewQty.Text)), 0)), Blank()), f: LookUp(colVhpMatFound, MaterialNo = varVhpMatPick) },
                                             If(
-                                                IsBlank(m),
-                                                Set(gblToast, { Text: "Type a material number first.", Kind: "Warning", At: Now() }); true,
+                                                IsBlank(m) || IsBlank(f),
+                                                Set(gblToast, { Text: "Search for the material and select it first.", Kind: "Warning", At: Now() }); true,
                                                 IsBlank(q) || q <= 0,
                                                 Set(gblToast, { Text: "The quantity must be above 0.", Kind: "Warning", At: Now() }); true,
                                                 !IsBlank(LookUp(colVhpMatDraft, MaterialNo = m)),
@@ -18437,8 +18644,7 @@ Screens:
                                                         Editing: false
                                                     }
                                                 );
-                                                Clear(colVhpMatFound);
-                                                Reset(inpVhpMatSearch);
+                                                Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                                                 Reset(inpVhpMatNewQty)
                                             )
                                         )
@@ -18455,7 +18661,7 @@ Screens:
                                     Text: |-
                                         =""
                                     Tooltip: |-
-                                        ="Add the material. Description and unit come from the lookup - without a lookup they stay empty."
+                                        ="Add the material with the quantity. Description, unit, total and reorder point come from the lookup."
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -18471,7 +18677,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, 276)) + If(IfError(CountRows(colVhpMatDraft) = 0, false), 4 + (64 + 8 + (If(LayoutRank < 2, 60, 40))), 0)
+                            =0 + If(If(LayoutRank < 2, false, true), 0 + (22), 0) + If(If(LayoutRank < 2, false, true), 4 + (1), 0) + 4 + (If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, Min(CountRows(colVhpMatDraft) * 46, Max(138, App.Height - 323))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Start
                         LayoutDirection: |-
@@ -18495,7 +18701,7 @@ Screens:
                               Height: |-
                                   =22
                               HtmlText: |-
-                                  ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:110px 210px 80px 60px 70px 100px 92px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>MATERIAL</span><span>DESCRIPTION</span><span>QUANTITY</span><span>UNIT</span><span>TOTAL</span><span>REORDER POINT</span><span>ACTIONS</span></div>"
+                                  ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:130px 260px 80px 60px 70px 100px 92px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>MATERIAL</span><span>DESCRIPTION</span><span>QUANTITY</span><span>UNIT</span><span>TOTAL</span><span>REORDER POINT</span><span>ACTIONS</span></div>"
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -18507,7 +18713,7 @@ Screens:
                               Visible: |-
                                   =If(LayoutRank < 2, false, true)
                               Width: |-
-                                  =782
+                                  =852
                         - conVhpMatDivider:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -18537,7 +18743,7 @@ Screens:
                               Visible: |-
                                   =If(LayoutRank < 2, false, true)
                               Width: |-
-                                  =782
+                                  =852
                         - galVhpMaterials:
                             Control: Gallery
                             Variant: Vertical
@@ -18551,7 +18757,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, 276)
+                                  =If(LayoutRank < 2, CountRows(colVhpMatDraft) * 118, Min(CountRows(colVhpMatDraft) * 46, Max(138, App.Height - 323)))
                               Items: |-
                                   =Sort(colVhpMatDraft, LineId)
                               LayoutMinWidth: |-
@@ -18569,7 +18775,7 @@ Screens:
                               TemplateSize: |-
                                   =If(LayoutRank < 2, 116, 46)
                               Width: |-
-                                  =If(LayoutRank < 2, If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36)), 804)
+                                  =If(LayoutRank < 2, If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36)), 874)
                               WrapCount: |-
                                   =1
                             Children:
@@ -18605,7 +18811,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.MaterialNo
                                     Width: |-
-                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 116, 110)
+                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 116, 130)
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -18628,7 +18834,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =If(LayoutRank < 2, 18, 30)
+                                        =If(LayoutRank < 2, 18, 40)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -18642,13 +18848,13 @@ Screens:
                                     Text: |-
                                         =If(IsBlank(ThisItem.Description), "-", ThisItem.Description)
                                     Width: |-
-                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 16, 210)
+                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 16, 260)
                                     Wrap: |-
-                                        =false
+                                        =If(LayoutRank < 2, false, true)
                                     X: |-
-                                        =If(LayoutRank < 2, 8, 0 + 0 + 0 + (110) + 10)
+                                        =If(LayoutRank < 2, 8, 0 + 0 + 0 + (130) + 10)
                                     Y: |-
-                                        =If(LayoutRank < 2, 98, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (30)) / 2)
+                                        =If(LayoutRank < 2, 98, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (40)) / 2)
                               - inpVhpMatQty:
                                   Control: ModernTextInput
                                   Properties:
@@ -18699,7 +18905,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 2, 80, 80)
                                     X: |-
-                                        =If(LayoutRank < 2, 8, 0 + 0 + 0 + (110) + 10 + (210) + 10)
+                                        =If(LayoutRank < 2, 8, 0 + 0 + 0 + (130) + 10 + (260) + 10)
                                     Y: |-
                                         =If(LayoutRank < 2, 52, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (If(LayoutRank < 2, 44, 32))) / 2)
                               - txtVhpMatUnit:
@@ -18736,7 +18942,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =If(LayoutRank < 2, 96, 0 + 0 + 0 + (110) + 10 + (210) + 10 + (80) + 10)
+                                        =If(LayoutRank < 2, 96, 0 + 0 + 0 + (130) + 10 + (260) + 10 + (80) + 10)
                                     Y: |-
                                         =If(LayoutRank < 2, 59, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (30)) / 2)
                               - txtVhpMatTotal:
@@ -18773,7 +18979,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =If(LayoutRank < 2, 154, 0 + 0 + 0 + (110) + 10 + (210) + 10 + (80) + 10 + (60) + 10)
+                                        =If(LayoutRank < 2, 154, 0 + 0 + 0 + (130) + 10 + (260) + 10 + (80) + 10 + (60) + 10)
                                     Y: |-
                                         =If(LayoutRank < 2, 59, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (30)) / 2)
                               - txtVhpMatRop:
@@ -18810,7 +19016,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =If(LayoutRank < 2, 242, 0 + 0 + 0 + (110) + 10 + (210) + 10 + (80) + 10 + (60) + 10 + (70) + 10)
+                                        =If(LayoutRank < 2, 242, 0 + 0 + 0 + (130) + 10 + (260) + 10 + (80) + 10 + (60) + 10 + (70) + 10)
                                     Y: |-
                                         =If(LayoutRank < 2, 59, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (30)) / 2)
                               - btnVhpMatEdit:
@@ -18863,7 +19069,7 @@ Screens:
                                     Width: |-
                                         =Max(40, H.hit)
                                     X: |-
-                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 100, 0 + 0 + 0 + (110) + 10 + (210) + 10 + (80) + 10 + (60) + 10 + (70) + 10 + (100) + 10) + 0 + 0
+                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 100, 0 + 0 + 0 + (130) + 10 + (260) + 10 + (80) + 10 + (60) + 10 + (70) + 10 + (100) + 10) + 0 + 0
                                     Y: |-
                                         =If(LayoutRank < 2, 4, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (44)) / 2) + 0 + (((44) - 0 - 0) - (H.hit)) / 2
                               - btnVhpMatDelete:
@@ -18916,7 +19122,7 @@ Screens:
                                     Width: |-
                                         =Max(40, H.hit)
                                     X: |-
-                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 100, 0 + 0 + 0 + (110) + 10 + (210) + 10 + (80) + 10 + (60) + 10 + (70) + 10 + (100) + 10) + 0 + 0 + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (Max(40, H.hit)) + 4, 0)
+                                        =If(LayoutRank < 2, ((If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36))) - 4) - 100, 0 + 0 + 0 + (130) + 10 + (260) + 10 + (80) + 10 + (60) + 10 + (70) + 10 + (100) + 10) + 0 + 0 + If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (Max(40, H.hit)) + 4, 0)
                                     Y: |-
                                         =If(LayoutRank < 2, 4, 0 + 0 + ((((If(LayoutRank < 2, 116, 46)) - 1) - 0 - 0) - (44)) / 2) + 0 + (((44) - 0 - 0) - (H.hit)) / 2
                               - rctVhpMatRule:
@@ -18937,106 +19143,11 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =((If(LayoutRank < 2, If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36)), 804)) - 2 * 0 - If(LayoutRank < 2, 0, 18))
+                                        =((If(LayoutRank < 2, If(LayoutRank < 2, App.Width - 40, (Min(620, App.Width - 40) - 36)), 874)) - 2 * 0 - If(LayoutRank < 2, 0, 18))
                                     X: |-
                                         =0
                                     Y: |-
                                         =If(LayoutRank < 2, 115, 45)
-                        - conVhpMatEmpty:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =64 + 8 + (If(LayoutRank < 2, 60, 40))
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =12
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =12
-                              Visible: |-
-                                  =IfError(CountRows(colVhpMatDraft) = 0, false)
-                            Children:
-                              - imgVhpMatEmptyIcon:
-                                  Control: Image
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Empty list"
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Height: |-
-                                        =40
-                                    Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' rx='10' fill='" & C.'hex-text-muted' & "' fill-opacity='0.12'/><g transform='translate(10 10)'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></g></svg>")
-                                    ImagePosition: |-
-                                        =ImagePosition.Fit
-                                    OnSelect: |-
-                                        =false
-                                    TabIndex: |-
-                                        =0
-                                    Width: |-
-                                        =40
-                              - txtVhpMatEmptyText:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Stretch
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =If(LayoutRank < 2, 60, 40)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), "No materials on this operation.", "No materials on this operation yet - search for one above and choose +.")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Wrap: |-
-                                        =true
                   - conVhpMatFooter:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -19098,7 +19209,7 @@ Screens:
                               Text: |-
                                   =With({ _c: CountRows(colVhpMatDraft) }, Text(_c) & If(_c = 1, " material", " materials")) & " added" & If(IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo)), false), " - not saved yet", "")
                               Width: |-
-                                  =Max(0, ((((If(LayoutRank < 2, App.Width - 16, Min(840, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 18)) - ((86) + 8) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (96) + 8, 0)) - 2)
+                                  =Max(0, ((((If(LayoutRank < 2, App.Width - 16, Min(910, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 18)) - ((86) + 8) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (96) + 8, 0)) - 2)
                               Wrap: |-
                                   =false
                         - btnVhpMatCancel:
@@ -19132,7 +19243,7 @@ Screens:
                                       Set(varVhpMatDiscardOpen, true),
                                       Set(varVhpMatTried, false);
                                       Clear(colVhpMatDraft);
-                                      Clear(colVhpMatFound);
+                                      Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                                       Set(varVhpMatOpNo, "")
                                   )
                               RadiusBottomLeft: |-
@@ -19184,7 +19295,7 @@ Screens:
                                       !(IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo)), false)),
                                       Set(varVhpMatTried, false);
                                       Clear(colVhpMatDraft);
-                                      Clear(colVhpMatFound);
+                                      Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                                       Set(varVhpMatOpNo, ""),
                                       RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo);
                                       Collect(
@@ -19202,7 +19313,7 @@ Screens:
                                       Set(gblToast, { Text: "Materials saved for operation " & varVhpMatOpNo & ".", Kind: "Success", At: Now() });
                                       Set(varVhpMatTried, false);
                                       Clear(colVhpMatDraft);
-                                      Clear(colVhpMatFound);
+                                      Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                                       Set(varVhpMatOpNo, "")
                                   )
                               RadiusBottomLeft: |-
@@ -23190,7 +23301,7 @@ Screens:
                             =Set(varVhpMatDiscardOpen, false);
                             Set(varVhpMatTried, false);
                             Clear(colVhpMatDraft);
-                            Clear(colVhpMatFound);
+                            Set(varVhpMatQuery, ""); Set(varVhpMatLast, ""); Set(varVhpMatMsg, ""); Clear(colVhpMatHits); Set(varVhpMatPick, ""); Clear(colVhpMatFound); Reset(cmbVhpMaterial);
                             Set(varVhpMatOpNo, "")
                         RadiusBottomLeft: |-
                             =R.input
@@ -28935,6 +29046,8 @@ Screens:
                 
                             If(false, ClearCollect(colVhpMatDraft, { LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OrigQuantity: 0, Total: 0, ReorderPoint: 0, IsNew: false, Editing: false }));
                 
+                            If(false, ClearCollect(colVhpMatHits, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
+                
                             If(false, ClearCollect(colVhpMatFound, { MaterialNo: "", Description: "", Unit: "", Total: 0, ReorderPoint: 0 }));
                 
                             If(false, ClearCollect(colVhpAttachments, { ItemId: 0, FileName: "", FileUrl: "", Identifier: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false }));
@@ -29026,6 +29139,11 @@ Screens:
                             Set(varVhpMatDiscardOpen, false);
                             // Materialeopslaget koerer (lagerflowet) - forstoerrelsesglas og + er slaaet fra.
                             Set(varVhpMatBusy, false);
+                            // Materialets soegefelt (issue #574, tools/fl_picker.py): vaelgerens tilstand.
+                            Set(varVhpMatQuery, "");
+                            Set(varVhpMatLast, "");
+                            Set(varVhpMatPick, "");
+                            Set(varVhpMatMsg, "");
                             Set(varVhpAttOpNo, "");
                             // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
                             // operationen i popup'en (tom = lukket) og vaelgerens tilstand.

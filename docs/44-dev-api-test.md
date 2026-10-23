@@ -23,7 +23,10 @@ SMV 2808. Fx `LookUp(PlantList, Title = "AVV").PlantNumber`.
 
 Materials-popuppen på operationerne i VH-planen (BIO SAP-appen,
 `Maintenance Plan App/build/build_tasklist.py`) kalder lagerflowet, når
-man trykker på forstørrelsesglasset ved Material. Plantnummeret er
+man trykker på forstørrelsesglasset ved Material (eller Enter i feltet).
+Feltet er samme søgbare ModernCombobox som leverandørsøgningen
+(`tools/fl_picker.py`, issue #574); det fundne materiale står som
+"nummer - beskrivelse" i listen og vælges automatisk. Plantnummeret er
 `PlantNumber` for planens værk. Beskrivelse og enhed tages fra den første
 lagerplacering, der svarede 200; Total og Reorder point er summen over
 placeringerne. Total og Reorder point gemmes ikke i SharePoint. API'et

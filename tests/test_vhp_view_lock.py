@@ -73,7 +73,7 @@ def test_named_controls_follow_view_mode():
     for name in ("btnVhpMgHit",):
         assert c[name][1]["DisplayMode"].strip() == f"=If({VIEW}, DisplayMode.View, DisplayMode.Edit)", name
     # Felterne i materialepopup'en laases af gen_screen.
-    for name in ("inpVhpMatSearch", "inpVhpMatNewQty", "inpVhpMatQty"):
+    for name in ("cmbVhpMaterial", "inpVhpMatNewQty", "inpVhpMatQty"):
         assert VIEW in c[name][1]["DisplayMode"], name
     # Pakkerne: Fill by hierarchy, All og Clear.
     for name in ("btnVhpPkgHierarchy", "btnVhpPkgAll", "btnVhpPkgClear", "btnVhpOpMRemove"):

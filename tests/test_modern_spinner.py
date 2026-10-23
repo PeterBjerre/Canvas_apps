@@ -47,6 +47,8 @@ SPINNERS = {
         "spnVhpLoadIcon": ("!IfError(varVhpLoadFailed, false)", '""'),
         "spnVhpFlBusy": ("varVhpFlBusy", '"Searching..."'),
         "spnVhpVenBusy": ("varVhpVenBusy", '"Searching..."'),
+        # Materials-popuppens materialeopslag: kun hjulet (issue #574).
+        "spnVhpMatBusy": ("varVhpMatBusy", '""'),
     },
     # Gem/upload viser tilstanden i knappen (issue #420, ACT_SPINNERS).
     # Hjulet er kommentarens egen ventetilstand (issue #370) - siden #411 i
@@ -146,7 +148,8 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
     # ved rene ikonknapper (ACT_SPINNERS, issue #441).
     # + 1 i SAP OBJECT-popuppen (issue #471).
     # + 1 i Materials' Supplier-soegning (issue #527).
-    assert total == 22
+    # + 1 i VH-planens materialeopslag (issue #574).
+    assert total == 23
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():

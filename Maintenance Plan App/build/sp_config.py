@@ -606,6 +606,11 @@ WORKING_COLLECTIONS = [
       "Editing": "false"}),
     # Materialeopslagets svar i Materials-popuppen: hoejst een raekke, for
     # det nummer, der sidst er slaaet op. Kun skaermens tilstand.
+    # Materialets soegefelt (issue #574): det slaaede materiale som raekke i
+    # FL-vaelgerens skema, saa fl_picker viser "nummer - beskrivelse".
+    ("colVhpMatHits",
+     {"Code": '""', "Description": '""', "Display": '""',
+      "Maintainable": "false", "Level": '""'}),
     ("colVhpMatFound",
      {"MaterialNo": '""', "Description": '""', "Unit": '""', "Total": 0, "ReorderPoint": 0}),
     # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
