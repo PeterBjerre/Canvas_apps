@@ -15,7 +15,7 @@ samme og staar nu i VhpValidationErrors. Submit er graa, indtil den er tom.
 
 Een forskel: reglerne ser kun paa de items, der ogsaa GEMMES
 (VhpSaveableItems). Appen aabner med eet tomt item, og det skrives ikke i
-SharePoint (build_save.SAVEABLE_ITEMS). Taltes det med, kunne en plan aldrig
+SharePoint (build_save.SAVEABLE_ITEMS, se SAVEABLE nedenfor). Taltes det med, kunne en plan aldrig
 blive klar til Submit, uden at brugeren slettede det.
 
 TRINENE
@@ -36,8 +36,26 @@ Et trin er GROENT, naar dets paakraevede felter er udfyldt OG gemt:
                  VhpStateJson er den samme som ved sidste gemning.
 """
 
+# ET ITEM GEMMES, SAA SNART BRUGEREN HAR SKREVET NOGET I DET (issue #566).
+# Save draft gemmer kladden, som den staar - ogsaa et halvt udfyldt item,
+# der kun har en aktivitetstype, et arbejdscenter, en lang tekst eller
+# operationer. Foer talte et item foerst med, naar det havde en kort tekst
+# eller en funktionsplads; alt andet blev stille sprunget over (og dets
+# operationer med). Et item, der allerede staar i SharePoint (SpId > 0),
+# taeller altid med - ellers slettede oprydningen (build_save trin 7) det,
+# naar brugeren toemte kort tekst og funktionsplads.
+#
+# Det tomme item, appen aabner med (build_load.EMPTY_ITEM_FIELDS), har kun
+# Initials (brugerens standard) og taeller ikke med. TasklistKey og
+# ObjectList er med vilje ikke med: tasklisten saettes ogsaa af appen selv
+# (build_load), og objektlisten foelger funktionspladsen.
+#
+# Gemningen (build_save.SAVEABLE_ITEMS) og reglerne nedenfor bruger SAMME
+# definition, saa alt, der gemmes, ogsaa valideres foer Submit.
 SAVEABLE = ("Filter(colVhpItems, !IsBlank(Trim(ShortText)) || "
-            "!IsBlank(FunctionalLocation))")
+            "!IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || "
+            "!IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || "
+            "Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)")
 
 # En strategi uden pakker i MD_StrategyPackage (IP11 er ikke indlaest endnu)
 # har intet at allokere. Pakkereglen og trin 4 kraever derfor kun en pakke pr.
@@ -440,7 +458,8 @@ def formulas():
         "Vaerket fra Plan Header, som det STAAR i dropdownen - ogsaa foer Save "
         "(issue #453). Filtre, standardvaerdier, regler og Save draft laeser den.")
     add("VhpSaveableItems", SAVEABLE,
-        "De items, der gemmes: har en kort tekst eller en funktionsplads.")
+        "De items, der gemmes: brugeren har skrevet noget i dem, de har "
+        "operationer, eller de staar allerede i SharePoint (issue #566).")
     add("VhpValidationErrors", VALIDATION,
         "Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.")
     add("VhpStepPlanDone", "varVhpPlanCommitted && varVhpPlanLocked",

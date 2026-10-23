@@ -123,7 +123,9 @@ ITEM_FIELDS = [
     ("NonFlowUserStatus", 'Coalesce(IT.NonFlowUserStatus.Value, "")'),
     ("TasklistKey", '""'),
     ("TasklistName", '""'),
-    # Raekken har vaeret gemt, saa den har bestaaet valideringen.
+    # Raekken har vaeret gemt. Siden issue #566 kan det vaere et ufaerdigt
+    # item fra en kladde - "valid" er kun en markering; reglerne foer Submit
+    # laeser felternes vaerdier (build_status.ITEM_REQUIRED), ikke Status.
     ("Status", '"valid"'),
     # Gem opdaterer netop den raekke (build_save, REVIEW.md D7).
     ("SpId", "IT.ID"),
@@ -392,6 +394,14 @@ def load_block():
         "                        ItemId in colVhpOperations.ItemId || !IsBlank(FunctionalLocation),\n"
         "                        { TasklistKey: Coalesce(tl.Key, \"\"), TasklistName: Coalesce(tl.Name, \"\") }\n"
         "                    )\n"
+        "                );\n"
+        # En kladde uden items (issue #566: Save draft kraever kun
+        # planhovedet) aabner med eet tomt item, ligesom en ny plan (#8), saa
+        # Item Editoren ikke staar graa. Det gemmes ikke, foer der er skrevet
+        # noget i det (build_status.SAVEABLE).
+        "                If(\n"
+        "                    IsEmpty(colVhpItems),\n"
+        f"                    Collect(colVhpItems, {_record(EMPTY_ITEM_FIELDS, 20)})\n"
         "                );\n"
         "                // --- hvad der er valgt naar skaermen tegnes -------\n"
         "                Set(varVhpActiveItemId, First(colVhpItems).ItemId);\n"
