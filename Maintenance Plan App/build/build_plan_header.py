@@ -15,6 +15,7 @@ from build_helpers import (child_name, text_ctrl, group, button, text_input, num
 from build_helpers import section_header  # noqa: F401
 from build_helpers import fluent, fluent_icon
 from build_helpers import act_fx, act_mark, act_button, reset_click_fx, reset_confirm
+from build_helpers import grow
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -268,26 +269,29 @@ PLAN_SUMMARY = " & ".join([
           f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))'),
 ])
 
-# Resumeet staar paa sin egen linje under titlen og ombrydes (issue #287).
-# Hoejden regnes af tekstens laengde og bredden - som build_hero._lines_h.
-# 7.5 px pr. tegn er rummeligt for 13 px Segoe UI, saa der hellere er en
-# linje luft for meget, end at den sidste vaerdi bliver klippet.
+# Resumeet ombrydes (issue #287). Hoejden regnes af tekstens laengde og
+# bredden - som build_hero._lines_h. 7.5 px pr. tegn er rummeligt for 13 px
+# Segoe UI, saa der hellere er en linje luft for meget, end at den sidste
+# vaerdi bliver klippet.
 #
-# INGEN SHOW/HIDE (issue #548): Show-knappen ved resumeet (issue #292) og
-# Hide i foden er fjernet. Chevronen yderst til hoejre i overskriften er det
-# eneste tegn paa, at planhovedet kan foldes, og hele overskriften klapper
-# ud og sammen (mobile.fold_head). Resumeet har derfor kortets fulde bredde.
-# Indrykket under titlen, naar fluebenet staar foran den; under Tablet
-# (telefon) ingen indrykning, saa teksten faar pladsen.
-SUMMARY_INDENT = 32          # statusikonet (20) + overskriftens gap (12)
+# INGEN SHOW/HIDE (issue #548): chevronen yderst til hoejre i overskriften
+# er det eneste tegn paa, at planhovedet kan foldes, og hele overskriften
+# klapper ud og sammen (mobile.fold_head).
+#
+# RESUMEET STAAR I OVERSKRIFTEN (issue #559): fra Tablet og op lige efter
+# "Plan header" paa samme linje - Total cost og chevronen bliver til
+# hoejre. Den ekstra resume-raekke under overskriften (og dens hoejde) er
+# vaek. Resumeet tager resten af raekken (grow) og ombrydes dér; raekken -
+# og den klikbare overskrift - bliver saa hoej som resumeet. Paa en
+# telefon (kortet er 248-288 px) er der kun ca. 90 px ved titlen, saa dér
+# staar resumeet som foer paa sin egen linje under overskriften
+# (txtVhpPlanFoldSummaryM) i kortets fulde bredde.
 SUMMARY_LINE_H = 20          # 13 px * 1.5
 SUMMARY_W = f"({PLAN_CW})"
-SUMMARY_PAD = (f"If({lay.below('Tablet')} || !IfError(VhpPlanValid, false), 0, "
-               f"{SUMMARY_INDENT})")
 
 
-def summary_height(text_ref):
-    cpl = f"Max(12, RoundDown(({SUMMARY_W} - {SUMMARY_PAD}) / 7.5, 0))"
+def summary_height(text_ref, width_ref=SUMMARY_W):
+    cpl = f"Max(12, RoundDown(({width_ref}) / 7.5, 0))"
     return (f"Max(1, RoundUp(Len({text_ref}) / {cpl}, 0)) * {SUMMARY_LINE_H} + 2")
 
 
@@ -367,19 +371,40 @@ def plan_cost_badge(name, visible):
                "Tooltip": f'If({COST_OVER_ON}, {COST_OVER_TEXT}, "")'})
 
 
+def plan_head_summary(fold):
+    """Resumeet I overskriften (issue #559): alle otte vaerdier lige efter
+    titlen, paa samme linje som Total cost og chevronen. Det tager resten af
+    raekken (grow) og ombrydes; hoejden foelger teksten og bredden. Udfoldet
+    og paa en telefon er teksten tom, og kontrollen er kun det, der holder
+    Total cost og chevronen ude til hoejre (den tomme gruppe, der stod der
+    foer). Skaermlaeseren faar intet fra den tomme tekst."""
+    on = f"!({lay.MOBILE}) && ({fold})"
+    text = f'If({on}, "\u00b7  " & {PLAN_SUMMARY}, "")'
+    summary = text_ctrl("txtVhpPlanFoldSummary", text, size=lay.SIZE_BODY, color=C_MUTED,
+                        height=f"If(Len(Self.Text) = 0, {SUMMARY_LINE_H}, "
+                               f"{summary_height('Self.Text', 'Self.Width')})",
+                        wrap="true",
+                        accessible=f'If({on}, "Plan header summary: " & {PLAN_SUMMARY}, "")',
+                        extra={"AlignInContainer": "AlignInContainer.Center"})
+    grow(summary)
+    ref = "txtVhpPlanFoldSummary"
+    summary.h = (f"If(Len({ref}.Text) = 0, {SUMMARY_LINE_H}, "
+                 f"{summary_height(ref + '.Text', ref + '.Width')})")
+    return summary
+
+
 def plan_fold_summary(fold):
-    """Det foldede planhoved (UX-review M5, issue #287): alle otte vaerdier
-    som een ombrudt tekst under overskriften. Overskriften (flueben, titel,
-    Total cost og chevron) er den samme, foldet og udfoldet (issue #548) -
-    kun resumeet kommer til, naar planhovedet er foldet. Kortets hoejde
-    foelger med (stack_height), saa det, der staar under kortet, flytter
-    sig."""
-    summary = text_ctrl("txtVhpPlanFoldSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
+    """Telefonens foldede planhoved (UX-review M5, issue #287): alle otte
+    vaerdier som een ombrudt tekst under overskriften, i kortets fulde
+    bredde. Fra Tablet og op staar resumeet i overskriften
+    (plan_head_summary, issue #559), saa denne linje er kun paa en telefon.
+    Kortets hoejde foelger med (stack_height)."""
+    summary = text_ctrl("txtVhpPlanFoldSummaryM", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
                         height=summary_height("Self.Text"), width=SUMMARY_W, wrap="true",
                         accessible='"Plan header summary: " & Self.Text',
-                        extra={"PaddingLeft": SUMMARY_PAD, "LayoutMinWidth": "0"},
-                        visible=fold)
-    summary.h = summary_height("txtVhpPlanFoldSummary.Text")
+                        extra={"LayoutMinWidth": "0"},
+                        visible=f"{lay.MOBILE} && ({fold})")
+    summary.h = summary_height("txtVhpPlanFoldSummaryM.Text")
     return summary
 
 
@@ -463,6 +488,11 @@ def build_plan_header():
     ok.vis = ok.props["Visible"]
     ok.props["AlignInContainer"] = "AlignInContainer.Center"
     header.children.insert(0, ok)
+    # Resumeet i overskriften (issue #559) tager den tomme gruppes plads -
+    # lige efter titlen (og "* Required", der kun ses udfoldet).
+    gaps = [k for k in header.children if k.name == "conVhpPlanHeadGap"]
+    assert len(gaps) == 1
+    header.children[header.children.index(gaps[0])] = plan_head_summary(fold)
     header.props["Height"] = str(row_height(header.children))
     header.h = header.props["Height"]
     # HELE OVERSKRIFTEN FOLDER (issue #548, mobile.fold_head) - kun naar
