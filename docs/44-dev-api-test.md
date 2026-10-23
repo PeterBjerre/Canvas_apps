@@ -13,6 +13,12 @@ API-teamet åbnede først kun lager-rollen for `materialonstocks/2806/1019`.
 Peter har bedt om `inventories/{plantKey}` og begge `materialonstocks`-kald.
 Indtil de er åbnet, giver de 403.
 
+`Plant` er SAP-plantnummeret (fx `2806`), ikke værkets forkortelse. Appen
+slår det op i kolonnen `PlantNumber` i `PlantList`, som
+`sharepoint/provision/Provision-PlantList.ps1` opretter og udfylder:
+AVV 2806, ASV 2805, HEV 2810, KYV 2808, SKV 2801, SSV 2804, HCV 2807,
+SMV 2808. Fx `LookUp(PlantList, Title = "AVV").PlantNumber`.
+
 ### Lagerflowets to kald
 
 Det første kald giver lagerplaceringerne for materialet, fx
