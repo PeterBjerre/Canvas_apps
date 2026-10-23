@@ -9,6 +9,10 @@ hele Items-Patch'et afvist af SharePoint - efter planhovedet var skrevet.
 Beslutning: blokér gemningen (samme regel som for arbejdscentret, bare
 komplet).
 
+Issue #566: reglen gaelder nu kun Submit. Save draft gemmer ufaerdige
+items (kolonnerne goeres valgfri af Provision-VHPlanColumns.ps1) - se
+tests/test_vhp_save_draft_header_only.py.
+
     python3 -m pytest tests/test_vhp_save_required_fields.py
 """
 import os
@@ -24,7 +28,7 @@ if BUILD not in sys.path:
 import build_save  # noqa: E402
 
 MSG = ("Fill in short text, functional location, activity type and main work "
-       "center on every item before saving: ")
+       "center on every item before submitting: ")
 
 
 def _guard():

@@ -93,33 +93,35 @@ import admin_log as alog
 import permissions as perm
 import request_index as ri
 import submission_notes as sn
+from build_status import SAVEABLE
 
 # AppUrl (appens play-URL fra tools/canvas_apps.json) skrives af
 # tools/request_index.record - samme felter som de andre apps.
 DOMAIN = "MaintenancePlan"
 
-# Appen aabner med eet tomt item, saa Item Editoren ikke staar graa (#8).
-# Det maa ikke ende som en tom raekke i MaintenanceItems, hvis brugeren
-# aldrig roerte det - og "mindst eet item" ville ellers vaere opfyldt af
-# noget, ingen har skrevet i.
-#
-# Et item taeller foerst med, naar det har en kort tekst eller en
-# funktionsplads. Begge dele er i forvejen paakraevede for at itemet kan
-# blive valid, saa et item uden dem kan alligevel ikke gemmes meningsfuldt.
+# HVILKE ITEMS DER GEMMES (issue #566). Appen aabner med eet tomt item, saa
+# Item Editoren ikke staar graa (#8). Det maa ikke ende som en tom raekke i
+# MaintenanceItems, hvis brugeren aldrig roerte det. Alt andet gemmes - ogsaa
+# et halvt udfyldt item - saa en kladde kan gemmes undervejs og aabnes igen,
+# som den blev forladt. Definitionen staar eet sted (build_status.SAVEABLE),
+# saa reglerne foer Submit ser praecis de items, der gemmes.
 # Operationer paa et udeladt item falder selv fra: de slaar itemet op i
 # colVhpSavedItems og springer over, naar det ikke er der.
-SAVEABLE_ITEMS = ('Filter(colVhpItems, '
-                  '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))')
+SAVEABLE_ITEMS = SAVEABLE
 SAVEABLE_COUNT = f"CountRows({SAVEABLE_ITEMS})"
 
-# Items, der ville blive gemt uden et af de paakraevede felter. Title
-# (kort tekst), FunctionalLocation, MaintenanceActivityType og
-# MainWorkCenter er paakraevede i MaintenanceItems (sharepoint/inspect/out/
-# schema.json), saa SharePoint afviser hele Items-Patch'et, hvis bare eet
-# item mangler et af dem (R2-008). Et item er "saveable" med kort tekst
-# ELLER funktionsplads, saa begge tjekkes. Aktivitetstype og arbejdscenter
-# tjekkes paa opslaget, som item_fields skriver - et ukendt navn giver
-# Blank() dér.
+# Items, der mangler et af de felter, SAP-oprettelsen kraever: Title (kort
+# tekst), FunctionalLocation, MaintenanceActivityType og MainWorkCenter.
+# Aktivitetstype og arbejdscenter tjekkes paa opslaget, som item_fields
+# skriver - et ukendt navn giver Blank() dér.
+#
+# KUN VED SUBMIT (issue #566). PR #359 (R2-008) stoppede ogsaa Save draft
+# her, fordi kolonnerne var PAAKRAEVEDE i MaintenanceItems
+# (sharepoint/inspect/out/schema.json), og SharePoint afviste hele
+# Items-Patch'et. Provision-VHPlanColumns.ps1 goer dem nu valgfri i listen,
+# saa en kladde kan gemme et ufaerdigt item. Fuldstaendigheden haandhaeves
+# af appen: Submit er graa, til reglerne er opfyldt (build_status), og
+# gemningen tjekker det igen her, foer noget skrives.
 NO_REQ = (f"Filter({SAVEABLE_ITEMS} As IT, "
           "IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || "
           "IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || "
@@ -892,9 +894,15 @@ def save_action():
                   key_fx='If(varVhpSubmitting, "submit", "save")')
     return (
         "If(\n"
-        f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
+        # Save draft kraever kun et gemt planhoved (issue #566) - intet item.
+        "    !varVhpPlanCommitted,\n"
         "    Set(varVhpSubmitting, false);\n"
-        "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
+        "    Notify(\"Press Save in the plan header first.\", NotificationType.Warning),\n"
+        "\n"
+        # Submit kraever stadig mindst eet item (samme regel som build_status).
+        f"    varVhpSubmitting && {SAVEABLE_COUNT} = 0,\n"
+        "    Set(varVhpSubmitting, false);\n"
+        "    Notify(\"Add at least one item before submitting.\", NotificationType.Warning),\n"
         "\n"
         # PLANT ER AENDRET, MEN IKKE GEMT (issue #453). Items, regler og
         # filtre foelger allerede det nye vaerk (VhpPlant), men gemningen
@@ -904,16 +912,14 @@ def save_action():
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Plant changed to \" & VhpPlant & \" - press Save in the plan header before saving the plan.\", NotificationType.Warning),\n"
         "\n"
-        # Kort tekst, funktionsplads, aktivitetstype og arbejdscenter er
-        # PAAKRAEVEDE kolonner i MaintenanceItems. Et item uden dem kan ikke
-        # gemmes - heller ikke som kladde - saa det siges her, foer noget
-        # skrives, i stedet for som SharePoints netvaerksfejl midt i
-        # gemningen (R2-008).
-        f"    CountRows({NO_REQ}) > 0,\n"
+        # Kort tekst, funktionsplads, aktivitetstype og arbejdscenter skal
+        # vaere udfyldt paa hvert item, foer planen INDSENDES (R2-008). En
+        # kladde gemmes uden dem (issue #566) - se NO_REQ.
+        f"    varVhpSubmitting && CountRows({NO_REQ}) > 0,\n"
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\n"
-        "        \"Fill in short text, functional location, activity type and main work center on every item before saving: \" &\n"
-        f"        Concat({NO_REQ}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
+        "        \"Fill in short text, functional location, activity type and main work center on every item before submitting: \" &\n"
+        f"        Concat({NO_REQ}, Coalesce(Trim(ShortText), Trim(FunctionalLocation), \"an item without short text\"), \", \"),\n"
         "        NotificationType.Warning\n"
         "    ),\n"
         "\n"
@@ -921,16 +927,16 @@ def save_action():
     )
 
 
-# Save draft kan bruges, saa snart der er noget at gemme. Samme maal som
-# selve gemningen: et tomt item taeller ikke med, saa knappen bliver ikke
-# aktiv af det item, appen selv aabnede med.
+# Save draft kan bruges, saa snart planhovedet er gemt (issue #566) - der
+# behoever ikke vaere et item, og items maa vaere ufaerdige. Submit har sin
+# egen, fulde betingelse (build_status/can_submit).
 #
 # Submit gaar ogsaa gennem den her knap (Select). Select paa en DEAKTIVERET
 # knap koerer ikke dens OnSelect, og popuppen kan staa aaben, mens
 # tilstanden aendrer sig - derfor tjekker popuppens Submit knappens
 # DisplayMode, foer flaget saettes (SUBMIT_FX, R2-035).
 DRAFT_DM = ("If(\n"
-            f"    varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
+            "    varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted,\n"
             "    DisplayMode.Disabled,\n"
             "    DisplayMode.Edit\n"
             ")")

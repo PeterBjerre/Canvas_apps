@@ -1963,8 +1963,8 @@ App:
       // Vaerket fra Plan Header, som det STAAR i dropdownen - ogsaa foer Save (issue #453). Filtre, standardvaerdier, regler og Save draft laeser den.
       VhpPlant = Coalesce(varVhpLivePlant, varVhpPlan.Plant);
 
-      // De items, der gemmes: har en kort tekst eller en funktionsplads.
-      VhpSaveableItems = Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation));
+      // De items, der gemmes: brugeren har skrevet noget i dem, de har operationer, eller de staar allerede i SharePoint (issue #566).
+      VhpSaveableItems = Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId);
 
       // Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.
       VhpValidationErrors = Concat(Filter(Table({ m: VhpPlanRuleErrors }, { m: VhpItemRuleErrors }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));

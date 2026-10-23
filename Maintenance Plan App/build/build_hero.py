@@ -711,7 +711,7 @@ def build_top_bar():
     (build_helpers.top_bar), saa ikonet staar det samme sted overalt.
     Trinene staar under den, i fuld bredde og med fast hoejde. Help og tema
     staar i sidebaren. Knapperne: se KNAPPERNE I HEADEREN ovenfor."""
-    from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE, SAVEABLE_COUNT
+    from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
     BAR_ACTIONS[:] = [btnDraft, btnSubmit]
@@ -751,7 +751,6 @@ def build_top_bar():
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
         "    !varVhpPlanCommitted, \"Confirm the plan header first - then you can save the draft.\",\n"
-        f"    {SAVEABLE_COUNT} = 0, \"Add at least one item with a short text or functional location first.\",\n"
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Save a draft so you can come back to it.\",\n"
         "    \"Saved as draft \" & varVhpPlanKey & \". Save draft saves your changes to the same plan, items and operations.\"\n"
         ")")

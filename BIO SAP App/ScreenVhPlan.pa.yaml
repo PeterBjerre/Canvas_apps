@@ -1311,7 +1311,7 @@ Screens:
                                               =C.'text-primary'
                                           DisplayMode: |-
                                               =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(
-                                                  varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
+                                                  varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted,
                                                   DisplayMode.Disabled,
                                                   DisplayMode.Edit
                                               ))
@@ -1329,18 +1329,22 @@ Screens:
                                               =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 416 - 32)) - 566 < 220), 40, 135)
                                           OnSelect: |-
                                               =If(
-                                                  !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
+                                                  !varVhpPlanCommitted,
                                                   Set(varVhpSubmitting, false);
-                                                  Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Press Save in the plan header first.", Kind: "Warning", At: Now() }); true,
+                                              
+                                                  varVhpSubmitting && CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)) = 0,
+                                                  Set(varVhpSubmitting, false);
+                                                  Set(gblToast, { Text: "Add at least one item before submitting.", Kind: "Warning", At: Now() }); true,
                                               
                                                   Upper(VhpPlant) <> Upper(varVhpPlan.Plant),
                                                   Set(varVhpSubmitting, false);
                                                   Set(gblToast, { Text: "Plant changed to " & VhpPlant & " - press Save in the plan header before saving the plan.", Kind: "Warning", At: Now() }); true,
                                               
-                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                                  varVhpSubmitting && CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                                   Set(varVhpSubmitting, false);
-                                                  Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
-                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before submitting: " &
+                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), Trim(FunctionalLocation), "an item without short text"), ", "), Kind: "Warning", At: Now() }); true,
                                               
                                               Set(varVhpAct, If(varVhpSubmitting, "submit", "save"));
                                               Set(varVhpSaving, true);
@@ -1480,7 +1484,7 @@ Screens:
                                                   ClearCollect(
                                                       colVhpSavedItems,
                                                       ForAll(
-                                                          Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID) As IT,
+                                                          Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId in colVhpSpItems.ID) As IT,
                                                           {
                                                               LocalId: IT.ItemId,
                                                               SpId: IT.SpId,
@@ -1493,7 +1497,7 @@ Screens:
                                                   );
                                                   With(
                                                       {
-                                                          old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID)
+                                                          old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId in colVhpSpItems.ID)
                                                       },
                                                       If(
                                                           CountRows(old) > 0,
@@ -1545,7 +1549,7 @@ Screens:
                                                       )
                                                   );
                                                   With(
-                                                      { src: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpSpItems.ID)) },
+                                                      { src: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), !(SpId in colVhpSpItems.ID)) },
                                                       If(
                                                           CountRows(src) > 0,
                                                           With(
@@ -1854,7 +1858,7 @@ Screens:
                                                           RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                                           ShortText: varVhpPlan.PlanText,
                                                           Plant: varVhpPlan.Plant,
-                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                                           SourceItemId: varVhpPlanSpId,
                                                           AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                                           LastActionOn: Now(),
@@ -1880,7 +1884,7 @@ Screens:
                                                           RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                                           ShortText: varVhpPlan.PlanText,
                                                           Plant: varVhpPlan.Plant,
-                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                                           SourceItemId: varVhpPlanSpId,
                                                           AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                                           LastActionOn: Now(),
@@ -1904,7 +1908,7 @@ Screens:
                                                           RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                                           ShortText: varVhpPlan.PlanText,
                                                           Plant: varVhpPlan.Plant,
-                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                          ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                                           SourceItemId: varVhpPlanSpId,
                                                           AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                                           LastActionOn: Now(),
@@ -1945,7 +1949,7 @@ Screens:
                                               ) }, { t: Concat(
                                                   Filter(
                                                       ForAll(colVhpAdmOld As O,
-                                                          With({ n: LookUp(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId = O.ID) },
+                                                          With({ n: LookUp(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId = O.ID) },
                                                               If(IsBlank(n), O.ItemID & ": removed",
                                                               Concat(
                                                                   Filter(
@@ -1966,7 +1970,7 @@ Screens:
                                                   ),
                                                   Value,
                                                   "; "
-                                              ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
+                                              ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
                                                       If(
                                                           !IsBlank(c),
                                                           IfError(
@@ -2010,7 +2014,6 @@ Screens:
                                               =If(
                                                   varVhpSaving, "Saving ...",
                                                   !varVhpPlanCommitted, "Confirm the plan header first - then you can save the draft.",
-                                                  CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0, "Add at least one item with a short text or functional location first.",
                                                   IsBlank(varVhpPlanKey), "Not saved yet. Save a draft so you can come back to it.",
                                                   "Saved as draft " & varVhpPlanKey & ". Save draft saves your changes to the same plan, items and operations."
                                               )
@@ -13673,7 +13676,7 @@ Screens:
                                   =C.'text-primary'
                               DisplayMode: |-
                                   =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(
-                                      varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
+                                      varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted,
                                       DisplayMode.Disabled,
                                       DisplayMode.Edit
                                   ))
@@ -13691,18 +13694,22 @@ Screens:
                                   =0
                               OnSelect: |-
                                   =If(
-                                      !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
+                                      !varVhpPlanCommitted,
                                       Set(varVhpSubmitting, false);
-                                      Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
+                                      Set(gblToast, { Text: "Press Save in the plan header first.", Kind: "Warning", At: Now() }); true,
+                                  
+                                      varVhpSubmitting && CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)) = 0,
+                                      Set(varVhpSubmitting, false);
+                                      Set(gblToast, { Text: "Add at least one item before submitting.", Kind: "Warning", At: Now() }); true,
                                   
                                       Upper(VhpPlant) <> Upper(varVhpPlan.Plant),
                                       Set(varVhpSubmitting, false);
                                       Set(gblToast, { Text: "Plant changed to " & VhpPlant & " - press Save in the plan header before saving the plan.", Kind: "Warning", At: Now() }); true,
                                   
-                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                      varVhpSubmitting && CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                       Set(varVhpSubmitting, false);
-                                      Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
-                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                      Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before submitting: " &
+                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), Trim(FunctionalLocation), "an item without short text"), ", "), Kind: "Warning", At: Now() }); true,
                                   
                                   Set(varVhpAct, If(varVhpSubmitting, "submit", "save"));
                                   Set(varVhpSaving, true);
@@ -13842,7 +13849,7 @@ Screens:
                                       ClearCollect(
                                           colVhpSavedItems,
                                           ForAll(
-                                              Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID) As IT,
+                                              Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId in colVhpSpItems.ID) As IT,
                                               {
                                                   LocalId: IT.ItemId,
                                                   SpId: IT.SpId,
@@ -13855,7 +13862,7 @@ Screens:
                                       );
                                       With(
                                           {
-                                              old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID)
+                                              old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId in colVhpSpItems.ID)
                                           },
                                           If(
                                               CountRows(old) > 0,
@@ -13907,7 +13914,7 @@ Screens:
                                           )
                                       );
                                       With(
-                                          { src: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpSpItems.ID)) },
+                                          { src: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), !(SpId in colVhpSpItems.ID)) },
                                           If(
                                               CountRows(src) > 0,
                                               With(
@@ -14216,7 +14223,7 @@ Screens:
                                               RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                               ShortText: varVhpPlan.PlanText,
                                               Plant: varVhpPlan.Plant,
-                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                               SourceItemId: varVhpPlanSpId,
                                               AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                               LastActionOn: Now(),
@@ -14242,7 +14249,7 @@ Screens:
                                               RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                               ShortText: varVhpPlan.PlanText,
                                               Plant: varVhpPlan.Plant,
-                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                               SourceItemId: varVhpPlanSpId,
                                               AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                               LastActionOn: Now(),
@@ -14266,7 +14273,7 @@ Screens:
                                               RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                               ShortText: varVhpPlan.PlanText,
                                               Plant: varVhpPlan.Plant,
-                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                              ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId)),
                                               SourceItemId: varVhpPlanSpId,
                                               AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                               LastActionOn: Now(),
@@ -14307,7 +14314,7 @@ Screens:
                                   ) }, { t: Concat(
                                       Filter(
                                           ForAll(colVhpAdmOld As O,
-                                              With({ n: LookUp(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId = O.ID) },
+                                              With({ n: LookUp(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), SpId = O.ID) },
                                                   If(IsBlank(n), O.ItemID & ": removed",
                                                   Concat(
                                                       Filter(
@@ -14328,7 +14335,7 @@ Screens:
                                       ),
                                       Value,
                                       "; "
-                                  ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
+                                  ) }, { t: With({ k: CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(Trim(FunctionalLocation)) || !IsBlank(Trim(MainWorkCenter)) || !IsBlank(Trim(ActivityType)) || !IsBlank(Trim(LongText)) || Coalesce(SpId, 0) > 0 || ItemId in colVhpOperations.ItemId), !(SpId in colVhpAdmOld.ID))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " item", " items")) & " added", "")) }, { t: If(sub, "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varVhpIdxNow.Status.Value, Label), varVhpIdxNow.Status.Value) & " → Submitted", "") }), !IsBlank(t)), t, "; ") },
                                           If(
                                               !IsBlank(c),
                                               IfError(
@@ -14372,7 +14379,6 @@ Screens:
                                   =If(
                                       varVhpSaving, "Saving ...",
                                       !varVhpPlanCommitted, "Confirm the plan header first - then you can save the draft.",
-                                      CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0, "Add at least one item with a short text or functional location first.",
                                       IsBlank(varVhpPlanKey), "Not saved yet. Save a draft so you can come back to it.",
                                       "Saved as draft " & varVhpPlanKey & ". Save draft saves your changes to the same plan, items and operations."
                                   )
@@ -29141,6 +29147,28 @@ Screens:
                                                     ItemId in colVhpOperations.ItemId || !IsBlank(FunctionalLocation),
                                                     { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
                                                 )
+                                            );
+                                            If(
+                                                IsEmpty(colVhpItems),
+                                                Collect(colVhpItems, {
+                                                    ItemId: 1,
+                                                    ShortText: "",
+                                                    FunctionalLocation: "",
+                                                    FlDescription: "",
+                                                    MainWorkCenter: "",
+                                                    ActivityType: "",
+                                                    ObjectList: "",
+                                                    Revision: "",
+                                                    OrstedResponsible: "",
+                                                    Initials: Upper(First(Split(varVhpMe, "@")).Value),
+                                                    LongText: "",
+                                                    NonFlowUserStatus: "",
+                                                    TasklistKey: "",
+                                                    TasklistName: "",
+                                                    Status: "draft",
+                                                    SpId: 0,
+                                                    ItemGuid: Text(GUID())
+                                                })
                                             );
                                             // --- hvad der er valgt naar skaermen tegnes -------
                                             Set(varVhpActiveItemId, First(colVhpItems).ItemId);
