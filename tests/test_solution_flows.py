@@ -100,7 +100,7 @@ def test_environment_variable_defaults_are_empty_or_redacted():
             assert value == REDACTED, xml
     for name in ("orsted_BioSapWOCClientSecret", "orsted_BioSapWocApiKey",
                  "orsted_BioSapWoeDevApiKey", "orsted_BioSapInventoryDevApiKey",
-                 "orsted_BioSapSapUtilityClientSecret", "orsted_BioSapSapUtilityTestApiKey"):
+                 "orsted_BioSapSapUtilityTestApiKey"):
         text = open(os.path.join(EV_DIR, name, "environmentvariabledefinition.xml"),
                     encoding="utf-8-sig").read()
         assert "<defaultvalue>" not in text, name

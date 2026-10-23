@@ -27,13 +27,6 @@
             "schemaName": "orsted_BioSapWoeDevApiKey"
           }
         },
-        "BioSap-SapUtility-Client-Secret (orsted_BioSapSapUtilityClientSecret)": {
-          "defaultValue": "***REDACTED***",
-          "type": "String",
-          "metadata": {
-            "schemaName": "orsted_BioSapSapUtilityClientSecret"
-          }
-        },
         "BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)": {
           "defaultValue": "***REDACTED***",
           "type": "String",
@@ -74,7 +67,7 @@
             "woeClientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
             "woeScope": "https://Dongenergy.onmicrosoft.com/b6608a78-4d04-462b-a5da-d5488f8b164c/.default",
             "woeBaseUrl": "https://dev.api.orsted.dk/woe/api",
-            "sapUtilityClientId": "9ab1e626-a2c7-4202-b325-398d6f68ee24",
+            "sapUtilityClientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
             "sapUtilityScope": "https://Dongenergy.onmicrosoft.com/9ab1e626-a2c7-4202-b325-398d6f68ee24/.default",
             "sapUtilityBaseUrl": "https://test.api.orsted.dk/saputility"
           }
@@ -648,20 +641,6 @@
                 "and": [
                   {
                     "greater": [
-                      "@length(trim(coalesce(parameters('BioSap-SapUtility-Client-Secret (orsted_BioSapSapUtilityClientSecret)'), '')))",
-                      0
-                    ]
-                  },
-                  {
-                    "not": {
-                      "contains": [
-                        "@parameters('BioSap-SapUtility-Client-Secret (orsted_BioSapSapUtilityClientSecret)')",
-                        "REDACTED"
-                      ]
-                    }
-                  },
-                  {
-                    "greater": [
                       "@length(trim(coalesce(parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)'), '')))",
                       0
                     ]
@@ -686,7 +665,7 @@
                     "headers": {
                       "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['sapUtilityClientId'])}&client_secret=@{parameters('BioSap-SapUtility-Client-Secret (orsted_BioSapSapUtilityClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['sapUtilityScope'])}",
+                    "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['sapUtilityClientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['sapUtilityScope'])}",
                     "retryPolicy": {
                       "type": "none"
                     }
@@ -894,7 +873,7 @@
                       "name": "Attachments",
                       "value": {
                         "status": "",
-                        "data": "SAP Utility is not configured: set Current value on BioSap-SapUtility-Client-Secret and BioSap-SapUtility-Test-ApiKey."
+                        "data": "SAP Utility is not configured: set Current value on BioSap-SapUtility-Test-ApiKey."
                       }
                     }
                   }

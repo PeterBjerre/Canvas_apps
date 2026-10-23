@@ -19,7 +19,6 @@ NAME = "BioSap-Integration-WoeOrder"
 FLOW_ID = "4a7e2c15-9b3d-4f68-a2c1-7d5e8b3f0c92"
 SECRET = "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)"
 WOE_KEY = "BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)"
-SU_SECRET = "BioSap-SapUtility-Client-Secret (orsted_BioSapSapUtilityClientSecret)"
 SU_KEY = "BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)"
 
 WOE = "@{outputs('Setup')?['woeBaseUrl']}"
@@ -58,12 +57,13 @@ def test_two_tokens_two_app_registrations():
     s = fk.find(NAME, "Setup")["inputs"]
     assert s["woeClientId"] == "6b699286-72e8-4e8a-8e93-ce166f5c22d0"
     assert s["woeBaseUrl"] == "https://dev.api.orsted.dk/woe/api"
-    # SAP Utility: samme app-registrering og base-URL som testflowet i PR #124.
-    assert s["sapUtilityClientId"] == "9ab1e626-a2c7-4202-b325-398d6f68ee24"
+    # SAP Utility: samme app-registrering som WOE (Peter 2026-10-23), scope og
+    # base-URL som testflowet i PR #124.
+    assert s["sapUtilityClientId"] == s["woeClientId"]
     assert s["sapUtilityScope"].endswith("/9ab1e626-a2c7-4202-b325-398d6f68ee24/.default")
     assert s["sapUtilityBaseUrl"] == "https://test.api.orsted.dk/saputility"
     for action, secret, prefix in (("Get_token", SECRET, "woe"),
-                                   ("Get_token_saputility", SU_SECRET, "sapUtility")):
+                                   ("Get_token_saputility", SECRET, "sapUtility")):
         tok = fk.find(NAME, action)
         assert "client_secret=@{parameters('%s')}" % secret in tok["inputs"]["body"]
         assert "outputs('Setup')?['%sScope']" % prefix in tok["inputs"]["body"]
@@ -101,7 +101,7 @@ def test_sap_utility_is_optional_and_tolerant():
     cfg = fk.find(NAME, "SapUtility_configured")
     assert cfg["runAfter"] == {name: ALL for name in WOE_CALLS}
     text = str(cfg["expression"])
-    assert SU_SECRET in text and SU_KEY in text
+    assert SU_KEY in text
     assert fk.find(NAME, "Set_variable_Attachments_not_configured")["inputs"]["name"] == "Attachments"
     att = fk.find(NAME, "Call_attachments")
     assert att["inputs"]["uri"] == SU + "/attachments/" + OBJ

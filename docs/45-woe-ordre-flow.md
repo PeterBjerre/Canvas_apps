@@ -106,23 +106,25 @@ If(
 )
 ```
 
-Flowet er ikke koblet på nogen skærm endnu, og `result` gemmes ikke i
-SharePoint: data skal først gemmes, når brugeren har valgt at oprette en
-VH-plan ud fra ordren.
+Flowet er ikke koblet på nogen skærm endnu, og `result` gemmes ikke
+direkte i SharePoint. Planen (Peter 2026-10-23): appen læser svaret ind og
+lader brugeren oprette en VH-plan ud fra ordren, som så ender i de lister,
+der findes i forvejen: ordrens header svarer til et item
+(`MaintenanceItems`), operationerne til tasklisten. Planens header kan
+ikke hentes fra ordren.
 
 ## Hemmeligheder og miljøvariabler
 
 | Miljøvariabel | Bruges af | Værdi |
 |---|---|---|
-| `BioSap-WOC-Client-Secret` | WOE | Som i docs/44 (app-registreringen `6b699286-…`) |
+| `BioSap-WOC-Client-Secret` | begge | Som i docs/44: alle API'erne kører med samme app-registrering `6b699286-…` (Peter 2026-10-23). SAP Utility får sit eget token med scope `9ab1e626-…/.default` |
 | `BioSap-WOE-Dev-ApiKey` | WOE | Som i docs/44 |
-| `BioSap-SapUtility-Client-Secret` | SAP Utility | Client secret til app-registreringen `9ab1e626-…`, den samme som i testflowet i [docs/37](37-fl-api-test.md) |
-| `BioSap-SapUtility-Test-ApiKey` | SAP Utility | `x-apikey` til SAP Utility i test, som i docs/37 |
+| `BioSap-SapUtility-Test-ApiKey` | SAP Utility | `x-apikey` til SAP Utility i test, som i testflowet i [docs/37](37-fl-api-test.md) |
 
-Mangler en af de to WOE-variabler, svarer flowet `ok = no` med en besked og
-stopper som Failed. De to SAP Utility-variabler er valgfri: mangler de,
-kører WOE-kaldene alligevel, `attachments.data` fortæller, at SAP Utility
-ikke er sat op, og `operationTexts` er tom.
+Mangler secret eller WOE-nøglen, svarer flowet `ok = no` med en besked og
+stopper som Failed. SAP Utility-nøglen er valgfri: mangler den, kører
+WOE-kaldene alligevel, `attachments.data` fortæller, at SAP Utility ikke er
+sat op, og `operationTexts` er tom.
 
 Token-kaldene har *Secure inputs* og *Secure outputs*, API-kaldene *Secure
 inputs*.
@@ -137,7 +139,7 @@ inputs*.
 | `Get_token` / `Token_ok` | Token til WOE; ved fejl `Respond_token_error` |
 | `Call_header` / `Header_found` | Headeren; ved 200 sættes id'erne fra svaret |
 | `Call_operations` … `Call_feedback` | De otte WOE-kald, parallelt efter headeren |
-| `SapUtility_configured` | Kun når de to SAP Utility-variabler er sat |
+| `SapUtility_configured` | Kun når SAP Utility-nøglen er sat |
 | `Get_token_saputility` / `Token_saputility_ok` | Token til SAP Utility |
 | `Call_attachments` / `Set_variable_Attachments` | Attachments på ordrens objektnummer |
 | `Operations_found` / `For_each_operation` | OperationText pr. operation, i serie |
