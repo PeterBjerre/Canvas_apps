@@ -3508,7 +3508,7 @@ def col_width(container_w, cols, gap=20):
 
 def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, width=None,
                container_w=SHELL_W, fill_portions_formula=None, cols=2, gap=20,
-               hints_on=None):
+               hints_on=None, error_ctrl=None):
     """Et felt med label over.
 
     fill_portions_formula=None betyder braekpunktet: feltet vokser kun,
@@ -3533,6 +3533,10 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     # ingen plads, naar de er slaaet fra.
     w = width or col_width(container_w, cols, gap)
     kids = [label_row(name, label_text, required=required, cell_w=w), input_ctrl]
+    # error_ctrl: feltets egen fejlbesked lige under feltet (fx First call,
+    # issue #565). Den skal have .vis, saa cellen kun vokser, naar den vises.
+    if error_ctrl is not None:
+        kids.append(error_ctrl)
     if hint_text is not None:
         if hints_on is None:
             raise ValueError("field_cell(%s): hint_text kraever hints_on - appens egen "

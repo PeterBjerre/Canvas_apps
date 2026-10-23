@@ -2,7 +2,8 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, row_height, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, C_DISABLED_BG, C_DIVIDER,
-                        C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG, C_WARN_FG, C_WARN_BG)
+                        C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG, C_WARN_FG, C_WARN_BG,
+                        C_BORDER_ERROR, C_CARD_BORDER)
 import build_help as bh
 import build_status as st
 import layout_tokens as lay
@@ -19,6 +20,16 @@ from build_helpers import grow
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
+
+# FIRST CALL MAA IKKE LIGGE FOER I DAG (issue #565). Today() - ikke en fast
+# dato. Kun i redigering: en gemt plan med en gammel First call vises
+# (View, eller laast efter Save) uden fejl og uden at datoen roeres. Laases
+# planhovedet op med Edit, staar beskeden ved feltet, og Save afvises, til
+# datoen er i dag eller senere. Submit afvises af reglen i build_status.
+FIRST_CALL_MSG = "First call cannot be before today"
+FIRST_CALL_PAST = ("(!IsBlank(dteVhpFirstCall.SelectedDate) && "
+                   "dteVhpFirstCall.SelectedDate < Today())")
+FIRST_CALL_ERR = f"(!varVhpViewOnly && !varVhpPlanLocked && {FIRST_CALL_PAST})"
 
 
 def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None):
@@ -579,6 +590,23 @@ def build_plan_header():
     dteFirstCall = date_picker("dteVhpFirstCall", FIRST_CALL_DEFAULT,
                                required_formula=REQ_PLAN, display_mode=DM_PLAN,
                                label='"First call"')
+    # Kalenderen tilbyder ikke dage foer i dag (StartDate, dokumenteret for
+    # den moderne datovaelger). Er den gemte dato aeldre, starter kalenderen
+    # dér, saa den gemte dato stadig kan vises og aldrig ryddes; Save
+    # afviser den saa (FIRST_CALL_ERR). Indtastes en dato i haanden,
+    # fanger samme regel den.
+    dteFirstCall.props["StartDate"] = (
+        f"If(IsBlank({FIRST_CALL_DEFAULT}) || {FIRST_CALL_DEFAULT} >= Today(), "
+        f"Today(), {FIRST_CALL_DEFAULT})")
+    # Roed kant ved beskeden. View-kanten saettes her selv: gen_screen
+    # springer kanter over, der allerede naevner varVhpViewOnly.
+    dteFirstCall.props["BorderColor"] = (
+        f"If(varVhpViewOnly, {C_CARD_BORDER}, "
+        f"If({FIRST_CALL_ERR}, {C_BORDER_ERROR}, {dteFirstCall.props['BorderColor']}))")
+    # Beskeden ved feltet - i alle tre layouts, under datovaelgeren.
+    txtFirstCallErr = text_ctrl("txtVhpFirstCallErr", f'"{FIRST_CALL_MSG}"', size=12,
+                                color=C_INVALID_FG, weight="Semibold", height=32,
+                                wrap="true", visible=FIRST_CALL_ERR)
 
     # UGEMTE AENDRINGER I PLANHOVEDET (issue #450): et felt staar ikke paa
     # sin Default - den senest gemte plan (varVhpPlan). Hvert felt sammenlignes
@@ -610,12 +638,13 @@ def build_plan_header():
     PLAN_COLS = 4
     FC_CELL = col_width(CW, PLAN_COLS)
 
-    def cell(name, label, ctrl, hint, required=False):
+    def cell(name, label, ctrl, hint, required=False, error=None):
         # 44 px paa en telefon (issue #508); cellens hoejde regnes af feltet.
         mobile.touch(ctrl)
         return field_cell(name, label, ctrl, required=required, width=FC_CELL,
                           container_w=CW, fill_portions_formula="0",
-                          hint_text=bh.hint(hint), hints_on=bh.HINTS_ON)
+                          hint_text=bh.hint(hint), hints_on=bh.HINTS_ON,
+                          error_ctrl=error)
 
 
     cellStrategy = cell("conVhpCellStrategy", "Maintenance strategy", drpStrategy, "Strategy")
@@ -633,7 +662,7 @@ def build_plan_header():
         cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
         cell("conVhpCellFirstCall", "First call", dteFirstCall,
-             "FirstCall", True),
+             "FirstCall", True, error=txtFirstCallErr),
     ], container_w=CW)
     # Maintenance Strategy vises kun for plantypen Strategy. Den staar da i
     # sin egen raekke under de to faste raekker, i kolonne 1, saa de otte
@@ -668,6 +697,9 @@ def build_plan_header():
             "            IsBlank(dteVhpFirstCall.SelectedDate) ||\n"
             "            Year(dteVhpFirstCall.SelectedDate) < 2020 || Year(dteVhpFirstCall.SelectedDate) > 2100,\n"
             "            Notify(\"Plan contains issues. Fix plan fields before creating items.\", NotificationType.Warning),\n"
+            # Issue #565: First call foer i dag gemmes ikke.
+            f"            {FIRST_CALL_PAST},\n"
+            f"            Notify(\"{FIRST_CALL_MSG}.\", NotificationType.Warning),\n"
             "\n"
             "            Set(\n"
             "                varVhpPlan,\n"
