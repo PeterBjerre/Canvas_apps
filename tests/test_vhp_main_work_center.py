@@ -44,7 +44,8 @@ def test_save_trims_before_lookup():
 
 def test_save_stops_before_patch_when_an_item_has_no_work_center():
     text = _text()
-    # Teksten daekker nu alle fire paakraevede felter (R2-008).
-    i = text.index("main work center on every item before saving")
+    # Teksten daekker nu alle fire paakraevede felter (R2-008). Siden
+    # issue #566 gaelder tjekket kun Submit - en kladde gemmes uden.
+    i = text.index("main work center on every item before submitting")
     j = text.index("Patch(", i - 2000)
     assert j > i, "tjekket skal ligge foer foerste Patch i gemningen"
