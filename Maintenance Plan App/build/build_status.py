@@ -340,6 +340,14 @@ RULES = [
          "\"Set First call to January 1 (yyyy-01-01) in the plan header - otherwise the outage work \" &\n"
          "        \"misses the outage. Marked as outage work (Revision): \"")) + ",\n"
      "    \"\"\n)"),
+    # Issue #565: First call foer i dag kan ikke indsendes. Kun foer Submit -
+    # en indsendt plan med en gammel dato er historik og vises uden fejl.
+    ("Plan", "first_call_past",
+     "If(\n"
+     "    !VhpSubmitted && !IsBlank(varVhpPlan.FirstCallYear) &&\n"
+     "        Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay) < Today(),\n"
+     "    \"First call cannot be before today - choose today or a later date in the Plan header.\",\n"
+     "    \"\"\n)"),
     ("Item", "item_fields", ITEM_RULE),
     ("Item", "item_plant", ITEM_PLANT_RULE),
     ("Ops", "tasklist",
