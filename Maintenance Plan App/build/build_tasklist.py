@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, row_height, C_CARD_BG, C_MUTED,
                         C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, C_WARN_FG,
-                        C_NEUTRAL_BG, C_TITLE)
+                        C_NEUTRAL_BG, C_TITLE, C_DISABLED_BG, C_CARD_BORDER)
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, hit_size, popup_head, empty_state, table_surface, flow_row, text_ctrl,
@@ -476,10 +476,14 @@ PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
 # materialet slaas op. De gemmes ikke i SharePoint - en gemt linje viser
 # "-", til materialet slaas op igen.
 MAT_ACT_W = 2 * lay.HIT_TOUCH + 4
-# Issue #574 (mockup'en): MATERIAL og DESCRIPTION er bredere, saa hele
-# materialenummeret og beskrivelsen kan laeses.
-MAT_COLS = [("MATERIAL", 130), ("DESCRIPTION", 260), ("QUANTITY", 80), ("UNIT", 60),
-            ("TOTAL", 70), ("REORDER POINT", 100), ("ACTIONS", MAT_ACT_W)]
+# EET GITTER (issue #577): indtastningsraekken, kolonneoverskriften og
+# linjerne bruger ALLE disse bredder - ingen af dem har sine egne tal.
+# Material og Description er bredest (soegefeltet skal kunne vise sin
+# pladsholder og det valgte materiale); tal og Actions er smalle. Actions
+# er + oeverst og blyant/skraldespand nederst (2 x H.hit + 4).
+MAT_COLS = [("MATERIAL", 290), ("DESCRIPTION", 280), ("QUANTITY", 80), ("UNIT", 64),
+            ("TOTAL", 72), ("REORDER POINT", 104), ("ACTIONS", MAT_ACT_W)]
+MAT_W = dict(MAT_COLS)
 MAT_GAP = 10
 MAT_TABLE_W = sum(w for _, w in MAT_COLS) + MAT_GAP * (len(MAT_COLS) - 1)
 # Een linje: et felt (32) og Edit/Delete paa H.hit (44 paa touch).
@@ -716,18 +720,24 @@ ATT_OPEN = "!IsBlank(varVhpAttOpNo)"
 # Paa en telefon: App.Width - 2 x 8 (popup_w) - 2 x 12 (polstringen).
 MODAL_CW = lay.mobile_or(f"App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD}",
                          "(Min(620, App.Width - 40) - 36)")
+# Kun telefonens del af MODAL_CW - til en bredde, der er et andet tal fra
+# Tablet og op (Materials-gitteret, issue #577).
+MODAL_CW_M = f"(App.Width - {2 * lay.MOBILE_POP_MARGIN + 2 * lay.MOBILE_CARD_PAD})"
 
 
 MAT_OPEN = "!IsBlank(varVhpMatOpNo)"
 # Materials-popuppen er bredere end de andre: tabellen har syv kolonner.
 MAT_MODAL_W = MAT_TABLE_W + 4 + SCROLLBAR_W + 36
 
-# Indtastningsraekkens felter (mockup'en, issue #574): Material er det
-# bredeste felt, og raekken er lige saa bred som tabellen under den. Paa en
-# telefon staar felterne under hinanden.
-MAT_ENTRY = [("MaterialNo", "Material", 240, True), ("Desc", "Description", 198, False),
-             ("NewQty", "Quantity", 80, True), ("NewUnit", "Unit", 60, False),
-             ("NewTotal", "Total", 70, False), ("NewRop", "Reorder point", 100, False)]
+# Indtastningsraekkens felter: een celle pr. kolonne i MAT_COLS (issue
+# #577), saa felterne staar lodret over tabellens kolonner. Paa en telefon
+# staar felterne under hinanden.
+MAT_ENTRY = [("MaterialNo", "Material", MAT_W["MATERIAL"], True),
+             ("Desc", "Description", MAT_W["DESCRIPTION"], False),
+             ("NewQty", "Quantity", MAT_W["QUANTITY"], True),
+             ("NewUnit", "Unit", MAT_W["UNIT"], False),
+             ("NewTotal", "Total", MAT_W["TOTAL"], False),
+             ("NewRop", "Reorder point", MAT_W["REORDER POINT"], False)]
 MAT_ADD_W = lay.HIT_TOUCH
 # Felterne er saa hoeje som soegefeltet (fl_picker.HEIGHT), saa de flugter.
 MAT_FIELD_H = fl_picker_mod.HEIGHT
@@ -739,6 +749,29 @@ MAT_PICK_ROW_H = f"Max({fl_picker_mod.HEIGHT}, {lay.HIT}) + {2 * fl_picker_mod.R
 
 # Hver celle: etiketten (20) og et felt, midt ud for +, som er H.hit (44).
 MAT_ENTRY_H = 20 + 4 + lay.HIT_TOUCH
+
+
+def mat_ro_box(name, value, label, width=None, height=MAT_FIELD_H, when=None):
+    """Et SKRIVEBESKYTTET felt (issue #577): vaerdien fra materialeopslaget
+    i en neutral flade med daempet kant - som appens laaste felter
+    (input-bg-disabled, border-default), men laesbar tekst.
+
+    Det er en ModernText, ikke et tekstfelt i View: den har ingen hover,
+    ingen tekstmarkoer og ingen dropdown-pil, og den kan ikke faa fokus.
+    when: et udtryk - feltets flade og kant vises kun, naar det er sandt
+    (en linje, der rettes); ellers er det almindelig tabeltekst."""
+    def on(a, b):
+        return a if when is None else f"If({when}, {a}, {b})"
+    t = text_ctrl(name, value, size=lay.SIZE_INPUT if when is None else 12, color=C_TITLE,
+                  height=height, width=width, wrap="false",
+                  accessible=f'"{label} (read-only): " & Self.Text',
+                  fill=on(C_DISABLED_BG, C_TRANSPARENT),
+                  extra={"BorderStyle": "BorderStyle.Solid",
+                         "BorderThickness": on("1", "0"),
+                         "BorderColor": C_CARD_BORDER,
+                         "PaddingLeft": on("8", "0"), "PaddingRight": on("8", "0"),
+                         "VerticalAlign": "VerticalAlign.Middle"})
+    return t
 
 
 def _mat_entry_cell(key, label, width, required, field):
@@ -809,23 +842,18 @@ def _mat_entry_row():
     found = MAT_FOUND
     busy = f"IfError({MAT_BUSY}, false)"
 
-    def ro_field(name, value, label):
-        f = text_input(name, value, label=f'"{label}"', display_mode="DisplayMode.View",
-                       height=MAT_FIELD_H)
-        # Hele teksten, ogsaa naar feltet er for smalt til den.
-        f.props["Tooltip"] = value
-        return f
-
-    desc = ro_field("inpVhpMatNewDesc",
-                    f'If({busy}, "Looking up...", Coalesce({found}.Description, ""))',
-                    "Description")
+    # Issue #577: opslagets fire felter er skrivebeskyttede felter
+    # (mat_ro_box) - Quantity er det eneste, der kan skrives i.
+    desc = mat_ro_box("txtVhpMatNewDesc",
+                      f'If({busy}, "Looking up...", Coalesce({found}.Description, ""))',
+                      "Description")
     qty = number_field(MAT_NEW_QTY, "1", label='"Quantity"', height=MAT_FIELD_H,
                        display_mode=VIEW_LOCK)
-    unit = ro_field("inpVhpMatNewUnit", f'Coalesce({found}.Unit, "")', "Unit")
-    total = ro_field("inpVhpMatNewTotal",
-                     f'If(IsBlank({found}), "", Text({found}.Total))', "Total")
-    rop = ro_field("inpVhpMatNewRop",
-                   f'If(IsBlank({found}), "", Text({found}.ReorderPoint))', "Reorder point")
+    unit = mat_ro_box("txtVhpMatNewUnit", f'Coalesce({found}.Unit, "")', "Unit")
+    total = mat_ro_box("txtVhpMatNewTotal",
+                       f'If(IsBlank({found}), "", Text({found}.Total))', "Total")
+    rop = mat_ro_box("txtVhpMatNewRop",
+                     f'If(IsBlank({found}), "", Text({found}.ReorderPoint))', "Reorder point")
     fields = {"MaterialNo": _mat_picker(), "Desc": desc, "NewQty": qty, "NewUnit": unit,
               "NewTotal": total, "NewRop": rop}
     cells = [_mat_entry_cell(k, lbl, wd, req, fields[k]) for k, lbl, wd, req in MAT_ENTRY]
@@ -875,15 +903,19 @@ def _mat_entry_row():
     btnAdd.props["Tooltip"] = ('"Add the material with the quantity. Description, unit, total '
                                'and reorder point come from the lookup."')
     ensure_hit(btnAdd)
-    # + staar ud for felterne, ikke ud for etiketterne.
-    add_cell = group("conVhpMatAddCell", [btnAdd], direction="Vertical", width=MAT_ADD_W,
-                     pad=(24, 0, 0, 0), height=MAT_ENTRY_H, justify="Center",
-                     align_items="Center")
-    # Vandret, naar felterne kan staa paa een linje i popuppen; ellers
-    # (tablet, telefon) under hinanden i fuld bredde (flow_row).
+    # + staar ud for felterne, ikke ud for etiketterne - i ACTIONS-kolonnen,
+    # lige over blyanten (issue #577).
+    add_cell = group("conVhpMatAddCell", [btnAdd], direction="Vertical",
+                     width=MAT_W["ACTIONS"], pad=(24, 0, 0, 0), height=MAT_ENTRY_H,
+                     justify="Center", align_items="Start")
+    # Vandret fra Tablet og op - altid, saa felterne staar over tabellens
+    # kolonner (issue #577). Er popuppen smallere end gitteret, scroller
+    # raekke og tabel vandret SAMMEN (conVhpMatGrid). Paa en telefon under
+    # hinanden i fuld bredde (flow_row), som foer.
     content_w = f"({lay.popup_w(MAT_MODAL_W, 40)}) - 36 - {SCROLLBAR_W}"
     return flow_row("conVhpMatEntry", cells + [add_cell], content_w, gap=MAT_GAP,
-                    visible="!varVhpViewOnly")
+                    ok=lay.mobile_or("false", "true"), visible="!varVhpViewOnly",
+                    width=lay.mobile_or(MODAL_CW_M, str(MAT_TABLE_W)))
 
 
 def _materials_modal():
@@ -893,7 +925,7 @@ def _materials_modal():
     listen viser kun dens linjer (issue #54). Den arbejder i kladden
     colVhpMatDraft; Save skriver kladden i colVhpMaterials, og planens Save
     draft gemmer dem som foer (issue #451)."""
-    w = {t: wd for t, wd in MAT_COLS}
+    w = MAT_W
     ro = "varVhpViewOnly"
 
     entry = _mat_entry_row()
@@ -911,29 +943,42 @@ def _materials_modal():
     row_mode = f"If({ro} || !ThisItem.Editing, DisplayMode.View, DisplayMode.Edit)"
     tried = "varVhpMatTried"
 
-    def cell(name, text, width, weight=None, color=C_TITLE, wrap="false", height=30):
+    def cell(name, text, width, weight=None, color=C_TITLE, wrap="false", height=32):
         return text_ctrl(name, text, size=12, color=color, weight=weight, height=height,
                          width=width, wrap=wrap)
+
+    # Opslagets vaerdier i en linje: almindelig tabeltekst - og et
+    # skrivebeskyttet felt (mat_ro_box), mens linjen rettes, saa antallet
+    # staar tydeligt som det eneste, der kan skrives i (issue #577).
+    editing = f"ThisItem.Editing && !{ro}"
+
+    def ro_cell(name, text, width, label, wrap="false", height=32):
+        c = mat_ro_box(name, text, label, width=width, height=height, when=editing)
+        c.props["Wrap"] = wrap
+        return c
 
     # Hele materialenummeret og beskrivelsen kan laeses (issue #574): kolonnerne
     # er bredere, og en lang beskrivelse braekker om paa to linjer i raekken.
     txtNo = cell("txtVhpMatNo", "ThisItem.MaterialNo", w["MATERIAL"], weight="Semibold")
-    txtDesc = cell("txtVhpMatDesc", 'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
-                   w["DESCRIPTION"], wrap=lay.mobile_or("false", "true"), height=MAT_ROW_H - 4)
+    txtDesc = ro_cell("txtVhpMatDesc",
+                      'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
+                      w["DESCRIPTION"], "Description", wrap=lay.mobile_or("false", "true"),
+                      height=MAT_ROW_H - 4)
 
     numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QUANTITY"], height=32,
                           label='"Quantity"', required_formula=tried, display_mode=row_mode,
                           onchange=f"Patch(colVhpMatDraft, ThisItem, {{ Quantity: {NV} }})")
-    txtUnit = cell("txtVhpMatUnit", 'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)', w["UNIT"])
-    txtTotal = cell("txtVhpMatTotal",
-                    lay.mobile_or('"Total " & If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))',
-                                  'If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))'),
-                    w["TOTAL"])
-    txtRop = cell("txtVhpMatRop",
-                  lay.mobile_or('"Reorder point " & If(IsBlank(ThisItem.ReorderPoint), "-", '
-                                'Text(ThisItem.ReorderPoint))',
-                                'If(IsBlank(ThisItem.ReorderPoint), "-", Text(ThisItem.ReorderPoint))'),
-                  w["REORDER POINT"])
+    txtUnit = ro_cell("txtVhpMatUnit", 'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
+                      w["UNIT"], "Unit")
+    txtTotal = ro_cell("txtVhpMatTotal",
+                       lay.mobile_or('"Total " & If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))',
+                                     'If(IsBlank(ThisItem.Total), "-", Text(ThisItem.Total))'),
+                       w["TOTAL"], "Total")
+    txtRop = ro_cell("txtVhpMatRop",
+                     lay.mobile_or('"Reorder point " & If(IsBlank(ThisItem.ReorderPoint), "-", '
+                                   'Text(ThisItem.ReorderPoint))',
+                                   'If(IsBlank(ThisItem.ReorderPoint), "-", Text(ThisItem.ReorderPoint))'),
+                     w["REORDER POINT"], "Reorder point")
 
     # ACTIONS: blyanten slaar rettelse af antallet til og fra; skraldespanden
     # fjerner linjen fra kladden. Intet er gemt foer Save.
@@ -1012,22 +1057,42 @@ def _materials_modal():
     gallery.props["TemplateSize"] = lay.mobile_or(MAT_ROW_H_M - 2, gallery.props["TemplateSize"])
     gallery.children[-1].props["Y"] = lay.mobile_or(MAT_ROW_H_M - 2 - 1,
                                                     gallery.children[-1].props["Y"])
-    for c in (header, divider):
-        mobile.hide_on_mobile(c)
+    # Uden linjer er galleriet skjult, saa det ikke giver ekstra luft over
+    # den tomme raekke nedenfor.
+    gallery.props["Visible"] = "!IsEmpty(colVhpMatDraft)"
+    gallery.vis = gallery.props["Visible"]
 
-    # Ingen separat tom tilstand (issue #574): den tomme indtastningsraekke
-    # og kolonneoverskriften er nok. Bunden siger "0 materials added".
+    # EEN TOM RAEKKE (issue #577): uden materialer slutter tabellen ikke
+    # lige under overskriften. Raekken er en normal linjes flade, hoejde,
+    # bredde og streg (table_surface) - uden vaerdier, felter eller ikoner,
+    # og den kan ikke vaelges (en container har ingen OnSelect). Den
+    # forsvinder, naar det foerste materiale er lagt i listen. Ingen stor
+    # tom tilstand (issue #574); bunden siger "0 materials added".
+    empty_rule = group("conVhpMatEmptyRule", [], height=1, fill=C_DIVIDER,
+                       direction="Horizontal", width="Parent.Width")
+    empty_row = group("conVhpMatEmptyRow", [empty_rule], direction="Vertical", gap=0,
+                      height=MAT_ROW_H + 2, fill=C_CARD_BG, justify="End",
+                      width=str(MAT_TABLE_W + 4 + SCROLLBAR_W),
+                      visible="IsEmpty(colVhpMatDraft)")
+    # Paa en telefon er der hverken overskrift eller tabel - kun kort.
+    for c in (header, divider, empty_row):
+        mobile.hide_on_mobile(c)
 
     note = text_ctrl("txtVhpMatNote",
                      '"Search and add materials for this operation. Description and unit are '
                      'filled in by the material lookup."',
                      size=12, color=C_MUTED, height=lay.mobile_or(48, 32), wrap="true")
 
-    # Start, ikke Stretch: tabellen har sin egen bredde og scroller vandret
-    # paa en smal skaerm i stedet for at blive klemt sammen.
-    table = group("conVhpMatTableWrap", [header, divider, gallery],
-                  direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
+    # Start, ikke Stretch: tabellen har sin egen bredde og bliver ikke klemt
+    # sammen. Indtastningsraekken og tabellen er EET gitter (issue #577):
+    # de staar i samme container, saa de scroller vandret SAMMEN, naar
+    # popuppen er smallere end gitteret, og kolonnerne bliver over hinanden.
+    table = group("conVhpMatTableWrap", [header, divider, gallery, empty_row],
+                  direction="Vertical", gap=4, width=lay.mobile_or(MODAL_CW_M,
+                                                                     str(MAT_TABLE_W + 4 + SCROLLBAR_W)),
                   align_items="Start")
+    grid = group("conVhpMatGrid", [entry, table], direction="Vertical", gap=8,
+                 overflow_x="Scroll", width="Parent.Width", align_items="Start")
 
     # Bunden: antallet af linjer til venstre, Cancel og Save til hoejre.
     info = text_ctrl(
@@ -1076,7 +1141,7 @@ def _materials_modal():
                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
     return _modal("VhpMat", '"Materials – operation " & varVhpMatOpNo', MAT_OPEN,
-                  MAT_CLOSE_FX, [note, entry, table, footer], width=MAT_MODAL_W, cap=True)
+                  MAT_CLOSE_FX, [note, grid, footer], width=MAT_MODAL_W, cap=True)
 
 
 def build_mat_discard_confirm():
