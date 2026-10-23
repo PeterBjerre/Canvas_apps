@@ -67,13 +67,13 @@ def test_every_data_change_is_locked_in_view():
 
 def test_named_controls_follow_view_mode():
     c = _controls()
-    # Materialepopup'en: Add, Edit/Undo, Delete og Save slaaet fra (issue #451).
+    # Materialepopup'en: +, Edit, Delete og Save slaaet fra (issue #451).
     for name in ("btnVhpAddMaterial", "btnVhpMatEdit", "btnVhpMatDelete", "btnVhpMatSave"):
         assert VIEW in c[name][1]["DisplayMode"] and "DisplayMode.Disabled" in c[name][1]["DisplayMode"], name
     for name in ("btnVhpMgHit",):
         assert c[name][1]["DisplayMode"].strip() == f"=If({VIEW}, DisplayMode.View, DisplayMode.Edit)", name
     # Felterne i materialepopup'en laases af gen_screen.
-    for name in ("inpVhpMatNo", "inpVhpMatQty"):
+    for name in ("inpVhpMatSearch", "inpVhpMatNewQty", "inpVhpMatQty"):
         assert VIEW in c[name][1]["DisplayMode"], name
     # Pakkerne: Fill by hierarchy, All og Clear.
     for name in ("btnVhpPkgHierarchy", "btnVhpPkgAll", "btnVhpPkgClear", "btnVhpOpMRemove"):

@@ -79,7 +79,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
     assert x.lstrip("=").startswith("If(LayoutRank < 2,")
     assert _ev(x, 360) == 8 and _ev(y, 360) == 52
     for w in TABLET_UP:
-        assert _ev(x, w) == 0 + 120 + 10 + 150 + 10
+        assert _ev(x, w) == 0 + 110 + 10 + 210 + 10
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ def test_gallery_place_moves_a_row_control_on_a_phone_only():
 # ---------------------------------------------------------------------------
 CARD_GALLERIES = {
     # galleri: (mobil skabelonhoejde, desktop skabelonhoejde, desktop bredde)
-    "galVhpMaterials": (116, 46, 620),
+    "galVhpMaterials": (116, 46, 804),
     "galVhpItemObjects": (80, 40, 724),
     "galVhpPicker": (54, 34, 636),
     "galVhpPkgRows": (88, 44, 472),
@@ -149,7 +149,7 @@ def test_operations_are_two_line_cards_on_a_phone():
 POPUPS = {
     "conVhpPickerModal": 740,
     "conVhpObjListModal": 760,
-    "conVhpMatModal": 656,
+    "conVhpMatModal": 840,
     "conVhpLongTextModal": 620,
     "conVhpMissingModal": 520,
 }

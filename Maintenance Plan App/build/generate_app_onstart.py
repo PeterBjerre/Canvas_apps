@@ -131,6 +131,8 @@ Set(varVhpMatOpNo, "");
 // mangler), og bekraeftelsen foer ugemte aendringer kasseres.
 Set(varVhpMatTried, false);
 Set(varVhpMatDiscardOpen, false);
+// Materialeopslaget koerer (lagerflowet) - forstoerrelsesglas og + er slaaet fra.
+Set(varVhpMatBusy, false);
 Set(varVhpAttOpNo, "");
 // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
 // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
