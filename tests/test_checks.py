@@ -124,7 +124,15 @@ def test_layout_rule_30_nested_filter_on_list(tmp_path):
 
 def test_layout_rule_16_classic_dropdown(tmp_path):
     def plant(t):
-        return t.replace("Control: ModernDropdown", "Control: Classic/DropDown", 1)
+        return t.replace("Control: ModernCombobox", "Control: Classic/DropDown", 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[16]" in out
+
+
+def test_layout_rule_16_modern_dropdown(tmp_path):
+    # Issue #568: listevalg er soegbare ModernCombobox - ingen ModernDropdown.
+    def plant(t):
+        return t.replace("Control: ModernCombobox", "Control: ModernDropdown", 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[16]" in out
 

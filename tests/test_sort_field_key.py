@@ -42,7 +42,7 @@ def test_dropdown_shows_key_and_description_but_keeps_the_key():
             'Name: Trim(R.Title & " " & R.SortFieldDescription) }), Value)') in _app()
     screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
     i = screen.find("- drpVhpSortField:")
-    assert "=ThisItem.Name" in screen[i:i + 3000]
+    assert "=ThisItem.Name" in screen[i:i + 6000]
     assert "SortField: drpVhpSortField.Selected.Value" in screen
 
 

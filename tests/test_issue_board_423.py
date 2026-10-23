@@ -46,7 +46,7 @@ def test_dropdown_offers_claude_after_not_assigned_without_icon():
     assert na < cl < items.index("colIbAdmins")
     assert f'Email: "{cfg.CLAUDE_EMAIL}"' in items
     # Genaabnet sag tildelt CLAUDE viser CLAUDE som valgt.
-    assert f'.AssignedEmail = "{cfg.CLAUDE_EMAIL}", "CLAUDE"' in asg.props["Default"]
+    assert f'.AssignedEmail = "{cfg.CLAUDE_EMAIL}", "CLAUDE"' in asg.props["DefaultSelectedItems"]
     # Intet ikon i dropdown'en.
     assert not any("svg" in str(v) for v in asg.props.values())
     assert asg.props["ItemDisplayText"] == "ThisItem.Name"
