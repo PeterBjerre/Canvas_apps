@@ -692,7 +692,7 @@ Screens:
                                     Width: |-
                                         =Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 743))
                               - drpIbSort:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Sort issues"
@@ -708,14 +708,20 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["Last updated", "Newest", "Oldest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(["Last updated", "Newest", "Oldest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort)), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        =If(LayoutRank < 2, "Select", "Type to search")
+                                    IsSearchable: |-
+                                        =If(LayoutRank < 2, false, true)
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
@@ -723,7 +729,11 @@ Screens:
                                     LayoutMinWidth: |-
                                         =If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 743, Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)), 0)
                                     OnChange: |-
-                                        =Set(varIbSort, Self.Selected.Value)
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpIbSort),
+                                            Set(varIbSort, Self.Selected.Value)
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -732,6 +742,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -953,7 +965,7 @@ Screens:
                                         =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                                   Children:
                                     - drpIbFltApp:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Filter by application"
@@ -971,14 +983,20 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp)))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              ="Type to search"
+                                          IsSearchable: |-
+                                              =true
                                           ItemDisplayText: |-
                                               =ThisItem.Application
                                           Items: |-
@@ -986,9 +1004,13 @@ Screens:
                                           LayoutMinWidth: |-
                                               =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
-                                              =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
-                                              Set(varIbSection, "");
-                                              Reset(drpIbFltSection)
+                                              =If(
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpIbFltApp),
+                                                  Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
+                                                  Set(varIbSection, "");
+                                                  Reset(drpIbFltSection)
+                                              )
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -997,6 +1019,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1004,7 +1028,7 @@ Screens:
                                           Width: |-
                                               =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                     - drpIbFltSection:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Filter by section"
@@ -1022,8 +1046,10 @@ Screens:
                                               =1
                                           Color: |-
                                               =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection)))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           DisplayMode: |-
                                               =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -1032,6 +1058,10 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              ="Type to search"
+                                          IsSearchable: |-
+                                              =true
                                           ItemDisplayText: |-
                                               =ThisItem.Section
                                           Items: |-
@@ -1039,7 +1069,11 @@ Screens:
                                           LayoutMinWidth: |-
                                               =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
-                                              =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
+                                              =If(
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpIbFltSection),
+                                                  Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
+                                              )
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -1048,6 +1082,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1086,7 +1122,7 @@ Screens:
                                         =Min(339, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18))
                                   Children:
                                     - drpIbFltStatus:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Filter by status"
@@ -1104,8 +1140,10 @@ Screens:
                                               =1
                                           Color: |-
                                               =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF)))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           DisplayMode: |-
                                               =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -1114,6 +1152,10 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
@@ -1121,7 +1163,11 @@ Screens:
                                           LayoutMinWidth: |-
                                               =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
-                                              =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
+                                              =If(
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpIbFltStatus),
+                                                  Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
+                                              )
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -1130,6 +1176,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1137,7 +1185,7 @@ Screens:
                                           Width: |-
                                               =Min(178, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                     - drpIbFltPriority:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Filter by priority"
@@ -1155,14 +1203,20 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF)))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
@@ -1170,7 +1224,11 @@ Screens:
                                           LayoutMinWidth: |-
                                               =Min(153, ((((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
-                                              =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
+                                              =If(
+                                                  CountRows(Self.SelectedItems) = 0,
+                                                  Reset(drpIbFltPriority),
+                                                  Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
+                                              )
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -1179,6 +1237,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -7490,7 +7550,7 @@ Screens:
                                           Wrap: |-
                                               =false
                               - drpIbFormApp:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Application, required"
@@ -7510,14 +7570,20 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(ForAll(Distinct(SortByColumns(colIbSections, "AppOrder", SortOrder.Ascending, "SectionOrder", SortOrder.Ascending), Application) As a, { Application: a.Value }) As _dd, _dd.Application = (varIbFormApp))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(ForAll(Distinct(SortByColumns(colIbSections, "AppOrder", SortOrder.Ascending, "SectionOrder", SortOrder.Ascending), Application) As a, { Application: a.Value }) As _dd, _dd.Application = (varIbFormApp)), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        ="Type to search"
+                                    IsSearchable: |-
+                                        =true
                                     ItemDisplayText: |-
                                         =ThisItem.Application
                                     Items: |-
@@ -7525,9 +7591,13 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     OnChange: |-
-                                        =Set(varIbFormApp, Self.Selected.Application);
-                                        Set(varIbFormSection, "");
-                                        Reset(drpIbFormSection)
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpIbFormApp),
+                                            Set(varIbFormApp, Self.Selected.Application);
+                                            Set(varIbFormSection, "");
+                                            Reset(drpIbFormSection)
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -7536,6 +7606,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -7667,7 +7739,7 @@ Screens:
                                           Wrap: |-
                                               =false
                               - drpIbFormSection:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Section, required"
@@ -7687,8 +7759,10 @@ Screens:
                                         =1
                                     Color: |-
                                         =If((If(IsBlank(varIbFormApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =LookUp(SortByColumns(Filter(colIbSections, Application = varIbFormApp), "SectionOrder", SortOrder.Ascending) As _dd, _dd.Section = (varIbFormSection))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(SortByColumns(Filter(colIbSections, Application = varIbFormApp), "SectionOrder", SortOrder.Ascending) As _dd, _dd.Section = (varIbFormSection)), 1)
+                                    DelayOutput: |-
+                                        =false
                                     DisplayMode: |-
                                         =If((If(IsBlank(varIbFormApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
@@ -7697,6 +7771,10 @@ Screens:
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        ="Type to search"
+                                    IsSearchable: |-
+                                        =true
                                     ItemDisplayText: |-
                                         =ThisItem.Section
                                     Items: |-
@@ -7704,7 +7782,11 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     OnChange: |-
-                                        =Set(varIbFormSection, Self.Selected.Section)
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpIbFormSection),
+                                            Set(varIbFormSection, Self.Selected.Section)
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -7713,6 +7795,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -9258,7 +9342,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                     - drpIbSeverity:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="How serious is it?"
@@ -9274,20 +9358,28 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(["Blocker", "Major", "Minor", "Cosmetic"] As _dd, _dd.Value = (If(varIbFormMode = "edit" && !IsBlank(varIbSel.Severity), varIbSel.Severity, "Minor")))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(["Blocker", "Major", "Minor", "Cosmetic"] As _dd, _dd.Value = (If(varIbFormMode = "edit" && !IsBlank(varIbSel.Severity), varIbSel.Severity, "Minor"))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
                                               =["Blocker", "Major", "Minor", "Cosmetic"]
                                           LayoutMinWidth: |-
                                               =0
+                                          OnChange: |-
+                                              =If(CountRows(Self.SelectedItems) = 0, Reset(drpIbSeverity))
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -9296,6 +9388,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -9472,7 +9566,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                     - drpIbStatus:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Status"
@@ -9488,20 +9582,28 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(["New", "Reopened", "Triaged", "In progress", "Ready for retest", "Closed"] As _dd, _dd.Value = (varIbSel.Status))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(["New", "Reopened", "Triaged", "In progress", "Ready for retest", "Closed"] As _dd, _dd.Value = (varIbSel.Status)), 1)
+                                          DelayOutput: |-
+                                              =false
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
                                               =["New", "Reopened", "Triaged", "In progress", "Ready for retest", "Closed"]
                                           LayoutMinWidth: |-
                                               =0
+                                          OnChange: |-
+                                              =If(CountRows(Self.SelectedItems) = 0, Reset(drpIbStatus))
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -9510,6 +9612,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -9579,7 +9683,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                     - drpIbPriority:
-                                        Control: ModernDropdown
+                                        Control: ModernCombobox
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Priority"
@@ -9595,20 +9699,28 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          Default: |-
-                                              =LookUp(["Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (Coalesce(varIbSel.Priority, "Normal")))
+                                          DefaultSelectedItems: |-
+                                              =FirstN(Filter(["Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (Coalesce(varIbSel.Priority, "Normal"))), 1)
+                                          DelayOutput: |-
+                                              =false
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =If(LayoutRank < 2, 44, 36)
+                                          InputTextPlaceholder: |-
+                                              =If(LayoutRank < 2, "Select", "Type to search")
+                                          IsSearchable: |-
+                                              =If(LayoutRank < 2, false, true)
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
                                               =["Urgent", "High", "Normal", "Low"]
                                           LayoutMinWidth: |-
                                               =0
+                                          OnChange: |-
+                                              =If(CountRows(Self.SelectedItems) = 0, Reset(drpIbPriority))
                                           RadiusBottomLeft: |-
                                               =R.input
                                           RadiusBottomRight: |-
@@ -9617,6 +9729,8 @@ Screens:
                                               =R.input
                                           RadiusTopRight: |-
                                               =R.input
+                                          SelectMultiple: |-
+                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -9686,7 +9800,7 @@ Screens:
                                     Wrap: |-
                                         =false
                               - drpIbAssignee:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Assigned to"
@@ -9702,20 +9816,28 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }, { Email: "claude", Name: "CLAUDE" }) }, { x: SortByColumns(colIbAdmins, "Name", SortOrder.Ascending) }), x) As _dd, _dd.Name = (If(IsBlank(varIbSel.AssignedEmail), "Not assigned", varIbSel.AssignedEmail = "claude", "CLAUDE", Coalesce(LookUp(colIbAdmins, Email = varIbSel.AssignedEmail).Name, varIbSel.Assigned, "Not assigned"))))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }, { Email: "claude", Name: "CLAUDE" }) }, { x: SortByColumns(colIbAdmins, "Name", SortOrder.Ascending) }), x) As _dd, _dd.Name = (If(IsBlank(varIbSel.AssignedEmail), "Not assigned", varIbSel.AssignedEmail = "claude", "CLAUDE", Coalesce(LookUp(colIbAdmins, Email = varIbSel.AssignedEmail).Name, varIbSel.Assigned, "Not assigned")))), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        ="Type to search"
+                                    IsSearchable: |-
+                                        =true
                                     ItemDisplayText: |-
                                         =ThisItem.Name
                                     Items: |-
                                         =Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }, { Email: "claude", Name: "CLAUDE" }) }, { x: SortByColumns(colIbAdmins, "Name", SortOrder.Ascending) }), x)
                                     LayoutMinWidth: |-
                                         =0
+                                    OnChange: |-
+                                        =If(CountRows(Self.SelectedItems) = 0, Reset(drpIbAssignee))
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -9724,6 +9846,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-

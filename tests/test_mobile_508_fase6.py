@@ -214,7 +214,7 @@ def test_hub_shows_more_than_100_requests_on_a_phone():
 
 def test_hub_search_and_filter_are_touch_targets():
     _both("Md", "inpMdFind", "Height", 44, 36)
-    _both("Md", "ddMdFltMobile", "Height", 44, 36)
+    _both("Md", "drpMdFltMobile", "Height", 44, 36)
     for b in ("conMdViewMMine", "conMdViewMAll"):
         assert ev("Md", b, "Width", 360) >= 44
 

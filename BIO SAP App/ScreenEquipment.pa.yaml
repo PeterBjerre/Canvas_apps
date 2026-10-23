@@ -1731,7 +1731,7 @@ Screens:
                                           Width: |-
                                               =115
                               - drpEqStatusFilter:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Filter by status"
@@ -1747,14 +1747,20 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefEqStatus, "All status")))
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefEqStatus, "All status"))), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        =If(LayoutRank < 2, "Select", "Type to search")
+                                    IsSearchable: |-
+                                        =If(LayoutRank < 2, false, true)
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
@@ -1762,9 +1768,13 @@ Screens:
                                     LayoutMinWidth: |-
                                         =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
                                     OnChange: |-
-                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefEqStatus: Self.Selected.Value });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpEqStatusFilter),
+                                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                            Patch(colAppPrefs, First(colAppPrefs), { prefEqStatus: Self.Selected.Value });
+                                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -1773,6 +1783,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -1782,7 +1794,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), 170)
                               - drpEqPlantFilter:
-                                  Control: ModernDropdown
+                                  Control: ModernCombobox
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Filter by plant"
@@ -1798,18 +1810,24 @@ Screens:
                                         =1
                                     Color: |-
                                         =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(Ungroup(
+                                    DefaultSelectedItems: |-
+                                        =FirstN(Filter(Ungroup(
                                             Table({ Rows: Table({ Value: "All plants" }) },
                                                   { Rows: Sort(Distinct(Filter(colEqRows, !IsBlank(Plant)), Plant), Value) }),
                                             Rows
-                                        ) As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefEqPlant, "All plants")))
+                                        ) As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefEqPlant, "All plants"))), 1)
+                                    DelayOutput: |-
+                                        =false
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =If(LayoutRank < 2, 44, 36)
+                                    InputTextPlaceholder: |-
+                                        ="Type to search"
+                                    IsSearchable: |-
+                                        =true
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
@@ -1821,9 +1839,13 @@ Screens:
                                     LayoutMinWidth: |-
                                         =If((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 24), ((App.Width - If(LayoutRank >= 2, 56, 0) - If(LayoutRank < 2, 48, 64) - PanelInset) - 36))) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 170, 0)
                                     OnChange: |-
-                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefEqPlant: Self.Selected.Value });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        =If(
+                                            CountRows(Self.SelectedItems) = 0,
+                                            Reset(drpEqPlantFilter),
+                                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                            Patch(colAppPrefs, First(colAppPrefs), { prefEqPlant: Self.Selected.Value });
+                                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -1832,6 +1854,8 @@ Screens:
                                         =R.input
                                     RadiusTopRight: |-
                                         =R.input
+                                    SelectMultiple: |-
+                                        =false
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -9119,7 +9143,7 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpEqPlant:
-                                              Control: ModernDropdown
+                                              Control: ModernCombobox
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plant, required"
@@ -9139,8 +9163,10 @@ Screens:
                                                     =1
                                                 Color: |-
                                                     =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(colEqPlants As _dd, _dd.Value = (varEqFPlant))
+                                                DefaultSelectedItems: |-
+                                                    =FirstN(Filter(colEqPlants As _dd, _dd.Value = (varEqFPlant)), 1)
+                                                DelayOutput: |-
+                                                    =false
                                                 DisplayMode: |-
                                                     =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -9149,6 +9175,10 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =If(LayoutRank < 2, 44, 36)
+                                                InputTextPlaceholder: |-
+                                                    ="Type to search"
+                                                IsSearchable: |-
+                                                    =true
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
@@ -9156,10 +9186,14 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 OnChange: |-
-                                                    =Set(varEqFPlant, Self.Selected.Value);
-                                                    If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                                    Patch(colAppPrefs, First(colAppPrefs), { prefEqNewPlant: Self.Selected.Value });
-                                                    IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                                    =If(
+                                                        CountRows(Self.SelectedItems) = 0,
+                                                        Reset(drpEqPlant),
+                                                        Set(varEqFPlant, Self.Selected.Value);
+                                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                                        Patch(colAppPrefs, First(colAppPrefs), { prefEqNewPlant: Self.Selected.Value });
+                                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -9168,6 +9202,8 @@ Screens:
                                                     =R.input
                                                 RadiusTopRight: |-
                                                     =R.input
+                                                SelectMultiple: |-
+                                                    =false
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-

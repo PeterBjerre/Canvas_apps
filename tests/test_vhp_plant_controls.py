@@ -59,9 +59,9 @@ def test_live_plant_cleared_on_save_reset_new_and_load():
 
 def test_filters_read_vhp_plant_not_saved_plant():
     y = _yaml()
-    mwc = _prop(_block(y, "drpVhpItemMainWorkCenter", 6000), "Items")
+    mwc = _prop(_block(y, "drpVhpItemMainWorkCenter", 12000), "Items")
     assert "Upper(Plant) = Upper(VhpPlant)" in mwc
-    tl = _prop(_block(y, "drpVhpItemTasklist", 6000), "Items")
+    tl = _prop(_block(y, "drpVhpItemTasklist", 12000), "Items")
     assert "Upper(Plant) = Upper(VhpPlant)" in tl
     # Ingen vaerksafhaengig kontrol laeser laengere den gemte Plant direkte
     # (kun planhovedet selv og indlaesningen).

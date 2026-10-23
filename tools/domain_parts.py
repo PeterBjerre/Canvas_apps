@@ -625,7 +625,9 @@ def _input_for(col, kind, choices, required_formula="false"):
     # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
     # num = tal, dte = dato.
     # Tal er tekstfelter uden spin-pile (UX-review T10) - derfor ogsaa inp.
-    name = {"date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
+    # Et listevalg (choice, ikke Ja/Nej) hedder drp (issue #568).
+    is_list = kind == "choice" and set(choices or ()) != set(YES_NO)
+    name = {"date": "dteDom", "bool": "chkDom"}.get(kind, "drpDom" if is_list else "inpDom") + col
     v = _var(col)
     if kind == "num":
         if col in NUM_ONLY:
@@ -682,7 +684,7 @@ def _input_for(col, kind, choices, required_formula="false"):
         return yes_no(col, compact=col in SEG_COMPACT)
     if kind == "choice":
         # themed_dropdown tager TEKSTEN og slaar selv recorden op til
-        # ModernDropdown.Default.
+        # comboboksens DefaultSelectedItems (issue #568).
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
                                required_formula=required_formula,

@@ -552,8 +552,8 @@ for meget end en container, der klipper sit indhold.
 
 | Kontrol | Præfiks | | Kontrol | Præfiks |
 |---|---|---|---|---|
-| GroupContainer | `con` | | ModernDropdown | `drp` |
-| ModernText | `txt` | | ModernCombobox | `cmb` |
+| GroupContainer | `con` | | ModernCombobox, listevalg (`themed_dropdown`) | `drp` |
+| ModernText | `txt` | | ModernCombobox, søg-og-hent (`fl_picker`) | `cmb` |
 | ModernTextInput | `inp` | | ModernCheckbox / Toggle | `chk` / `tgl` |
 | ModernNumberInput | `num` | | Gallery / HtmlViewer | `gal` / `htm` |
 | ModernDatePicker | `dte` | | Rectangle | `rct` |
@@ -594,11 +594,23 @@ rødt.
 
 Det hele står i `docs/28-feltfarvning.md`.
 
-## Én dropdown: `themed_dropdown` (ModernDropdown)
+## Ét listevalg: `themed_dropdown` (søgbar ModernCombobox, issue #568)
 
-Alle dropdowns bygges af `build_helpers.themed_dropdown` som `ModernDropdown`:
-den har runde hjørner, det har Classic/DropDown ikke. **Regel 16** i
-`check_layout.py` afviser en `Classic/DropDown`.
+Alle listevalg bygges af `build_helpers.themed_dropdown` som en søgbar
+`ModernCombobox` med `SelectMultiple: false` — samme mønster som
+`fl_picker` (input_theme, `DelayOutput: false`, runde hjørner, ingen
+TabIndex). Man kan skrive for at filtrere, vælge med piletaster og Enter og
+lukke listen med Escape. **Regel 16** i `check_layout.py` afviser
+`Classic/DropDown` og `ModernDropdown`. Navnet beholder præfikset `drp`.
+
+Korte faste lister (højst `SHORT_LIST_MAX` valg) er ikke søgbare på en
+telefon, så et tryk ikke åbner tastaturet; fra Tablet og op er alle søgbare.
+
+Comboboksen fravælger det valgte, når man klikker på det igen. Derfor
+lægger `gen_screen.render` en vagt om `OnChange` (pseudo-egenskaben
+`_KeepSelection`): bliver valget tomt, nulstilles feltet til sin standard,
+og resten af `OnChange` køres ikke. Skal et valg kunne fjernes, har listen
+sin egen tomme række (fx "(none)").
 
 **Listen er altid lys.** En moderne dropdown, combobox og datovælger åbner
 en Fluent-flyout, som vi ikke kan farve. `Color` farver både feltets tekst
@@ -607,12 +619,12 @@ tilstand, der kan læses på det sorte felt og på den hvide liste (4,60 og
 4,57:1). Kontrastvagten i `design_tokens.py` holder begge par.
 
 Du giver `themed_dropdown` **teksten** i den viste kolonne. Den slår selv
-recorden op, som `ModernDropdown.Default` vil have:
+rækken op til `DefaultSelectedItems`:
 
 ```
 themed_dropdown("drpVhpUnit", "colVhpUnitOptions",
                 "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value")
-Default: =LookUp(colVhpUnitOptions As _dd, _dd.Value = (…))
+DefaultSelectedItems: =FirstN(Filter(colVhpUnitOptions As _dd, _dd.Value = (…)), 1)
 ```
 
 Viser listen en anden kolonne end den, der gemmes (fx `Name` over `Key`),

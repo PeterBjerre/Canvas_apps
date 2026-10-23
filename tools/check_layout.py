@@ -2041,17 +2041,18 @@ def rule_22(ctx):
                                     f"del det i to Concurrent efter hinanden")
 
 def rule_16(ctx):
-    """Ingen Classic/DropDown"""
+    """Ingen Classic/DropDown og ingen ModernDropdown (issue #568)"""
     all_nodes = ctx.all_nodes
     problems = ctx.problems
-    # Alle dropdowns er ModernDropdown fra build_helpers.themed_dropdown: den
-    # har runde hjoerner (Classic har ingen Radius), og dens tekst er
-    # input-fg, der kan laeses paa Fluents lyse liste. Classic var valgt i
-    # e735d66 for moerk tilstand; det er loest med input-fg (2026-09-30).
+    # Alle listevalg er en SOEGBAR ModernCombobox fra build_helpers.
+    # themed_dropdown (issue #568): man kan skrive for at filtrere og vaelge
+    # med tastaturet. Foer var de ModernDropdown (runde hjoerner, input-fg-
+    # tekst paa Fluents lyse liste, 2026-09-30) og endnu foer Classic.
     for p_, name, body in all_nodes:
-        if (body.get("Control") or "").strip().split("@")[0] == "Classic/DropDown":
-            problems.append(f"[16] {name}: Classic/DropDown - byg den med "
-                            f"build_helpers.themed_dropdown (ModernDropdown)")
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        if ctl in ("Classic/DropDown", "ModernDropdown"):
+            problems.append(f"[16] {name}: {ctl} - byg den med "
+                            f"build_helpers.themed_dropdown (soegbar ModernCombobox)")
 
     # Her stod en regel 17: "Default laeser en variabel, men der er ingen
     # OnChange". Den er FJERNET igen. Den gav elleve fund i VH-plan-appen,
@@ -2332,11 +2333,14 @@ def rule_33(ctx):
     problems = ctx.problems
     # "txt" var baade ModernText og tekstfelt, og 110 etiketter hed "con"
     # efter den celle, de sad i. Standarden staar i SKILL.md; her holdes den.
+    # ModernCombobox: drp = listevalg med faste valg (build_helpers.
+    # themed_dropdown, issue #568 - foer ModernDropdown, navnene beholdt);
+    # cmb = soege-og-hent-feltet (tools/fl_picker.py).
     PREFIX = {"GroupContainer": "con", "ModernText": "txt", "Gallery": "gal",
               "HtmlViewer": "htm", "Rectangle": "rct",
               "ModernTextInput": "inp", "ModernNumberInput": "num",
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
-              "ModernCombobox": "cmb", "ModernCheckbox": "chk",
+              "ModernCombobox": "(?:cmb|drp)", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
               "ModernTabList": "tab", "ModernProgressBar": "prg", "ModernBadge": "bdg",
               "ModernSpinner": "spn", "ModernCard": "crd"}
@@ -2344,7 +2348,7 @@ def rule_33(ctx):
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
             problems.append(f"[33] {name}: en {body['Control'].split('@')[0]} "
-                            f"skal hedde {want}<App><Navn>")
+                            f"skal hedde {want.replace('(?:', '').replace(')', '')}<App><Navn>")
 
 def rule_18(ctx):
     """Enhver Gallery skal have TabIndex"""

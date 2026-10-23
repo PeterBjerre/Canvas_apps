@@ -1225,7 +1225,7 @@ def _mobile_filter():
                  '    If(varMdFlag = "me", Set(varMdView, "queue"));\n'
                  '    Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))\n'
                  ');\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB)
-    dd = themed_dropdown("ddMdFltMobile", items, cur, width="Parent.Width",
+    dd = themed_dropdown("drpMdFltMobile", items, cur, width="Parent.Width",
                          label='"Filter requests"', onchange=on_change)
     dd = grow(dd, 80)
     mobile.touch(dd)   # 44 px paa en telefon (issue #508, fase 6)
