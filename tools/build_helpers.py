@@ -3237,51 +3237,101 @@ def date_picker(name, default_date, required_formula="false",
     return Ctrl(name, "ModernDatePicker", props=props, h=height)
 
 
+# SOEGBARE LISTEVALG (issue #568)
+# Et kort, fast udvalg (op til saa mange valg) er ikke soegbart paa en
+# telefon: der aabner et tryk listen uden at tvinge tastaturet frem. Fra
+# Tablet og op kan man altid skrive for at filtrere - ogsaa i korte lister.
+SHORT_LIST_MAX = 10
+SELECT_PLACEHOLDER = '"Type to search"'
+SELECT_PLACEHOLDER_PHONE = '"Select"'
+# Pseudo-egenskab, som gen_screen.render laeser og fjerner: OnChange faar
+# vagten, der genskaber valget, hvis brugeren klikker det valgte vaek
+# (gen_screen.keep_selection_onchange).
+from gen_screen import KEEP_SELECTION  # noqa: E402
+
+
+def _literal_option_count(items):
+    """Antal valg i en LITERAL liste (["A", "B"] eller Table({..}, {..})),
+    ellers None - en samling eller formel kan vaere lang."""
+    t = str(items).strip()
+    if t.startswith("[") and t.endswith("]") and "(" not in t:
+        return len(re.findall(r'"(?:[^"]|"")*"', t))
+    m = re.fullmatch(r"Table\((.*)\)", t, re.S)
+    if m and "(" not in m.group(1):
+        return m.group(1).count("{")
+    return None
+
+
 def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
                     width="Parent.Width", height=36, display_mode=None, label=None,
-                    onchange=None, display_col=None):
-    """Appernes ENESTE dropdown - en ModernDropdown med runde hjoerner.
+                    onchange=None, display_col=None, searchable=None):
+    """Appernes ENESTE listevalg - en SOEGBAR ModernCombobox (issue #568).
 
-    HVORFOR MODERN (2026-09-30)
-    ---------------------------
-    Classic/DropDown har ingen Radius-egenskaber, saa dropdowns var de
-    eneste felter med firkantede hjoerner. ModernDropdown har dem.
+    HVORFOR COMBOBOX (issue #568)
+    -----------------------------
+    Alle listevalg skal kunne bruges uden mus: Tab ind i feltet, skriv for
+    at filtrere, piletaster og Enter for at vaelge, Escape for at lukke
+    listen uden at aendre vaerdien. ModernCombobox goer det med
+    IsSearchable, og den er allerede bevist i appen (tools/fl_picker.py,
+    leverandoersoegningen). Navnet beholder praefikset drp (et listevalg
+    med faste valg); cmb er fl_pickers soege-og-hent-felter (regel 33).
 
-    Dens liste er en Fluent-flyout med LYS baggrund i begge temaer - den
-    kan ikke farves. Color farver derimod baade feltets tekst og listens,
-    og derfor er feltteksten input-fg: en mellemgraa, der kan laeses paa
-    det sorte felt og paa den hvide liste (design_tokens.py). Foer stod
-    her Classic, fordi listen var ulaeselig med vores lyse tekst (e735d66).
+    Moenstret er fl_pickers: input_theme, DelayOutput false, SelectMultiple
+    false, ItemDisplayText ThisItem.<kolonne>, ingen TabIndex (standarden
+    0 = tab-raekkefoelge efter placering, som alle andre felter).
 
     Kaldet er det samme som foer:
-      default_text  TEKSTEN i den viste kolonne. Default bliver den RECORD
-                    fra Items, hvis viste kolonne er lig med teksten.
-                    'As _dd' holder kolonnenavnet fra at blive bundet i
-                    default_text's egne LookUp'er.
+      default_text  TEKSTEN i den viste kolonne. DefaultSelectedItems
+                    bliver den (ene) raekke fra Items, hvis viste kolonne
+                    er lig med teksten. 'As _dd' holder kolonnenavnet fra
+                    at blive bundet i default_text's egne LookUp'er.
       display_col   kolonnen, listen VISER (fx "Name"), naar den ikke er
                     value_col. value_col er den, der kraeves udfyldt.
+      searchable    None = soegbar, undtagen korte faste lister paa en
+                    telefon (intet tastatur, naar et tryk er nok). False =
+                    som en kort liste; True = altid soegbar.
 
-    check_layout regel 16 afviser Classic/DropDown."""
+    Valget laeses som foer med <navn>.Selected.<kolonne> og nulstilles med
+    Reset(<navn>). Fritekst kan ikke gemmes: kun Selected laeses.
+
+    HISTORIK: 2026-09-30 blev Classic/DropDown til ModernDropdown (runde
+    hjoerner, input-fg-tekst paa Fluents lyse liste). Begge dele gaelder
+    ogsaa comboboksen. check_layout regel 16 afviser Classic/DropDown og
+    ModernDropdown."""
     col = display_col or value_col
+    if searchable is None:
+        n = _literal_option_count(items)
+        searchable = not (n is not None and n <= SHORT_LIST_MAX)
+    if searchable:
+        searchable, placeholder = "true", SELECT_PLACEHOLDER
+    else:
+        searchable = if_below("Tablet", "false", "true")
+        placeholder = if_below("Tablet", SELECT_PLACEHOLDER_PHONE, SELECT_PLACEHOLDER)
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
         "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_col})", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
-        "Default": f"LookUp({items} As _dd, _dd.{col} = ({default_text}))",
+        "DefaultSelectedItems": (f"FirstN(Filter({items} As _dd, "
+                                 f"_dd.{col} = ({default_text})), 1)"),
+        "DelayOutput": "false",
         "Height": str(height),
+        "InputTextPlaceholder": placeholder,
+        "IsSearchable": searchable,
         "ItemDisplayText": f"ThisItem.{col}",
         "Items": items,
         "LayoutMinWidth": "0",
         **lay.radius(lay.RADIUS_INPUT),
+        "SelectMultiple": "false",
         "ValidationState": (f"If({required_formula} && IsBlank(Self.Selected.{value_col}), "
                             "ValidationState.Error, ValidationState.None)"),
         "Width": width,
+        KEEP_SELECTION: "true",
     }
     input_theme(props, display_mode)
     if onchange is not None:
         props["OnChange"] = onchange
-    return Ctrl(name, "ModernDropdown", props=props, h=height)
+    return Ctrl(name, "ModernCombobox", props=props, h=height)
 
 
 def combobox(name, items, display_field="Display", multi=False, default_items=None,

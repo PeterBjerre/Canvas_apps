@@ -292,6 +292,39 @@ def row_height(children, pad_t=0, pad_b=0, rows=1, gap=0):
     return f"{pad_t + pad_b} + ({base}) * {rows} + {gap * (rows - 1)}"
 
 
+KEEP_SELECTION = "_KeepSelection"
+
+
+def keep_selection_onchange(name, onchange=None):
+    """OnChange med vagten mod et tomt valg (issue #568).
+
+    ModernCombobox fravaelger det valgte punkt, naar man klikker paa det
+    igen (Microsoft Learn: "Toggle selection behavior"). ModernDropdown,
+    som felterne var foer, kunne aldrig blive tom. Bliver valget tomt,
+    nulstilles feltet til sin DefaultSelectedItems - den vaerdi, variablen
+    bag feltet stadig har - og intet andet sker. Et valg, der skal kunne
+    fjernes, har sin egen tomme raekke i listen (fx "(none)")."""
+    guard = "CountRows(Self.SelectedItems) = 0"
+    if not onchange:
+        return f"If({guard}, Reset({name}))"
+    body = str(onchange).replace("\n", "\n    ")
+    return f"If(\n    {guard},\n    Reset({name}),\n    {body}\n)"
+
+
+def _final_props(node):
+    """Egenskaberne, som de skrives. Pseudo-egenskaben _KeepSelection
+    (build_helpers.themed_dropdown, issue #568) skrives ikke; den laegger
+    vagten om OnChange, saa et listevalg aldrig bliver tomt ved et klik paa
+    det valgte. Den laegges paa her, til sidst, saa ogsaa en OnChange, en
+    builder har sat efter themed_dropdown, faar den."""
+    if KEEP_SELECTION not in node.props:
+        return node.props
+    props = dict(node.props)
+    if str(props.pop(KEEP_SELECTION)) == "true":
+        props["OnChange"] = keep_selection_onchange(node.name, props.get("OnChange"))
+    return props
+
+
 def render(node, item_indent):
     pad = " " * item_indent
     lines = [f"{pad}- {node.name}:"]
@@ -300,14 +333,15 @@ def render(node, item_indent):
     lines.append(f"{bpad}Control: {node.control}")
     if node.variant:
         lines.append(f"{bpad}Variant: {node.variant}")
-    if node.props:
+    props = _final_props(node)
+    if props:
         lines.append(f"{bpad}Properties:")
         prop_indent = body_indent + 2
         ppad = " " * prop_indent
         content_indent = prop_indent + 4
         cpad = " " * content_indent
-        for key in sorted(node.props.keys()):
-            val = node.props[key]
+        for key in sorted(props.keys()):
+            val = props[key]
             if val is None:
                 continue
             val = str(val)
