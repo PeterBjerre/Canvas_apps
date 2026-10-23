@@ -125,7 +125,7 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
           align_items="Stretch", fill=None, border_color=None, border_thickness=None,
           radius=None, pad=None, fill_portions=None, wrap=None, justify=None,
           overflow_y=None, overflow_x=None, visible=None, drop_shadow="None", align_in_container=None,
-          layout_min_width=None, wrap_rows=1, edge=0):
+          layout_min_width=None, wrap_rows=1, edge=0, clear=0):
     """height=None betyder: regn hoejden ud af boernene (anbefalet).
 
     Angiv kun height eksplicit, naar containeren bevidst skal have en fast
@@ -135,6 +135,9 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
     polstringen - containerens egen kant (issue #550). Kanten tager plads
     inde i containeren, saa en skinne med kant, der kun var polstring +
     knap hoej, klippede knappens bund. mobile.restack regner med den.
+
+    clear: px luft, FORAELDEREN skal give containeren under den (issue
+    #560, gen_screen.footprint). Containerens egen Height roeres ikke.
     """
     if pad is not None:
         if isinstance(pad, tuple):
@@ -195,6 +198,7 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
     props = {k: v for k, v in props.items() if v is not None}
     box = Ctrl(name, "GroupContainer", variant="AutoLayout", props=props, children=children,
                h=height, vis=visible)
+    box.clear = clear
     if auto:
         # Hoejden er boernenes - mobile.restack kan regne den om (#508).
         box._auto = (direction, props["Height"], edge) if edge else (direction, props["Height"])
@@ -559,6 +563,20 @@ SEG_GAP = 2
 # der ikke staar i en skinne.
 SEG_BORDER = 1
 SEG_EDGE = SEG_PAD + SEG_BORDER
+# LUFT UNDER SKINNEN (issue #560). #550's antagelse - at kanten tegnes
+# INDE i containeren - holdt ikke: bundkanten og de runde hjoerner blev
+# stadig klippet. Det, repoet allerede har maalt i Studio (#150
+# submission_notes.SPLIT_PAD, #492 feedback_popup.EDGE, #503
+# ib_parts.EDGE), er, at en container tegner sin kant paa YDERKANTEN, og
+# at foraelderen (LayoutOverflow.Hide) klipper ved sin egen indholdskant.
+# Skinnen stod helt nede ved bunden af sin celle (etiket 20 + 6 + skinne
+# 36 = cellens 62), og cellen, raekken og gitteret er hver praecis saa
+# hoeje som indholdet - saa skinnens bundkant laa paa sidste pixel af fire
+# klippende containere, og #550's 2 px gik til skinnen OG cellen, uden at
+# kanten fik luft. Nu giver foraelderen skinnen SEG_CLEAR px under sig
+# (group(clear=...), gen_screen.footprint) - eet sted, for alle skinner.
+# Skinnens eget maal er uaendret.
+SEG_CLEAR = 2
 SEG_TRACK_H = SEG_BTN_H + 2 * SEG_EDGE
 SEG_TRACK_H_MOBILE = SEG_BTN_H_MOBILE + 2 * SEG_EDGE
 SEG_SIZE = 13
@@ -645,12 +663,16 @@ def seg_track(name, kids, width, gap=SEG_GAP, height=None):
 
     Hoejden regnes af knapperne PLUS kanten (edge, issue #550), saa hele
     segmentet - kant, valgt-markering og hjoerner - ses. width skal ogsaa
-    have kanten med: 2 * SEG_EDGE ud over segmenterne og mellemrummene."""
+    have kanten med: 2 * SEG_EDGE ud over segmenterne og mellemrummene.
+
+    Foraelderen giver skinnen SEG_CLEAR px luft under sig (issue #560), saa
+    bundkanten og de runde hjoerner ikke ligger paa foraelderens klippekant."""
     return group(name, kids, direction="Horizontal", gap=gap, width=width, height=height,
                  align_items="Center", fill=C_SEG_TRACK_BG, border_color=C_CARD_BORDER,
                  border_thickness=SEG_BORDER,
                  radius=lay.mobile_or(SEG_RADIUS_MOBILE, SEG_RADIUS),
-                 pad=SEG_PAD, align_in_container="Start", edge=SEG_BORDER)
+                 pad=SEG_PAD, align_in_container="Start", edge=SEG_BORDER,
+                 clear=SEG_CLEAR)
 
 
 def segmented(name, options, display_mode=None, label=None, fit=False, compact=False):

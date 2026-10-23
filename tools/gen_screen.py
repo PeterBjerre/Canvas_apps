@@ -185,9 +185,15 @@ class Ctrl:
     #         tools/mobile.restack). None = som h's mobilgren.
     # _auto = (retning, hoejde) for en container, hvis hoejde group() regnede
     #         af boernene - kun dem kan mobile.restack regne om.
+    # clear = px LUFT, forelderen skal give kontrollen ud over dens egen
+    #         hoejde (issue #560): en container med kant tegner kanten paa
+    #         sin yderkant, og en forelder, der skjuler sit overloeb, klipper
+    #         den, hvis kontrollen staar helt ude ved forelderens bund.
+    #         stack_height/row_height (og mobile.restack) regner den med;
+    #         kontrollens egen Height roeres ikke.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
                  "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w",
-                 "mh", "_auto")
+                 "mh", "_auto", "clear")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -203,6 +209,7 @@ class Ctrl:
         self._vis = None
         self.mh = None
         self._auto = None
+        self.clear = 0
         if vis is not None:
             self.vis = vis
 
@@ -233,6 +240,16 @@ def _is_num(v):
     return isinstance(v, (int, float))
 
 
+def footprint(c):
+    """Den hoejde, barnet c optager i sin forelder: dets egen hoejde plus
+    den luft (c.clear), det skal have under sig (issue #560)."""
+    h = 0 if c.h is None else c.h
+    clear = getattr(c, "clear", 0) or 0
+    if not clear:
+        return h
+    return h + clear if _is_num(h) else f"{h} + {clear}"
+
+
 def stack_height(children, gap, pad_t=0, pad_b=0):
     """Hoejden af en lodret AutoLayout-container.
 
@@ -246,7 +263,7 @@ def stack_height(children, gap, pad_t=0, pad_b=0):
     const = pad_t + pad_b
     parts = []
     for i, c in enumerate(children):
-        h = 0 if c.h is None else c.h
+        h = footprint(c)
         g = 0 if i == 0 else gap
         if c.vis:
             parts.append(f"If({c.vis}, {g} + ({h}), 0)")
@@ -266,7 +283,7 @@ def row_height(children, pad_t=0, pad_b=0, rows=1, gap=0):
     rows > 1 bruges naar raekken ombryder (LayoutWrap) og skal have plads
     til flere linjer.
     """
-    hs = [(0 if c.h is None else c.h) for c in children] or [0]
+    hs = [footprint(c) for c in children] or [0]
     if all(_is_num(h) for h in hs):
         base = max(hs)
         return int(pad_t + pad_b + base * rows + gap * (rows - 1))
