@@ -2037,6 +2037,12 @@ App:
                               "misses the outage. Marked as outage work (Revision): " & l & ".")
                       ),
                       ""
+                  ) },
+                  { m: If(
+                      !VhpSubmitted && !IsBlank(varVhpPlan.FirstCallYear) &&
+                          Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay) < Today(),
+                      "First call cannot be before today - choose today or a later date in the Plan header.",
+                      ""
                   ) }
               ),
               !IsBlank(m)
