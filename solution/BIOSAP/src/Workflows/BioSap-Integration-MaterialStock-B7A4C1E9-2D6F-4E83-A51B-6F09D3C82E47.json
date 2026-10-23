@@ -1,0 +1,349 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWOCClientSecret"
+          }
+        },
+        "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapInventoryDevApiKey"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Plant",
+                  "type": "string",
+                  "description": "SAP plant, e.g. 2806",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "title": "Material",
+                  "type": "string",
+                  "description": "SAP material number, e.g. 1019",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Setup": {
+          "runAfter": {},
+          "type": "Compose",
+          "inputs": {
+            "tokenUrl": "https://login.microsoftonline.com/100b3c99-f3e2-4da0-9c8a-b9d345742c36/oauth2/v2.0/token",
+            "clientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
+            "scope": "https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default",
+            "baseUrl": "https://dev.api.orsted.dk/inventorymanagement"
+          }
+        },
+        "Check_environment_variables": {
+          "runAfter": {
+            "Setup": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "or": [
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')",
+                  "REDACTED"
+                ]
+              },
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                  "REDACTED"
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Respond_missing_value": {
+              "runAfter": {},
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "ok": "no",
+                  "status": "",
+                  "message": "The flow is not configured: set Current value on BioSap-WOC-Client-Secret and BioSap-Inventory-Dev-ApiKey.",
+                  "result": ""
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "title": "ok",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "status",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "message",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "result": {
+                      "title": "result",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "Stop_missing_value": {
+              "runAfter": {
+                "Respond_missing_value": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "MissingValue",
+                  "message": "Set Current value on BioSap-WOC-Client-Secret and BioSap-Inventory-Dev-ApiKey (Solutions > BIO SAP > Environment variables)."
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {}
+          }
+        },
+        "Get_token": {
+          "runAfter": {
+            "Check_environment_variables": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{outputs('Setup')?['tokenUrl']}",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['clientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['scope'])}",
+            "retryPolicy": {
+              "type": "none"
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Token_ok": {
+          "runAfter": {
+            "Get_token": [
+              "Succeeded",
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Get_token')?['statusCode']",
+                  200
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Call_API": {
+              "runAfter": {},
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['baseUrl']}/materialonstocks/@{encodeUriComponent(trim(triggerBody()?['text']))}/@{encodeUriComponent(trim(triggerBody()?['text_1']))}",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Respond_result": {
+              "runAfter": {
+                "Call_API": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "ok": "@{if(equals(outputs('Call_API')?['statusCode'], 200), 'yes', 'no')}",
+                  "status": "@{outputs('Call_API')?['statusCode']}",
+                  "message": "@{if(equals(outputs('Call_API')?['statusCode'], 200), '', concat('The API answered ', string(outputs('Call_API')?['statusCode']), '.'))}",
+                  "result": "@{string(body('Call_API'))}"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "title": "ok",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "status",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "message",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "result": {
+                      "title": "result",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Respond_token_error": {
+                "runAfter": {},
+                "type": "Response",
+                "kind": "PowerApp",
+                "inputs": {
+                  "statusCode": 200,
+                  "body": {
+                    "ok": "no",
+                    "status": "@{outputs('Get_token')?['statusCode']}",
+                    "message": "@{concat('Token could not be fetched: ', coalesce(body('Get_token')?['error_description'], body('Get_token')?['error'], 'no answer'))}",
+                    "result": ""
+                  },
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "title": "ok",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "status": {
+                        "title": "status",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "message": {
+                        "title": "message",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "result": {
+                        "title": "result",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "Stop_token_error": {
+                "runAfter": {
+                  "Respond_token_error": [
+                    "Succeeded"
+                  ]
+                },
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "TokenError",
+                    "message": "Token could not be fetched (status @{outputs('Get_token')?['statusCode']})."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

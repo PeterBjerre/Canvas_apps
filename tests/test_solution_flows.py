@@ -30,7 +30,7 @@ FLOWS = sorted(glob.glob(os.path.join(SRC, "Workflows", "*.json")))
 EV_DIR = os.path.join(SRC, "environmentvariabledefinitions")
 REDACTED = "***REDACTED***"
 API_KEY = "BioSap-WOC-ApiKey (orsted_BioSapWocApiKey)"
-# Testflowet BioSap-Test-DevApis kalder DEV-gatewayen med sine egne noegler.
+# WOE- og lager-flowene (docs/44) kalder DEV-gatewayen med sine egne noegler.
 DEV_API_KEYS = ("BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)",
                 "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)")
 
