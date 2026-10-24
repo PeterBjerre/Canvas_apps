@@ -1,8 +1,8 @@
 # 45 — Flowet, der henter alt om en SAP-ordre (WOE + SAP Utility)
 
 `BioSap-Integration-WoeOrder` er ét flow i solutionen, som ud fra et
-SAP-ordrenummer kalder alle WOE-endpoints og de to SAP Utility-endpoints i
-én omgang. Formålet er at kunne oprette en VH-plan med udgangspunkt i en
+SAP-ordrenummer kalder alle WOE-endpoints, inventory-API'ets
+materialbevægelser og SAP Utility-endpoints i én omgang. Formålet er at kunne oprette en VH-plan med udgangspunkt i en
 udført ordre og senere sammenligne ordrens data med VH-planens (en anden
 API, der kommer senere), så brugeren kan tage stilling til, om ændringerne
 på ordren skal med på planen næste gang.
@@ -27,44 +27,40 @@ Flowet henter de samme data fra REST-API'erne. WOE har ikke `PMNotification`,
 `Permit`, `WorkOrderControlRooms` og `WorkOrderSafetyInformation` som
 endpoints; `activities`, `causes` og `feedback` er notifikationens data.
 
-## Kaldene og rækkefølgen
+## Kaldene
 
-| Trin | Kald | Id |
-|---|---|---|
-| 1 | `GET {woe}/workorders/{id}/header` | ordrenummeret |
-| 2 (parallelt) | `GET {woe}/operations/{workOrderId}` | `workOrderId` fra headeren |
-| 2 | `GET {woe}/operations/{workOrderId}/tasklistitems` | `workOrderId` |
-| 2 | `GET {woe}/workorders/{id}/objects` | `workOrderId` |
-| 2 | `GET {woe}/workorders/{objectId}/status` | `objectId` (ordrens objektnummer, `OR…`) |
-| 2 | `GET {woe}/workorders/{id}/partner` | `workOrderId` |
-| 2 | `GET {woe}/workorders/{id}/activities` | `workOrderId` |
-| 2 | `GET {woe}/workorders/{id}/causes` | `workOrderId` |
-| 2 | `GET {woe}/workorders/{workOrderId}/feedback` | `workOrderId` |
-| 2 | `GET {inventory}/materialonstocks/movements/{workOrderNumber}` | ordrenummeret (vareudtag og returer, Excels `Raw_Ordre_Components`) |
-| 3 | `GET {saputility}/attachments/{objectId}` | `objectId` |
-| 3 | `GET {saputility}/descriptions/{operationObjectId}/OperationText` | én gang pr. operation, i serie |
+Alle kald tager ordrenummeret (eller ordrens objektnummer) direkte, så de
+kører parallelt; headeren behøver ikke gå først (Peter 2026-10-24).
 
-`{woe}` er `https://dev.api.orsted.dk/woe/api`, `{inventory}` er
-`https://dev.api.orsted.dk/inventorymanagement`, `{saputility}` er
-`https://test.api.orsted.dk/saputility` (handlingen `Setup`). Hvert API får
-sit eget token (eget scope), alle med samme app-registrering.
+| Kald | Id |
+|---|---|
+| `GET {woe}/workorders/{id}/header` | ordrenummeret |
+| `GET {woe}/operations/{workOrderId}` | ordrenummeret |
+| `GET {woe}/operations/{workOrderId}/tasklistitems` | ordrenummeret |
+| `GET {woe}/workorders/{id}/objects` | ordrenummeret |
+| `GET {woe}/workorders/{objectId}/status` | `objectId` (ordrens objektnummer, `OR…`) |
+| `GET {woe}/workorders/{id}/partner` | ordrenummeret |
+| `GET {woe}/workorders/{id}/activities` | ordrenummeret |
+| `GET {woe}/workorders/{id}/causes` | ordrenummeret |
+| `GET {woe}/workorders/{workOrderId}/feedback` | ordrenummeret |
+| `GET {inventory}/materialonstocks/movements/{workOrderNumber}` | ordrenummeret (vareudtag og returer, Excels `Raw_Ordre_Components`) |
+| `GET {saputility}/attachments/{objectId}` | `objectId` |
+| `GET {saputility}/descriptions/{objectId}/HeaderText` | `objectId` (ordrens langtekst) |
+| `GET {saputility}/descriptions/{operationObjectId}/OperationText` | én gang pr. operation, i serie, efter `operations` |
+
+`{woe}`, `{inventory}` og `{saputility}` er miljøvariablerne
+`BioSap-WOE-BaseUrl`, `BioSap-Inventory-BaseUrl` og `BioSap-SapUtility-BaseUrl`
+(se nedenfor): de skifter, når solutionen flyttes til et andet miljø.
+Hvert API får sit eget token (eget scope), alle med samme app-registrering;
+scopes og token-URL står i handlingen `Setup`.
 
 ### Id'erne
 
-Headeren er det eneste kald, der kun kender ordrenummeret. Flowet starter
-med `WorkOrderId` = ordrenummeret og `ObjectId` = `OR` + ordrenummeret
-fyldt op til 12 cifre (ordre 26436811 → `OR000026436811`, som i
-API-teamets eksempel). Svarer headeren 200, erstattes de af headerens
-felter: `workOrderId` (ellers `id`, `orderNumber`) og `objectId` (ellers
-`objectNumber`, `objnr`). Findes ingen af felterne, bruges startværdierne,
-så de otte kald kører alligevel. Operationernes objektnummer tages fra
-`objectId`, `objectNumber` eller `objnr` på hver operation; mangler det,
-springes OperationText over for den operation.
-
-Feltnavnene i WOE-svarene er ikke set endnu (API-teamet har ikke åbnet
-endpointene for app-registreringen). Første kørsel i kørselshistorikken
-viser, om de skal rettes i `Set_variable_WorkOrderId`,
-`Set_variable_ObjectId` og `Compose_operation_object_id`.
+`objectId` er `OR` + ordrenummeret fyldt op til 12 cifre (ordre 26436811 →
+`OR000026436811`, som i API-teamets eksempel). Operationernes objektnummer
+tages fra `objectId`, `objectNumber` eller `objnr` på hver operation;
+mangler det, springes OperationText over for den operation. Passer
+feltnavnet ikke til WOE's svar, rettes det i `Compose_operation_object_id`.
 
 ## Svaret til appen
 
@@ -81,8 +77,7 @@ Samme fire tekstfelter som de andre API-flows:
 
 ```json
 {
-  "orderNumber": "26436811",
-  "workOrderId": "…", "objectId": "OR000026436811",
+  "orderNumber": "26436811", "objectId": "OR000026436811",
   "maintenanceItem": "…",
   "header":        {"status": 200, "data": {…}},
   "operations":    {"status": 200, "data": [...]},
@@ -93,6 +88,7 @@ Samme fire tekstfelter som de andre API-flows:
   "activities":    {"status": 200, "data": [...]},
   "causes":        {"status": 200, "data": [...]},
   "feedback":      {"status": 200, "data": {…}},
+  "headerText":    {"status": 200, "data": {…}},
   "attachments":   {"status": 200, "data": [...]},
   "movements":     {"status": 200, "data": [...]},
   "operationTexts": [{"objectId": "OV…", "operation": "0010", "status": 200, "data": {…}}]
@@ -106,8 +102,16 @@ binder ordren til VH-planens item, når der senere skal sammenlignes.
 Hver sektion har sin egen `status`, så et 403 på fx `tasklistitems` ikke
 stopper resten: appen får de sektioner, der svarede, og kan vise hvilke
 der mangler. `attachments.data` og `movements.data` er en tekst (ikke et
-objekt), når nøglen til SAP Utility eller inventory ikke er sat, eller
-tokenet ikke kunne hentes.
+objekt), når nøgle eller base-URL til SAP Utility eller inventory ikke er
+sat, eller tokenet ikke kunne hentes.
+
+### Sådan ses JSON-svaret
+
+Åbn kørslen i Power Automate (flowet > kørselshistorik), klik på handlingen
+`Result` og læs *Outputs*; er svaret stort, står der *Click to download*.
+De enkelte kald (`Call_header`, `Call_operations` …) viser hver sit svar
+under *Outputs > Body*. Handlingen `Respond_result` viser kun `result` som
+én lang tekst, så den er sværere at læse.
 
 Eksempel i Power Fx (flowet skal først tilføjes som datakilde i appen):
 
@@ -138,16 +142,19 @@ ikke hentes fra ordren.
 
 | Miljøvariabel | Bruges af | Værdi |
 |---|---|---|
-| `BioSap-WOC-Client-Secret` | begge | Som i docs/44: alle API'erne kører med samme app-registrering `6b699286-…` (Peter 2026-10-23). SAP Utility får sit eget token med scope `9ab1e626-…/.default` |
+| `BioSap-WOC-Client-Secret` | alle | Som i docs/44: alle API'erne kører med samme app-registrering `6b699286-…` (Peter 2026-10-23) |
 | `BioSap-WOE-Dev-ApiKey` | WOE | Som i docs/44 |
+| `BioSap-WOE-BaseUrl` | WOE | Base-URL uden afsluttende skråstreg, i DEV `https://dev.api.orsted.dk/woe/api` |
 | `BioSap-Inventory-Dev-ApiKey` | inventory | Som i docs/44 (lagerflowet) |
+| `BioSap-Inventory-BaseUrl` | inventory | I DEV `https://dev.api.orsted.dk/inventorymanagement` |
 | `BioSap-SapUtility-Test-ApiKey` | SAP Utility | `x-apikey` til SAP Utility i test, som i testflowet i [docs/37](37-fl-api-test.md) |
+| `BioSap-SapUtility-BaseUrl` | SAP Utility | I test `https://test.api.orsted.dk/saputility` |
 
-Mangler secret eller WOE-nøglen, svarer flowet `ok = no` med en besked og
-stopper som Failed. Inventory- og SAP Utility-nøglen er valgfri: mangler
-en af dem, kører resten alligevel, og `movements.data` eller
-`attachments.data` fortæller, hvad der ikke er sat op (`operationTexts` er
-så tom).
+Mangler secret, WOE-nøglen eller WOE-base-URL'en, svarer flowet `ok = no`
+med en besked og stopper som Failed. Inventory og SAP Utility er valgfri:
+mangler nøgle eller base-URL, kører resten alligevel, og `movements.data`
+eller `attachments.data` fortæller, hvad der ikke er sat op
+(`headerText` og `operationTexts` er så tomme).
 
 Token-kaldene har *Secure inputs* og *Secure outputs*, API-kaldene *Secure
 inputs*.
@@ -156,16 +163,16 @@ inputs*.
 
 | Handling | Hvad den gør |
 |---|---|
-| `Setup` | Token-URL, client ID, de tre scopes og base-URL'er |
+| `Setup` | Token-URL, client ID og de tre scopes |
 | `Check_environment_variables` | Svarer appen og stopper, hvis en WOE-variabel mangler |
-| `Initialize_variable_*` | `WorkOrderId`, `ObjectId`, `OperationTexts`, `Attachments`, `Movements` |
+| `Compose_object_id` | Ordrens objektnummer `OR…` |
+| `Initialize_variable_*` | `OperationTexts`, `Attachments`, `HeaderText`, `Movements` |
 | `Get_token` / `Token_ok` | Token til WOE; ved fejl `Respond_token_error` |
-| `Call_header` / `Header_found` | Headeren; ved 200 sættes id'erne fra svaret |
-| `Call_operations` … `Call_feedback` | De otte WOE-kald, parallelt efter headeren |
-| `Inventory_configured` / `Get_token_inventory` / `Call_movements` | Vareudtag og returer, parallelt med headeren; kun når inventory-nøglen er sat |
-| `SapUtility_configured` | Kun når SAP Utility-nøglen er sat |
+| `Call_header` … `Call_feedback` | De ni WOE-kald, parallelt |
+| `Inventory_configured` / `Get_token_inventory` / `Call_movements` | Vareudtag og returer, parallelt med WOE-kaldene; kun når inventory-nøgle og base-URL er sat |
+| `SapUtility_configured` | Efter `operations`; kun når SAP Utility-nøgle og base-URL er sat |
 | `Get_token_saputility` / `Token_saputility_ok` | Token til SAP Utility |
-| `Call_attachments` / `Set_variable_Attachments` | Attachments på ordrens objektnummer |
+| `Call_attachments` / `Call_header_text` | Attachments og ordrens langtekst på objektnummeret, parallelt |
 | `Operations_found` / `For_each_operation` | OperationText pr. operation, i serie |
 | `Result` / `Respond_result` | Samler alle sektioner og svarer appen |
 
@@ -180,6 +187,6 @@ længst (ét kald pr. operation); appen får svaret, når alt er hentet.
 | En sektion | 401 | Forkert `x-apikey`, eller tokenet passer ikke til API'et |
 | En sektion | 403 | App-registreringen har ikke rollen til netop det endpoint (API-teamet skal åbne det) |
 | `header` | 404 | Ordren findes ikke i DEV |
-| `attachments` | 404 | Objektnummeret er forkert: tjek headerens `objectId`-felt |
+| `attachments` / `headerText` | 404 | Objektnummeret `OR…` passer ikke til ordren |
 
 Kontrakttest: `tests/test_woe_order_flow.py`.
