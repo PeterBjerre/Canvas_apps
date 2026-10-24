@@ -1078,9 +1078,20 @@ def _materials_modal():
     for c in (header, divider, empty_row):
         mobile.hide_on_mobile(c)
 
+    # I View mode er indtastningsraekken skjult. En kladde, der er aabnet
+    # med et klik paa raekken i hubben, er View - saa siger noten det, og
+    # Edit i bunden goer det samme som Edit oeverst paa skaermen, uden at
+    # popuppen skal lukkes foerst. Raekken kommer frem med det samme.
+    # can_edit og noten er undtaget fra sektionslaasen (keep i
+    # build_ops_modals) og skriver den selv: en laast sektion hjaelper Edit
+    # ikke paa.
+    can_edit = f"IfError(varVhpViewOnly && varVhpCanEdit && !({OPS_LOCKED}), false)"
     note = text_ctrl("txtVhpMatNote",
+                     f'If({can_edit}, "View only. Choose Edit to search for and add materials.", '
+                     f'varVhpViewOnly || ({OPS_LOCKED}), "View only. The materials on this '
+                     'operation cannot be changed.", '
                      '"Search and add materials for this operation. Description and unit are '
-                     'filled in by the material lookup."',
+                     'filled in by the material lookup.")',
                      size=12, color=C_MUTED, height=lay.mobile_or(48, 32), wrap="true")
 
     # Start, ikke Stretch: tabellen har sin egen bredde og bliver ikke klemt
@@ -1137,7 +1148,11 @@ def _materials_modal():
         # sluge det klik, der forlader feltet. Uden aendringer lukker Save blot.
         display_mode=VIEW_LOCK, visible=f"!{ro}")
     mobile.touch(btnSave)
-    footer = group("conVhpMatFooter", [info, btnCancel, btnSave], direction="Horizontal", gap=8,
+    btnEditPlan = button("btnVhpMatEditPlan", '"Edit"', "Set(varVhpViewOnly, false)",
+                         width=fit_button_width('"Edit"') + ICON_W, height=32, icon="Edit",
+                         accessible='"Edit this request"', visible=can_edit)
+    mobile.touch(btnEditPlan)
+    footer = group("conVhpMatFooter", [info, btnEditPlan, btnCancel, btnSave], direction="Horizontal", gap=8,
                    height=lay.mobile_or(mobile.TOUCH, 36), align_items="Center")
 
     return _modal("VhpMat", '"Materials – operation " & varVhpMatOpNo', MAT_OPEN,
@@ -1535,7 +1550,8 @@ def build_ops_modals():
     # skrivebeskyttede, som i View. Dokumenterne gemmes for sig selv i
     # SharePoint (issue #300) og foelger ikke laasen.
     locked = lock_section([_op_detail_modal(), _materials_modal(), _vendor_modal(),
-                           _matgrp_modal()], "varVhpViewOnly", OPS_LOCKED)
+                           _matgrp_modal()], "varVhpViewOnly", OPS_LOCKED,
+                          keep=("txtVhpMatNote", "btnVhpMatEditPlan"))
     return locked[:2] + [_attachments_modal()] + locked[2:]
 
 

@@ -116,5 +116,8 @@ def test_no_pencil_reachable_in_view_mode():
             ok = ('"DocumentText"' in icon and "ViewOnly" in icon) \
                 or "!varVhpViewOnly" in vis or "!(varVhpViewOnly" in vis \
                 or page_edit.match(vis) \
-                or name == "btnIbEdit"   # Issue Board: kun synlig, naar issuet kan rettes
+                or name == "btnIbEdit" \
+                or (name == "btnVhpMatEditPlan" and "varVhpViewOnly && varVhpCanEdit" in vis)
+            # btnIbEdit: Issue Board, kun synlig, naar issuet kan rettes.
+            # btnVhpMatEditPlan: Materials-popuppens Edit, som sidehovedets.
             assert ok, f"{f}: {name} viser blyanten i View mode ({icon} / {vis})"
