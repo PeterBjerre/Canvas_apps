@@ -976,7 +976,7 @@
                                     "name": "OperationTexts",
                                     "value": {
                                       "objectId": "@outputs('Compose_operation_object_id')",
-                                      "operation": "@coalesce(items('For_each_operation')?['operation'], items('For_each_operation')?['operationNumber'], items('For_each_operation')?['activity'], items('For_each_operation')?['vornr'], '')",
+                                      "operation": "@{coalesce(items('For_each_operation')?['id'], items('For_each_operation')?['operation'], items('For_each_operation')?['operationNumber'], '')}",
                                       "status": "@outputs('Call_operation_text')?['statusCode']",
                                       "data": "@body('Call_operation_text')",
                                       "attachmentsStatus": "@outputs('Call_operation_attachments')?['statusCode']",

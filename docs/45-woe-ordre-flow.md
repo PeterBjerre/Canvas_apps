@@ -100,6 +100,9 @@ Samme fire tekstfelter som de andre API-flows:
 `maintenanceItem` er headerens vedligeholdelsespost (WAPOS: `maintenanceItem`,
 `wapos` eller `maintenanceItemNumber`), tom hvis headeren ikke har den. Den
 binder ordren til VH-planens item, når der senere skal sammenlignes.
+Peters første kørsel (ordre 25711067, 2026-10-24) viste, at WOE-headeren
+**ikke** har WAPOS, så feltet er tomt, indtil API-teamet lægger det på
+(Excel slog den op i IW33).
 
 Hver sektion har sin egen `status`, så et 403 på fx `tasklistitems` ikke
 stopper resten: appen får de sektioner, der svarede, og kan vise hvilke
@@ -140,6 +143,87 @@ lader brugeren oprette en VH-plan ud fra ordren, som så ender i de lister,
 der findes i forvejen: ordrens header svarer til et item
 (`MaintenanceItems`), operationerne til tasklisten. Planens header kan
 ikke hentes fra ordren.
+
+## Hvad svaret indeholder (ordre 25711067, DEV)
+
+Peters kørsel 2026-10-24 gav disse felter. `operations[].id` er
+operationsnummeret (10, 20, 30), og `operations[].objectId` (`OV…`) er det,
+OperationText og operationens attachments slås op på.
+
+| Sektion | Felter |
+|---|---|
+| `header` | `id`, `plantNumber`, `workOrderType`, `sapObjectNo` (= `objectId`), `functionalLocation`, `responsibleInitials`, `shortDescription`, `description`, `basicFinish`, `created`, `changedBy`, `changed`, `isLocked`, `lockedBy`, `etag` |
+| `operations[]` | `id`, `workOrderId`, `workCenter`, `responsibleInitials`, `description`, `objectId`, `status[] {key, value}`, `vendorId`, `vendorName`, `controlKey`, `plannedHours`, `actualHours`, `plannedHoursUnit`, `standardTextKey`, `masterOperationObjectNumber` |
+| `tasklistitems[]` | `workOrderId`, `plantNo`, `planningPlantNo`, `workCentre`, `groupCode`, `operationType`, `nodes`, `counter`, `controlKey`, `workUnit`, `unitMeasurement`, `shortDescription`, `description`, `decimalsAllowed` |
+| `objects[]` | `id`, `workOrderId`, `itemNo`, `functionalLocation`, `functionalLocationDescription`, `functionalLocationObjectId`, `equipment`, `equipmentDescription`, `processIndicator`, `safetyInformation[] {functionalLocation, requiredPermits[], riskClassifications[] {riskType, riskValue}}` |
+| `status[]` | `id`, `description`, `statusType` (System/User), `isFlowStatus`, `referencedObjectId`, `active` |
+| `partner[]` | `function` (VW), `personalId`, `type`, `initial`, `isActive` |
+| `activities[]`, `causes[]` | `name`, `description` (notifikationens aktiviteter og årsager) |
+| `feedback` | `id` (QM-notifikationen), `feedbackRequired` |
+| `operationTexts[]` | `objectId`, `operation`, `status`, `data.text`, `attachmentsStatus`, `attachments` |
+
+Ordren havde ingen attachments, så `attachments.data` er tom.
+
+## Feltmapping: ordre → VH-plan-appen
+
+Planens header kan ikke hentes fra ordren (Peter 2026-10-23): plantype,
+strategi, cyklus, sortfelt og første kald udfylder brugeren selv. Plant
+kan dog foreslås fra `header.plantNumber` via `PlantList.PlantNumber`
+(2802 → ESV), og headerens `functionalLocation` giver anlægget.
+
+### Ordrens header → item (`colVhpItems` → `MaintenanceItems`)
+
+| Item-felt i appen | Liste-kolonne | Fra ordren | Bemærkning |
+|---|---|---|---|
+| `ShortText` | `Title` | `header.shortDescription` | |
+| `LongText` | `ItemDescription` | `headerText.data.text`, ellers `header.description` | Langteksten fra SAP Utility; headerens `description` er kun første linje |
+| `FunctionalLocation` | `FunctionalLocation` | `header.functionalLocation` | Samme som `objects[0].functionalLocation` |
+| `FlDescription` | (vises kun) | `objects[0].functionalLocationDescription` | |
+| `ObjectList` | `ObjectList` | `objects[]` → `functionalLocation` eller `equipment`, samlet med `"; "` | Samme format som Object list-knappen |
+| `MainWorkCenter` | `MainWorkCenter` (lookup) | `operations[0].workCenter` | Ordrens hovedarbejdsplads er ikke i headeren; tag første operations arbejdsplads og slå op i `colVhpMainWorkCenters`; findes den ikke, lad feltet stå tomt |
+| `ActivityType` | `MaintenanceActivityType` (lookup) | — | Ikke i WOE-svaret (API-teamet kan lægge `maintenanceActivityType` på headeren) |
+| `Initials` | `InitialOrstedResponsible` | `header.responsibleInitials` (= `partner[VW].initial`) | |
+| `OrstedResponsible` | `OrstedResponsible` | — | Brugeren selv, som i dag |
+| `Priority` | `Priority` | `objects[].safetyInformation[].riskClassifications` med `riskType = "Safety Critical Equipment"` → Red | Ellers som i dag ud fra aktivitetstypen |
+| `NonFlowUserStatus` | `NonFlowUserStatus` | `status[]` hvor `id = "ZBOW"` og `active` | Eneste valg i listen |
+| `Revision` | `Revision`/`RevisionMark` | — | Ikke på ordren |
+| `TasklistKey` | `TaskListGroup`/`TaskListGroupCounter` | `tasklistitems[0].groupCode` + `counter` | Kun hvis gruppen findes i `colVhpTasklists` for planten; ellers tom |
+| (til sammenligning) | `SapItemNo` | `maintenanceItem` | Tom indtil WAPOS er i headeren |
+
+`header.workOrderType` (ZCOR = korrektiv) er ikke en VH-plan-ordretype
+(`OrderType` har kun ZPRE); vises som information.
+
+### Ordrens operationer → taskliste (`colVhpOperations` → `TaskListMain`)
+
+Én række pr. element i `operations[]`:
+
+| Operations-felt i appen | Liste-kolonne | Fra ordren | Bemærkning |
+|---|---|---|---|
+| `OperationNo` | `OperationNo` | `operations[].id` (10, 20, 30) | `Text(id, "0000")` som i appen |
+| `OperationShortText` | `OperationShortText` | `operations[].description` | |
+| `LongText` | `LongText` | `operationTexts[].data.text` hvor `objectId` = operationens `objectId` | |
+| `MainWorkCenter` | `WorkCtr` | `operations[].workCenter` | |
+| `ControlKey` | `Ctrl` | `operations[].controlKey` (PM01/PM02/PM03/ZB01) | |
+| `WorkHours` | `Work` | `operations[].plannedHours` | `plannedHoursUnit` er "h" |
+| `Persons`, `DurationHours` | `Num`, `Duration` | — | Ikke i WOE-svaret; sæt 1 og `plannedHours` som forslag |
+| `Vendor`, `VendorID` | `Vendor`, `VendorID` | `operations[].vendorName`, `vendorId` | Appens format er "101985 - NAME" (vendor-søgningen); 0/tom springes over |
+| `Cost`, `UnitCost`, `Currency`, `CostElement` | `Price`, `Currency`, `CostElem` | — | Ikke i WOE-svaret |
+| `MaterialGroup`, `ServiceNo` | `MaterialGroup`, `ServiceNo` | — | Ikke i WOE-svaret |
+| `PackagesKey` | `PackagesKey` | — | Vælges på planen |
+| `StandardTaskItemID` | `StandardTaskItemID` | `operations[].standardTextKey` (RAINT) | Kun hvis nøglen matcher en standardopgave |
+| (attachments) | `MD_TasklistAttachment` | `operationTexts[].attachments` | Filerne ligger i SAP DMS; kun navn/URL kan vises, ikke kopieres som fil |
+
+`tasklistitems[]` er ordrens opgaveliste-reference (gruppe 33001464 med to
+opgaver). Den bruges ikke til at danne rækker: operationerne er allerede
+ordrens faktiske rækker, og gruppen ender som `TasklistKey` på itemet.
+
+### Materialer → `MD_TasklistMaterial`
+
+`movements[]` fra inventory (vareudtag og returer) giver `MaterialNo`,
+`MaterialText`, `Quantity`, `Unit` og `OperationNo`; feltnavnene bekræftes,
+når Peter har kørt flowet med inventory-nøglen sat. `status`, `partner`,
+`activities`, `causes` og `feedback` har ingen plads i VH-planen; de vises
+kun som information på ordren.
 
 ## Hemmeligheder og miljøvariabler
 
