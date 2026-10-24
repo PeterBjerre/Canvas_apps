@@ -227,6 +227,29 @@ når Peter har kørt flowet med inventory-nøglen sat. `status`, `partner`,
 `activities`, `causes` og `feedback` har ingen plads i VH-planen og vises
 ikke i appen; de bliver i svaret til senere brug (Peter 2026-10-24).
 
+## Knappen i appen: Item from SAP order
+
+`Maintenance Plan App/build/build_order.py` (BIO SAP-appens VH-plan-skærm).
+I Items-kortets hoved står en ikonknap (lup) mellem Copy og Add item, skjult
+i View og på en telefon (der er Add item allerede kun sit plus). Den åbner
+popuppen `conVhpOrderModal` med ét felt, ordrenummeret, og *Fetch order*.
+Fetch kører flowet, læser `result` med `ParseJSON` og opretter et NYT item
+efter mappingen ovenfor, præcis som Add item + Copy item: itemet bliver det
+aktive, editoren nulstilles, og alt kan rettes, før Save draft gemmer.
+
+- Flowet skal først tilføjes som datakilde i BIO SAP (ligesom
+  `BioSap-Integration-MaterialStock`); ellers kompilerer skærmen ikke.
+- Sektioner, der ikke svarede 200, bliver tomme tabeller (ingen fejl); en
+  header uden 200 giver et item med tomme felter og en bemærkning i
+  beskeden.
+- FL og objekter ryddes som ved Copy, når FL'en ikke hører til planens
+  værk; hovedarbejdspladsen sættes kun, når den findes i `MainWorkCenters`.
+- `Persons` sættes til 1, så varigheden kan regnes, indtil API'et giver
+  antal personer. Prioritet (Red ved SCEq) regnes stadig ved gem af
+  itemets SCEq-flag i listen, ikke af ordrens `riskClassifications`.
+
+Kontrakttest: `tests/test_vhp_from_order.py`.
+
 ## Hemmeligheder og miljøvariabler
 
 | Miljøvariabel | Bruges af | Værdi |

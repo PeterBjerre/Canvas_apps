@@ -138,6 +138,10 @@ Set(varVhpMatQuery, "");
 Set(varVhpMatLast, "");
 Set(varVhpMatPick, "");
 Set(varVhpMatMsg, "");
+// Item fra SAP-ordre (build_order.py): popuppen, opslaget koerer, og dens besked.
+Set(varVhpOrderOpen, false);
+Set(varVhpOrderBusy, false);
+Set(varVhpOrderMsg, "");
 Set(varVhpAttOpNo, "");
 // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
 // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
