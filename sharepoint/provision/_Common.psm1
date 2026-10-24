@@ -122,17 +122,15 @@ function New-MdField {
         # Feltet findes: tilfoej de valg, der mangler (R2-012). Listerne fra
         # foer et nyt valg (fx RowStatus 'draft', issue #204) fik det ellers
         # aldrig. Eksisterende valg og deres raekkefoelge beholdes; nye
-        # saettes bagefter. Get-PnPField henter ikke .Choices - kun
-        # SchemaXml (samme som Add-Choices i Provision-VHPlanColumns.ps1).
-        $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE | Where-Object { $_ })
+        # saettes bagefter. Se Set-MdChoices nedenfor.
+        $current = Get-MdChoices $f
         $missing = [string[]]@($Choices | Where-Object { $current -notcontains $_ })
         if (-not $missing.Count) {
             Write-Host "    = $Name" -ForegroundColor DarkGray
         } elseif ($script:MdWhatIf) {
             Write-Host "    ? ville tilfoeje valg paa ${Name}: $($missing -join ', ')" -ForegroundColor Yellow
         } else {
-            $union = [string[]]($current + $missing)
-            Set-PnPField -List $List -Identity $Name -Values @{ Choices = $union }
+            Set-MdChoices $List $Name ([string[]]($current + $missing))
             Write-Host "    ~ $Name (choices +$($missing -join ', +'))" -ForegroundColor Green
         }
     } elseif ($f) {
@@ -166,6 +164,54 @@ function New-MdField {
     if ($values.Count) { Set-PnPField -List $List -Identity $Name -Values $values }
     if ($needUnique) {
         Set-PnPField -List $List -Identity $Name -Values @{ EnforceUniqueValues = $true }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# VALG PAA EN EKSISTERENDE CHOICE-KOLONNE
+#
+# Foer stod der Set-PnPField -Values @{ Choices = ... }. Det virker ikke
+# paa alle PnP-versioner: Get-PnPField/Set-PnPField arbejder paa den
+# generelle Field og ikke FieldChoice, saa egenskaben 'Choices' findes
+# ikke. PnP skriver en gul advarsel ("No property 'Choices' found ... will
+# be ignored"), scriptet fortsaetter og skriver groent "~ RowStatus
+# (choices +draft)" - og intet er aendret. Det var grunden til, at
+# EquipmentItems/MaterialItems.RowStatus blev ved med at mangle 'draft',
+# uanset hvor mange gange scriptet blev koert.
+#
+# Nu rettes valgene i kolonnens SchemaXml, som findes paa ALLE felttyper,
+# og bagefter LAESES kolonnen igen. Mangler et valg stadig, stopper
+# scriptet med en roed fejl i stedet for at melde succes.
+# ---------------------------------------------------------------------------
+function Get-MdChoices {
+    param($Field)
+    # Get-PnPField henter ikke .Choices - kun SchemaXml.
+    return [string[]]@(([xml]$Field.SchemaXml).Field.CHOICES.CHOICE | Where-Object { $_ })
+}
+
+function Set-MdChoices {
+    # Saetter kolonnens valg til PRAECIS $Choices i den raekkefoelge. Kalderen
+    # bestemmer, om eksisterende valg skal med (det skal de naesten altid).
+    param([string]$List, [string]$Name, [string[]]$Choices)
+    $f = Get-PnPField -List $List -Identity $Name -ErrorAction Stop
+    $xml = [xml]$f.SchemaXml
+    $node = $xml.Field.SelectSingleNode('CHOICES')
+    if (-not $node) {
+        $node = $xml.CreateElement('CHOICES')
+        [void]$xml.Field.AppendChild($node)
+    }
+    $node.RemoveAll()
+    foreach ($c in $Choices) {
+        $e = $xml.CreateElement('CHOICE')
+        $e.InnerText = $c
+        [void]$node.AppendChild($e)
+    }
+    Set-PnPField -List $List -Identity $Name -Values @{ SchemaXml = $xml.OuterXml }
+
+    $after = Get-MdChoices (Get-PnPField -List $List -Identity $Name -ErrorAction Stop)
+    $still = @($Choices | Where-Object { $after -notcontains $_ })
+    if ($still.Count) {
+        throw "Valgene paa $List.$Name blev IKKE opdateret - mangler stadig: $($still -join ', '). Nu: $($after -join ', ')"
     }
 }
 
@@ -332,6 +378,6 @@ function Set-MdOwnItemsList {
 }
 
 Export-ModuleMember -Function Connect-MdSite, Set-MdWhatIf, Test-MdWhatIf, Test-MdList,
-    New-MdList, New-MdField, New-MdNoteField, Rename-MdTitle, Set-MdIndexed,
+    New-MdList, New-MdField, New-MdNoteField, Get-MdChoices, Set-MdChoices, Rename-MdTitle, Set-MdIndexed,
     Get-MdRoleName, Test-MdUniquePermissions, Remove-MdGroupFromList,
     Set-MdReadOnlyList, Set-MdOwnItemsList -Variable MdDefaultClientId
