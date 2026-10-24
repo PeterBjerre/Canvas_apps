@@ -240,8 +240,10 @@ def build_order_modal():
         "You can change everything before you save.\"",
         size=13, color=C_MUTED, height=40, wrap="true")
 
+    # Telefonen (issue #508): feltet er 44 hoejt som de andre popup-felter.
     inp = text_input(INPUT, "\"\"", placeholder="\"SAP order number, e.g. 25711067\"",
                      max_length=12, width="Parent.Width", label="\"SAP order number\"",
+                     height=lay.mobile_or(mobile.TOUCH, 36),
                      display_mode=f"If({BUSY}, DisplayMode.View, DisplayMode.Edit)")
     grow(inp)
     btnFetch = button(
