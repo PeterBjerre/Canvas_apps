@@ -198,7 +198,14 @@ def check_flows():
             continue
         n += 1
         with io.open(os.path.join(d, f), encoding="utf-8-sig") as fh:
-            data = json.load(fh)
+            try:
+                data = json.load(fh)
+            except ValueError as e:
+                # Ellers kom kun en traceback uden filnavn (issue #585). Den
+                # typiske aarsag er en halvt loest git-konflikt (<<<<<<<).
+                sys.exit(f"{FLOWS}/{f} er ikke gyldig JSON: {e}\n"
+                         "  -> se efter <<<<<<< / ======= / >>>>>>> fra en git-konflikt, "
+                         "eller hent filen igen: git checkout origin/main -- <filen>")
         name = re.sub(r"-[0-9A-Fa-f]{8}-.*$", "", f)
         for t in _flow_texts(data):
             v = t.strip()
