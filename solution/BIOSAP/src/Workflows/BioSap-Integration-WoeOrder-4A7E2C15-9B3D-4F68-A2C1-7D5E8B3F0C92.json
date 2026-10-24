@@ -1,0 +1,1222 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWOCClientSecret"
+          }
+        },
+        "BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWoeDevApiKey"
+          }
+        },
+        "BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSapUtilityTestApiKey"
+          }
+        },
+        "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapInventoryDevApiKey"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "OrderNumber",
+                  "type": "string",
+                  "description": "SAP work order number, e.g. 25711067",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Setup": {
+          "runAfter": {},
+          "type": "Compose",
+          "inputs": {
+            "tokenUrl": "https://login.microsoftonline.com/100b3c99-f3e2-4da0-9c8a-b9d345742c36/oauth2/v2.0/token",
+            "woeClientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
+            "woeScope": "https://Dongenergy.onmicrosoft.com/b6608a78-4d04-462b-a5da-d5488f8b164c/.default",
+            "woeBaseUrl": "https://dev.api.orsted.dk/woe/api",
+            "sapUtilityClientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
+            "sapUtilityScope": "https://Dongenergy.onmicrosoft.com/9ab1e626-a2c7-4202-b325-398d6f68ee24/.default",
+            "sapUtilityBaseUrl": "https://test.api.orsted.dk/saputility",
+            "inventoryScope": "https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default",
+            "inventoryBaseUrl": "https://dev.api.orsted.dk/inventorymanagement"
+          }
+        },
+        "Check_environment_variables": {
+          "runAfter": {
+            "Setup": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "or": [
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')",
+                  "REDACTED"
+                ]
+              },
+              {
+                "equals": [
+                  "@length(trim(coalesce(parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)'), '')))",
+                  0
+                ]
+              },
+              {
+                "contains": [
+                  "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "REDACTED"
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Respond_missing_value": {
+              "runAfter": {},
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "ok": "no",
+                  "status": "",
+                  "message": "The flow is not configured: set Current value on BioSap-WOC-Client-Secret and BioSap-WOE-Dev-ApiKey.",
+                  "result": ""
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "title": "ok",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "status",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "message",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "result": {
+                      "title": "result",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "Stop_missing_value": {
+              "runAfter": {
+                "Respond_missing_value": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "MissingValue",
+                  "message": "Set Current value on BioSap-WOC-Client-Secret and BioSap-WOE-Dev-ApiKey (Solutions > BIO SAP > Environment variables)."
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {}
+          }
+        },
+        "Initialize_variable_WorkOrderId": {
+          "runAfter": {
+            "Check_environment_variables": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "WorkOrderId",
+                "type": "string",
+                "value": "@{trim(triggerBody()?['text'])}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_ObjectId": {
+          "runAfter": {
+            "Initialize_variable_WorkOrderId": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ObjectId",
+                "type": "string",
+                "value": "@{concat('OR', substring(concat('000000000000', trim(triggerBody()?['text'])), length(trim(triggerBody()?['text']))))}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_OperationTexts": {
+          "runAfter": {
+            "Initialize_variable_ObjectId": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "OperationTexts",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Initialize_variable_Attachments": {
+          "runAfter": {
+            "Initialize_variable_OperationTexts": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Attachments",
+                "type": "object",
+                "value": {
+                  "status": "",
+                  "data": ""
+                }
+              }
+            ]
+          }
+        },
+        "Initialize_variable_Movements": {
+          "runAfter": {
+            "Initialize_variable_Attachments": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Movements",
+                "type": "object",
+                "value": {
+                  "status": "",
+                  "data": ""
+                }
+              }
+            ]
+          }
+        },
+        "Get_token": {
+          "runAfter": {
+            "Initialize_variable_Movements": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{outputs('Setup')?['tokenUrl']}",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['woeClientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['woeScope'])}",
+            "retryPolicy": {
+              "type": "none"
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Token_ok": {
+          "runAfter": {
+            "Get_token": [
+              "Succeeded",
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Get_token')?['statusCode']",
+                  200
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Inventory_configured": {
+              "runAfter": {},
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "greater": [
+                      "@length(trim(coalesce(parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)'), '')))",
+                      0
+                    ]
+                  },
+                  {
+                    "not": {
+                      "contains": [
+                        "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                        "REDACTED"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "actions": {
+                "Get_token_inventory": {
+                  "runAfter": {},
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "@{outputs('Setup')?['tokenUrl']}",
+                    "headers": {
+                      "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['woeClientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['inventoryScope'])}",
+                    "retryPolicy": {
+                      "type": "none"
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "secureData": {
+                      "properties": [
+                        "inputs",
+                        "outputs"
+                      ]
+                    }
+                  }
+                },
+                "Token_inventory_ok": {
+                  "runAfter": {
+                    "Get_token_inventory": [
+                      "Succeeded",
+                      "Failed",
+                      "TimedOut"
+                    ]
+                  },
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@outputs('Get_token_inventory')?['statusCode']",
+                          200
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Call_movements": {
+                      "runAfter": {},
+                      "type": "Http",
+                      "inputs": {
+                        "method": "GET",
+                        "uri": "@{outputs('Setup')?['inventoryBaseUrl']}/materialonstocks/movements/@{encodeUriComponent(trim(triggerBody()?['text']))}",
+                        "headers": {
+                          "Authorization": "@{concat('Bearer ', body('Get_token_inventory')?['access_token'])}",
+                          "x-apikey": "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                          "Accept": "application/json"
+                        },
+                        "retryPolicy": {
+                          "type": "none"
+                        }
+                      },
+                      "runtimeConfiguration": {
+                        "secureData": {
+                          "properties": [
+                            "inputs"
+                          ]
+                        }
+                      }
+                    },
+                    "Set_variable_Movements": {
+                      "runAfter": {
+                        "Call_movements": [
+                          "Succeeded",
+                          "Failed",
+                          "TimedOut"
+                        ]
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "Movements",
+                        "value": {
+                          "status": "@outputs('Call_movements')?['statusCode']",
+                          "data": "@body('Call_movements')"
+                        }
+                      }
+                    }
+                  },
+                  "else": {
+                    "actions": {
+                      "Set_variable_Movements_token_error": {
+                        "runAfter": {},
+                        "type": "SetVariable",
+                        "inputs": {
+                          "name": "Movements",
+                          "value": {
+                            "status": "@outputs('Get_token_inventory')?['statusCode']",
+                            "data": "@{concat('Token for inventory management could not be fetched: ', coalesce(body('Get_token_inventory')?['error_description'], body('Get_token_inventory')?['error'], 'no answer'))}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_Movements_not_configured": {
+                    "runAfter": {},
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Movements",
+                      "value": {
+                        "status": "",
+                        "data": "Inventory management is not configured: set Current value on BioSap-Inventory-Dev-ApiKey."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "Call_header": {
+              "runAfter": {},
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/header",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Header_found": {
+              "runAfter": {
+                "Call_header": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@outputs('Call_header')?['statusCode']",
+                      200
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Set_variable_WorkOrderId": {
+                  "runAfter": {},
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "WorkOrderId",
+                    "value": "@{coalesce(body('Call_header')?['workOrderId'], body('Call_header')?['id'], body('Call_header')?['orderNumber'], variables('WorkOrderId'))}"
+                  }
+                },
+                "Set_variable_ObjectId": {
+                  "runAfter": {
+                    "Set_variable_WorkOrderId": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "ObjectId",
+                    "value": "@{coalesce(body('Call_header')?['objectId'], body('Call_header')?['objectNumber'], body('Call_header')?['objnr'], variables('ObjectId'))}"
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Call_operations": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/operations/@{encodeUriComponent(variables('WorkOrderId'))}",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_tasklistitems": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/operations/@{encodeUriComponent(variables('WorkOrderId'))}/tasklistitems",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_objects": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/objects",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_status": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('ObjectId'))}/status",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_partner": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/partner",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_activities": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/activities",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_causes": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/causes",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Call_feedback": {
+              "runAfter": {
+                "Header_found": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{outputs('Setup')?['woeBaseUrl']}/workorders/@{encodeUriComponent(variables('WorkOrderId'))}/feedback",
+                "headers": {
+                  "Authorization": "@{concat('Bearer ', body('Get_token')?['access_token'])}",
+                  "x-apikey": "@parameters('BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)')",
+                  "Accept": "application/json"
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "SapUtility_configured": {
+              "runAfter": {
+                "Call_operations": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_tasklistitems": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_objects": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_status": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_partner": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_activities": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_causes": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ],
+                "Call_feedback": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "greater": [
+                      "@length(trim(coalesce(parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)'), '')))",
+                      0
+                    ]
+                  },
+                  {
+                    "not": {
+                      "contains": [
+                        "@parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)')",
+                        "REDACTED"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "actions": {
+                "Get_token_saputility": {
+                  "runAfter": {},
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "@{outputs('Setup')?['tokenUrl']}",
+                    "headers": {
+                      "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['sapUtilityClientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['sapUtilityScope'])}",
+                    "retryPolicy": {
+                      "type": "none"
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "secureData": {
+                      "properties": [
+                        "inputs",
+                        "outputs"
+                      ]
+                    }
+                  }
+                },
+                "Token_saputility_ok": {
+                  "runAfter": {
+                    "Get_token_saputility": [
+                      "Succeeded",
+                      "Failed",
+                      "TimedOut"
+                    ]
+                  },
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@outputs('Get_token_saputility')?['statusCode']",
+                          200
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Call_attachments": {
+                      "runAfter": {},
+                      "type": "Http",
+                      "inputs": {
+                        "method": "GET",
+                        "uri": "@{outputs('Setup')?['sapUtilityBaseUrl']}/attachments/@{encodeUriComponent(variables('ObjectId'))}",
+                        "headers": {
+                          "Authorization": "@{concat('Bearer ', body('Get_token_saputility')?['access_token'])}",
+                          "x-apikey": "@parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)')",
+                          "Accept": "application/json"
+                        },
+                        "retryPolicy": {
+                          "type": "none"
+                        }
+                      },
+                      "runtimeConfiguration": {
+                        "secureData": {
+                          "properties": [
+                            "inputs"
+                          ]
+                        }
+                      }
+                    },
+                    "Set_variable_Attachments": {
+                      "runAfter": {
+                        "Call_attachments": [
+                          "Succeeded",
+                          "Failed",
+                          "TimedOut"
+                        ]
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "Attachments",
+                        "value": {
+                          "status": "@outputs('Call_attachments')?['statusCode']",
+                          "data": "@body('Call_attachments')"
+                        }
+                      }
+                    },
+                    "Operations_found": {
+                      "runAfter": {
+                        "Set_variable_Attachments": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "If",
+                      "expression": {
+                        "and": [
+                          {
+                            "equals": [
+                              "@outputs('Call_operations')?['statusCode']",
+                              200
+                            ]
+                          }
+                        ]
+                      },
+                      "actions": {
+                        "For_each_operation": {
+                          "runAfter": {},
+                          "type": "Foreach",
+                          "foreach": "@body('Call_operations')",
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 1
+                            }
+                          },
+                          "actions": {
+                            "Compose_operation_object_id": {
+                              "runAfter": {},
+                              "type": "Compose",
+                              "inputs": "@{coalesce(items('For_each_operation')?['objectId'], items('For_each_operation')?['objectNumber'], items('For_each_operation')?['objnr'], '')}"
+                            },
+                            "Operation_has_object_id": {
+                              "runAfter": {
+                                "Compose_operation_object_id": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "If",
+                              "expression": {
+                                "and": [
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@outputs('Compose_operation_object_id')",
+                                        ""
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "actions": {
+                                "Call_operation_text": {
+                                  "runAfter": {},
+                                  "type": "Http",
+                                  "inputs": {
+                                    "method": "GET",
+                                    "uri": "@{outputs('Setup')?['sapUtilityBaseUrl']}/descriptions/@{encodeUriComponent(outputs('Compose_operation_object_id'))}/OperationText",
+                                    "headers": {
+                                      "Authorization": "@{concat('Bearer ', body('Get_token_saputility')?['access_token'])}",
+                                      "x-apikey": "@parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)')",
+                                      "Accept": "application/json"
+                                    },
+                                    "retryPolicy": {
+                                      "type": "none"
+                                    }
+                                  },
+                                  "runtimeConfiguration": {
+                                    "secureData": {
+                                      "properties": [
+                                        "inputs"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "Append_operation_text": {
+                                  "runAfter": {
+                                    "Call_operation_text": [
+                                      "Succeeded",
+                                      "Failed",
+                                      "TimedOut"
+                                    ]
+                                  },
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "OperationTexts",
+                                    "value": {
+                                      "objectId": "@outputs('Compose_operation_object_id')",
+                                      "operation": "@coalesce(items('For_each_operation')?['operation'], items('For_each_operation')?['operationNumber'], items('For_each_operation')?['activity'], items('For_each_operation')?['vornr'], '')",
+                                      "status": "@outputs('Call_operation_text')?['statusCode']",
+                                      "data": "@body('Call_operation_text')"
+                                    }
+                                  }
+                                }
+                              },
+                              "else": {
+                                "actions": {}
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {}
+                      }
+                    }
+                  },
+                  "else": {
+                    "actions": {
+                      "Set_variable_Attachments_token_error": {
+                        "runAfter": {},
+                        "type": "SetVariable",
+                        "inputs": {
+                          "name": "Attachments",
+                          "value": {
+                            "status": "@outputs('Get_token_saputility')?['statusCode']",
+                            "data": "@{concat('Token for SAP Utility could not be fetched: ', coalesce(body('Get_token_saputility')?['error_description'], body('Get_token_saputility')?['error'], 'no answer'))}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_Attachments_not_configured": {
+                    "runAfter": {},
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Attachments",
+                      "value": {
+                        "status": "",
+                        "data": "SAP Utility is not configured: set Current value on BioSap-SapUtility-Test-ApiKey."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "Result": {
+              "runAfter": {
+                "SapUtility_configured": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ],
+                "Inventory_configured": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
+                ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "orderNumber": "@{trim(triggerBody()?['text'])}",
+                "workOrderId": "@variables('WorkOrderId')",
+                "objectId": "@variables('ObjectId')",
+                "maintenanceItem": "@{if(equals(outputs('Call_header')?['statusCode'], 200), coalesce(body('Call_header')?['maintenanceItem'], body('Call_header')?['wapos'], body('Call_header')?['maintenanceItemNumber'], ''), '')}",
+                "header": {
+                  "status": "@outputs('Call_header')?['statusCode']",
+                  "data": "@body('Call_header')"
+                },
+                "operations": {
+                  "status": "@outputs('Call_operations')?['statusCode']",
+                  "data": "@body('Call_operations')"
+                },
+                "tasklistitems": {
+                  "status": "@outputs('Call_tasklistitems')?['statusCode']",
+                  "data": "@body('Call_tasklistitems')"
+                },
+                "objects": {
+                  "status": "@outputs('Call_objects')?['statusCode']",
+                  "data": "@body('Call_objects')"
+                },
+                "status": {
+                  "status": "@outputs('Call_status')?['statusCode']",
+                  "data": "@body('Call_status')"
+                },
+                "partner": {
+                  "status": "@outputs('Call_partner')?['statusCode']",
+                  "data": "@body('Call_partner')"
+                },
+                "activities": {
+                  "status": "@outputs('Call_activities')?['statusCode']",
+                  "data": "@body('Call_activities')"
+                },
+                "causes": {
+                  "status": "@outputs('Call_causes')?['statusCode']",
+                  "data": "@body('Call_causes')"
+                },
+                "feedback": {
+                  "status": "@outputs('Call_feedback')?['statusCode']",
+                  "data": "@body('Call_feedback')"
+                },
+                "attachments": "@variables('Attachments')",
+                "movements": "@variables('Movements')",
+                "operationTexts": "@variables('OperationTexts')"
+              }
+            },
+            "Respond_result": {
+              "runAfter": {
+                "Result": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "ok": "@{if(equals(outputs('Call_header')?['statusCode'], 200), 'yes', 'no')}",
+                  "status": "@{outputs('Call_header')?['statusCode']}",
+                  "message": "@{if(equals(outputs('Call_header')?['statusCode'], 200), '', concat('The API answered ', string(outputs('Call_header')?['statusCode']), ' on the order header.'))}",
+                  "result": "@{string(outputs('Result'))}"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "title": "ok",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "status",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "message",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "result": {
+                      "title": "result",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Respond_token_error": {
+                "runAfter": {},
+                "type": "Response",
+                "kind": "PowerApp",
+                "inputs": {
+                  "statusCode": 200,
+                  "body": {
+                    "ok": "no",
+                    "status": "@{outputs('Get_token')?['statusCode']}",
+                    "message": "@{concat('Token could not be fetched: ', coalesce(body('Get_token')?['error_description'], body('Get_token')?['error'], 'no answer'))}",
+                    "result": ""
+                  },
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "title": "ok",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "status": {
+                        "title": "status",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "message": {
+                        "title": "message",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      },
+                      "result": {
+                        "title": "result",
+                        "x-ms-dynamically-added": true,
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "Stop_token_error": {
+                "runAfter": {
+                  "Respond_token_error": [
+                    "Succeeded"
+                  ]
+                },
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "TokenError",
+                    "message": "Token could not be fetched (status @{outputs('Get_token')?['statusCode']})."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

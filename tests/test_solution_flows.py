@@ -32,7 +32,8 @@ REDACTED = "***REDACTED***"
 API_KEY = "BioSap-WOC-ApiKey (orsted_BioSapWocApiKey)"
 # WOE- og lager-flowene (docs/44) kalder DEV-gatewayen med sine egne noegler.
 DEV_API_KEYS = ("BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)",
-                "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)")
+                "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)",
+                "BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)")
 
 
 def _load(path):
@@ -77,7 +78,9 @@ def test_api_key_and_client_secret_come_from_environment_variables():
                 seen += 1
             if "client_secret=" in value:
                 assert re.search(r"client_secret=@\{parameters\('[^']+'\)\}", value), path
-    assert seen == 5
+    # 2 (Order-Objects, FunctionalLocations) + 1 WoeOrderObjects + 2 MaterialStock
+    # + 12 WoeOrder (docs/45: header, 8 WOE-kald, movements, attachments, OperationText).
+    assert seen == 17
 
 
 def test_flow_environment_variables_are_defined_in_the_solution():
@@ -96,7 +99,8 @@ def test_environment_variable_defaults_are_empty_or_redacted():
         for value in re.findall(r"<defaultvalue>(.*?)</defaultvalue>", text, re.S):
             assert value == REDACTED, xml
     for name in ("orsted_BioSapWOCClientSecret", "orsted_BioSapWocApiKey",
-                 "orsted_BioSapWoeDevApiKey", "orsted_BioSapInventoryDevApiKey"):
+                 "orsted_BioSapWoeDevApiKey", "orsted_BioSapInventoryDevApiKey",
+                 "orsted_BioSapSapUtilityTestApiKey"):
         text = open(os.path.join(EV_DIR, name, "environmentvariabledefinition.xml"),
                     encoding="utf-8-sig").read()
         assert "<defaultvalue>" not in text, name
