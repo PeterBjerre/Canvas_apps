@@ -17,6 +17,10 @@
         MaintenanceItems                    fem kolonner goeres valgfri,
                                             saa en kladde kan gemmes med
                                             ufaerdige items (issue #566)
+        MaintenanceItems.ItemDescription og
+            TaskListMain.LongText           goeres til ren tekst (ikke rich
+                                            text), saa lang tekst ikke
+                                            kommer tilbage pakket i HTML
 
     OPERATIONSNUMMERET
     ------------------
@@ -152,6 +156,29 @@ foreach ($name in @('Title', 'ItemDescription', 'FunctionalLocation',
     } else {
         Set-PnPField -List 'MaintenanceItems' -Identity $name -Values @{ Required = $false }
         Write-Host "    ~ $name er nu valgfri" -ForegroundColor Green
+    }
+}
+
+# LANG TEKST SOM REN TEKST. ItemDescription og LongText var rich text, saa
+# SharePoint gav vaerdien tilbage som <div class="ExternalClass...">tekst</div>.
+# Long text-popuppen viste taggene, og SAP-ordren fik dem med. Som ren tekst
+# gemmes teksten praecis, som den er skrevet, med linjeskift. Raekker gemt
+# foer da beholder deres HTML i listen; appen rydder den ved indlaesning
+# (sp_config.plain_long_text) og skriver ren tekst ved naeste gem.
+# Kan koeres igen: en kolonne, der allerede er ren tekst, roeres ikke.
+Write-Host "`n=== Lang tekst som ren tekst ===" -ForegroundColor Cyan
+foreach ($pair in @(@('MaintenanceItems', 'ItemDescription'), @('TaskListMain', 'LongText'))) {
+    $list = $pair[0]; $name = $pair[1]
+    $f = Get-PnPField -List $list -Identity $name -ErrorAction SilentlyContinue
+    if (-not $f) {
+        Write-Host "    ! $list.$name findes ikke - roerer intet" -ForegroundColor Yellow
+    } elseif (-not $f.RichText) {
+        Write-Host "    = $list.$name er ren tekst" -ForegroundColor DarkGray
+    } elseif ($WhatIfOnly) {
+        Write-Host "    ? ville goere $list.$name til ren tekst" -ForegroundColor Yellow
+    } else {
+        Set-PnPField -List $list -Identity $name -Values @{ RichText = $false }
+        Write-Host "    ~ $list.$name er nu ren tekst" -ForegroundColor Green
     }
 }
 

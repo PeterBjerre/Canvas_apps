@@ -118,7 +118,7 @@ ITEM_FIELDS = [
                  "First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, \"\"))"),
     ("OrstedResponsible", "IT.OrstedResponsibleEmail"),
     ("Initials", "IT.InitialOrstedResponsible"),
-    ("LongText", "IT.ItemDescription"),
+    ("LongText", cfg.plain_long_text("IT.ItemDescription")),
     # Choice-kolonnen; et item uden status giver "" (issue #112).
     ("NonFlowUserStatus", 'Coalesce(IT.NonFlowUserStatus.Value, "")'),
     ("TasklistKey", '""'),
@@ -145,7 +145,7 @@ OP_FIELDS = [
     ("DurationHours", "OP.Duration"),
     ("MainWorkCenter", "OP.WorkCtr"),
     ("Vendor", "OP.Vendor"),
-    ("LongText", "OP.LongText"),
+    ("LongText", cfg.plain_long_text("OP.LongText")),
     ("PackagesKey", 'Coalesce(OP.PackagesKey, ";")'),
     ("Selected", "false"),
     ("ControlKey", "OP.Ctrl"),
