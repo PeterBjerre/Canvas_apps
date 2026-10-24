@@ -93,7 +93,7 @@ function Add-Choices {
         Write-Host "    ? ville tilfoeje $($missing -join ', ') til $Name" -ForegroundColor Yellow
         return
     }
-    Set-PnPField -List $List -Identity $Name -Values @{ Choices = $new }
+    Set-MdChoices $List $Name $new
     Write-Host "    + $Name har nu: $($new -join ', ')" -ForegroundColor Green
 }
 

@@ -175,7 +175,7 @@ function Add-Choice {
         Write-Host "    ? ville tilfoeje '$Choice' til $Name" -ForegroundColor Yellow
         return
     }
-    Set-PnPField -List $List -Identity $Name -Values @{ Choices = [string[]]($current + $Choice) }
+    Set-MdChoices $List $Name ([string[]]($current + $Choice))
     Write-Host "    + $Name faar valget '$Choice'" -ForegroundColor Green
 }
 
@@ -199,7 +199,7 @@ function Set-ChoiceOrder {
         Write-Host "    ? ville saette valgene paa ${Name}: $($new -join ', ')" -ForegroundColor Yellow
         return
     }
-    Set-PnPField -List $List -Identity $Name -Values @{ Choices = $new }
+    Set-MdChoices $List $Name $new
     Write-Host "    + $Name har nu: $($new -join ', ')" -ForegroundColor Green
 }
 
