@@ -4,7 +4,7 @@ BioSap-Integration-WoeOrder (docs/45): ET flow, der henter alt om en
 SAP-ordre fra WOE-API'et, inventory og SAP Utility i een omgang. De ni
 WOE-kald koerer parallelt paa ordrenummeret (Peter 2026-10-24: headeren
 behoever ikke gaa foerst); inventory henter materialbevaegelserne; SAP
-Utility attachments, HeaderText og OperationText pr. operation.
+Utility attachments, HeaderText og OperationText + attachments pr. operation.
 
     python3 -m pytest -q tests/test_woe_order_flow.py
 
@@ -132,9 +132,16 @@ def test_sap_utility_is_optional_and_tolerant():
     txt = fk.find(NAME, "Call_operation_text")
     assert txt["inputs"]["uri"] == \
         SU + "/descriptions/@{encodeUriComponent(outputs('Compose_operation_object_id'))}/OperationText"
+    # Operationens egne vedhaeftninger (Peter 2026-10-24), parallelt med teksten.
+    oatt = fk.find(NAME, "Call_operation_attachments")
+    assert oatt["inputs"]["uri"] == \
+        SU + "/attachments/@{encodeUriComponent(outputs('Compose_operation_object_id'))}"
+    assert oatt["runAfter"] == {}
+    assert oatt["inputs"]["headers"]["x-apikey"] == "@parameters('%s')" % SU_KEY
     app = fk.find(NAME, "Append_operation_text")
-    assert app["runAfter"] == {"Call_operation_text": ALL}
-    assert set(app["inputs"]["value"]) == {"objectId", "operation", "status", "data"}
+    assert app["runAfter"] == {"Call_operation_text": ALL, "Call_operation_attachments": ALL}
+    assert set(app["inputs"]["value"]) == \
+        {"objectId", "operation", "status", "data", "attachmentsStatus", "attachments"}
 
 
 def test_material_movements_from_inventory_next_to_the_woe_calls():

@@ -935,9 +935,37 @@
                                     }
                                   }
                                 },
+                                "Call_operation_attachments": {
+                                  "runAfter": {},
+                                  "type": "Http",
+                                  "inputs": {
+                                    "method": "GET",
+                                    "uri": "@{parameters('BioSap-SapUtility-BaseUrl (orsted_BioSapSapUtilityBaseUrl)')}/attachments/@{encodeUriComponent(outputs('Compose_operation_object_id'))}",
+                                    "headers": {
+                                      "Authorization": "@{concat('Bearer ', body('Get_token_saputility')?['access_token'])}",
+                                      "x-apikey": "@parameters('BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)')",
+                                      "Accept": "application/json"
+                                    },
+                                    "retryPolicy": {
+                                      "type": "none"
+                                    }
+                                  },
+                                  "runtimeConfiguration": {
+                                    "secureData": {
+                                      "properties": [
+                                        "inputs"
+                                      ]
+                                    }
+                                  }
+                                },
                                 "Append_operation_text": {
                                   "runAfter": {
                                     "Call_operation_text": [
+                                      "Succeeded",
+                                      "Failed",
+                                      "TimedOut"
+                                    ],
+                                    "Call_operation_attachments": [
                                       "Succeeded",
                                       "Failed",
                                       "TimedOut"
@@ -950,7 +978,9 @@
                                       "objectId": "@outputs('Compose_operation_object_id')",
                                       "operation": "@coalesce(items('For_each_operation')?['operation'], items('For_each_operation')?['operationNumber'], items('For_each_operation')?['activity'], items('For_each_operation')?['vornr'], '')",
                                       "status": "@outputs('Call_operation_text')?['statusCode']",
-                                      "data": "@body('Call_operation_text')"
+                                      "data": "@body('Call_operation_text')",
+                                      "attachmentsStatus": "@outputs('Call_operation_attachments')?['statusCode']",
+                                      "attachments": "@body('Call_operation_attachments')"
                                     }
                                   }
                                 }

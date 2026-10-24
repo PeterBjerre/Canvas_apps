@@ -81,7 +81,7 @@ def test_api_key_and_client_secret_come_from_environment_variables():
     # 2 (Order-Objects, FunctionalLocations) + 1 WoeOrderObjects + 2 MaterialStock
     # + 13 WoeOrder (docs/45: 9 WOE-kald, movements, attachments, HeaderText,
     # OperationText).
-    assert seen == 18
+    assert seen == 19
 
 
 def test_flow_environment_variables_are_defined_in_the_solution():

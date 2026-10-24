@@ -47,6 +47,7 @@ kører parallelt; headeren behøver ikke gå først (Peter 2026-10-24).
 | `GET {saputility}/attachments/{objectId}` | `objectId` |
 | `GET {saputility}/descriptions/{objectId}/HeaderText` | `objectId` (ordrens langtekst) |
 | `GET {saputility}/descriptions/{operationObjectId}/OperationText` | én gang pr. operation, i serie, efter `operations` |
+| `GET {saputility}/attachments/{operationObjectId}` | én gang pr. operation, parallelt med OperationText (operationens vedhæftninger) |
 
 `{woe}`, `{inventory}` og `{saputility}` er miljøvariablerne
 `BioSap-WOE-BaseUrl`, `BioSap-Inventory-BaseUrl` og `BioSap-SapUtility-BaseUrl`
@@ -59,7 +60,7 @@ scopes og token-URL står i handlingen `Setup`.
 `objectId` er `OR` + ordrenummeret fyldt op til 12 cifre (ordre 26436811 →
 `OR000026436811`, som i API-teamets eksempel). Operationernes objektnummer
 tages fra `objectId`, `objectNumber` eller `objnr` på hver operation;
-mangler det, springes OperationText over for den operation. Passer
+mangler det, springes OperationText og operationens attachments over for den operation. Passer
 feltnavnet ikke til WOE's svar, rettes det i `Compose_operation_object_id`.
 
 ## Svaret til appen
@@ -91,7 +92,8 @@ Samme fire tekstfelter som de andre API-flows:
   "headerText":    {"status": 200, "data": {…}},
   "attachments":   {"status": 200, "data": [...]},
   "movements":     {"status": 200, "data": [...]},
-  "operationTexts": [{"objectId": "OV…", "operation": "0010", "status": 200, "data": {…}}]
+  "operationTexts": [{"objectId": "OV…", "operation": "0010", "status": 200, "data": {…},
+                      "attachmentsStatus": 200, "attachments": [...]}]
 }
 ```
 
@@ -101,7 +103,8 @@ binder ordren til VH-planens item, når der senere skal sammenlignes.
 
 Hver sektion har sin egen `status`, så et 403 på fx `tasklistitems` ikke
 stopper resten: appen får de sektioner, der svarede, og kan vise hvilke
-der mangler. `attachments.data` og `movements.data` er en tekst (ikke et
+der mangler. `operationTexts[].attachments` er operationens egne vedhæftninger
+(`attachmentsStatus` er dens HTTP-status). `attachments.data` og `movements.data` er en tekst (ikke et
 objekt), når nøgle eller base-URL til SAP Utility eller inventory ikke er
 sat, eller tokenet ikke kunne hentes.
 
@@ -173,11 +176,11 @@ inputs*.
 | `SapUtility_configured` | Efter `operations`; kun når SAP Utility-nøgle og base-URL er sat |
 | `Get_token_saputility` / `Token_saputility_ok` | Token til SAP Utility |
 | `Call_attachments` / `Call_header_text` | Attachments og ordrens langtekst på objektnummeret, parallelt |
-| `Operations_found` / `For_each_operation` | OperationText pr. operation, i serie |
+| `Operations_found` / `For_each_operation` | OperationText og attachments pr. operation (de to kald parallelt), operationerne i serie |
 | `Result` / `Respond_result` | Samler alle sektioner og svarer appen |
 
 Der er ingen genforsøg. Med mange operationer tager OperationText-løkken
-længst (ét kald pr. operation); appen får svaret, når alt er hentet.
+længst (to kald pr. operation); appen får svaret, når alt er hentet.
 
 ## Typiske fejl
 
@@ -188,5 +191,6 @@ længst (ét kald pr. operation); appen får svaret, når alt er hentet.
 | En sektion | 403 | App-registreringen har ikke rollen til netop det endpoint (API-teamet skal åbne det) |
 | `header` | 404 | Ordren findes ikke i DEV |
 | `attachments` / `headerText` | 404 | Objektnummeret `OR…` passer ikke til ordren |
+| `operationTexts[].attachmentsStatus` | 404 | Operationens objektnummer `OV…` passer ikke |
 
 Kontrakttest: `tests/test_woe_order_flow.py`.
