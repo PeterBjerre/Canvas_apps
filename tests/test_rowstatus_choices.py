@@ -63,10 +63,29 @@ def test_new_md_field_adds_missing_choices_to_existing_field():
     # Eksisterende felt + -Choices: laes de nuvaerende valg og tilfoej de
     # manglende bagefter (foreningsmaengde, raekkefoelgen beholdes).
     assert "if ($f -and $Choices)" in body
-    assert "([xml]$f.SchemaXml).Field.CHOICES.CHOICE" in body
+    assert "$current = Get-MdChoices $f" in body
     assert "$Choices | Where-Object { $current -notcontains $_ }" in body
-    assert "($current + $missing)" in body
-    assert "Set-PnPField -List $List -Identity $Name -Values @{ Choices = $union }" in body
+    assert "Set-MdChoices $List $Name ([string[]]($current + $missing))" in body
+    # Set-PnPField -Values @{ Choices = ... } ignoreres paa nogle
+    # PnP-versioner (kun en advarsel) - den maa ikke komme igen.
+    assert "Values @{ Choices" not in body
     assert '"    ~ $Name (choices +' in body
     # Kolonnen oprettes stadig kun, naar den ikke findes.
     assert body.index("if ($f -and $Choices)") < body.index("Add-PnPField @p")
+
+
+def test_set_md_choices_writes_schemaxml_and_verifies():
+    text = _read("_Common.psm1")
+    body = _function(text, "Set-MdChoices")
+    assert "Values @{ SchemaXml = $xml.OuterXml }" in body
+    # Kolonnen laeses igen, og et manglende valg er en fejl, ikke en succes.
+    assert "Get-MdChoices (Get-PnPField -List $List -Identity $Name" in body
+    assert "throw " in body
+    assert "Get-MdChoices" in text.split("Export-ModuleMember", 1)[1]
+    assert "Set-MdChoices" in text.split("Export-ModuleMember", 1)[1]
+
+
+def test_no_script_sets_choices_through_set_pnpfield():
+    for name in os.listdir(PROV):
+        if name.endswith((".ps1", ".psm1")):
+            assert "Values @{ Choices" not in _read(name), name

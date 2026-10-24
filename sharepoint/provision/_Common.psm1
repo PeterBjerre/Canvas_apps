@@ -170,7 +170,7 @@ function New-MdField {
 # ---------------------------------------------------------------------------
 # VALG PAA EN EKSISTERENDE CHOICE-KOLONNE
 #
-# Foer stod der Set-PnPField -Values @{ Choices = ... }. Det virker ikke
+# Foer blev Choices sat direkte med Set-PnPField -Values. Det virker ikke
 # paa alle PnP-versioner: Get-PnPField/Set-PnPField arbejder paa den
 # generelle Field og ikke FieldChoice, saa egenskaben 'Choices' findes
 # ikke. PnP skriver en gul advarsel ("No property 'Choices' found ... will
