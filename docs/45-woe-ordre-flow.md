@@ -180,14 +180,14 @@ kan dog foreslås fra `header.plantNumber` via `PlantList.PlantNumber`
 | `FunctionalLocation` | `FunctionalLocation` | `header.functionalLocation` | Samme som `objects[0].functionalLocation` |
 | `FlDescription` | (vises kun) | `objects[0].functionalLocationDescription` | |
 | `ObjectList` | `ObjectList` | `objects[]` → `functionalLocation` eller `equipment`, samlet med `"; "` | Samme format som Object list-knappen |
-| `MainWorkCenter` | `MainWorkCenter` (lookup) | `operations[0].workCenter` | Ordrens hovedarbejdsplads er ikke i headeren; tag første operations arbejdsplads og slå op i `colVhpMainWorkCenters`; findes den ikke, lad feltet stå tomt |
+| `MainWorkCenter` | `MainWorkCenter` (lookup) | `operations[0].workCenter` | Ordrens hovedarbejdsplads er ikke i headeren; første operations arbejdsplads slås op i `colVhpMainWorkCenters`; findes den ikke, står feltet tomt (Peter 2026-10-24) |
 | `ActivityType` | `MaintenanceActivityType` (lookup) | — | Ikke i WOE-svaret (API-teamet kan lægge `maintenanceActivityType` på headeren) |
 | `Initials` | `InitialOrstedResponsible` | `header.responsibleInitials` (= `partner[VW].initial`) | |
 | `OrstedResponsible` | `OrstedResponsible` | — | Brugeren selv, som i dag |
-| `Priority` | `Priority` | `objects[].safetyInformation[].riskClassifications` med `riskType = "Safety Critical Equipment"` → Red | Ellers som i dag ud fra aktivitetstypen |
+| `Priority` | `Priority` | `objects[].safetyInformation[].riskClassifications` med `riskType = "Safety Critical Equipment"` → Red | Ellers som i dag ud fra aktivitetstypen (Peter 2026-10-24: ja) |
 | `NonFlowUserStatus` | `NonFlowUserStatus` | `status[]` hvor `id = "ZBOW"` og `active` | Eneste valg i listen |
 | `Revision` | `Revision`/`RevisionMark` | — | Ikke på ordren |
-| `TasklistKey` | `TaskListGroup`/`TaskListGroupCounter` | `tasklistitems[0].groupCode` + `counter` | Kun hvis gruppen findes i `colVhpTasklists` for planten; ellers tom |
+| `TasklistKey` | `TaskListGroup`/`TaskListGroupCounter` | — | Bruges ikke nu (Peter 2026-10-24: kommer senere); `tasklistitems` ligger i svaret til den tid |
 | (til sammenligning) | `SapItemNo` | `maintenanceItem` | Tom indtil WAPOS er i headeren |
 
 `header.workOrderType` (ZCOR = korrektiv) er ikke en VH-plan-ordretype
@@ -204,8 +204,9 @@ kan dog foreslås fra `header.plantNumber` via `PlantList.PlantNumber`
 | `LongText` | `LongText` | `operationTexts[].data.text` hvor `objectId` = operationens `objectId` | |
 | `MainWorkCenter` | `WorkCtr` | `operations[].workCenter` | |
 | `ControlKey` | `Ctrl` | `operations[].controlKey` (PM01/PM02/PM03/ZB01) | |
-| `WorkHours` | `Work` | `operations[].plannedHours` | `plannedHoursUnit` er "h" |
-| `Persons`, `DurationHours` | `Num`, `Duration` | — | Ikke i WOE-svaret; sæt 1 og `plannedHours` som forslag |
+| `WorkHours` | `Work` | `operations[].actualHours` | Peter 2026-10-24: faktisk arbejde, ikke planlagt (`plannedHoursUnit` er "h") |
+| `Persons` | `Num` | — | Peter vil have faktisk antal personer, men WOE's operation har ikke feltet (API-teamet spørges); indtil da tomt |
+| `DurationHours` | `Duration` | — | Ikke i WOE-svaret; tom |
 | `Vendor`, `VendorID` | `Vendor`, `VendorID` | `operations[].vendorName`, `vendorId` | Appens format er "101985 - NAME" (vendor-søgningen); 0/tom springes over |
 | `Cost`, `UnitCost`, `Currency`, `CostElement` | `Price`, `Currency`, `CostElem` | — | Ikke i WOE-svaret |
 | `MaterialGroup`, `ServiceNo` | `MaterialGroup`, `ServiceNo` | — | Ikke i WOE-svaret |
@@ -215,15 +216,16 @@ kan dog foreslås fra `header.plantNumber` via `PlantList.PlantNumber`
 
 `tasklistitems[]` er ordrens opgaveliste-reference (gruppe 33001464 med to
 opgaver). Den bruges ikke til at danne rækker: operationerne er allerede
-ordrens faktiske rækker, og gruppen ender som `TasklistKey` på itemet.
+ordrens faktiske rækker. Gruppen skal senere kunne ende som `TasklistKey`
+på itemet (Peter 2026-10-24: ikke nu).
 
 ### Materialer → `MD_TasklistMaterial`
 
 `movements[]` fra inventory (vareudtag og returer) giver `MaterialNo`,
 `MaterialText`, `Quantity`, `Unit` og `OperationNo`; feltnavnene bekræftes,
 når Peter har kørt flowet med inventory-nøglen sat. `status`, `partner`,
-`activities`, `causes` og `feedback` har ingen plads i VH-planen; de vises
-kun som information på ordren.
+`activities`, `causes` og `feedback` har ingen plads i VH-planen og vises
+ikke i appen; de bliver i svaret til senere brug (Peter 2026-10-24).
 
 ## Hemmeligheder og miljøvariabler
 
