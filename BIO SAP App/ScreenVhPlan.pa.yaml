@@ -17401,7 +17401,7 @@ Screens:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Search and add materials for this operation. Description and unit are filled in by the material lookup."
+                            =Self.Text
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -17425,7 +17425,7 @@ Screens:
                         Size: |-
                             =T.small
                         Text: |-
-                            ="Search and add materials for this operation. Description and unit are filled in by the material lookup."
+                            =If(IfError(varVhpViewOnly && varVhpCanEdit && !(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), false), "View only. Choose Edit to search for and add materials.", varVhpViewOnly || (IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), "View only. The materials on this operation cannot be changed.", "Search and add materials for this operation. Description and unit are filled in by the material lookup.")
                         Wrap: |-
                             =true
                   - conVhpMatGrid:
@@ -19267,9 +19267,56 @@ Screens:
                               Text: |-
                                   =With({ _c: CountRows(colVhpMatDraft) }, Text(_c) & If(_c = 1, " material", " materials")) & " added" & If(IfError(CountRows(Filter(colVhpMatDraft, IsNew || Quantity <> OrigQuantity)) > 0 || CountRows(Filter(colVhpMatDraft, !IsNew)) <> CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo)), false), " - not saved yet", "")
                               Width: |-
-                                  =Max(0, ((((If(LayoutRank < 2, App.Width - 16, Min(1100, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 18)) - ((86) + 8) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (96) + 8, 0)) - 2)
+                                  =Max(0, ((((If(LayoutRank < 2, App.Width - 16, Min(1100, App.Width - 40))) - If(LayoutRank < 2, 12, 18) - If(LayoutRank < 2, 12, 18)) - 18)) - (If(IfError(varVhpViewOnly && varVhpCanEdit && !(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), false), (96) + 8, 0)) - ((86) + 8) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), (96) + 8, 0)) - 2)
                               Wrap: |-
                                   =false
+                        - btnVhpMatEditPlan:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Edit this request"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =If(LayoutRank < 2, 44, 32)
+                              Icon: |-
+                                  ="Edit"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              OnSelect: |-
+                                  =Set(varVhpViewOnly, false)
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Edit"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =IfError(varVhpViewOnly && varVhpCanEdit && !(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), false)
+                              Width: |-
+                                  =96
                         - btnVhpMatCancel:
                             Control: ModernButton
                             Properties:

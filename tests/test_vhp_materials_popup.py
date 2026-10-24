@@ -170,3 +170,19 @@ def test_issue_574_no_empty_state_and_list_grows_with_its_lines():
     assert "Min(CountRows(colVhpMatDraft) * 46" in h
     # Hele beskrivelsen kan laeses: to linjer i raekken.
     assert "true" in c["txtVhpMatDesc"]["Wrap"]
+
+
+def test_view_mode_says_so_and_offers_edit():
+    """Peter 2026-10-24: en kladde, der er aabnet med et klik paa raekken i
+    hubben, er View, og saa er soegeraekken skjult. Noten siger det, og Edit
+    i popuppens bund aabner for soegningen uden at lukke popuppen."""
+    c = _controls()
+    note = c["txtVhpMatNote"]["Text"]
+    assert "Choose Edit to search for and add materials." in note
+    btn = c["btnVhpMatEditPlan"]
+    assert btn["OnSelect"].strip() == "=Set(varVhpViewOnly, false)"
+    vis = btn["Visible"]
+    assert "varVhpViewOnly && varVhpCanEdit" in vis
+    assert 'Section = "Ops"' in vis
+    # Indtastningsraekken foelger stadig View.
+    assert "varVhpViewOnly" in c["conVhpMatEntry"]["Visible"]
