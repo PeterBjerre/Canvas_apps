@@ -757,7 +757,10 @@ def build_items_rail():
     # ISSUE #530: intet Valid-badge i Items-hovedet - hvert kort har sit
     # eget flueben, og Item-sektionen har fluebenet for det aktive item.
     # [titel] [gap] [copy] [add]
-    header = section_header("conVhpItemsHead", "Items", None, extra_right=[btnCopy, btnAdd])
+    # [titel] [gap] [copy] [fra SAP-ordre] [add] - build_order.py (docs/45).
+    from build_order import order_button
+    header = section_header("conVhpItemsHead", "Items", None,
+                            extra_right=[btnCopy, order_button(), btnAdd])
     mobile_head(header)
 
     # --- item card template -------------------------------------------------

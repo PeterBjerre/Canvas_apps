@@ -27,6 +27,7 @@ from build_items import build_items_section, build_object_list_modal, item_reset
 from build_tasklist import build_tasklist_section, build_ops_modals, build_mat_discard_confirm
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
+from build_order import build_order_modal
 
 
 def build_screen(render=render_screen):
@@ -63,6 +64,8 @@ def build_screen(render=render_screen):
                           build_modal_backdrop(), *build_ops_modals(),
                           build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
+                          # Item fra SAP-ordre (docs/45, build_order.py).
+                          build_order_modal(),
                           # Over Materials-popuppen (issue #451).
                           *build_mat_discard_confirm(),
                           *CONFIRM,
