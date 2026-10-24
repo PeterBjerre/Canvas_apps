@@ -9,7 +9,7 @@ på ordren skal med på planen næste gang.
 
 Flowet bygger på token- og kaldmønstret fra `BioSap-Integration-WoeOrderObjects`
 ([docs/44](44-dev-api-test.md)) og på Excel-udgaven af samme idé, VBA-modulerne
-fra `BIO SAP VH-plan lister.xlsm` (`.github/mod*.bas`: `modExtractWorkOrder`,
+fra `BIO SAP VH-plan lister.xlsm` (`excel/vba/vhplan-lister/mod*.bas`: `modExtractWorkOrder`,
 `modHttpOData`, `modODataCatalog`, `modMain`, `modMovementParser`):
 
 - `FetchWorkOrderAll` henter SAP's OData `WorkOrderHeaderSet('{aufnr}')` i ét
