@@ -491,7 +491,7 @@ def _step_items():
         "        ClearCollect(\n"
         "            colVhpAdmOld,\n"
         f"            ForAll(colVhpSpItemRows As I, {{ ID: I.ID, ItemID: I.ItemID, Title: I.Title, "
-        "ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, "
+        f"ItemDescription: {cfg.plain_long_text('I.ItemDescription')}, FunctionalLocation: I.FunctionalLocation, "
         "ObjectList: I.ObjectList })\n"
         "        ),\n"
         "        Clear(colVhpAdmOld)\n"

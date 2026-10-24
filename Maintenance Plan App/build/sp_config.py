@@ -150,6 +150,27 @@ def duration_expr(work, persons):
     return f"Round({work} / Max(Coalesce({persons}, 1), 1), 2)"
 
 
+# Lang tekst som ren tekst. MaintenanceItems.ItemDescription og
+# TaskListMain.LongText har vaeret rich text-kolonner, saa SharePoint giver
+# vaerdien tilbage pakket i HTML (<div class="ExternalClass...">, <p>). Uden
+# denne viste long text-popuppen taggene, og de blev gemt igen og sendt til
+# SAP. Provision-VHPlanColumns.ps1 goer kolonnerne til ren tekst, men
+# raekker gemt foer da har stadig HTML - derfor ryddes der ogsaa her.
+# Kun en vaerdi, der starter med "<", roeres; ren tekst kommer uaendret
+# igennem. Afsnit og linjeskift bliver til Char(10), foer PlainText fjerner
+# resten af taggene og afkoder &#58; og &#160;. Tomme linjer (fx den sidste
+# efter </p>) falder ud.
+def plain_long_text(expr):
+    return (
+        f"With({{ _lt: Coalesce({expr}, \"\") }}, If(StartsWith(_lt, \"<\"), "
+        "Concat(Filter(Split(PlainText("
+        "Substitute(Substitute(Substitute(Substitute(Substitute(_lt, "
+        "\"<br>\", Char(10)), \"<br/>\", Char(10)), \"<br />\", Char(10)), "
+        "\"</p>\", Char(10)), \"</div>\", Char(10))), Char(10)), "
+        "!IsBlank(Trim(Value))), Trim(Value), Char(10)), _lt))"
+    )
+
+
 # Beskrivelserne til Non Flow User Status-koderne (issue #112). Kun
 # visningstekst: hvilke koder der kan vaelges, bestemmer SharePoint-kolonnen
 # (Choices), og det er koden, der gemmes og sendes til SAP.

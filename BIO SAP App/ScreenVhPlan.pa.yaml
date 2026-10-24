@@ -1473,7 +1473,7 @@ Screens:
                                                       (!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)),
                                                       ClearCollect(
                                                           colVhpAdmOld,
-                                                          ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
+                                                          ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: With({ _lt: Coalesce(I.ItemDescription, "") }, If(StartsWith(_lt, "<"), Concat(Filter(Split(PlainText(Substitute(Substitute(Substitute(Substitute(Substitute(_lt, "<br>", Char(10)), "<br/>", Char(10)), "<br />", Char(10)), "</p>", Char(10)), "</div>", Char(10))), Char(10)), !IsBlank(Trim(Value))), Trim(Value), Char(10)), _lt)), FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
                                                       ),
                                                       Clear(colVhpAdmOld)
                                                   );
@@ -14000,7 +14000,7 @@ Screens:
                                           (!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)),
                                           ClearCollect(
                                               colVhpAdmOld,
-                                              ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
+                                              ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: With({ _lt: Coalesce(I.ItemDescription, "") }, If(StartsWith(_lt, "<"), Concat(Filter(Split(PlainText(Substitute(Substitute(Substitute(Substitute(Substitute(_lt, "<br>", Char(10)), "<br/>", Char(10)), "<br />", Char(10)), "</p>", Char(10)), "</div>", Char(10))), Char(10)), !IsBlank(Trim(Value))), Trim(Value), Char(10)), _lt)), FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
                                           ),
                                           Clear(colVhpAdmOld)
                                       );
@@ -29382,7 +29382,7 @@ Screens:
                                                             Revision: If(IT.Revision, Coalesce(IT.RevisionMark.Value, First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, "")),
                                                             OrstedResponsible: IT.OrstedResponsibleEmail,
                                                             Initials: IT.InitialOrstedResponsible,
-                                                            LongText: IT.ItemDescription,
+                                                            LongText: With({ _lt: Coalesce(IT.ItemDescription, "") }, If(StartsWith(_lt, "<"), Concat(Filter(Split(PlainText(Substitute(Substitute(Substitute(Substitute(Substitute(_lt, "<br>", Char(10)), "<br/>", Char(10)), "<br />", Char(10)), "</p>", Char(10)), "</div>", Char(10))), Char(10)), !IsBlank(Trim(Value))), Trim(Value), Char(10)), _lt)),
                                                             NonFlowUserStatus: Coalesce(IT.NonFlowUserStatus.Value, ""),
                                                             TasklistKey: "",
                                                             TasklistName: "",
@@ -29412,7 +29412,7 @@ Screens:
                                                             DurationHours: OP.Duration,
                                                             MainWorkCenter: OP.WorkCtr,
                                                             Vendor: OP.Vendor,
-                                                            LongText: OP.LongText,
+                                                            LongText: With({ _lt: Coalesce(OP.LongText, "") }, If(StartsWith(_lt, "<"), Concat(Filter(Split(PlainText(Substitute(Substitute(Substitute(Substitute(Substitute(_lt, "<br>", Char(10)), "<br/>", Char(10)), "<br />", Char(10)), "</p>", Char(10)), "</div>", Char(10))), Char(10)), !IsBlank(Trim(Value))), Trim(Value), Char(10)), _lt)),
                                                             PackagesKey: Coalesce(OP.PackagesKey, ";"),
                                                             Selected: false,
                                                             ControlKey: OP.Ctrl,
