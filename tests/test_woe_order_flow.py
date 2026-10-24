@@ -20,6 +20,7 @@ FLOW_ID = "4a7e2c15-9b3d-4f68-a2c1-7d5e8b3f0c92"
 SECRET = "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)"
 WOE_KEY = "BioSap-WOE-Dev-ApiKey (orsted_BioSapWoeDevApiKey)"
 SU_KEY = "BioSap-SapUtility-Test-ApiKey (orsted_BioSapSapUtilityTestApiKey)"
+INV_KEY = "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)"
 
 WOE = "@{outputs('Setup')?['woeBaseUrl']}"
 SU = "@{outputs('Setup')?['sapUtilityBaseUrl']}"
@@ -120,6 +121,27 @@ def test_sap_utility_is_optional_and_tolerant():
     assert set(app["inputs"]["value"]) == {"objectId", "operation", "status", "data"}
 
 
+def test_material_movements_from_inventory_next_to_the_woe_calls():
+    """Excels Raw_Ordre_Components: vareudtag og returer paa ordren. Eget token
+    (inventory-scope, samme app-registrering), valgfri noegle, parallelt med
+    headeren."""
+    inv = fk.find(NAME, "Inventory_configured")
+    assert inv["runAfter"] == {}
+    assert INV_KEY in str(inv["expression"]) and SU_KEY not in str(inv["expression"])
+    tok = fk.find(NAME, "Get_token_inventory")
+    assert "outputs('Setup')?['woeClientId']" in tok["inputs"]["body"]
+    assert "outputs('Setup')?['inventoryScope']" in tok["inputs"]["body"]
+    assert "client_secret=@{parameters('%s')}" % SECRET in tok["inputs"]["body"]
+    assert fk.find(NAME, "Setup")["inputs"]["inventoryScope"].endswith("/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default")
+    call = fk.find(NAME, "Call_movements")
+    assert call["inputs"]["uri"] == "@{outputs('Setup')?['inventoryBaseUrl']}/materialonstocks/movements/" \
+        "@{encodeUriComponent(trim(triggerBody()?['text']))}"
+    assert call["inputs"]["headers"]["x-apikey"] == "@parameters('%s')" % INV_KEY
+    assert "body('Get_token_inventory')?['access_token']" in call["inputs"]["headers"]["Authorization"]
+    assert fk.find(NAME, "Set_variable_Movements")["runAfter"] == {"Call_movements": ALL}
+    assert fk.find(NAME, "Set_variable_Movements_not_configured")["inputs"]["name"] == "Movements"
+
+
 def test_app_always_gets_the_same_answer_shape():
     for r in ("Respond_missing_value", "Respond_result", "Respond_token_error"):
         a = fk.find(NAME, r)
@@ -127,9 +149,12 @@ def test_app_always_gets_the_same_answer_shape():
         assert list(a["inputs"]["body"]) == SHAPE, r
         assert list(a["inputs"]["schema"]["properties"]) == SHAPE, r
     result = fk.find(NAME, "Result")
-    assert result["runAfter"] == {"SapUtility_configured": ALL + ["Skipped"]}
-    assert list(result["inputs"]) == ["orderNumber", "workOrderId", "objectId"] + SECTIONS + \
-        ["attachments", "operationTexts"]
+    assert result["runAfter"] == {"SapUtility_configured": ALL + ["Skipped"],
+                                  "Inventory_configured": ALL + ["Skipped"]}
+    assert list(result["inputs"]) == ["orderNumber", "workOrderId", "objectId", "maintenanceItem"] + \
+        SECTIONS + ["attachments", "movements", "operationTexts"]
+    # Vedligeholdelsesposten (WAPOS) binder ordren til VH-planens item (Excel: IW33).
+    assert "body('Call_header')?['maintenanceItem']" in result["inputs"]["maintenanceItem"]
     for s in SECTIONS:
         assert list(result["inputs"][s]) == ["status", "data"], s
     resp = fk.find(NAME, "Respond_result")

@@ -79,8 +79,8 @@ def test_api_key_and_client_secret_come_from_environment_variables():
             if "client_secret=" in value:
                 assert re.search(r"client_secret=@\{parameters\('[^']+'\)\}", value), path
     # 2 (Order-Objects, FunctionalLocations) + 1 WoeOrderObjects + 2 MaterialStock
-    # + 11 WoeOrder (docs/45: header, 8 WOE-kald, attachments, OperationText).
-    assert seen == 16
+    # + 12 WoeOrder (docs/45: header, 8 WOE-kald, movements, attachments, OperationText).
+    assert seen == 17
 
 
 def test_flow_environment_variables_are_defined_in_the_solution():

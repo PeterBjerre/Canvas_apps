@@ -8,13 +8,24 @@ API, der kommer senere), så brugeren kan tage stilling til, om ændringerne
 på ordren skal med på planen næste gang.
 
 Flowet bygger på token- og kaldmønstret fra `BioSap-Integration-WoeOrderObjects`
-([docs/44](44-dev-api-test.md)) og på Excel-udgaven af samme idé:
-formularen `ufOrderOverlay` i SPOOL-arkets VBA (`excel/artifact/…V3.xlsm`)
-læser arkene `WorkOrderHeader`, `WorkOrderOperations`,
-`WorkOrderOperationLongText`, `WorkOrderObjects`, `WorkOrderStatus` og
-`Attachment` og viser dem i fanerne Header, Operations, Components,
-Attachments og Decisions med en compare-tilstand mod VH-planens item.
-Flowet henter de samme data, bare fra API'et.
+([docs/44](44-dev-api-test.md)) og på Excel-udgaven af samme idé, VBA-modulerne
+fra `BIO SAP VH-plan lister.xlsm` (`.github/mod*.bas`: `modExtractWorkOrder`,
+`modHttpOData`, `modODataCatalog`, `modMain`, `modMovementParser`):
+
+- `FetchWorkOrderAll` henter SAP's OData `WorkOrderHeaderSet('{aufnr}')` i ét
+  kald og folder relationerne ud: `WorkOrderOperationsSet`, `Objects`,
+  `Status`, `Partners`, `PMNotification`, `Attachment`, `Permit`,
+  `TaskListItems`, `WorkOrderControlRooms`, `WorkOrderSafetyInformation`.
+- `modMovementParser` henter vareudtag og returer på ordren fra inventory-
+  OData'en (`MovementType` udtag/retur) som `Raw_Ordre_Components`.
+- Mangler `Maintenance_item` (WAPOS) i headeren, slås den op i IW33, for den
+  binder ordren til VH-planens item, som compare-motoren sammenligner mod.
+- Formularen `ufOrderOverlay` (SPOOL-arket) viser det i fanerne Header,
+  Operations, Components, Attachments og Decisions.
+
+Flowet henter de samme data fra REST-API'erne. WOE har ikke `PMNotification`,
+`Permit`, `WorkOrderControlRooms` og `WorkOrderSafetyInformation` som
+endpoints; `activities`, `causes` og `feedback` er notifikationens data.
 
 ## Kaldene og rækkefølgen
 
@@ -29,11 +40,14 @@ Flowet henter de samme data, bare fra API'et.
 | 2 | `GET {woe}/workorders/{id}/activities` | `workOrderId` |
 | 2 | `GET {woe}/workorders/{id}/causes` | `workOrderId` |
 | 2 | `GET {woe}/workorders/{workOrderId}/feedback` | `workOrderId` |
+| 2 | `GET {inventory}/materialonstocks/movements/{workOrderNumber}` | ordrenummeret (vareudtag og returer, Excels `Raw_Ordre_Components`) |
 | 3 | `GET {saputility}/attachments/{objectId}` | `objectId` |
 | 3 | `GET {saputility}/descriptions/{operationObjectId}/OperationText` | én gang pr. operation, i serie |
 
-`{woe}` er `https://dev.api.orsted.dk/woe/api`, `{saputility}` er
-`https://test.api.orsted.dk/saputility` (handlingen `Setup`).
+`{woe}` er `https://dev.api.orsted.dk/woe/api`, `{inventory}` er
+`https://dev.api.orsted.dk/inventorymanagement`, `{saputility}` er
+`https://test.api.orsted.dk/saputility` (handlingen `Setup`). Hvert API får
+sit eget token (eget scope), alle med samme app-registrering.
 
 ### Id'erne
 
@@ -69,6 +83,7 @@ Samme fire tekstfelter som de andre API-flows:
 {
   "orderNumber": "26436811",
   "workOrderId": "…", "objectId": "OR000026436811",
+  "maintenanceItem": "…",
   "header":        {"status": 200, "data": {…}},
   "operations":    {"status": 200, "data": [...]},
   "tasklistitems": {"status": 403, "data": {…}},
@@ -79,14 +94,20 @@ Samme fire tekstfelter som de andre API-flows:
   "causes":        {"status": 200, "data": [...]},
   "feedback":      {"status": 200, "data": {…}},
   "attachments":   {"status": 200, "data": [...]},
+  "movements":     {"status": 200, "data": [...]},
   "operationTexts": [{"objectId": "OV…", "operation": "0010", "status": 200, "data": {…}}]
 }
 ```
 
+`maintenanceItem` er headerens vedligeholdelsespost (WAPOS: `maintenanceItem`,
+`wapos` eller `maintenanceItemNumber`), tom hvis headeren ikke har den. Den
+binder ordren til VH-planens item, når der senere skal sammenlignes.
+
 Hver sektion har sin egen `status`, så et 403 på fx `tasklistitems` ikke
 stopper resten: appen får de sektioner, der svarede, og kan vise hvilke
-der mangler. `attachments.data` er en tekst (ikke et objekt), når SAP
-Utility ikke er sat op, eller dets token ikke kunne hentes.
+der mangler. `attachments.data` og `movements.data` er en tekst (ikke et
+objekt), når nøglen til SAP Utility eller inventory ikke er sat, eller
+tokenet ikke kunne hentes.
 
 Eksempel i Power Fx (flowet skal først tilføjes som datakilde i appen):
 
@@ -119,12 +140,14 @@ ikke hentes fra ordren.
 |---|---|---|
 | `BioSap-WOC-Client-Secret` | begge | Som i docs/44: alle API'erne kører med samme app-registrering `6b699286-…` (Peter 2026-10-23). SAP Utility får sit eget token med scope `9ab1e626-…/.default` |
 | `BioSap-WOE-Dev-ApiKey` | WOE | Som i docs/44 |
+| `BioSap-Inventory-Dev-ApiKey` | inventory | Som i docs/44 (lagerflowet) |
 | `BioSap-SapUtility-Test-ApiKey` | SAP Utility | `x-apikey` til SAP Utility i test, som i testflowet i [docs/37](37-fl-api-test.md) |
 
 Mangler secret eller WOE-nøglen, svarer flowet `ok = no` med en besked og
-stopper som Failed. SAP Utility-nøglen er valgfri: mangler den, kører
-WOE-kaldene alligevel, `attachments.data` fortæller, at SAP Utility ikke er
-sat op, og `operationTexts` er tom.
+stopper som Failed. Inventory- og SAP Utility-nøglen er valgfri: mangler
+en af dem, kører resten alligevel, og `movements.data` eller
+`attachments.data` fortæller, hvad der ikke er sat op (`operationTexts` er
+så tom).
 
 Token-kaldene har *Secure inputs* og *Secure outputs*, API-kaldene *Secure
 inputs*.
@@ -133,12 +156,13 @@ inputs*.
 
 | Handling | Hvad den gør |
 |---|---|
-| `Setup` | Token-URL, de to client ID'er, scopes og base-URL'er |
+| `Setup` | Token-URL, client ID, de tre scopes og base-URL'er |
 | `Check_environment_variables` | Svarer appen og stopper, hvis en WOE-variabel mangler |
-| `Initialize_variable_*` | `WorkOrderId`, `ObjectId`, `OperationTexts`, `Attachments` |
+| `Initialize_variable_*` | `WorkOrderId`, `ObjectId`, `OperationTexts`, `Attachments`, `Movements` |
 | `Get_token` / `Token_ok` | Token til WOE; ved fejl `Respond_token_error` |
 | `Call_header` / `Header_found` | Headeren; ved 200 sættes id'erne fra svaret |
 | `Call_operations` … `Call_feedback` | De otte WOE-kald, parallelt efter headeren |
+| `Inventory_configured` / `Get_token_inventory` / `Call_movements` | Vareudtag og returer, parallelt med headeren; kun når inventory-nøglen er sat |
 | `SapUtility_configured` | Kun når SAP Utility-nøglen er sat |
 | `Get_token_saputility` / `Token_saputility_ok` | Token til SAP Utility |
 | `Call_attachments` / `Set_variable_Attachments` | Attachments på ordrens objektnummer |

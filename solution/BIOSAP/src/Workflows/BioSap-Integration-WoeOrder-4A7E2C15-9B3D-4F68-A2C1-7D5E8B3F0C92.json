@@ -33,6 +33,13 @@
           "metadata": {
             "schemaName": "orsted_BioSapSapUtilityTestApiKey"
           }
+        },
+        "BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapInventoryDevApiKey"
+          }
         }
       },
       "triggers": {
@@ -69,7 +76,9 @@
             "woeBaseUrl": "https://dev.api.orsted.dk/woe/api",
             "sapUtilityClientId": "6b699286-72e8-4e8a-8e93-ce166f5c22d0",
             "sapUtilityScope": "https://Dongenergy.onmicrosoft.com/9ab1e626-a2c7-4202-b325-398d6f68ee24/.default",
-            "sapUtilityBaseUrl": "https://test.api.orsted.dk/saputility"
+            "sapUtilityBaseUrl": "https://test.api.orsted.dk/saputility",
+            "inventoryScope": "https://Dongenergy.onmicrosoft.com/70b9b214-2a2b-41ed-a9e2-aa639525d063/.default",
+            "inventoryBaseUrl": "https://dev.api.orsted.dk/inventorymanagement"
           }
         },
         "Check_environment_variables": {
@@ -238,9 +247,29 @@
             ]
           }
         },
-        "Get_token": {
+        "Initialize_variable_Movements": {
           "runAfter": {
             "Initialize_variable_Attachments": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Movements",
+                "type": "object",
+                "value": {
+                  "status": "",
+                  "data": ""
+                }
+              }
+            ]
+          }
+        },
+        "Get_token": {
+          "runAfter": {
+            "Initialize_variable_Movements": [
               "Succeeded"
             ]
           },
@@ -285,6 +314,145 @@
             ]
           },
           "actions": {
+            "Inventory_configured": {
+              "runAfter": {},
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "greater": [
+                      "@length(trim(coalesce(parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)'), '')))",
+                      0
+                    ]
+                  },
+                  {
+                    "not": {
+                      "contains": [
+                        "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                        "REDACTED"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "actions": {
+                "Get_token_inventory": {
+                  "runAfter": {},
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "@{outputs('Setup')?['tokenUrl']}",
+                    "headers": {
+                      "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Setup')?['woeClientId'])}&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}&scope=@{encodeUriComponent(outputs('Setup')?['inventoryScope'])}",
+                    "retryPolicy": {
+                      "type": "none"
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "secureData": {
+                      "properties": [
+                        "inputs",
+                        "outputs"
+                      ]
+                    }
+                  }
+                },
+                "Token_inventory_ok": {
+                  "runAfter": {
+                    "Get_token_inventory": [
+                      "Succeeded",
+                      "Failed",
+                      "TimedOut"
+                    ]
+                  },
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@outputs('Get_token_inventory')?['statusCode']",
+                          200
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Call_movements": {
+                      "runAfter": {},
+                      "type": "Http",
+                      "inputs": {
+                        "method": "GET",
+                        "uri": "@{outputs('Setup')?['inventoryBaseUrl']}/materialonstocks/movements/@{encodeUriComponent(trim(triggerBody()?['text']))}",
+                        "headers": {
+                          "Authorization": "@{concat('Bearer ', body('Get_token_inventory')?['access_token'])}",
+                          "x-apikey": "@parameters('BioSap-Inventory-Dev-ApiKey (orsted_BioSapInventoryDevApiKey)')",
+                          "Accept": "application/json"
+                        },
+                        "retryPolicy": {
+                          "type": "none"
+                        }
+                      },
+                      "runtimeConfiguration": {
+                        "secureData": {
+                          "properties": [
+                            "inputs"
+                          ]
+                        }
+                      }
+                    },
+                    "Set_variable_Movements": {
+                      "runAfter": {
+                        "Call_movements": [
+                          "Succeeded",
+                          "Failed",
+                          "TimedOut"
+                        ]
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "Movements",
+                        "value": {
+                          "status": "@outputs('Call_movements')?['statusCode']",
+                          "data": "@body('Call_movements')"
+                        }
+                      }
+                    }
+                  },
+                  "else": {
+                    "actions": {
+                      "Set_variable_Movements_token_error": {
+                        "runAfter": {},
+                        "type": "SetVariable",
+                        "inputs": {
+                          "name": "Movements",
+                          "value": {
+                            "status": "@outputs('Get_token_inventory')?['statusCode']",
+                            "data": "@{concat('Token for inventory management could not be fetched: ', coalesce(body('Get_token_inventory')?['error_description'], body('Get_token_inventory')?['error'], 'no answer'))}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_Movements_not_configured": {
+                    "runAfter": {},
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Movements",
+                      "value": {
+                        "status": "",
+                        "data": "Inventory management is not configured: set Current value on BioSap-Inventory-Dev-ApiKey."
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "Call_header": {
               "runAfter": {},
               "type": "Http",
@@ -887,6 +1055,12 @@
                   "Failed",
                   "TimedOut",
                   "Skipped"
+                ],
+                "Inventory_configured": [
+                  "Succeeded",
+                  "Failed",
+                  "TimedOut",
+                  "Skipped"
                 ]
               },
               "type": "Compose",
@@ -894,6 +1068,7 @@
                 "orderNumber": "@{trim(triggerBody()?['text'])}",
                 "workOrderId": "@variables('WorkOrderId')",
                 "objectId": "@variables('ObjectId')",
+                "maintenanceItem": "@{if(equals(outputs('Call_header')?['statusCode'], 200), coalesce(body('Call_header')?['maintenanceItem'], body('Call_header')?['wapos'], body('Call_header')?['maintenanceItemNumber'], ''), '')}",
                 "header": {
                   "status": "@outputs('Call_header')?['statusCode']",
                   "data": "@body('Call_header')"
@@ -931,6 +1106,7 @@
                   "data": "@body('Call_feedback')"
                 },
                 "attachments": "@variables('Attachments')",
+                "movements": "@variables('Movements')",
                 "operationTexts": "@variables('OperationTexts')"
               }
             },
